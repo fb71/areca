@@ -17,7 +17,7 @@ package areca.ui;
 import java.util.logging.Logger;
 
 import areca.ui.UIComponent.Consumer;
-import areca.ui.teavm.MainHandler;
+import areca.ui.client.teavm.MainHandler;
 
 /**
  * 

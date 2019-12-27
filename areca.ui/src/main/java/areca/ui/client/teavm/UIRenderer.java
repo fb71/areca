@@ -1,4 +1,4 @@
-/* 
+/*
  * polymap.org
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
@@ -12,44 +12,31 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.teavm;
+package areca.ui.client.teavm;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
 
+import org.teavm.jso.browser.Window;
+import org.teavm.jso.dom.html.HTMLDocument;
+
 import areca.ui.EventListener;
-import areca.ui.EventManager;
 import areca.ui.UIRenderEvent;
 
 /**
- * 
+ *
  * @author falko
  */
-public class MainHandler 
+public abstract class UIRenderer
         implements EventListener<UIRenderEvent> {
 
-    private static final Logger LOG = Logger.getLogger( MainHandler.class.getSimpleName() );
+    private static final Logger LOG = Logger.getLogger( UIRenderer.class.getSimpleName() );
 
-    private static final List<UIRenderer>   RENDERERS = Arrays.asList(
-            new UICompositeRenderer(),
-            new ButtonRenderer() );
-    
-    private static MainHandler              mainHandler;
-    
-    public static void start() {
-        assert mainHandler == null;
-        EventManager.instance().subscribe( mainHandler = new MainHandler() );
-    }
-    
-    // instance *******************************************
-    
     @Override
     public void handle( UIRenderEvent ev ) {
-        LOG.info( "MainHandler: " + ev );
-        for (UIRenderer renderer : RENDERERS) {
-            renderer.handle( ev );
-        }
+    }
+
+    protected static HTMLDocument doc() {
+        return Window.current().getDocument();
     }
 
 }

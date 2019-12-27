@@ -22,7 +22,7 @@ import org.teavm.jso.dom.html.HTMLElement;
 import areca.ui.Orientation;
 import areca.ui.UIComponent;
 import areca.ui.UIComposite;
-import areca.ui.teavm.UIComponentRenderer;
+import areca.ui.client.teavm.UIComponentRenderer;
 
 /**
  *
