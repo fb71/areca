@@ -1,0 +1,149 @@
+/*
+ * polymap.org
+ * Copyright (C) 2019, the @authors. All rights reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ */
+package areca.ui;
+
+import java.util.Optional;
+import java.util.logging.Logger;
+
+/**
+ *
+ * @author falko
+ */
+public class Property<T> {
+
+    private static final Logger LOG = Logger.getLogger( Property.class.getSimpleName() );
+
+    public static <R> Property<R> create( UIComponent component, String name ) {
+        return new Property<>( component, name );
+    }
+
+
+    // instance *******************************************
+
+    private UIComponent component;
+
+    private String      name;
+
+    private T           value;
+
+
+    protected Property( UIComponent component, String name ) {
+        this.component = component;
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Property [" + component + "." + name + "]";
+    }
+
+
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((component == null) ? 0 : component.getClass().getName().hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
+    }
+
+
+    @Override
+    public boolean equals( Object obj ) {
+        if (obj instanceof Property) {
+            Property other = (Property)obj;
+            return name.equals( other.name ); // &&
+//                    // XXX we don't know to correct Type the Property is a Field of
+//                    (component.getClass().isAssignableFrom( other.component.getClass() )
+//                    || other.component.getClass().isAssignableFrom( component.getClass() ));
+
+        }
+        return false;
+    }
+
+
+    public UIComponent component() {
+        return component;
+    }
+
+
+    public String name() {
+        return name;
+    }
+
+
+    public <R extends T> Property<R> set( T newValue ) {
+        T oldValue = value;
+        this.value = newValue;
+        EventManager.instance().publish( new PropertySetEvent( this, oldValue, newValue ) );
+        return (Property<R>)this;
+    }
+
+
+    public T get() {
+        return value;
+    }
+
+
+    public Optional<T> opt() {
+        return Optional.ofNullable( value );
+    }
+
+
+    /**
+     *
+     */
+    public static class PropertySetEvent
+            extends UIRenderEvent {
+
+        private Object oldValue;
+
+        private Object newValue;
+
+        protected PropertySetEvent( Property source, Object oldValue, Object newValue ) {
+            super( source );
+            this.oldValue = oldValue;
+            this.newValue = newValue;
+        }
+
+        @Override
+        public String toString() {
+            return "PropertySetEvent [source=" + getSource() + ", newValue=" + newValue + "]";
+        }
+
+        @Override
+        public Property getSource() {
+            return (Property)super.getSource();
+        }
+
+        public <R> R getOldValue() {
+            return (R)oldValue;
+        }
+
+        public <R> Optional<R> optOldValue() {
+            return Optional.ofNullable( (R)oldValue );
+        }
+
+        public <R> R getNewValue() {
+            return (R)newValue;
+        }
+
+        public <R> Optional<R> optNewValue() {
+            return Optional.ofNullable( (R)newValue );
+        }
+    }
+
+}
