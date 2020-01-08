@@ -88,6 +88,22 @@
         </configuration>
       </plugin>
       
+      <!-- Jetty -->
+      <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.4.25.v20191220</version>
+        <configuration>
+          <webAppSourceDirectory>${project.basedir}/target/areca-ui-0.0.1-SNAPSHOT/</webAppSourceDirectory>
+          <classesDirectory></classesDirectory>
+          <webApp>
+            <contextPath>/areca</contextPath>
+            <descriptor>${project.basedir}/target/areca-ui-0.0.1-SNAPSHOT/WEB-INF/web.xml</descriptor>
+<!--             <baseResource>${project.basedir}/target/areca-ui-0.0.1-SNAPSHOT/</baseResource> -->
+          </webApp>
+        </configuration>
+      </plugin>
+
       <!-- SASS -->
       <plugin>
         <groupId>nl.geodienstencentrum.maven</groupId>
@@ -100,8 +116,7 @@
                 <directory>${basedir}/src/main/webapp</directory>
               </source>
               <relativeOutputDirectory>..</relativeOutputDirectory>
-         <destination>${project.build.directory}/${project.build.finalName}
-             </destination>
+              <destination>${project.build.directory}/${project.build.finalName}</destination>
             </resource>
           </resources>
         </configuration>
