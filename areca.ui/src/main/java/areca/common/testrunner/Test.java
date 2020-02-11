@@ -1,6 +1,5 @@
-/* 
- * polymap.org
- * Copyright (C) 2019, the @authors. All rights reserved.
+/*
+ * Copyright (C) 2020, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,17 +11,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui;
+package areca.common.testrunner;
 
-import java.util.EventObject;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/**
- * 
- * @author falko
- */
-@FunctionalInterface
-public interface EventListener<T extends EventObject> {
-    
-    public void handle( T ev );
-    
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+
+@Documented
+@Retention(RUNTIME)
+@Target({METHOD, ElementType.FIELD})
+public @interface Test {
+
 }

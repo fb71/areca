@@ -1,5 +1,4 @@
 /*
- * polymap.org
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -16,13 +15,9 @@ package areca.ui.layout;
 
 import java.util.logging.Logger;
 
-import org.teavm.jso.browser.Window;
-import org.teavm.jso.dom.html.HTMLElement;
-
 import areca.ui.Orientation;
 import areca.ui.UIComponent;
 import areca.ui.UIComposite;
-import areca.ui.client.teavm.UIComponentRenderer;
 
 /**
  *
@@ -38,14 +33,15 @@ public class FillLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        LOG.info( "Body: " + Window.current().getDocument().getBody().getClientWidth() );
+        throw new RuntimeException( "Layout ist noch abhängig von RT/TeaVM" );
 
-        LOG.info( "Composite: clientHeight= " + UIComponentRenderer.htmlElementOf( composite ).getClientWidth() );
-
-        for (UIComponent component : composite.components()) {
-            HTMLElement elm = UIComponentRenderer.htmlElementOf( component );
-            LOG.info( "Component: " + elm.getClientWidth() + " / " + elm.getClientHeight() );
-        }
+//        LOG.info( "Body: " + Window.current().getDocument().getBody().getClientWidth() );
+//        LOG.info( "Composite: clientHeight= " + UIComponentRenderer.htmlElementOf( composite ).getClientWidth() );
+//
+//        for (UIComponent component : composite.components()) {
+//            HTMLElement elm = UIComponentRenderer.htmlElementOf( component );
+//            LOG.info( "Component: " + elm.getClientWidth() + " / " + elm.getClientHeight() );
+//        }
 
 //        Size parentSize = composite.parent().size.get();
 //

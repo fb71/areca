@@ -1,5 +1,4 @@
-/*
- * polymap.org
+/* 
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -12,31 +11,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.client.teavm;
+package areca.common.event;
 
-import java.util.logging.Logger;
-
-import org.teavm.jso.browser.Window;
-import org.teavm.jso.dom.html.HTMLDocument;
-
-import areca.ui.EventListener;
-import areca.ui.UIRenderEvent;
+import java.util.EventObject;
 
 /**
- *
+ * 
  * @author falko
  */
-public abstract class UIRenderer
-        implements EventListener<UIRenderEvent> {
-
-    private static final Logger LOG = Logger.getLogger( UIRenderer.class.getSimpleName() );
-
-    @Override
-    public void handle( UIRenderEvent ev ) {
-    }
-
-    protected static HTMLDocument doc() {
-        return Window.current().getDocument();
-    }
-
+@FunctionalInterface
+public interface EventListener<T extends EventObject> {
+    
+    public void handle( T ev );
+    
 }

@@ -1,5 +1,4 @@
 /* 
- * polymap.org
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -12,14 +11,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.client.teavm;
+package areca.rt.teavm.ui;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-import areca.ui.EventListener;
-import areca.ui.EventManager;
+import areca.common.event.EventListener;
+import areca.common.event.EventManager;
 import areca.ui.UIRenderEvent;
 
 /**

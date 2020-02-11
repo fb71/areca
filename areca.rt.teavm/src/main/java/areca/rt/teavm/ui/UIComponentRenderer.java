@@ -1,5 +1,4 @@
 /*
- * polymap.org
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -12,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.client.teavm;
+package areca.rt.teavm.ui;
 
 import java.util.logging.Logger;
 
@@ -49,18 +48,21 @@ public abstract class UIComponentRenderer<C extends UIComponent>
     public void handle( UIRenderEvent ev ) {
         super.handle( ev );
 
+        // Property set
         if (ev instanceof Property.PropertySetEvent) {
             UIComponent component = ((Property)ev.getSource()).component();
             if (componentType.isAssignableFrom( component.getClass() )) {
                 handlePropertyChange( (Property.PropertySetEvent)ev, (C)component );
             }
         }
+        // created
         else if (ev instanceof UIRenderEvent.ComponentCreated) {
             UIComponent component = ((ComponentCreated)ev).getSource();
             if (componentType.isAssignableFrom( component.getClass() )) {
                 handleComponentCreated( (ComponentCreated)ev, (C)component );
             }
         }
+        // destroyed
         else if (ev instanceof UIRenderEvent.ComponentDestroyed) {
             UIComponent component = ((ComponentDestroyed)ev).getSource();
             if (componentType.isAssignableFrom( component.getClass() )) {
@@ -83,12 +85,14 @@ public abstract class UIComponentRenderer<C extends UIComponent>
         HTMLElement elm = htmlElementOf( component );
         elm.setAttribute( "id", String.valueOf( component.id() ) );
 
+        // 'class' attribute
         StringBuilder classes = new StringBuilder( 128 );
         for (Class cl=component.getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
             classes.append( classes.length() > 0 ? " " : "" ).append( cl.getSimpleName() );
         }
         elm.setAttribute( "class", classes.toString() );
 
+        // background-color
         if (UIComponent.TYPE.bgColor.equals( ev.getSource() )) {
             LOG.info( "Color: " + ev.getNewValue() );
             elm.getStyle().setProperty( "background-color", ev.<Color>optNewValue().map(c -> c.toHex() ).orElse( null ) );
@@ -102,7 +106,7 @@ public abstract class UIComponentRenderer<C extends UIComponent>
 
 
     public static <R extends HTMLElement> R htmlElementOf( UIComponent component ) {
-        return component.data( DATA_ELM );
+        return component.getOrCreateData( DATA_ELM );
     }
 
 }

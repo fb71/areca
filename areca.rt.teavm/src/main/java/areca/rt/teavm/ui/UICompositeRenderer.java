@@ -1,5 +1,4 @@
 /*
- * polymap.org
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -12,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.client.teavm;
+package areca.rt.teavm.ui;
 
 import java.util.logging.Logger;
 
@@ -40,7 +39,7 @@ public class UICompositeRenderer
     @Override
     protected void handleComponentCreated( ComponentCreated ev, UIComposite composite ) {
         // XXX check that none exists yet
-        HTMLElement div = composite.data( DATA_ELM, () -> {
+        HTMLElement div = composite.getOrCreateData( DATA_ELM, () -> {
             HTMLElement newDiv = doc().createElement( "div" );
             // root
             if (composite.parent() == null) {
@@ -53,7 +52,7 @@ public class UICompositeRenderer
             }
         });
         assert div != null;
-        assert composite.data( DATA_ELM ) != null;
+        assert composite.getOrCreateData( DATA_ELM ) != null;
 
         super.handleComponentCreated( ev, composite );
 

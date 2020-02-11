@@ -1,5 +1,4 @@
-/* 
- * polymap.org
+/*
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -12,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui;
+package areca.common.event;
 
 import java.util.ArrayList;
 import java.util.EventObject;
@@ -28,51 +27,46 @@ import java.util.logging.Logger;
 public class EventManager {
 
     private static final Logger LOG = Logger.getLogger( EventManager.class.getSimpleName() );
-    
+
     private static final EventManager   INSTANCE = new EventManager();
-    
+
     public static EventManager instance() {
         return INSTANCE;
     }
-    
+
     // instance *******************************************
 
     private Thread                  handlerThread;
-    
+
     private Queue<Execution>        queue = new LinkedList<>();
-    
+
     private List<EventListener>     listeners = new ArrayList();
 
-    
+
     private class Execution {
-        
+
     }
 
-    
+
     protected EventManager() {
         handlerThread = new Thread( () -> {
             for (;;) {
-                
+
             }
         });
     }
-    
-    
-    public EventManager subscribe( EventListener l ) {
+
+
+    public <T extends EventObject> EventManager subscribe( EventListener<T> l ) {
         listeners.add( l );
         return this;
     }
-    
-    
+
+
     public void publish( EventObject ev ) {
         for (EventListener l : listeners) {
-            try {
-                l.handle( ev );
-            }
-            catch (ClassCastException e) {
-                LOG.warning( "EventListener: Typ passt wahrscheinlich nicht..." );
-            }
+            l.handle( ev );
         }
     }
-    
+
 }

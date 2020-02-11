@@ -1,5 +1,4 @@
 /*
- * polymap.org
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -22,6 +21,8 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
+import areca.common.event.EventListener;
+import areca.common.event.EventManager;
 import areca.ui.layout.LayoutConstraint;
 
 /**
@@ -92,17 +93,14 @@ public abstract class UIComponent {
     }
 
 
-    public <R> R data( String name, Supplier<R>... supplier ) {
+    public <R> R getOrCreateData( String name, Supplier<R>... initializer ) {
+        assert initializer.length <= 1 : "Too many initializers: " + initializer.length;
+
         return (R)data.computeIfAbsent( name, key -> {
-            if (supplier.length == 0) {
+            if (initializer.length == 0) {
                 throw new IllegalStateException( "No data for key: " + name );
             }
-            else if (supplier.length > 1) {
-                throw new IllegalArgumentException( "Too many initializers: " + supplier.length );
-            }
-            else {
-                return supplier[0].get();
-            }
+            return initializer[0].get();
         });
     }
 

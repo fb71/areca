@@ -1,5 +1,4 @@
 /*
- * polymap.org
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -12,15 +11,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.client.teavm;
+package areca.rt.teavm.ui;
 
 import java.util.logging.Logger;
 
+import org.teavm.jso.dom.events.MouseEvent;
 import org.teavm.jso.dom.html.HTMLButtonElement;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import areca.common.event.EventManager;
 import areca.ui.Button;
 import areca.ui.Property.PropertySetEvent;
+import areca.ui.SelectionEvent;
 import areca.ui.UIRenderEvent.ComponentCreated;
 
 /**
@@ -41,9 +43,13 @@ public class ButtonRenderer
     @Override
     protected void handleComponentCreated( ComponentCreated ev, Button button ) {
         // XXX check that none exists yet
-        button.data( DATA_ELM, () -> {
+        button.getOrCreateData( DATA_ELM, () -> {
             HTMLElement parentElement = htmlElementOf( button.parent() );
-            return (HTMLButtonElement) parentElement.appendChild( doc().createElement( "button" ) );
+            HTMLButtonElement elm = (HTMLButtonElement) parentElement.appendChild( doc().createElement( "button" ) );
+            elm.addEventListener( "click", (MouseEvent mev) -> {
+                EventManager.instance().publish( new SelectionEvent( button ) );
+            });
+            return elm;
         });
 
         super.handleComponentCreated( ev, button );

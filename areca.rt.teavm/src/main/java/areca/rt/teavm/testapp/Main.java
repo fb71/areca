@@ -1,47 +1,113 @@
-package areca.testapp;
+package areca.rt.teavm.testapp;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.logging.Logger;
 
-import areca.ui.App;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import org.teavm.metaprogramming.CompileTime;
+import org.teavm.metaprogramming.Meta;
+import org.teavm.metaprogramming.Metaprogramming;
+import org.teavm.metaprogramming.ReflectClass;
+import org.teavm.metaprogramming.Value;
+import org.teavm.metaprogramming.reflect.ReflectMethod;
+
+import areca.common.reflect.MethodInfo;
+import areca.common.test.AnnotationTest;
+import areca.common.testrunner.LogDecorator;
+import areca.common.testrunner.Test;
+import areca.common.testrunner.TestRunner;
+import areca.rt.teavm.reflect.TvmReflectionSupport;
+import areca.rt.teavm.ui.TeaApp;
 import areca.ui.Button;
 import areca.ui.SelectionEvent;
 import areca.ui.layout.FillLayout;
 
+/**
+ * The test app for the integration tests.
+ *
+ * @author Falko Bräutigam
+ */
+@CompileTime
 public class Main {
 
-    private static final Logger LOG = Logger.getLogger( Main.class.getSimpleName() );
+    private static final Logger LOG = Logger.getLogger( Main.class.getName() );
+
+    public static Object getFoo(Object obj) {
+        return getFooImpl(obj.getClass(), obj);
+    }
+
+    public static Object getFoo(Class<?> cl) {
+        return getFooImpl(cl, null);
+    }
+
+    @Meta
+    private static native Object getFooImpl(Class<?> cls, Object obj);
+
+    private static void getFooImpl(ReflectClass<Object> cl, Value<Object> obj) {
+        System.out.println( "META! ---- " + cl );
+        for (ReflectMethod m : cl.getMethods()) {
+            System.out.println( "    " + m.getName() );
+            if (m.getName().equals( "test" )) {
+                System.out.println( "        :: " + m.getAnnotation( Test.class ).annotationType() );
+            }
+        }
+        Metaprogramming.exit(() -> {
+            return Arrays.asList( new Flyweight( 1 ) );
+        });
+
+//        ReflectField field = cl.getField("a");
+//        if (field != null) {
+//            Metaprogramming.exit(() -> field.get(obj));
+//        } else {
+//            Metaprogramming.exit(() -> null);
+//        }
+    }
+
+    @Test
+    public void test() {}
 
     /**
      *
      */
     public static void main( String[] args ) throws Exception {
-//        HTMLDocument doc = HTMLDocument.current();
-//
-//        HTMLElement div = doc.createElement( "div" );
-//        div.getStyle().setProperty( "position", "absolute" );
-//        div.getStyle().setProperty( "left", "100px" );
-//        div.getStyle().setProperty( "transition", "left 1s ease-in-out, background-color 1s ease-in-out" );
-//        div.appendChild( doc.createTextNode( "Teatest2: TeaVM generated element!" ) );
-//
-//        div.appendChild( doc.createElement( "button", (HTMLElement btn) -> {
-//            ((HTMLButtonElement)btn).setNodeValue( "Button" );
-//            btn.appendChild(doc.createTextNode("...") );
-//            btn.addEventListener( "click", (MouseEvent ev) -> {
-//                LOG.info( "clicked: " + ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
-//                div.getStyle().setProperty( "left", "200px" );
-////                btn.getStyle().setProperty( "transition", "background-color 1s ease-in-out" );
-////                btn.getStyle().setProperty( "background-color", "#808080" );
-//            });
-//        }));
-//
-//        doc.getBody().appendChild( div );
+//        System.out.println( getFoo( new Main() ) );
+//        System.out.println( getFoo( Flyweight.class ) );
+
+//        for (Class<?> cl : Tests.all()) {
+//            System.out.println( getFoo( cl ) );
+//        }
+
+        TvmReflectionSupport.init();
+        for (MethodInfo m : TvmReflectionSupport.instance().methodsOf( AnnotationTest.class ).values()) {
+            System.out.println( m.name() );
+        }
+
+        for (Method m : AnnotationTest.class.getMethods()) {
+            LOG.info( "-Method: " + m.getName() + " -> @: " + m.getAnnotations() );
+        }
+        for (Field f : AnnotationTest.class.getDeclaredFields()) {
+            LOG.info( "-Field: " + f.getName() + " -> @: " + f.getDeclaredAnnotations() );
+        }
+
+        //ReflectionSupplier
+
+        new TestRunner()
+                .addTests( areca.common.test.Tests.all() )
+                .addDecorators( LogDecorator.class )
+                .run();
+
+  //      CLOG.info( "Commons logging..." );
+
+        //EntityRepository repo = EntityRepository.newConfiguration().create();
 
         //assert false : "Sehe ich das hier?";
 
         try {
-            App.instance().createUI( self -> {
+            TeaApp.instance().createUI( self -> {
                 self.layoutManager.set( new FillLayout() );
                 // Button1
                 self.create( Button.class, btn -> {
@@ -144,6 +210,15 @@ public class Main {
     protected static void log( String msg ) {
         //System.out.println( "[INFO]: " + msg );
         LOG.info( msg );
+    }
+
+    public static void log2( Object... parts ) {
+        System.out.println( "log() ..." );
+        for (Object part : parts) {
+            System.out.print( part.toString() );
+        }
+        Arrays.stream( parts ).forEach( part -> System.out.print( part.toString() ) );
+        System.out.println();
     }
 
 }

@@ -1,5 +1,4 @@
-/* 
- * polymap.org
+/*
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -14,51 +13,14 @@
  */
 package areca.ui;
 
-import java.util.logging.Logger;
-
 import areca.ui.UIComponent.Consumer;
-import areca.ui.client.teavm.MainHandler;
 
 /**
- * 
+ *
  * @author falko
  */
-public class App {
+public abstract class App {
 
-    private static final Logger LOG = Logger.getLogger( App.class.getSimpleName() );
+    public abstract <E extends Exception> UIComposite createUI( Consumer<UIComposite,E>... initializer ) throws E;
 
-    private static final App    INSTANCE = new App();
-    
-    public static App instance() {
-        return INSTANCE;
-    }
-    
-    // instance *******************************************
-    
-    private RootWindow           rootWindow;
-    
-    
-    public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E>... initializer ) throws E {
-        MainHandler.start();
-        
-        assert rootWindow == null;
-        rootWindow = new RootWindow();
-        rootWindow.init( null );
-        
-        assert initializer.length < 2;
-        if (initializer.length == 1) {
-            initializer[0].perform( rootWindow );
-        }
-        return rootWindow;
-    }
-    
-
-    /**
-     * 
-     */
-    protected class RootWindow
-            extends UIComposite {
-        
-    }
-    
 }

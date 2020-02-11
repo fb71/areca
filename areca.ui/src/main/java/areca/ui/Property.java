@@ -1,5 +1,4 @@
 /*
- * polymap.org
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -16,6 +15,8 @@ package areca.ui;
 
 import java.util.Optional;
 import java.util.logging.Logger;
+
+import areca.common.event.EventManager;
 
 /**
  *
