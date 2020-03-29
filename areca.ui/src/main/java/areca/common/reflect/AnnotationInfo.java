@@ -13,12 +13,14 @@
  */
 package areca.common.reflect;
 
+import java.lang.annotation.Annotation;
+
 /**
  *
  * @author Falko Bräutigam
  */
-public interface Named {
+public abstract class AnnotationInfo
+        implements Annotation {
 
-    public String name();
-
+    //public abstract Class annotationType();
 }

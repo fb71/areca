@@ -13,11 +13,43 @@
  */
 package areca.common.reflect;
 
+import java.util.Optional;
+
+import java.lang.annotation.Annotation;
+
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class MethodInfo
+public class MethodInfo
         implements Named, Annotated {
+
+    @Override
+    public String name() {
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+    @Override
+    public <R extends AnnotationInfo> Optional<R> annotation( R type ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+    @Override
+    public <R extends Annotation> Optional<R> annotation( Class<R> type ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+    public void invoke( Object obj, Object... params ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+    //@Override
+//    public <R extends AnnotationInfo> Optional<R> annotation( Class<R> type ) {
+//        // XXX Auto-generated method stub
+//        throw new RuntimeException( "not yet implemented." );
+//    }
 
 }

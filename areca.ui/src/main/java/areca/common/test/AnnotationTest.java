@@ -28,8 +28,9 @@ import areca.common.testrunner.Test;
 
 public class AnnotationTest {
 
-    @Annotation1
-    @Test
+    public static final AnnotationTestClassInfo INFO = AnnotationTestClassInfo.INFO;
+
+//    @Annotation1
     public String test;
 
     @Test
@@ -41,15 +42,15 @@ public class AnnotationTest {
 
 
     /** */
-    @Annotation1
+//    @Annotation1
     static class Annotated
             extends AnnotatedBase
             implements AnnotatedInterface {
 
-        @Annotation1("s1")
+//        @Annotation1("s1")
         private String      s1;
 
-        @Annotation1
+//        @Annotation1
         public void m1() {
         }
     }

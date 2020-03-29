@@ -27,4 +27,5 @@ import java.lang.annotation.Target;
 @Target({METHOD, ElementType.FIELD})
 public @interface Test {
 
+    public String value() default "";
 }

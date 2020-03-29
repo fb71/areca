@@ -11,14 +11,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.reflect;
+package areca.common.test;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public interface Named {
-
-    public String name();
+public class ParameterInfo {
 
 }

@@ -21,6 +21,10 @@ import java.util.stream.Collectors;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import areca.common.reflect.AnnotationInfo;
+import areca.common.reflect.ClassInfo;
+import areca.common.reflect.MethodInfo;
+
 /**
  * Very simple test framework.
  * <p>
@@ -49,16 +53,16 @@ public class TestRunner {
 
     /** */
     public static class TestMethod {
-        private Method      m;
-        private Annotation  a;
+        private MethodInfo      m;
+        private AnnotationInfo  a;
 
-        public TestMethod( Method m ) {
+        public TestMethod( MethodInfo m ) {
             this.m = m;
-            this.a = m.getAnnotation( Test.class );
+            this.a = m.annotation( TestAnnotationInfo.INFO ).get();
         }
 
         public String name() {
-            return m.getName();
+            return m.name();
         }
     }
 
@@ -94,31 +98,31 @@ public class TestRunner {
 
     // instrance ******************************************
 
-    private List<Class>                         testClasses = new ArrayList<>( 128 );
+    private List<ClassInfo<?>>                  testTypes = new ArrayList<>( 128 );
 
-    private List<Class<? extends Decorator>>    decoratorClasses = new ArrayList<>( 128 );
+    private List<ClassInfo<? extends Decorator>>    decoratorTypes = new ArrayList<>( 128 );
 
     private List<TestResult>                    testResults = new ArrayList<>( 128 );
 
 
-    public TestRunner addTests( Class... newTests ) {
-        testClasses.addAll( Arrays.asList( newTests ) );
+    public TestRunner addTests( ClassInfo<?>... tests ) {
+        testTypes.addAll( Arrays.asList( tests ) );
         return this;
     }
 
 
-    public TestRunner addDecorators( Class<? extends Decorator> cls ) {
-        decoratorClasses.addAll( Arrays.asList( cls ) );
+    public TestRunner addDecorators( ClassInfo<? extends Decorator> decorators ) {
+        decoratorTypes.addAll( Arrays.asList( decorators ) );
         return this;
     }
 
 
     public void run() {
-        List<Decorator> decorators = decoratorClasses.stream().map( cl -> instantiate( cl ) ).collect( Collectors.toList() );
+        List<Decorator> decorators = decoratorTypes.stream().map( cl -> instantiate( cl ) ).collect( Collectors.toList() );
 
         // all test classes
         decorators.forEach( d -> d.preRun( this ) );
-        for (Class cl : testClasses) {
+        for (ClassInfo<?> cl : testTypes) {
             Object test = instantiate( cl );
 
             // all test methods
@@ -147,7 +151,7 @@ public class TestRunner {
 
 
     @SuppressWarnings("deprecation")
-    protected <R> R instantiate( Class<R> cl ) {
+    protected <R> R instantiate( ClassInfo<R> cl ) {
         try {
             return cl.newInstance();
         }
@@ -158,9 +162,9 @@ public class TestRunner {
     }
 
 
-    protected List<TestMethod> findTestMethods( Class cl ) {
-        return Arrays.stream( cl.getMethods() )
-                .filter( m -> m.getAnnotation( Test.class ) != null)
+    protected List<TestMethod> findTestMethods( ClassInfo<?> cl ) {
+        return cl.methods().stream()
+                .filter( m -> m.annotation( Test.class ).isPresent())
                 .map( m -> new TestMethod( m ) )
                 .collect( Collectors.toList() );
     }

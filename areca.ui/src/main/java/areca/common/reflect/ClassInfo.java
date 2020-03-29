@@ -14,21 +14,68 @@
 package areca.common.reflect;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
+
+import java.lang.annotation.Annotation;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class ClassInfo
+public abstract class ClassInfo<T>
         implements Named, Annotated {
 
     private static final Logger LOG = Logger.getLogger( ClassInfo.class.getName() );
 
-    public static ClassInfo of( Class<?> cl ) {
+    public static <R> ClassInfo<R> of( Class<R> cl ) {
+        throw new RuntimeException( "not yet implemented." );
     }
+
 
     // instance *******************************************
 
-    public abstract List<MethodInfo> methods();
+    protected Class<T>              cl;
+
+    protected List<MethodInfo>      methods;
+
+    protected List<AnnotationInfo>  annotations;
+
+
+    public Class<T> type() {
+        return cl;
+    }
+
+
+    @Override
+    public String name() {
+        return cl.getName();
+    }
+
+
+    public T newInstance() throws InstantiationException, IllegalAccessException {
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+    @Override
+    public <R extends AnnotationInfo> Optional<R> annotation( R type ) {
+        return annotations.stream()
+                .filter( a -> a.equals( type ) )
+                .map( a -> (R)a )
+                .findAny();
+    }
+
+
+    @Override
+    public <R extends Annotation> Optional<R> annotation( Class<R> type ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+    public List<MethodInfo> methods() {
+        return methods;
+    }
+
 }

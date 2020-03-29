@@ -59,7 +59,7 @@ public abstract class UIComponent {
     protected void init( UIComposite newParent ) {
         this.parent = newParent;
         EventManager.instance().publish( new UIRenderEvent.ComponentCreated( this ) );
-        layoutConstraints.set( new ArrayList() );
+        layoutConstraints.set( new ArrayList<>() );
     }
 
 
@@ -84,6 +84,7 @@ public abstract class UIComponent {
     }
 
 
+    @SuppressWarnings("unchecked")
     public <T extends EventObject> void subscribe( EventListener<T> l ) {
         EventManager.instance().subscribe( (EventObject ev) -> {
             if (ev.getSource() == UIComponent.this) {
@@ -93,6 +94,7 @@ public abstract class UIComponent {
     }
 
 
+    @SuppressWarnings("unchecked")
     public <R> R getOrCreateData( String name, Supplier<R>... initializer ) {
         assert initializer.length <= 1 : "Too many initializers: " + initializer.length;
 

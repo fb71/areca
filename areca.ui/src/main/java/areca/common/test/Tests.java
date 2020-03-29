@@ -13,16 +13,18 @@
  */
 package areca.common.test;
 
+import areca.common.reflect.ClassInfo;
+
 /**
  *
  * @author Falko Bräutigam
  */
 public class Tests {
 
-    public static Class[] all() {
-        return new Class[] {
-                AnnotationTest.class,
-                AssertTest.class
+    public static ClassInfo[] all() {
+        return new ClassInfo[] {
+                AnnotationTestClassInfo.INFO
+                //AssertTest.class
         };
     }
 

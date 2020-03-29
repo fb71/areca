@@ -23,6 +23,8 @@ import java.lang.annotation.Annotation;
  */
 public interface Annotated {
 
-    public abstract <R> Optional<R> annotation( Class<? extends Annotation> type );
+    public abstract <R extends AnnotationInfo> Optional<R> annotation( R type );
+
+    public abstract <R extends Annotation> Optional<R> annotation( Class<R> type );
 
 }
