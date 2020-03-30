@@ -24,9 +24,11 @@ import java.lang.annotation.Annotation;
 public class MethodInfo
         implements Named, Annotated {
 
+    public String           name;
+
     @Override
     public String name() {
-        throw new RuntimeException( "not yet implemented." );
+        return name;
     }
 
     @Override

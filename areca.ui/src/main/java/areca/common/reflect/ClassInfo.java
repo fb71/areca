@@ -35,27 +35,15 @@ public abstract class ClassInfo<T>
 
     // instance *******************************************
 
-    protected Class<T>              cl;
-
     protected List<MethodInfo>      methods;
 
     protected List<AnnotationInfo>  annotations;
 
 
-    public Class<T> type() {
-        return cl;
-    }
+    public abstract Class<T> type();
 
 
-    @Override
-    public String name() {
-        return cl.getName();
-    }
-
-
-    public T newInstance() throws InstantiationException, IllegalAccessException {
-        throw new RuntimeException( "not yet implemented." );
-    }
+    public abstract T newInstance() throws InstantiationException, IllegalAccessException;
 
 
     @Override

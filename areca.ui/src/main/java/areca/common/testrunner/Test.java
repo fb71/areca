@@ -13,7 +13,6 @@
  */
 package areca.common.testrunner;
 
-import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
@@ -24,7 +23,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RUNTIME)
-@Target({METHOD, ElementType.FIELD})
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
 public @interface Test {
 
     public String value() default "";

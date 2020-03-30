@@ -25,7 +25,7 @@ import areca.common.testrunner.Test;
  *
  * @author falko
  */
-
+@Test("t1")
 public class AnnotationTest {
 
     public static final AnnotationTestClassInfo INFO = AnnotationTestClassInfo.INFO;
