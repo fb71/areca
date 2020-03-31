@@ -13,9 +13,7 @@
  */
 package areca.common.reflect;
 
-import java.util.Optional;
-
-import java.lang.annotation.Annotation;
+import java.util.List;
 
 /**
  *
@@ -24,34 +22,31 @@ import java.lang.annotation.Annotation;
 public class MethodInfo
         implements Named, Annotated {
 
-    public String           name;
+    public String                   name;
+
+    public List<AnnotationInfo>     annotations;
+
+
+    @Override
+    public String toString() {
+        return "MethodInfo[name=" + name + "]";
+    }
+
 
     @Override
     public String name() {
         return name;
     }
 
-    @Override
-    public <R extends AnnotationInfo> Optional<R> annotation( R type ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
-    }
 
     @Override
-    public <R extends Annotation> Optional<R> annotation( Class<R> type ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public List<AnnotationInfo> annotations() {
+        return annotations;
     }
+
 
     public void invoke( Object obj, Object... params ) {
-        // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
-
-    //@Override
-//    public <R extends AnnotationInfo> Optional<R> annotation( Class<R> type ) {
-//        // XXX Auto-generated method stub
-//        throw new RuntimeException( "not yet implemented." );
-//    }
 
 }

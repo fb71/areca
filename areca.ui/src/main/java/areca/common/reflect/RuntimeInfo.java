@@ -13,24 +13,19 @@
  */
 package areca.common.reflect;
 
-import java.util.Map;
-import java.util.logging.Logger;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class ReflectionSupport {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.TYPE})
+public @interface RuntimeInfo {
 
-    private static final Logger LOG = Logger.getLogger( ReflectionSupport.class.getName() );
-
-    protected static ReflectionSupport       instance;
-
-    public static ReflectionSupport instance() {
-        return instance;
-    }
-
-    // instance *******************************************
-
-    public abstract Map<String,MethodInfo> methodsOf( Class<?> cl );
 }

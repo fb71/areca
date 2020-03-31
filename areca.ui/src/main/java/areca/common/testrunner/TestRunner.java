@@ -18,9 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-
 import areca.common.reflect.AnnotationInfo;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.MethodInfo;
@@ -150,7 +147,6 @@ public class TestRunner {
     }
 
 
-    @SuppressWarnings("deprecation")
     protected <R> R instantiate( ClassInfo<R> cl ) {
         try {
             return cl.newInstance();
@@ -163,8 +159,10 @@ public class TestRunner {
 
 
     protected List<TestMethod> findTestMethods( ClassInfo<?> cl ) {
+        System.out.println( "TEST METHODS  of: " + cl.name() + " (" + cl.methods().size() + ")" );
         return cl.methods().stream()
-                .filter( m -> m.annotation( Test.class ).isPresent())
+                .peek( m -> System.out.println( "    " + m ) )
+                .filter( m -> m.annotation( TestAnnotationInfo.INFO ).isPresent())
                 .map( m -> new TestMethod( m ) )
                 .collect( Collectors.toList() );
     }

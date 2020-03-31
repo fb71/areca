@@ -5,9 +5,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.logging.Logger;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import org.teavm.metaprogramming.CompileTime;
 import org.teavm.metaprogramming.Meta;
 import org.teavm.metaprogramming.Metaprogramming;
@@ -15,12 +12,9 @@ import org.teavm.metaprogramming.ReflectClass;
 import org.teavm.metaprogramming.Value;
 import org.teavm.metaprogramming.reflect.ReflectMethod;
 
-import areca.common.reflect.MethodInfo;
-import areca.common.test.AnnotationTest;
-import areca.common.testrunner.LogDecorator;
+import areca.common.testrunner.LogDecoratorClassInfo;
 import areca.common.testrunner.Test;
 import areca.common.testrunner.TestRunner;
-import areca.rt.teavm.reflect.TvmReflectionSupport;
 import areca.rt.teavm.ui.TeaApp;
 import areca.ui.Button;
 import areca.ui.SelectionEvent;
@@ -81,23 +75,23 @@ public class Main {
 //            System.out.println( getFoo( cl ) );
 //        }
 
-        TvmReflectionSupport.init();
-        for (MethodInfo m : TvmReflectionSupport.instance().methodsOf( AnnotationTest.class ).values()) {
-            System.out.println( m.name() );
-        }
-
-        for (Method m : AnnotationTest.class.getMethods()) {
-            LOG.info( "-Method: " + m.getName() + " -> @: " + m.getAnnotations() );
-        }
-        for (Field f : AnnotationTest.class.getDeclaredFields()) {
-            LOG.info( "-Field: " + f.getName() + " -> @: " + f.getDeclaredAnnotations() );
-        }
+//        TvmReflectionSupport.init();
+//        for (MethodInfo m : TvmReflectionSupport.instance().methodsOf( AnnotationTest.class ).values()) {
+//            System.out.println( m.name() );
+//        }
+//
+//        for (Method m : AnnotationTest.class.getMethods()) {
+//            LOG.info( "-Method: " + m.getName() + " -> @: " + m.getAnnotations() );
+//        }
+//        for (Field f : AnnotationTest.class.getDeclaredFields()) {
+//            LOG.info( "-Field: " + f.getName() + " -> @: " + f.getDeclaredAnnotations() );
+//        }
 
         //ReflectionSupplier
 
         new TestRunner()
                 .addTests( areca.common.test.Tests.all() )
-                .addDecorators( LogDecorator.class )
+                .addDecorators( LogDecoratorClassInfo.INFO )
                 .run();
 
   //      CLOG.info( "Commons logging..." );

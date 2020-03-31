@@ -15,6 +15,7 @@ package areca.common.testrunner;
 
 import java.util.logging.Logger;
 
+import areca.common.reflect.RuntimeInfo;
 import areca.common.testrunner.TestRunner.Decorator;
 import areca.common.testrunner.TestRunner.TestMethod;
 
@@ -23,6 +24,7 @@ import areca.common.testrunner.TestRunner.TestMethod;
  *
  * @author Falko Bräutigam
  */
+@RuntimeInfo
 public class LogDecorator
         extends Decorator {
 

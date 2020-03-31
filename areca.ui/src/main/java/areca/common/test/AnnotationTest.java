@@ -33,7 +33,7 @@ public class AnnotationTest {
 //    @Annotation1
     public String test;
 
-    @Test
+    @Test("t2")
     public void declaredSuperTest() {
         for (Class cl=Annotated.class; cl!=null; cl=cl.getSuperclass()) {
 

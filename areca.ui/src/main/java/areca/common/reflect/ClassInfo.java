@@ -14,10 +14,7 @@
 package areca.common.reflect;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Logger;
-
-import java.lang.annotation.Annotation;
 
 /**
  *
@@ -35,9 +32,9 @@ public abstract class ClassInfo<T>
 
     // instance *******************************************
 
-    protected List<MethodInfo>      methods;
+    private List<MethodInfo>        methods;
 
-    protected List<AnnotationInfo>  annotations;
+    private List<AnnotationInfo>    annotations;
 
 
     public abstract Class<T> type();
@@ -47,23 +44,32 @@ public abstract class ClassInfo<T>
 
 
     @Override
-    public <R extends AnnotationInfo> Optional<R> annotation( R type ) {
-        return annotations.stream()
-                .filter( a -> a.equals( type ) )
-                .map( a -> (R)a )
-                .findAny();
+    public List<AnnotationInfo> annotations() {
+        if (annotations == null) {
+            synchronized (this) {
+                if (annotations == null) {
+                    annotations = createAnnotations();
+                }
+            }
+        }
+        return annotations;
     }
 
 
-    @Override
-    public <R extends Annotation> Optional<R> annotation( Class<R> type ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
-    }
+    protected abstract List<AnnotationInfo> createAnnotations();
 
 
     public List<MethodInfo> methods() {
+        if (methods == null) {
+            synchronized (this) {
+                if (methods == null) {
+                    methods = createMethods();
+                }
+            }
+        }
         return methods;
     }
 
+
+    protected abstract List<MethodInfo> createMethods();
 }

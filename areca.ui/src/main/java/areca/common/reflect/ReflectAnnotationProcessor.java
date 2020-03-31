@@ -14,6 +14,7 @@
 package areca.common.reflect;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -63,17 +64,21 @@ public class ReflectAnnotationProcessor
         }
 
         try {
+            Set<Element> annotatedElements = new HashSet<>();
+            Set<TypeElement> processedAnnotations = new HashSet<>();
+
             for (TypeElement annotation : annotations) {
                 if (!annotation.getQualifiedName().toString().startsWith( "java." )) {
-                    // create Annotations
                     createAnnotationInfo( annotation );
+                    processedAnnotations.add( annotation );
+                    annotatedElements.addAll( roundEnv.getElementsAnnotatedWith( annotation ) );
+                }
+            }
 
-                    // create ClassInfos
-                    for (Element annotated : roundEnv.getElementsAnnotatedWith( annotation )) {
-                        if (annotated instanceof TypeElement) {
-                            createClassInfo( (TypeElement)annotated );
-                        }
-                    }
+            // create ClassInfos
+            for (Element annotated : annotatedElements) {
+                if (annotated instanceof TypeElement) {
+                    createClassInfo( (TypeElement)annotated, processedAnnotations );
                 }
             }
         }
@@ -84,7 +89,7 @@ public class ReflectAnnotationProcessor
     }
 
 
-    protected void createClassInfo( TypeElement type ) throws IOException {
+    protected void createClassInfo( TypeElement type, Set<TypeElement> processedAnnotations ) throws IOException {
         log( "Annotated class: ", type );
 
         String packageName = StringUtils.substringBeforeLast( type.getQualifiedName().toString(), "." );
@@ -124,30 +129,26 @@ public class ReflectAnnotationProcessor
                 .addStatement( "return new $T()", type )
                 .build() );
 
-        // annotations()
-        ParameterizedTypeName annotationListType = ParameterizedTypeName.get( ClassName.get( List.class ), ClassName.get( AnnotationInfo.class ) );
-        classBuilder.addField( FieldSpec.builder( annotationListType, "annotations", Modifier.PRIVATE ).build() );
-        classBuilder.addMethod( MethodSpec.methodBuilder( "annotations" )
+        // createAnnotations()
+        MethodSpec.Builder createAnnotations = MethodSpec.methodBuilder( "createAnnotations" )
                 .addModifiers( Modifier.PROTECTED )
-                .returns( annotationListType )
-                .addCode( "if (annotations==null) {" )
-                .addCode( "    annotations = doAnnotations();" )
-                .addCode( "}" )
-                .addStatement( "return annotations" )
-                .build() );
-
-        MethodSpec.Builder doAnnotations = MethodSpec.methodBuilder( "doAnnotations" )
-                .addModifiers( Modifier.PRIVATE )
                 .returns( ParameterizedTypeName.get( ClassName.get( List.class ), ClassName.get( AnnotationInfo.class ) ) )
                 .addStatement( "List<AnnotationInfo> result = new $T<>()", ArrayList.class );
         for (AnnotationMirror am : processingEnv.getElementUtils().getAllAnnotationMirrors( type )) {
-            doAnnotations.addCode( "result.add( " ).addCode( createAnnotation( am ) ).addCode( " );\n" );
+            if (processedAnnotations.contains( am.getAnnotationType().asElement() )) {
+                createAnnotations.addCode( "result.add( " ).addCode( createAnnotation( am ) ).addCode( " );\n" );
+            }
         }
-        doAnnotations.addStatement( "return result", type.getSimpleName() );
-        classBuilder.addMethod( doAnnotations.build() );
+        createAnnotations.addStatement( "return result" );
+        classBuilder.addMethod( createAnnotations.build() );
 
 
         // methods
+        MethodSpec.Builder createMethods = MethodSpec.methodBuilder( "createMethods" )
+                .addModifiers( Modifier.PROTECTED )
+                .returns( ParameterizedTypeName.get( ClassName.get( List.class ), ClassName.get( MethodInfo.class ) ) )
+                .addStatement( "List<MethodInfo> result = new ArrayList<>()" );
+
         for (Element element : type.getEnclosedElements()) {
             if (element instanceof ExecutableElement) {
                 ExecutableElement methodElm = (ExecutableElement)element;
@@ -157,19 +158,29 @@ public class ReflectAnnotationProcessor
                     log( "        no annotation.");
                     continue;
                 }
-//                String fieldName = "_"+methodElm.getSimpleName().toString();
-//                classBuilder.addField( FieldSpec.builder(fieldType, fieldName, Modifier.PUBLIC )
-//                        .initializer( "$L", methodElm.getDefaultValue() )
-//                        .build() );
-                classBuilder.addMethod( MethodSpec.methodBuilder( methodElm.getSimpleName().toString() + "MethodInfo" )
+
+                String methodName = methodElm.getSimpleName().toString() + "MethodInfo";
+                MethodSpec.Builder m = MethodSpec.methodBuilder( methodName )
                         .addModifiers( Modifier.PUBLIC )
-                        .returns( MethodInfo.class )
-                        .addStatement( "MethodInfo result = new MethodInfo()" )
-                        .addStatement( "result.name = $S", methodElm.getSimpleName() )
-                        .addStatement( "return result" )
-                        .build() );
+                        .returns( MethodInfo.class );
+                m.addStatement( "MethodInfo result = new MethodInfo()" );
+                m.addStatement( "result.name = $S", methodElm.getSimpleName() );
+
+                // annotations
+                m.addStatement( "result.annotations = new $T<>()", ArrayList.class );
+                for (AnnotationMirror am : processingEnv.getElementUtils().getAllAnnotationMirrors( methodElm )) {
+                    if (processedAnnotations.contains( am.getAnnotationType().asElement() )) {
+                        m.addCode( "result.annotations.add( " ).addCode( createAnnotation( am ) ).addCode( " );\n" );
+                    }
+                }
+                m.addStatement( "return result" );
+                classBuilder.addMethod( m.build() );
+
+                createMethods.addStatement( "result.add( $L() )", methodName );
             }
         }
+        createMethods.addStatement( "return result" );
+        classBuilder.addMethod( createMethods.build() );
 
         // file
         log( "package: " + packageName );

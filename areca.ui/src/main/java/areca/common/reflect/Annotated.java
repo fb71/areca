@@ -13,6 +13,7 @@
  */
 package areca.common.reflect;
 
+import java.util.List;
 import java.util.Optional;
 
 import java.lang.annotation.Annotation;
@@ -23,8 +24,20 @@ import java.lang.annotation.Annotation;
  */
 public interface Annotated {
 
-    public abstract <R extends AnnotationInfo> Optional<R> annotation( R type );
+    public abstract List<AnnotationInfo> annotations();
 
-    public abstract <R extends Annotation> Optional<R> annotation( Class<R> type );
+
+    public default <R extends AnnotationInfo> Optional<R> annotation( R type ) {
+        return annotations().stream()
+                .filter( a -> a.equals( type ) )
+                .map( a -> (R)a )
+                .findAny();
+    }
+
+
+    public default <R extends Annotation> Optional<R> annotation( Class<R> type ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
 
 }
