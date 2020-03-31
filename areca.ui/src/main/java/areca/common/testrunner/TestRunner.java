@@ -163,6 +163,7 @@ public class TestRunner {
         return cl.methods().stream()
                 .peek( m -> System.out.println( "    " + m ) )
                 .filter( m -> m.annotation( TestAnnotationInfo.INFO ).isPresent())
+                .peek( m -> System.out.println( "    " + m ) )
                 .map( m -> new TestMethod( m ) )
                 .collect( Collectors.toList() );
     }

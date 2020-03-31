@@ -19,12 +19,12 @@ import java.util.List;
  *
  * @author Falko Bräutigam
  */
-public class MethodInfo
+public abstract class MethodInfo
         implements Named, Annotated {
 
-    public String                   name;
+    protected String                   name;
 
-    public List<AnnotationInfo>     annotations;
+    protected List<AnnotationInfo>     annotations;
 
 
     @Override
@@ -45,8 +45,6 @@ public class MethodInfo
     }
 
 
-    public void invoke( Object obj, Object... params ) {
-        throw new RuntimeException( "not yet implemented." );
-    }
+    public abstract void invoke( Object obj, Object... params );
 
 }

@@ -14,6 +14,7 @@
 package areca.common.reflect;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -33,6 +34,8 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.squareup.javapoet.ClassName;
@@ -163,17 +166,27 @@ public class ReflectAnnotationProcessor
                 MethodSpec.Builder m = MethodSpec.methodBuilder( methodName )
                         .addModifiers( Modifier.PUBLIC )
                         .returns( MethodInfo.class );
-                m.addStatement( "MethodInfo result = new MethodInfo()" );
-                m.addStatement( "result.name = $S", methodElm.getSimpleName() );
+                m.addCode( "return new MethodInfo() {{\n" );
+                m.addStatement( "  name = $S", methodElm.getSimpleName() );
 
                 // annotations
-                m.addStatement( "result.annotations = new $T<>()", ArrayList.class );
+                m.addCode( "  annotations = $T.asList(\n", Arrays.class );
+                int c1 = 0;
                 for (AnnotationMirror am : processingEnv.getElementUtils().getAllAnnotationMirrors( methodElm )) {
                     if (processedAnnotations.contains( am.getAnnotationType().asElement() )) {
-                        m.addCode( "result.annotations.add( " ).addCode( createAnnotation( am ) ).addCode( " );\n" );
+                        m.addCode( c1++ > 0 ? ",\n" :  "" ).addCode( "    " + createAnnotation( am ) );
                     }
                 }
-                m.addStatement( "return result" );
+                m.addCode( "  );\n  }\n" );
+                m.addCode( "  public void invoke( Object obj, Object... params ) {\n" );
+                m.addCode( "    (($T)obj).$L(", type, methodElm.getSimpleName() );
+                int c2 = 0;
+                for (VariableElement paramElement : methodElm.getParameters()) {
+                    m.addCode( "($T)params[$L]", paramElement.asType(), c2++ );
+                }
+                m.addCode( ");\n", type, methodElm.getSimpleName() );
+                m.addCode( "  }\n" );
+                m.addCode( "};\n" );
                 classBuilder.addMethod( m.build() );
 
                 createMethods.addStatement( "result.add( $L() )", methodName );

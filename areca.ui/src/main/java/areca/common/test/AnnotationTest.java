@@ -13,6 +13,8 @@
  */
 package areca.common.test;
 
+import java.util.logging.Logger;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -28,6 +30,8 @@ import areca.common.testrunner.Test;
 @Test("t1")
 public class AnnotationTest {
 
+    private static final Logger LOG = Logger.getLogger( AnnotationTest.class.getSimpleName() );
+
     public static final AnnotationTestClassInfo INFO = AnnotationTestClassInfo.INFO;
 
 //    @Annotation1
@@ -35,6 +39,8 @@ public class AnnotationTest {
 
     @Test("t2")
     public void declaredSuperTest() {
+        System.out.println( "    " + "declaredSuperTest()" );
+        LOG.info( INFO.declaredSuperTestMethodInfo().name() + " ..." );
         for (Class cl=Annotated.class; cl!=null; cl=cl.getSuperclass()) {
 
         }

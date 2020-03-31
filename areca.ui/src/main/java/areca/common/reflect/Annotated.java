@@ -29,7 +29,7 @@ public interface Annotated {
 
     public default <R extends AnnotationInfo> Optional<R> annotation( R type ) {
         return annotations().stream()
-                .filter( a -> a.equals( type ) )
+                .filter( a -> type.annotationType().isAssignableFrom( a.annotationType() ) )
                 .map( a -> (R)a )
                 .findAny();
     }
