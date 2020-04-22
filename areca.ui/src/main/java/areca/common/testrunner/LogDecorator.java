@@ -30,6 +30,8 @@ public class LogDecorator
 
     private static final Logger LOG = Logger.getLogger( LogDecorator.class.getSimpleName() );
 
+    private long                methodStart;
+
     @Override
     public void preRun( TestRunner runner ) {
         LOG.info( "Running tests..." );
@@ -42,16 +44,18 @@ public class LogDecorator
 
     @Override
     public void preTest( Object test ) {
-        LOG.info( "===< " + test.getClass().getName() + " >=========" );
+        LOG.info( "===[ " + test.getClass().getName() + " ]=========" );
     }
 
     @Override
     public void preTestMethod( TestMethod m ) {
-        LOG.info( "---< " + m.name() + "() >---------" );
+        LOG.info( "---[ " + m.name() + " ]---------" );
+        methodStart = System.currentTimeMillis();
     }
 
     @Override
     public void postTestMethod( TestMethod m ) {
+        LOG.info( ">>> " + m.name() + ": pass (" + (System.currentTimeMillis() - methodStart) + "ms)" );
     }
 
 }

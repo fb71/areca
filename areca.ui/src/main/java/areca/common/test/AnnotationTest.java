@@ -20,6 +20,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.ref.WeakReference;
 
 import areca.common.testrunner.Test;
 
@@ -34,8 +35,26 @@ public class AnnotationTest {
 
     public static final AnnotationTestClassInfo INFO = AnnotationTestClassInfo.INFO;
 
-//    @Annotation1
-    public String test;
+
+    @Test
+    protected void weakReferenceTest() throws InterruptedException {
+        WeakReference ref = new WeakReference<>( new Object() );
+
+        for (int j=0; j<10; j++) {
+            Object o = null;
+            for (int i=0; i<50000000; i++) {
+                o = String.valueOf( i );
+            }
+            LOG.info( "" + (j) + "   " + o + " :: "+ ref.get() );
+            Thread.sleep( 1000 );
+            System.gc();
+        }
+
+        LOG.info( "!" );
+        Thread.sleep( 5000 );
+        LOG.info( "" + ref.get() );
+    }
+
 
     @Test("t2")
     public void declaredSuperTest() {

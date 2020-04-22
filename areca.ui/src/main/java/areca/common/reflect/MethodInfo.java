@@ -15,6 +15,8 @@ package areca.common.reflect;
 
 import java.util.List;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  *
  * @author Falko Bräutigam
@@ -45,6 +47,6 @@ public abstract class MethodInfo
     }
 
 
-    public abstract void invoke( Object obj, Object... params );
+    public abstract void invoke( Object obj, Object... params ) throws InvocationTargetException;
 
 }

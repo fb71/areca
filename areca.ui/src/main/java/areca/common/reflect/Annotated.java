@@ -27,16 +27,23 @@ public interface Annotated {
     public abstract List<AnnotationInfo> annotations();
 
 
+    @SuppressWarnings("unchecked")
     public default <R extends AnnotationInfo> Optional<R> annotation( R type ) {
-        return annotations().stream()
-                .filter( a -> type.annotationType().isAssignableFrom( a.annotationType() ) )
-                .map( a -> (R)a )
-                .findAny();
+        for (AnnotationInfo a : annotations()) {
+            if (type.annotationType().isAssignableFrom( a.annotationType() ) ) {
+                return Optional.of( (R)a );
+            }
+        }
+        return Optional.empty();
+
+//        return annotations().stream()
+//                .filter( a -> type.annotationType().isAssignableFrom( a.annotationType() ) )
+//                .map( a -> (R)a )
+//                .findAny();
     }
 
 
     public default <R extends Annotation> Optional<R> annotation( Class<R> type ) {
-        // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 

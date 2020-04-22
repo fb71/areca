@@ -11,12 +11,22 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.test;
+package areca.common.event;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class ParameterInfo {
+@Documented
+@Retention(RUNTIME)
+@Target(METHOD)
+public @interface EventHandler {
 
 }

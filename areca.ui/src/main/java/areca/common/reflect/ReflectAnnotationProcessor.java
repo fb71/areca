@@ -22,6 +22,7 @@ import java.util.Set;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -59,6 +60,7 @@ public class ReflectAnnotationProcessor
 
     private static int      round = 0;
 
+
     @Override
     public boolean process( Set<? extends TypeElement> annotations, RoundEnvironment roundEnv ) {
         log( round, " -- ", roundEnv.toString() );
@@ -70,6 +72,7 @@ public class ReflectAnnotationProcessor
             Set<Element> annotatedElements = new HashSet<>();
             Set<TypeElement> processedAnnotations = new HashSet<>();
 
+            // create AnnotationInfos
             for (TypeElement annotation : annotations) {
                 if (!annotation.getQualifiedName().toString().startsWith( "java." )) {
                     createAnnotationInfo( annotation );
@@ -177,14 +180,19 @@ public class ReflectAnnotationProcessor
                         m.addCode( c1++ > 0 ? ",\n" :  "" ).addCode( "    " + createAnnotation( am ) );
                     }
                 }
+                // invoke
                 m.addCode( "  );\n  }\n" );
-                m.addCode( "  public void invoke( Object obj, Object... params ) {\n" );
-                m.addCode( "    (($T)obj).$L(", type, methodElm.getSimpleName() );
+                m.addCode( "  public void invoke( Object obj, Object... params ) throws $T{\n", InvocationTargetException.class );
+                m.addCode( "    try {\n" );
+                m.addCode( "      (($T)obj).$L(", type, methodElm.getSimpleName() );
                 int c2 = 0;
                 for (VariableElement paramElement : methodElm.getParameters()) {
                     m.addCode( "($T)params[$L]", paramElement.asType(), c2++ );
                 }
                 m.addCode( ");\n", type, methodElm.getSimpleName() );
+                m.addCode( "    } catch (Throwable e) {\n" );
+                m.addCode( "      throw new $T( e );\n", InvocationTargetException.class );
+                m.addCode( "    }\n" );
                 m.addCode( "  }\n" );
                 m.addCode( "};\n" );
                 classBuilder.addMethod( m.build() );

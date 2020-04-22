@@ -40,7 +40,7 @@ public class EventManager {
 
     private Queue<Execution>        queue = new LinkedList<>();
 
-    private List<EventListener>     listeners = new ArrayList();
+    private List<EventListener<?>>  listeners = new ArrayList<>();
 
 
     private class Execution {
@@ -57,7 +57,7 @@ public class EventManager {
     }
 
 
-    public <T extends EventObject> EventManager subscribe( EventListener<T> l ) {
+    public EventManager subscribe( EventListener<?> l ) {
         listeners.add( l );
         return this;
     }

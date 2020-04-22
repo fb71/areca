@@ -159,11 +159,11 @@ public class TestRunner {
 
 
     protected List<TestMethod> findTestMethods( ClassInfo<?> cl ) {
-        System.out.println( "TEST METHODS  of: " + cl.name() + " (" + cl.methods().size() + ")" );
+        //System.out.println( "TEST METHODS  of: " + cl.name() + " (" + cl.methods().size() + ")" );
         return cl.methods().stream()
-                .peek( m -> System.out.println( "    " + m ) )
+                //.peek( m -> System.out.println( "    " + m ) )
                 .filter( m -> m.annotation( TestAnnotationInfo.INFO ).isPresent())
-                .peek( m -> System.out.println( "    " + m ) )
+                //.peek( m -> System.out.println( "    " + m ) )
                 .map( m -> new TestMethod( m ) )
                 .collect( Collectors.toList() );
     }
