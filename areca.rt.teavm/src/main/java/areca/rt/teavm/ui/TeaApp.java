@@ -39,17 +39,14 @@ public class TeaApp
     private RootWindow           rootWindow;
 
 
-    public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E>... initializer ) throws E {
+    public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E {
         MainHandler.start();
 
         assert rootWindow == null;
         rootWindow = new RootWindow();
         rootWindow.init( null );
 
-        assert initializer.length < 2;
-        if (initializer.length == 1) {
-            initializer[0].perform( rootWindow );
-        }
+        initializer.perform( rootWindow );
         return rootWindow;
     }
 

@@ -36,7 +36,7 @@ public class AnnotationTest {
     public static final AnnotationTestClassInfo INFO = AnnotationTestClassInfo.INFO;
 
 
-    @Test
+    //@Test
     protected void weakReferenceTest() throws InterruptedException {
         WeakReference ref = new WeakReference<>( new Object() );
 

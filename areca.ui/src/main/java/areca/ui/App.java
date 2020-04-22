@@ -21,6 +21,6 @@ import areca.ui.UIComponent.Consumer;
  */
 public abstract class App {
 
-    public abstract <E extends Exception> UIComposite createUI( Consumer<UIComposite,E>... initializer ) throws E;
+    public abstract <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E;
 
 }

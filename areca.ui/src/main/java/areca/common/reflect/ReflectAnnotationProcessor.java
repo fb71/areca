@@ -177,7 +177,7 @@ public class ReflectAnnotationProcessor
                 int c1 = 0;
                 for (AnnotationMirror am : processingEnv.getElementUtils().getAllAnnotationMirrors( methodElm )) {
                     if (processedAnnotations.contains( am.getAnnotationType().asElement() )) {
-                        m.addCode( c1++ > 0 ? ",\n" :  "" ).addCode( "    " + createAnnotation( am ) );
+                        m.addCode( c1++ > 0 ? ",\n" : "" ).addCode( "    " + createAnnotation( am ) );
                     }
                 }
                 // invoke
@@ -187,7 +187,7 @@ public class ReflectAnnotationProcessor
                 m.addCode( "      (($T)obj).$L(", type, methodElm.getSimpleName() );
                 int c2 = 0;
                 for (VariableElement paramElement : methodElm.getParameters()) {
-                    m.addCode( "($T)params[$L]", paramElement.asType(), c2++ );
+                    m.addCode( c2 > 0 ? "," : "" ).addCode( "($T)params[$L]", paramElement.asType(), c2++ );
                 }
                 m.addCode( ");\n", type, methodElm.getSimpleName() );
                 m.addCode( "    } catch (Throwable e) {\n" );

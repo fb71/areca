@@ -21,8 +21,8 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <teavm.version>0.7.0-dev-943</teavm.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <teavm.version>0.7.0-dev-943</teavm.version>
     </properties>
 
     <dependencies>
@@ -30,7 +30,6 @@
             <groupId>areca</groupId>
             <artifactId>areca-ui</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -71,7 +70,7 @@
 
     <build>
         <plugins>
-            <!-- Configure Java compiler to use Java 8 syntax -->
+            <!-- Java compiler -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
@@ -79,6 +78,20 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <annotationProcessors>
+                                <annotationProcessor>areca.common.reflect.ReflectAnnotationProcessor</annotationProcessor>
+                            </annotationProcessors>
+                        </configuration>
+                   </execution>
+                </executions>
             </plugin>
 
             <!-- SASS -->
@@ -115,7 +128,7 @@
                             <!-- This configuration conforms to the settings of the WAR plugin -->
                             <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
 
-                            <mainClass>areca.rt.teavm.testapp.Main</mainClass>
+                            <mainClass>areca.rt.teavm.testapp.TestRunnerMain</mainClass>
                             <minifying>false</minifying>
                             <debugInformationGenerated>true</debugInformationGenerated>
                             <sourceMapsGenerated>true</sourceMapsGenerated>
