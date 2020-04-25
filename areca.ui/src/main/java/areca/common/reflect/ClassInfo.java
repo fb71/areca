@@ -14,6 +14,7 @@
 package areca.common.reflect;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -25,7 +26,11 @@ public abstract class ClassInfo<T>
 
     private static final Logger LOG = Logger.getLogger( ClassInfo.class.getName() );
 
-    public static <R> ClassInfo<R> of( Class<R> cl ) {
+    public static Optional<ClassInfo<?>> of( Class<?> cl ) {
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+    public static <R> Optional<ClassInfo<R>> of( R o ) {
         throw new RuntimeException( "not yet implemented." );
     }
 

@@ -38,7 +38,7 @@ public class AnnotationTest {
 
     //@Test
     protected void weakReferenceTest() throws InterruptedException {
-        WeakReference ref = new WeakReference<>( new Object() );
+        WeakReference<Object> ref = new WeakReference<>( new Object() );
 
         for (int j=0; j<10; j++) {
             Object o = null;
@@ -60,7 +60,7 @@ public class AnnotationTest {
     public void declaredSuperTest() {
         System.out.println( "    " + "declaredSuperTest()" );
         LOG.info( INFO.declaredSuperTestMethodInfo().name() + " ..." );
-        for (Class cl=Annotated.class; cl!=null; cl=cl.getSuperclass()) {
+        for (Class<?> cl=Annotated.class; cl!=null; cl=cl.getSuperclass()) {
 
         }
     }

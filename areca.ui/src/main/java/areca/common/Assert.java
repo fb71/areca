@@ -25,37 +25,53 @@ public class Assert {
     public static volatile boolean enabled = true;
 
 
-    public static void assertThat( boolean cond, String msg ) throws AssertionException {
+    public static void that( boolean cond, String msg ) throws AssertionException {
         if (enabled && !cond) {
             throw new AssertionException( msg );
         }
     }
 
 
-    public static void assertThat( Supplier<Boolean> cond, String msg ) {
+    public static void that( Supplier<Boolean> cond, String msg ) {
         if (enabled && !cond.get()) {
             throw new AssertionException( msg );
         }
     }
 
 
-    public static void assertThat( Supplier<Boolean> cond, Supplier<String> msg ) {
+    public static void that( Supplier<Boolean> cond, Supplier<String> msg ) {
         if (enabled && !cond.get()) {
             throw new AssertionException( msg.get() );
         }
     }
 
 
-    public static void assertEquals( Object expected, Object actual, String msg ) throws AssertionException {
+    public static void equals( Object expected, Object actual, String msg ) throws AssertionException {
         if (enabled && !Objects.equals( actual, expected )) {
             throw new AssertionException( expected, actual, msg );
         }
     }
 
 
-    public static void assertSame( Object expected, Object actual, String msg ) throws AssertionException {
-        if (enabled && actual!=expected) {
+    public static void same( Object expected, Object actual, String msg ) throws AssertionException {
+        if (enabled && actual != expected) {
             throw new AssertionException( expected, actual, msg );
         }
+    }
+
+
+    public static <R> R isNull( R actual ) {
+        if (enabled && actual != null) {
+            throw new AssertionException( null, actual, "null expected!" );
+        }
+        return actual;
+    }
+
+
+    public static <R> R notNull( R actual ) {
+        if (enabled && actual == null) {
+            throw new AssertionException( null, actual, "non-null expected!" );
+        }
+        return actual;
     }
 }

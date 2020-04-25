@@ -96,7 +96,7 @@ public class ReflectAnnotationProcessor
 
 
     protected void createClassInfo( TypeElement type, Set<TypeElement> processedAnnotations ) throws IOException {
-        log( "Annotated class: ", type );
+        log( "=== ", type, " ==============================================" );
 
         String packageName = StringUtils.substringBeforeLast( type.getQualifiedName().toString(), "." );
         String typeName = type.getSimpleName() + "ClassInfo";
@@ -274,7 +274,7 @@ public class ReflectAnnotationProcessor
 
 
     protected static void log( Object... parts ) {
-        System.out.print( "REFLECTION: " );
+        System.out.print( "REFLECT: " );
         for (Object part : parts) {
             System.out.print( part != null ? part.toString() : "[null]" );
         }

@@ -11,22 +11,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.test;
+package areca.common.event;
 
-import areca.common.reflect.ClassInfo;
+import java.util.EventObject;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class Tests {
+public interface EventPredicate {
 
-    public static ClassInfo<?>[] all() {
-        return new ClassInfo[] {
-                AnnotationTestClassInfo.INFO,
-                EventManagerTestClassInfo.INFO
-                //AssertTest.class
-        };
-    }
+    /**
+     * Evaluates this predicate on the given argument.
+     *
+     * @param t the input argument
+     * @return {@code true} if the input argument matches the predicate,
+     * otherwise {@code false}
+     */
+    boolean test( EventObject  t );
 
 }
