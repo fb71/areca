@@ -15,8 +15,8 @@ package areca.common.testrunner;
 
 import java.util.logging.Logger;
 
+import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
-import areca.common.testrunner.TestRunner.Decorator;
 import areca.common.testrunner.TestRunner.TestMethod;
 import areca.common.testrunner.TestRunner.TestResult;
 
@@ -27,7 +27,7 @@ import areca.common.testrunner.TestRunner.TestResult;
  */
 @RuntimeInfo
 public class LogDecorator
-        extends Decorator {
+        extends TestRunnerDecorator {
 
     private static final Logger LOG = Logger.getLogger( LogDecorator.class.getSimpleName() );
 
@@ -42,8 +42,8 @@ public class LogDecorator
     }
 
     @Override
-    public void preTest( Object test ) {
-        LOG.info( "===[" + test.getClass().getName() + "]=========" );
+    public void preTest( ClassInfo<?> test ) {
+        LOG.info( "===[" + test.name() + "]=========" );
     }
 
     @Override

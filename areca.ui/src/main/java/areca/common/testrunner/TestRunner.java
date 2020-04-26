@@ -33,24 +33,109 @@ import areca.common.reflect.MethodInfo;
  */
 public class TestRunner {
 
-    /** */
-    public static abstract class Decorator {
+    private static final Object[] NOARGS = new Object[] {};
 
-        public void preRun( TestRunner runner ) {};
+    // instrance ******************************************
 
-        public void postRun( TestRunner runner ) {};
+    private List<ClassInfo<?>>                  testTypes = new ArrayList<>( 128 );
 
-        public void preTest( Object test ) {};
+    private List<ClassInfo<? extends TestRunnerDecorator>> decoratorTypes = new ArrayList<>( 128 );
 
-        public void postTest( Object test ) {};
+    private List<TestResult>                    testResults = new ArrayList<>( 128 );
 
-        public void preTestMethod( TestMethod m ) {};
 
-        public void postTestMethod( TestMethod m, TestResult testResult ) {};
-
+    public TestRunner addTests( ClassInfo<?>... tests ) {
+        testTypes.addAll( Arrays.asList( tests ) );
+        return this;
     }
 
-    /** */
+
+    public TestRunner addDecorators( ClassInfo<? extends TestRunnerDecorator> decorators ) {
+        decoratorTypes.addAll( Arrays.asList( decorators ) );
+        return this;
+    }
+
+
+    public void run() {
+        List<TestRunnerDecorator> decorators = decoratorTypes.stream().map( cl -> instantiate( cl ) ).collect( Collectors.toList() );
+
+        // all test classes
+        decorators.forEach( d -> d.preRun( this ) );
+        for (ClassInfo<?> cl : testTypes) {
+
+            // Before/After
+            List<MethodInfo> befores = cl.methods().stream()
+                    .filter( m -> m.annotation( BeforeAnnotationInfo.INFO ).isPresent() )
+                    .collect( Collectors.toList() );
+            List<MethodInfo> afters = cl.methods().stream()
+                    .filter( m -> m.annotation( AfterAnnotationInfo.INFO ).isPresent() )
+                    .collect( Collectors.toList() );
+
+            // all test methods
+            decorators.forEach( d -> d.preTest( cl ) );
+            for (TestMethod m : findTestMethods( cl )) {
+                decorators.forEach( d -> d.preTestMethod( m ) );
+
+                // method
+                TestResult testResult = new TestResult( m );
+                testResults.add( testResult );
+                try {
+                    Object test = instantiate( cl );
+                    for (MethodInfo before : befores) {
+                        before.invoke( test, NOARGS );
+                    }
+                    m.m.invoke( test, NOARGS );
+
+                    for (MethodInfo after : afters) {
+                        after.invoke( test, NOARGS );
+                    }
+                }
+                catch (InvocationTargetException e ) {
+                    Class<? extends Throwable> expected = m.m.annotation( TestAnnotationInfo.INFO ).get().expected();
+                    if (expected.equals( Test.NoException.class )
+                            || !expected.isAssignableFrom( e.getCause().getClass() )) {
+                        testResult.setException( e.getCause() );
+                    }
+                }
+                catch (Throwable e ) {
+                    testResult.setException( e );
+                }
+                finally {
+                    testResult.done();
+                }
+                decorators.forEach( d -> d.postTestMethod( m, testResult ) );
+            }
+            decorators.forEach( d -> d.postTest( cl ) );
+        }
+        decorators.forEach( d -> d.postRun( this ) );
+    }
+
+
+    protected <R> R instantiate( ClassInfo<R> cl ) {
+        try {
+            return cl.newInstance();
+        }
+        catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
+            System.out.println( e );
+            throw new RuntimeException( e );
+        }
+    }
+
+
+    protected List<TestMethod> findTestMethods( ClassInfo<?> cl ) {
+        //System.out.println( "TEST METHODS  of: " + cl.name() + " (" + cl.methods().size() + ")" );
+        return cl.methods().stream()
+                //.peek( m -> System.out.println( "    " + m ) )
+                .filter( m -> m.annotation( TestAnnotationInfo.INFO ).isPresent())
+                //.peek( m -> System.out.println( "    " + m ) )
+                .map( m -> new TestMethod( m ) )
+                .collect( Collectors.toList() );
+    }
+
+
+    /**
+     *
+     */
     public static class TestMethod {
         private MethodInfo      m;
         private AnnotationInfo  a;
@@ -66,13 +151,12 @@ public class TestRunner {
     }
 
 
-    /** */
+    /**
+     *
+     */
     public static class TestResult {
-
         private TestMethod  m;
-
         private Throwable   exception;
-
         private long        start, end;
 
         TestResult( TestMethod m ) {
@@ -99,90 +183,6 @@ public class TestRunner {
         public long elapsedMillis() {
             return end-start;
         }
-    }
-
-    private static final Object[] NOARGS = new Object[] {};
-
-    // instrance ******************************************
-
-    private List<ClassInfo<?>>                  testTypes = new ArrayList<>( 128 );
-
-    private List<ClassInfo<? extends Decorator>> decoratorTypes = new ArrayList<>( 128 );
-
-    private List<TestResult>                    testResults = new ArrayList<>( 128 );
-
-
-    public TestRunner addTests( ClassInfo<?>... tests ) {
-        testTypes.addAll( Arrays.asList( tests ) );
-        return this;
-    }
-
-
-    public TestRunner addDecorators( ClassInfo<? extends Decorator> decorators ) {
-        decoratorTypes.addAll( Arrays.asList( decorators ) );
-        return this;
-    }
-
-
-    public void run() {
-        List<Decorator> decorators = decoratorTypes.stream().map( cl -> instantiate( cl ) ).collect( Collectors.toList() );
-
-        // all test classes
-        decorators.forEach( d -> d.preRun( this ) );
-        for (ClassInfo<?> cl : testTypes) {
-            Object test = instantiate( cl );
-
-            // all test methods
-            decorators.forEach( d -> d.preTest( test ) );
-            for (TestMethod m : findTestMethods( cl )) {
-                decorators.forEach( d -> d.preTestMethod( m ) );
-
-                // method
-                TestResult testResult = new TestResult( m );
-                testResults.add( testResult );
-                try {
-                    m.m.invoke( test, NOARGS );
-                }
-                catch (InvocationTargetException e ) {
-                    Class<? extends Throwable> expected = m.m.annotation( TestAnnotationInfo.INFO ).get().expected();
-                    if (expected.equals( Test.NoException.class )
-                            || !expected.isAssignableFrom( e.getCause().getClass() )) {
-                        testResult.setException( e.getCause() );
-                    }
-                }
-                catch (Throwable e ) {
-                    testResult.setException( e );
-                }
-                finally {
-                    testResult.done();
-                }
-                decorators.forEach( d -> d.postTestMethod( m, testResult ) );
-            }
-            decorators.forEach( d -> d.postTest( test ) );
-        }
-        decorators.forEach( d -> d.postRun( this ) );
-    }
-
-
-    protected <R> R instantiate( ClassInfo<R> cl ) {
-        try {
-            return cl.newInstance();
-        }
-        catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
-            System.out.println( e );
-            throw new RuntimeException( e );
-        }
-    }
-
-
-    protected List<TestMethod> findTestMethods( ClassInfo<?> cl ) {
-        //System.out.println( "TEST METHODS  of: " + cl.name() + " (" + cl.methods().size() + ")" );
-        return cl.methods().stream()
-                //.peek( m -> System.out.println( "    " + m ) )
-                .filter( m -> m.annotation( TestAnnotationInfo.INFO ).isPresent())
-                //.peek( m -> System.out.println( "    " + m ) )
-                .map( m -> new TestMethod( m ) )
-                .collect( Collectors.toList() );
     }
 
 }
