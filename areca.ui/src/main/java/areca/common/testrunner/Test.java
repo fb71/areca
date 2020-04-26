@@ -26,5 +26,11 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
 public @interface Test {
 
-    public String value() default "";
+    class NoException
+            extends Exception {
+    }
+
+    /** Default: {@link NoException} */
+    public Class<? extends Throwable> expected() default NoException.class;
+
 }

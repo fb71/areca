@@ -28,7 +28,7 @@ import areca.common.testrunner.Test;
  *
  * @author falko
  */
-@Test("t1")
+@Test
 public class AnnotationTest {
 
     private static final Logger LOG = Logger.getLogger( AnnotationTest.class.getSimpleName() );
@@ -56,7 +56,7 @@ public class AnnotationTest {
     }
 
 
-    @Test("t2")
+    @Test
     public void declaredSuperTest() {
         System.out.println( "    " + "declaredSuperTest()" );
         LOG.info( INFO.declaredSuperTestMethodInfo().name() + " ..." );

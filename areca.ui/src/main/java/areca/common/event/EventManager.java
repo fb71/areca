@@ -55,7 +55,18 @@ public abstract class EventManager {
 
     protected abstract void unsubscribe( EventHandlerInfo eventHandlerInfo );
 
+
+    /**
+     * Fires the given event. Depending on the actual EventManager implementation
+     * the event processing is done asynchronously.
+     */
     public abstract void publish( EventObject ev );
+
+
+    /**
+     * Fires the given event and waits until the event is processed by all handlers.
+     */
+    public abstract void publishAndWait( EventObject ev );
 
 
     /**

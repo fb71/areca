@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.lang.reflect.InvocationTargetException;
+
 import areca.common.reflect.AnnotationInfo;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.MethodInfo;
@@ -44,7 +46,7 @@ public class TestRunner {
 
         public void preTestMethod( TestMethod m ) {};
 
-        public void postTestMethod( TestMethod m ) {};
+        public void postTestMethod( TestMethod m, TestResult testResult ) {};
 
     }
 
@@ -73,13 +75,17 @@ public class TestRunner {
 
         private long        start, end;
 
-        public TestResult( TestMethod m ) {
+        TestResult( TestMethod m ) {
             this.m = m;
             this.start = System.currentTimeMillis();
         }
 
-        public void done() {
+        void done() {
             this.end = System.currentTimeMillis();
+        }
+
+        public boolean passed() {
+            return exception == null;
         }
 
         public Throwable getException() {
@@ -90,14 +96,18 @@ public class TestRunner {
             this.exception = exception;
         }
 
+        public long elapsedMillis() {
+            return end-start;
+        }
     }
 
+    private static final Object[] NOARGS = new Object[] {};
 
     // instrance ******************************************
 
     private List<ClassInfo<?>>                  testTypes = new ArrayList<>( 128 );
 
-    private List<ClassInfo<? extends Decorator>>    decoratorTypes = new ArrayList<>( 128 );
+    private List<ClassInfo<? extends Decorator>> decoratorTypes = new ArrayList<>( 128 );
 
     private List<TestResult>                    testResults = new ArrayList<>( 128 );
 
@@ -131,7 +141,14 @@ public class TestRunner {
                 TestResult testResult = new TestResult( m );
                 testResults.add( testResult );
                 try {
-                    m.m.invoke( test, new Object[0] );
+                    m.m.invoke( test, NOARGS );
+                }
+                catch (InvocationTargetException e ) {
+                    Class<? extends Throwable> expected = m.m.annotation( TestAnnotationInfo.INFO ).get().expected();
+                    if (expected.equals( Test.NoException.class )
+                            || !expected.isAssignableFrom( e.getCause().getClass() )) {
+                        testResult.setException( e.getCause() );
+                    }
                 }
                 catch (Throwable e ) {
                     testResult.setException( e );
@@ -139,7 +156,7 @@ public class TestRunner {
                 finally {
                     testResult.done();
                 }
-                decorators.forEach( d -> d.postTestMethod( m ) );
+                decorators.forEach( d -> d.postTestMethod( m, testResult ) );
             }
             decorators.forEach( d -> d.postTest( test ) );
         }

@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import areca.common.reflect.RuntimeInfo;
 import areca.common.testrunner.TestRunner.Decorator;
 import areca.common.testrunner.TestRunner.TestMethod;
+import areca.common.testrunner.TestRunner.TestResult;
 
 
 /**
@@ -29,8 +30,6 @@ public class LogDecorator
         extends Decorator {
 
     private static final Logger LOG = Logger.getLogger( LogDecorator.class.getSimpleName() );
-
-    private long                methodStart;
 
     @Override
     public void preRun( TestRunner runner ) {
@@ -50,12 +49,22 @@ public class LogDecorator
     @Override
     public void preTestMethod( TestMethod m ) {
         LOG.info( "---[" + m.name() + "]---------" );
-        methodStart = System.currentTimeMillis();
     }
 
     @Override
-    public void postTestMethod( TestMethod m ) {
-        LOG.info( "---ok. (" + (System.currentTimeMillis() - methodStart) + "ms)" );
+    public void postTestMethod( TestMethod m, TestResult testResult ) {
+        if (testResult.passed()) {
+            LOG.info( "---ok. (" + testResult.elapsedMillis() + "ms)" );
+        }
+        else {
+            Throwable e = testResult.getException();
+            LOG.info( "---failed.. (" + e.getCause() + ")" );
+            Throwable cause = e;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            throw (RuntimeException)cause;
+        }
     }
 
 }

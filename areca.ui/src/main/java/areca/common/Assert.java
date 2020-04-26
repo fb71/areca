@@ -46,14 +46,14 @@ public class Assert {
     }
 
 
-    public static void equals( Object expected, Object actual, String msg ) throws AssertionException {
+    public static void isEqual( Object expected, Object actual, String msg ) throws AssertionException {
         if (enabled && !Objects.equals( actual, expected )) {
             throw new AssertionException( expected, actual, msg );
         }
     }
 
 
-    public static void same( Object expected, Object actual, String msg ) throws AssertionException {
+    public static void isSame( Object expected, Object actual, String msg ) throws AssertionException {
         if (enabled && actual != expected) {
             throw new AssertionException( expected, actual, msg );
         }

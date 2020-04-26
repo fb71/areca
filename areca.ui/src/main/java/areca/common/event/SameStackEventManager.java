@@ -62,4 +62,10 @@ public class SameStackEventManager
         }
     }
 
+
+    @Override
+    public void publishAndWait( EventObject ev ) {
+        publish( ev );
+    }
+
 }

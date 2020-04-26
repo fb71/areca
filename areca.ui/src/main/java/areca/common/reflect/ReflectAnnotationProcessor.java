@@ -23,8 +23,6 @@ import java.util.Set;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Type;
-
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -36,7 +34,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.squareup.javapoet.ClassName;
@@ -45,6 +42,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
 import com.squareup.javapoet.WildcardTypeName;
@@ -222,7 +220,8 @@ public class ReflectAnnotationProcessor
 
 
     protected void createAnnotationInfo( TypeElement annotation ) throws IOException {
-        log( "Annotation: ", annotation, " enclosing:" + annotation.getEnclosedElements() );
+        log( "=== ", annotation, " ==============================================" );
+        log( "Enclosing:" + annotation.getEnclosedElements() );
 
         String packageName = StringUtils.substringBeforeLast( annotation.getQualifiedName().toString(), "." );
         String typeName = annotation.getSimpleName() + "AnnotationInfo";
@@ -245,14 +244,14 @@ public class ReflectAnnotationProcessor
                 ExecutableElement methodElm = (ExecutableElement)element;
                 log( "    Method: ", methodElm.getSimpleName(), "() -> ", methodElm.getReturnType(), " : ", methodElm.getDefaultValue() );
 
-                Type fieldType = String.class;
+                TypeName fieldTypeName = TypeName.get( methodElm.getReturnType() );
                 String fieldName = "_"+methodElm.getSimpleName().toString();
-                classBuilder.addField( FieldSpec.builder(fieldType, fieldName, Modifier.PUBLIC )
+                classBuilder.addField( FieldSpec.builder( fieldTypeName, fieldName, Modifier.PUBLIC )
                         .initializer( "$L", methodElm.getDefaultValue() )
                         .build() );
                 classBuilder.addMethod( MethodSpec.methodBuilder( methodElm.getSimpleName().toString() )
                         .addModifiers( Modifier.PUBLIC )
-                        .returns( fieldType )  //methodElm.getReturnType(). )
+                        .returns( fieldTypeName )
                         .addStatement( "return $L", fieldName )
                         .build() );
             }

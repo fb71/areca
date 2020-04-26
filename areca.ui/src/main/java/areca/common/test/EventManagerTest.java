@@ -16,7 +16,9 @@ package areca.common.test;
 import java.util.EventObject;
 import java.util.logging.Logger;
 
+import areca.common.Assert;
 import areca.common.event.EventHandler;
+import areca.common.event.EventListener;
 import areca.common.event.EventManager;
 import areca.common.event.SameStackEventManager;
 import areca.common.testrunner.Test;
@@ -30,12 +32,87 @@ public class EventManagerTest {
 
     private static final Logger LOG = Logger.getLogger( EventManagerTest.class.getName() );
 
+    EventObject handled = null;
+
+
+    protected EventManager setupEventManager() {
+        EventManager em = new SameStackEventManager();
+        em.defaultOnError = e -> { throw (RuntimeException)e; };
+        return em;
+    }
+
 
     @Test
     public void simpleTest() {
-        EventManager em = new SameStackEventManager();
-        em.subscribe( (Event1 ev) -> LOG.info( "Event: " + ev ) ).performIf( ev -> ev instanceof Event1 );
-        em.publish( new Event2( null ) );
+        EventManager em = setupEventManager();
+
+        handled = null;
+        em.subscribe( (Event1 ev) -> handled = ev );
+        Event1 ev = new Event1( null );
+        em.publishAndWait( ev );
+
+        Assert.isSame( ev, handled, "not same" );
+    }
+
+
+    @Test
+    public void performIfTest() {
+        EventManager em = setupEventManager();
+        handled = null;
+        em.subscribe( (Event1 ev) -> handled = ev ).performIf( ev -> ev instanceof Event1 );
+        Event1 ev = new Event1( null );
+        em.publishAndWait( ev );
+        Assert.isSame( ev, handled, "not same" );
+    }
+
+
+    @Test
+    public void performIfFalseTest() {
+        EventManager em = setupEventManager();
+        handled = null;
+        em.subscribe( (Event1 ev) -> handled = ev ).performIf( ev -> false );
+        em.publishAndWait( new Event1( null ) );
+        Assert.isNull( handled );
+    }
+
+
+    @Test(expected = IllegalStateException.class)
+    public void multiSubscribeTest() {
+        EventManager em = setupEventManager();
+        EventListener<Event1> l = (Event1 ev) -> handled = ev;
+        em.subscribe( l );
+        em.subscribe( l );
+    }
+
+
+    @Test
+    public void disposeTest() {
+        EventManager em = setupEventManager();
+        EventListener<Event1> l = (Event1 ev) -> handled = ev;
+        em.subscribe( l ).disposeIf( ev -> true );
+        em.publishAndWait( new Event1( null ) );
+        em.subscribe( l ).disposeIf( ev -> true );
+        Assert.isNull( handled );
+    }
+
+
+    protected volatile int count;
+
+    @Test
+    public void performanceTest() {
+        EventManager em = setupEventManager();
+        count = 0;
+        for (int i=0; i<10; i++) {
+            em.subscribe( (Event1 ev) -> count++ )
+                    .performIf( ev -> ev instanceof Event1 )
+                    .disposeIf( ev -> false );
+        }
+        for (int i=0; i<10000; i++) {
+            em.publish( new Event1( null ) );
+        }
+        em.publishAndWait( new Event1( null ) );
+        LOG.info( "count: " + count );
+        Assert.isEqual( 100010, count, "" );
     }
 
 
