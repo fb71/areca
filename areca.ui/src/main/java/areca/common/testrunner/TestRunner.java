@@ -50,7 +50,8 @@ public class TestRunner {
     }
 
 
-    public TestRunner addDecorators( ClassInfo<? extends TestRunnerDecorator> decorators ) {
+    @SuppressWarnings("unchecked")
+    public TestRunner addDecorators( ClassInfo<? extends TestRunnerDecorator>... decorators ) {
         decoratorTypes.addAll( Arrays.asList( decorators ) );
         return this;
     }

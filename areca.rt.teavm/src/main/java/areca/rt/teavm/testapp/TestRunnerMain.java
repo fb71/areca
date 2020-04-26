@@ -20,10 +20,11 @@ public class TestRunnerMain {
     /**
      *
      */
+    @SuppressWarnings("unchecked")
     public static void main( String[] args ) throws Exception {
         new TestRunner()
                 .addTests( areca.common.test.Tests.all() )
-                .addDecorators( LogDecoratorClassInfo.INFO )
+                .addDecorators( LogDecoratorClassInfo.INFO, HtmlTestRunnerDecoratorClassInfo.INFO )
                 .run();
 
 //        for (Field f : mainWindow.getClass().getDeclaredFields()) {
@@ -67,7 +68,7 @@ public class TestRunnerMain {
     /** */
     static class HandlerThread extends Thread {
 
-        private Queue<String> queue = new LinkedList();
+        private Queue<String> queue = new LinkedList<>();
 
         public HandlerThread add( String msg ) {
             synchronized(queue) {
