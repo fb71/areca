@@ -13,31 +13,27 @@
  */
 package areca.common.base;
 
-import java.util.Iterator;
-
 /**
  *
  * @author Falko Bräutigam
  */
-public class DelegatingIterator<T,R>
-        implements Iterator<R> {
+public class DelegatingIterator<S,T,E extends Exception>
+        implements SequenceIterator<T,E> {
 
-    protected Iterator<T>       delegate;
+    protected SequenceIterator<S,E>     delegate;
 
-    public DelegatingIterator( Iterator<T> delegate ) {
+
+    public DelegatingIterator( SequenceIterator<S,E> delegate ) {
         this.delegate = delegate;
     }
 
-    public boolean hasNext() {
+    public boolean hasNext() throws E {
         return delegate.hasNext();
     }
 
-    public R next() {
-        return (R)delegate.next();
-    }
-
-    public void remove() {
-        delegate.remove();
+    @SuppressWarnings("unchecked")
+    public T next() throws E {
+        return (T)delegate.next();
     }
 
 }

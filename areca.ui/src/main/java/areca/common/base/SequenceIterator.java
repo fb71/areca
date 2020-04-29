@@ -19,5 +19,7 @@ package areca.common.base;
  */
 public interface SequenceIterator<T,E extends Exception> {
 
+    public boolean hasNext() throws E;
+
     public T next() throws E;
 }

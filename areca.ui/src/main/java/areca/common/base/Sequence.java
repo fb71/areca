@@ -15,6 +15,7 @@ package areca.common.base;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -33,21 +34,28 @@ public class Sequence<T, E extends Exception> {
         return of( Arrays.asList( elements ) );
     }
 
+
     public static <R> Sequence<R,RuntimeException> of( Iterable<R> elements ) {
         return of( RuntimeException.class, elements );
     }
 
+
     public static <R,E extends Exception> Sequence<R,E> of( Class<E> type, Iterable<R> elements ) {
-        return new Sequence<R,E>( () -> {
-            Iterator<R> it = elements.iterator();
-            return () -> it.hasNext() ? it.next() : null;
+        Iterator<R> it = elements.iterator();
+        return new Sequence<R,E>( () -> new DelegatingIterator<R,R,E>( null ) {
+            @Override public R next() throws E {
+                return it.next();
+            }
+            @Override public boolean hasNext() throws E {
+                return it.hasNext();
+            }
         });
     }
 
 
     // instance *******************************************
 
-    protected Supplier<SequenceIterator<T,E>> iterate;
+    protected Supplier<SequenceIterator<T,E>>   iterate;
 
 
     protected Sequence( Supplier<SequenceIterator<T,E>> iterate ) {
@@ -57,8 +65,38 @@ public class Sequence<T, E extends Exception> {
 
     public <R,RE extends E> Sequence<R,E> transform( Function<T,R,RE> function ) throws RE {
         SequenceIterator<T,E> delegate = iterate.get();
-        return new Sequence<R,E>( () -> {
-            return () -> function.apply( delegate.next() );
+        return new Sequence<R,E>( () -> new DelegatingIterator<T,R,E>( delegate ) {
+            @Override
+            public R next() throws E {
+                return function.apply( delegate.next() );
+            }
+        });
+    }
+
+
+    public <RE extends E> Sequence<T,E> filter( Predicate<T,RE> condition ) throws RE {
+        SequenceIterator<T,E> delegate = iterate.get();
+        return new Sequence<T,E>( () -> new DelegatingIterator<T,T,E>( delegate ) {
+            private T nextElm = null;
+            @Override
+            public T next() throws E {
+                if (nextElm == null) {
+                    throw new NoSuchElementException();
+                }
+                return nextElm;
+            }
+            @Override
+            public boolean hasNext() throws E {
+                nextElm = null;
+                while (delegate.hasNext()) {
+                    T candidate = delegate.next();
+                    if (condition.test( candidate )) {
+                        nextElm = candidate;
+                        return true;
+                    }
+                }
+                return false;
+            }
         });
     }
 
@@ -67,9 +105,8 @@ public class Sequence<T, E extends Exception> {
      * See {@link Stream#forEach(java.util.function.Consumer)}
      */
     public <RE extends E> void forEach( Consumer<T,RE> action ) throws E {
-        SequenceIterator<T,E> it = iterate.get();
-        for (T elm = it.next(); elm != null; elm = it.next()) {
-            action.accept( elm );
+        for (SequenceIterator<T,E> it=iterate.get(); it.hasNext();) {
+            action.accept( it.next() );
         }
     }
 
@@ -92,8 +129,8 @@ public class Sequence<T, E extends Exception> {
      */
     public final <R> R reduce( R identity, BiFunction<R, ? super T, R> accumulator, BinaryOperator<R> combiner ) throws E {
         R result = identity;
-        SequenceIterator<T,E> it = iterate.get();
-        for (T elm = it.next(); elm != null; elm = it.next()) {
+        for (SequenceIterator<T,E> it=iterate.get(); it.hasNext();) {
+            T elm = it.next();
             @SuppressWarnings("unchecked")
             R r = result != null
                     ? accumulator.apply( result, elm )
@@ -104,6 +141,9 @@ public class Sequence<T, E extends Exception> {
     }
 
 
+    /**
+     * See {@link Stream#collect(Collector)}
+     */
     public <A,R> R collect( Collector<T,A,R> collector ) throws E {
         A result = collector.supplier().get();
         BiConsumer<A,T> accumulator = collector.accumulator();

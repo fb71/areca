@@ -38,8 +38,7 @@ public class SequenceTest {
 
     @Test
     public void forEachTest() {
-        Sequence.of( Arrays.asList( 1, 2, 3 ) )
-                .forEach( elm -> result += elm );
+        Sequence.of( Arrays.asList( 1, 2, 3 ) ).forEach( elm -> result += elm );
         Assert.isEqual( 6, result );
     }
 
