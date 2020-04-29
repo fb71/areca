@@ -152,6 +152,11 @@ public class Sequence<T, E extends Exception> {
     }
 
 
+    public int count() throws E {
+        return reduce( Integer.valueOf( 0 ), (result,elm) -> Integer.valueOf( result.intValue() + 1 ) );
+    }
+
+
 //    public <RE extends E> List<T> asList() throws E {
 //        for (Iterator<T> it=iterate(); it.hasNext(); ) {
 //            action.accept( it.next() );

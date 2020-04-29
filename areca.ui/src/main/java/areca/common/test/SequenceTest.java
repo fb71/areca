@@ -55,6 +55,16 @@ public class SequenceTest {
 
 
     @Test
+    public void filterTest() {
+        Assert.isEqual( 2, Sequence.of( 1, 2, 3 ).filter( elm -> elm != 3 ).count() );
+        Assert.isEqual( 2, Sequence.of( 1, 2, 3 ).filter( elm -> elm != 2 ).count() );
+        Assert.isEqual( 2, Sequence.of( 1, 2, 3 ).filter( elm -> elm != 1 ).count() );
+        Assert.isEqual( 3, Sequence.of( 1, 2, 3 ).filter( elm -> elm > 0 ).count() );
+        Assert.isEqual( 0, Sequence.of( 1, 2, 3 ).filter( elm -> elm < 0 ).count() );
+    }
+
+
+    @Test
     public void transformTest() {
         Assert.isEqual( "234", Sequence.of( 1, 2, 3 )
                 .transform( elm -> {LOG.info( ":"+elm ); return elm + 1; } )
