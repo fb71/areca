@@ -65,7 +65,7 @@ public class Property<T> {
     @Override
     public boolean equals( Object obj ) {
         if (obj instanceof Property) {
-            Property other = (Property)obj;
+            Property<?> other = (Property<?>)obj;
             return name.equals( other.name ); // &&
 //                    // XXX we don't know to correct Type the Property is a Field of
 //                    (component.getClass().isAssignableFrom( other.component.getClass() )
@@ -86,11 +86,11 @@ public class Property<T> {
     }
 
 
-    public <R extends T> Property<R> set( T newValue ) {
+    public Property<T> set( T newValue ) {
         T oldValue = value;
         this.value = newValue;
         EventManager.instance().publish( new PropertySetEvent( this, oldValue, newValue ) );
-        return (Property<R>)this;
+        return this;
     }
 
 
@@ -114,7 +114,7 @@ public class Property<T> {
 
         private Object newValue;
 
-        protected PropertySetEvent( Property source, Object oldValue, Object newValue ) {
+        protected PropertySetEvent( Property<?> source, Object oldValue, Object newValue ) {
             super( source );
             this.oldValue = oldValue;
             this.newValue = newValue;
@@ -126,22 +126,26 @@ public class Property<T> {
         }
 
         @Override
-        public Property getSource() {
-            return (Property)super.getSource();
+        public Property<?> getSource() {
+            return (Property<?>)super.getSource();
         }
 
+        @SuppressWarnings("unchecked")
         public <R> R getOldValue() {
             return (R)oldValue;
         }
 
+        @SuppressWarnings("unchecked")
         public <R> Optional<R> optOldValue() {
             return Optional.ofNullable( (R)oldValue );
         }
 
+        @SuppressWarnings("unchecked")
         public <R> R getNewValue() {
             return (R)newValue;
         }
 
+        @SuppressWarnings("unchecked")
         public <R> Optional<R> optNewValue() {
             return Optional.ofNullable( (R)newValue );
         }

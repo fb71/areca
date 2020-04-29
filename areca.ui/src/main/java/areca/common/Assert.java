@@ -25,16 +25,21 @@ public class Assert {
     public static volatile boolean enabled = true;
 
 
-    public static void that( boolean cond, String msg ) throws AssertionException {
+    protected static String message( String[] msgs, String defaultMsg ) {
+        return msgs.length > 0 ? String.join( "", msgs ) : defaultMsg;
+    }
+
+
+    public static void that( boolean cond, String... msgs ) throws AssertionException {
         if (enabled && !cond) {
-            throw new AssertionException( msg );
+            throw new AssertionException( message( msgs, "condition not met" ) );
         }
     }
 
 
-    public static void that( Supplier<Boolean> cond, String msg ) {
+    public static void that( Supplier<Boolean> cond, String... msgs ) {
         if (enabled && !cond.get()) {
-            throw new AssertionException( msg );
+            throw new AssertionException( message( msgs, "condition not met" ) );
         }
     }
 
@@ -46,23 +51,23 @@ public class Assert {
     }
 
 
-    public static void isEqual( Object expected, Object actual, String msg ) throws AssertionException {
+    public static void isEqual( Object expected, Object actual, String... msgs ) throws AssertionException {
         if (enabled && !Objects.equals( actual, expected )) {
-            throw new AssertionException( expected, actual, msg );
+            throw new AssertionException( expected, actual, message( msgs, "not equal" ) );
         }
     }
 
 
-    public static void isSame( Object expected, Object actual, String msg ) throws AssertionException {
+    public static void isSame( Object expected, Object actual, String... msgs ) throws AssertionException {
         if (enabled && actual != expected) {
-            throw new AssertionException( expected, actual, msg );
+            throw new AssertionException( expected, actual, message( msgs, "not same" ) );
         }
     }
 
 
     public static <R> R isNull( R actual ) {
         if (enabled && actual != null) {
-            throw new AssertionException( null, actual, "null expected!" );
+            throw new AssertionException( null, actual, "null expected" );
         }
         return actual;
     }
@@ -70,7 +75,7 @@ public class Assert {
 
     public static <R> R notNull( R actual ) {
         if (enabled && actual == null) {
-            throw new AssertionException( null, actual, "non-null expected!" );
+            throw new AssertionException( null, actual, "non-null expected" );
         }
         return actual;
     }

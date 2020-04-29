@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import java.lang.reflect.InvocationTargetException;
 
+import areca.common.AssertionException;
 import areca.common.reflect.AnnotationInfo;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.MethodInfo;
@@ -80,19 +81,21 @@ public class TestRunner {
                 // method
                 TestResult testResult = new TestResult( m );
                 testResults.add( testResult );
+                Class<? extends Throwable> expected = m.m.annotation( TestAnnotationInfo.INFO ).get().expected();
                 try {
                     Object test = instantiate( cl );
                     for (MethodInfo before : befores) {
                         before.invoke( test, NOARGS );
                     }
                     m.m.invoke( test, NOARGS );
-
+                    if (!expected.equals( Test.NoException.class )) {
+                        testResult.setException( new AssertionException( "Exception expected: " + expected.getName() ) );
+                    }
                     for (MethodInfo after : afters) {
                         after.invoke( test, NOARGS );
                     }
                 }
                 catch (InvocationTargetException e ) {
-                    Class<? extends Throwable> expected = m.m.annotation( TestAnnotationInfo.INFO ).get().expected();
                     if (expected.equals( Test.NoException.class )
                             || !expected.isAssignableFrom( e.getCause().getClass() )) {
                         testResult.setException( e.getCause() );

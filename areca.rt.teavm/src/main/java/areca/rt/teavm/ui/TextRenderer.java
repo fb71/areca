@@ -37,7 +37,7 @@ public class TextRenderer
     @Override
     protected void handleComponentCreated( ComponentCreated ev, Text text ) {
         // XXX check that none exists yet
-        text.getOrCreateData( DATA_ELM, () -> {
+        text.data( DATA_ELM, () -> {
             HTMLElement parentElement = htmlElementOf( text.parent() );
             Node result = parentElement.appendChild( doc().createElement( "div" ) );
             return result;

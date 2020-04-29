@@ -11,23 +11,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.test;
-
-import areca.common.reflect.ClassInfo;
+package areca.common.base;
 
 /**
+ * Similar to {@link java.util.function.Function} but allows checked Exceptions.
  *
  * @author Falko Bräutigam
  */
-public class Tests {
+@FunctionalInterface
+public interface Function<T,R,E extends Exception> {
 
-    public static ClassInfo<?>[] all() {
-        return new ClassInfo[] {
-                AnnotationTestClassInfo.INFO,
-                EventManagerTestClassInfo.INFO,
-                SequenceTestClassInfo.INFO
-                //AssertTest.class
-        };
-    }
+    public R apply( T t ) throws E;
 
 }

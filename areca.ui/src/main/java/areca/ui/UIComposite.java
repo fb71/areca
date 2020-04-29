@@ -45,20 +45,20 @@ public class UIComposite
      * @param <C> The type of the component to create.
      * @param <E> The Exception the initializer may throw.
      * @param type The type of the component to create.
-     * @param initializer
+     * @param initializers Optional, to be performed on the newly created component.
      * @return Newly created child component.
      * @throws E
      */
-    public <C extends UIComponent,E extends Exception> UIComposite create(Class<C> type, Consumer<C,E>... initializer) throws E {
+    @SuppressWarnings("unchecked")
+    public <C extends UIComponent,E extends Exception> UIComposite create(Class<C> type, Consumer<C,E>... initializers) throws E {
         try {
             @SuppressWarnings("deprecation")
             C component = type.newInstance();
             component.init( this );
             components.add( component );
 
-            assert initializer.length < 2 : "";
-            if (initializer.length == 1) {
-                initializer[0].perform( component );
+            for (Consumer<C,E> initializer : initializers) {
+                initializer.perform( component );
             }
             return this;
         }

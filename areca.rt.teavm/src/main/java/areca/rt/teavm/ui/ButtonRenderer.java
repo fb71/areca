@@ -43,7 +43,7 @@ public class ButtonRenderer
     @Override
     protected void handleComponentCreated( ComponentCreated ev, Button button ) {
         // XXX check that none exists yet
-        button.getOrCreateData( DATA_ELM, () -> {
+        button.data( DATA_ELM, () -> {
             HTMLElement parentElement = htmlElementOf( button.parent() );
             HTMLButtonElement elm = (HTMLButtonElement) parentElement.appendChild( doc().createElement( "button" ) );
             elm.addEventListener( "click", (MouseEvent mev) -> {

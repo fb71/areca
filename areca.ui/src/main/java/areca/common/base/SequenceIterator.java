@@ -11,23 +11,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.test;
-
-import areca.common.reflect.ClassInfo;
+package areca.common.base;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class Tests {
+public interface SequenceIterator<T,E extends Exception> {
 
-    public static ClassInfo<?>[] all() {
-        return new ClassInfo[] {
-                AnnotationTestClassInfo.INFO,
-                EventManagerTestClassInfo.INFO,
-                SequenceTestClassInfo.INFO
-                //AssertTest.class
-        };
-    }
-
+    public T next() throws E;
 }

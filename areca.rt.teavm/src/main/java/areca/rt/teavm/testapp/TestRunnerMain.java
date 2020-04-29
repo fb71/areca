@@ -24,7 +24,7 @@ public class TestRunnerMain {
     public static void main( String[] args ) throws Exception {
         new TestRunner()
                 .addTests( areca.common.test.Tests.all() )
-                .addDecorators( LogDecoratorClassInfo.INFO, HtmlTestRunnerDecoratorClassInfo.INFO )
+                .addDecorators( HtmlTestRunnerDecoratorClassInfo.INFO, LogDecoratorClassInfo.INFO )
                 .run();
 
 //        for (Field f : mainWindow.getClass().getDeclaredFields()) {

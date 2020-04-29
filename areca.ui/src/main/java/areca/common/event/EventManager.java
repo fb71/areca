@@ -115,6 +115,7 @@ public abstract class EventManager {
                 }
                 // perform: listener
                 if (handler instanceof EventListener) {
+                    // XXX check param type  -- Optional<ClassInfo<Object>> cli = ClassInfo.of( handler );
                     ((EventListener)handler).handle( ev );
                     return;
                 }

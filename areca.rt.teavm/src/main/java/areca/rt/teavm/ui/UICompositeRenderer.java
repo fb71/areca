@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.ui.UIComposite;
+import areca.common.Assert;
 import areca.ui.Property.PropertySetEvent;
 import areca.ui.UIRenderEvent.ComponentCreated;
 
@@ -39,7 +40,7 @@ public class UICompositeRenderer
     @Override
     protected void handleComponentCreated( ComponentCreated ev, UIComposite composite ) {
         // XXX check that none exists yet
-        HTMLElement div = composite.getOrCreateData( DATA_ELM, () -> {
+        HTMLElement div = composite.data( DATA_ELM, () -> {
             HTMLElement newDiv = doc().createElement( "div" );
             // root
             if (composite.parent() == null) {
@@ -51,8 +52,8 @@ public class UICompositeRenderer
                 return (HTMLElement)parentElement.appendChild( newDiv );
             }
         });
-        assert div != null;
-        assert composite.getOrCreateData( DATA_ELM ) != null;
+        Assert.notNull( div );
+        Assert.that( composite.optData( DATA_ELM ).isPresent(), "" );
 
         super.handleComponentCreated( ev, composite );
 

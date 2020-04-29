@@ -106,7 +106,7 @@ public abstract class UIComponentRenderer<C extends UIComponent>
 
 
     public static <R extends HTMLElement> R htmlElementOf( UIComponent component ) {
-        return component.getOrCreateData( DATA_ELM );
+        return component.<R>optData( DATA_ELM ).orElseThrow( () -> new IllegalStateException( "No HTML element found." ) );
     }
 
 }

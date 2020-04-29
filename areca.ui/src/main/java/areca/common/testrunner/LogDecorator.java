@@ -33,32 +33,32 @@ public class LogDecorator
 
     @Override
     public void preRun( TestRunner runner ) {
-        LOG.info( "Running tests..." );
+        System.out.println( "Running tests..." );
     }
 
     @Override
     public void postRun( TestRunner runner ) {
-        LOG.info( "Tests done." );
+        System.out.println( "done." );
     }
 
     @Override
     public void preTest( ClassInfo<?> test ) {
-        LOG.info( "===[" + test.name() + "]=========" );
+        System.out.println( ("===[" + test.name() + "]==============================").substring( 0, 40 ) );
     }
 
     @Override
     public void preTestMethod( TestMethod m ) {
-        LOG.info( "---[" + m.name() + "]---------" );
+        System.out.print( ("---[" + m.name() + "]------------------------------").substring( 0, 40 ) );
     }
 
     @Override
     public void postTestMethod( TestMethod m, TestResult testResult ) {
         if (testResult.passed()) {
-            LOG.info( "---ok. (" + testResult.elapsedMillis() + "ms)" );
+            System.out.println( "---ok (" + testResult.elapsedMillis() + "ms)" );
         }
         else {
             Throwable e = testResult.getException();
-            LOG.info( "---failed.. (" + e.getCause() + ")" );
+            System.out.println( "---failed (" + e.toString() + ")" );
             Throwable cause = e;
             while (cause.getCause() != null) {
                 cause = cause.getCause();

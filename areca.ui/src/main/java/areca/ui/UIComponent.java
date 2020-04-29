@@ -14,15 +14,16 @@
 package areca.ui;
 
 import java.util.ArrayList;
-import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
+import areca.common.base.Opt;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
+import areca.common.event.EventManager.EventHandlerInfo;
 import areca.ui.layout.LayoutConstraint;
 
 /**
@@ -63,7 +64,7 @@ public abstract class UIComponent {
     }
 
 
-    public void destroy() {
+    public void dispose() {
         throw new RuntimeException( "not yet..." );
         //EventManager.instance().publish( new UIRenderEvent.ComponentCreated( this ) );
     }
@@ -84,33 +85,29 @@ public abstract class UIComponent {
     }
 
 
-    @SuppressWarnings("unchecked")
-    public <T extends EventObject> void subscribe( EventListener<T> l ) {
-        EventManager.instance().subscribe( (EventObject ev) -> {
-            if (ev.getSource() == UIComponent.this) {
-                l.handle( (T)ev );
-            }
-        });
+    public EventHandlerInfo subscribe( EventListener<?> l ) {
+        return EventManager.instance().subscribe( l )
+                .performIf( ev -> ev != null && ev.getSource() == UIComponent.this);
     }
 
 
     @SuppressWarnings("unchecked")
-    public <R> R getOrCreateData( String name, Supplier<R>... initializer ) {
-        assert initializer.length <= 1 : "Too many initializers: " + initializer.length;
-
+    public <R> R data( String name, Supplier<R> initializer ) {
         return (R)data.computeIfAbsent( name, key -> {
-            if (initializer.length == 0) {
-                throw new IllegalStateException( "No data for key: " + name );
-            }
-            return initializer[0].get();
+            return initializer.get();
         });
     }
 
-
-    public <C extends UIComponent,E extends Exception> C with( Consumer<C,E> task ) throws E {
-        task.perform((C)this);
-        return (C)this;
+    @SuppressWarnings("unchecked")
+    public <R> Opt<R> optData( String name ) {
+        return Opt.ofNullable( (R)data.get( name ) );
     }
+
+
+//    public <C extends UIComponent,E extends Exception> C with( Consumer<C,E> task ) throws E {
+//        task.perform((C)this);
+//        return (C)this;
+//    }
 
     @FunctionalInterface
     public interface Consumer<P,E extends Exception> {

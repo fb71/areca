@@ -11,23 +11,33 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.test;
+package areca.common.base;
 
-import areca.common.reflect.ClassInfo;
+import java.util.Iterator;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class Tests {
+public class DelegatingIterator<T,R>
+        implements Iterator<R> {
 
-    public static ClassInfo<?>[] all() {
-        return new ClassInfo[] {
-                AnnotationTestClassInfo.INFO,
-                EventManagerTestClassInfo.INFO,
-                SequenceTestClassInfo.INFO
-                //AssertTest.class
-        };
+    protected Iterator<T>       delegate;
+
+    public DelegatingIterator( Iterator<T> delegate ) {
+        this.delegate = delegate;
+    }
+
+    public boolean hasNext() {
+        return delegate.hasNext();
+    }
+
+    public R next() {
+        return (R)delegate.next();
+    }
+
+    public void remove() {
+        delegate.remove();
     }
 
 }
