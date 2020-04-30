@@ -13,29 +13,14 @@
  */
 package areca.common.base;
 
-import areca.common.Assert;
-
 /**
- * Similar to {@link java.util.function.Consumer} but allows checked Exceptions.
+ * Similar to {@link java.util.function.Supplier} but allows checked Exceptions.
  *
- * @param <T> the type of the input to the operation
  * @author Falko Bräutigam
  */
 @FunctionalInterface
-public interface Consumer<T,E extends Exception> {
+public interface Supplier<T,E extends Exception> {
 
-    /**
-     * Performs this operation on the given argument.
-     */
-    public void accept( T t ) throws E;
-
-
-    public default <RE extends E> Consumer<T,E> andThen( Consumer<? super T,RE> after) throws RE {
-        Assert.notNull( after );
-        return (T t) -> {
-            accept(t);
-            after.accept(t);
-        };
-    }
+    T supply() throws E;
 
 }

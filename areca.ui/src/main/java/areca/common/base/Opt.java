@@ -18,6 +18,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import areca.common.Assert;
+
 /**
  * Similar to {@link Optional} but allows checked Exceptions.
  *
@@ -37,7 +39,7 @@ public class Opt<T> {
         return new Opt<>( Objects.requireNonNull( value ) );
     }
 
-    public static <R> Opt<R> absent( R value ) {
+    public static <R> Opt<R> absent() {
         return EMPTY;
     }
 
@@ -65,8 +67,9 @@ public class Opt<T> {
      * @throws E If the action was throwing this exception.
      */
     public <E extends Exception> void ifPresent( Consumer<? super T,E> action) throws E {
+        Assert.notNull( action );
         if (value != null) {
-            action.accept(value);
+            action.accept( value );
         }
     }
 
@@ -80,9 +83,25 @@ public class Opt<T> {
      * @throws E If the action was throwing this exception.
      */
     public <E extends Exception> void ifAbsent( Consumer<? super T,E> action) throws E {
-        if (value != null) {
-            action.accept(value);
+        Assert.notNull( action );
+        if (value == null) {
+            action.accept( value );
         }
+    }
+
+    /**
+     * If a value is present, and the value matches the given condition,
+     * returns this, otherwise return {@link #absent()}.
+     */
+    public <E extends Exception> Opt<T> matches( Predicate<? super T,E> condition ) throws E {
+        Assert.notNull( condition );
+        return isPresent() && condition.test( value ) ? this : absent();
+    }
+
+
+    public <R,E extends Exception> Opt<R> transform( Function<? super T,? extends R,E> mapper) throws E {
+        Assert.notNull( mapper );
+        return isPresent() ? Opt.ofNullable( mapper.apply( value ) ) : absent();
     }
 
 

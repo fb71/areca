@@ -23,6 +23,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.mutable.MutableInt;
+
 /**
  *
  * @author Falko Bräutigam
@@ -64,8 +66,7 @@ public class Sequence<T, E extends Exception> {
 
 
     public <R,RE extends E> Sequence<R,E> transform( Function<T,R,RE> function ) throws RE {
-        SequenceIterator<T,E> delegate = iterate.get();
-        return new Sequence<R,E>( () -> new DelegatingIterator<T,R,E>( delegate ) {
+        return new Sequence<R,E>( () -> new DelegatingIterator<T,R,E>( iterate.get() ) {
             @Override
             public R next() throws E {
                 return function.apply( delegate.next() );
@@ -75,8 +76,7 @@ public class Sequence<T, E extends Exception> {
 
 
     public <RE extends E> Sequence<T,E> filter( Predicate<T,RE> condition ) throws RE {
-        SequenceIterator<T,E> delegate = iterate.get();
-        return new Sequence<T,E>( () -> new DelegatingIterator<T,T,E>( delegate ) {
+        return new Sequence<T,E>( () -> new DelegatingIterator<T,T,E>( iterate.get() ) {
             private T nextElm = null;
             @Override
             public T next() throws E {
@@ -153,7 +153,7 @@ public class Sequence<T, E extends Exception> {
 
 
     public int count() throws E {
-        return reduce( Integer.valueOf( 0 ), (result,elm) -> Integer.valueOf( result.intValue() + 1 ) );
+        return reduce( new MutableInt( 0 ), (result,elm) -> {result.increment(); return result;} ).intValue();
     }
 
 

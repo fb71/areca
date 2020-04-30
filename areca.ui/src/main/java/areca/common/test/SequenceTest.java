@@ -55,21 +55,14 @@ public class SequenceTest {
 
 
     @Test
-    public void filterTest() {
-        Assert.isEqual( 2, Sequence.of( 1, 2, 3 ).filter( elm -> elm != 3 ).count() );
-        Assert.isEqual( 2, Sequence.of( 1, 2, 3 ).filter( elm -> elm != 2 ).count() );
-        Assert.isEqual( 2, Sequence.of( 1, 2, 3 ).filter( elm -> elm != 1 ).count() );
-        Assert.isEqual( 3, Sequence.of( 1, 2, 3 ).filter( elm -> elm > 0 ).count() );
-        Assert.isEqual( 0, Sequence.of( 1, 2, 3 ).filter( elm -> elm < 0 ).count() );
-    }
-
-
-    @Test
     public void transformTest() {
-        Assert.isEqual( "234", Sequence.of( 1, 2, 3 )
+        Sequence<Integer,RuntimeException> sequence = Sequence.of( 1, 2, 3 );
+        Assert.isEqual( "234", sequence
                 .transform( elm -> {LOG.info( ":"+elm ); return elm + 1; } )
                 .transform( elm -> {LOG.info( "::"+elm ); return String.valueOf( elm ); } )
                 .reduce( String::concat ) );
+
+        Assert.isEqual( "123", sequence.transform( String::valueOf ).reduce( String::concat ) );
     }
 
 
@@ -95,6 +88,17 @@ public class SequenceTest {
 //        Assert.that( m1 instanceof HashMap );
 //        Assert.isEqual( m1.size(), 3 );
 //        Assert.isEqual( m1.get( 1 ), "elm:1" );
+    }
+
+
+    @Test
+    public void filterTest() {
+        Sequence<Integer,RuntimeException> sequence = Sequence.of( 1, 2, 3 );
+        Assert.isEqual( 2, sequence.filter( elm -> elm != 3 ).count() );
+        Assert.isEqual( 2, sequence.filter( elm -> elm != 2 ).count() );
+        Assert.isEqual( 2, sequence.filter( elm -> elm != 1 ).count() );
+        Assert.isEqual( 3, sequence.filter( elm -> elm > 0 ).count() );
+        Assert.isEqual( 0, sequence.filter( elm -> elm < 0 ).count() );
     }
 
 
