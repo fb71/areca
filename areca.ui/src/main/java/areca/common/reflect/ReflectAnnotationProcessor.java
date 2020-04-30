@@ -94,7 +94,7 @@ public class ReflectAnnotationProcessor
 
 
     protected void createClassInfo( TypeElement type, Set<TypeElement> processedAnnotations ) throws IOException {
-        log( "=== ", type, " ==============================================" );
+        log( ("=== " + type + " ==============================================").substring( 0, 68 ) );
 
         String packageName = StringUtils.substringBeforeLast( type.getQualifiedName().toString(), "." );
         String typeName = type.getSimpleName() + "ClassInfo";
@@ -204,7 +204,7 @@ public class ReflectAnnotationProcessor
         // file
         log( "package: " + packageName );
         JavaFile javaFile = JavaFile.builder( packageName, classBuilder.build() ).build();
-        javaFile.writeTo( System.out );
+        //javaFile.writeTo( System.out );
         javaFile.writeTo( processingEnv.getFiler() );
     }
 
@@ -220,7 +220,7 @@ public class ReflectAnnotationProcessor
 
 
     protected void createAnnotationInfo( TypeElement annotation ) throws IOException {
-        log( "=== ", annotation, " ==============================================" );
+        log( ("=== " + annotation + " ==============================================").substring( 0, 68 ) );
         log( "Enclosing:" + annotation.getEnclosedElements() );
 
         String packageName = StringUtils.substringBeforeLast( annotation.getQualifiedName().toString(), "." );
@@ -267,7 +267,7 @@ public class ReflectAnnotationProcessor
         // file
         log( "package: " + packageName );
         JavaFile javaFile = JavaFile.builder( packageName, classBuilder.build() ).build();
-        javaFile.writeTo( System.out );
+        //javaFile.writeTo( System.out );
         javaFile.writeTo( processingEnv.getFiler() );
     }
 

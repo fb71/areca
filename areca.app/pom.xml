@@ -1,10 +1,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>areca</groupId>
-    <artifactId>areca-rt-teavm</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <artifactId>areca-app</artifactId>
+    <packaging>war</packaging>
+
+<!--     <parent> -->
+<!--         <groupId>areca</groupId> -->
+<!--         <artifactId>areca</artifactId> -->
+<!--         <version>0.0.1-SNAPSHOT</version> -->
+<!--     </parent> -->
+
+    <properties>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <teavm.version>0.7.0-dev-943</teavm.version>
+    </properties>
 
     <repositories>
         <repository>
@@ -18,17 +30,17 @@
             <url>https://dl.bintray.com/konsoletyper/teavm</url>
         </pluginRepository>
     </pluginRepositories>
-
-    <properties>
-        <java.version>1.8</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <teavm.version>0.7.0-dev-943</teavm.version>
-    </properties>
-
+  
     <dependencies>
         <dependency>
             <groupId>areca</groupId>
             <artifactId>areca-ui</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>areca</groupId>
+            <artifactId>areca-rt-teavm</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
@@ -45,19 +57,19 @@
             <version>${teavm.version}</version>
         </dependency>
 
-        <!-- JavaScriptObjects (JSO) - a JavaScript binding for TeaVM -->
-        <dependency>
-            <groupId>org.teavm</groupId>
-            <artifactId>teavm-jso-apis</artifactId>
-            <version>${teavm.version}</version>
-            <scope>provided</scope>
-        </dependency>
+<!--         JavaScriptObjects (JSO) - a JavaScript binding for TeaVM -->
+<!--         <dependency> -->
+<!--             <groupId>org.teavm</groupId> -->
+<!--             <artifactId>teavm-jso-apis</artifactId> -->
+<!--             <version>${teavm.version}</version> -->
+<!--             <scope>provided</scope> -->
+<!--         </dependency> -->
 
-        <dependency>
-            <groupId>org.teavm</groupId>
-            <artifactId>teavm-metaprogramming-api</artifactId>
-            <version>${teavm.version}</version>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.teavm</groupId> -->
+<!--             <artifactId>teavm-metaprogramming-api</artifactId> -->
+<!--             <version>${teavm.version}</version> -->
+<!--         </dependency> -->
 
         <!-- Servlet 3.1 specification -->
         <dependency>
@@ -67,7 +79,7 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
+  
     <build>
         <plugins>
             <!-- Java compiler -->
@@ -94,60 +106,22 @@
                 </executions>
             </plugin>
 
-            <!-- Sources -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <attach>true</attach>
-                </configuration>
-            </plugin> 
-            
-            <!-- SASS -->
-            <plugin>
-                <groupId>nl.geodienstencentrum.maven</groupId>
-                <artifactId>sass-maven-plugin</artifactId>
-                <version>3.7.2</version>
-                <configuration>
-                    <resources>
-                        <resource>
-                            <source>
-                                <directory>${basedir}/src/main/webapp</directory>
-                            </source>
-                            <relativeOutputDirectory>..</relativeOutputDirectory>
-                            <destination>${project.build.directory}/${project.build.finalName}</destination>
-                        </resource>
-                    </resources>
-                </configuration>
-            </plugin>
-
-            <!-- TeaVM: pre-integration-test -->
+            <!-- TeaVM -->
             <plugin>
                 <groupId>org.teavm</groupId>
                 <artifactId>teavm-maven-plugin</artifactId>
                 <version>${teavm.version}</version>
                 <executions>
                     <execution>
-                        <id>web-client</id>
-                        <phase>pre-integration-test</phase>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
                         <goals>
                             <goal>compile</goal>
                         </goals>
                         <configuration>
                             <!-- This configuration conforms to the settings of the WAR plugin -->
                             <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
-
-                            <mainClass>areca.rt.teavm.testapp.TestRunnerMain</mainClass>
+                            <mainClass>areca.app.Main</mainClass>
                             <minifying>false</minifying>
                             <debugInformationGenerated>true</debugInformationGenerated>
                             <sourceMapsGenerated>true</sourceMapsGenerated>
@@ -163,19 +137,28 @@
                 </executions>
             </plugin>
 
-            <!-- Configure WAR plugin to include JavaScript files generated by TeaVM -->
+           <!-- SASS -->
+           <plugin>
+             <groupId>nl.geodienstencentrum.maven</groupId>
+             <artifactId>sass-maven-plugin</artifactId>
+             <version>3.7.2</version>
+             <configuration>
+              <resources>
+                <resource>
+                  <source>
+                    <directory>${basedir}/src/main/webapp</directory>
+                  </source>
+                  <relativeOutputDirectory>..</relativeOutputDirectory>
+                  <destination>${project.build.directory}/${project.build.finalName}</destination>
+                </resource>
+              </resources>
+             </configuration>
+           </plugin>
+          
+            <!-- WAR: include JavaScript files generated by TeaVM -->
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.4</version>
-                <executions>
-                    <execution>
-                        <id>web-client</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>war</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
                     <webResources>
                         <resource>
@@ -191,17 +174,16 @@
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>9.4.25.v20191220</version>
                 <configuration>
-                    <webAppSourceDirectory>${project.basedir}/target/areca-ui-0.0.1-SNAPSHOT/</webAppSourceDirectory>
+                    <webAppSourceDirectory>${project.basedir}/target/areca-app-0.0.1-SNAPSHOT/</webAppSourceDirectory>
                     <classesDirectory></classesDirectory>
                     <webApp>
                         <contextPath>/areca</contextPath>
-                        <descriptor>${project.basedir}/target/areca-ui-0.0.1-SNAPSHOT/WEB-INF/web.xml</descriptor>
+                        <descriptor>${project.basedir}/target/areca-app-0.0.1-SNAPSHOT/WEB-INF/web.xml</descriptor>
                         <!-- <baseResource>${project.basedir}/target/areca-ui-0.0.1-SNAPSHOT/</baseResource> -->
                     </webApp>
                 </configuration>
             </plugin>
-            
         </plugins>
     </build>
-    
+
 </project>

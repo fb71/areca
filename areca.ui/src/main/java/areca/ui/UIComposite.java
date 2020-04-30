@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import areca.common.Assert;
 import areca.common.base.Consumer;
 import areca.ui.layout.LayoutManager;
 
@@ -43,29 +44,41 @@ public class UIComposite
     /**
      * Creates a new child of this composite.
      *
+     * @see #create(Class, Consumer)
      * @param <C> The type of the component to create.
      * @param <E> The Exception the initializer may throw.
      * @param type The type of the component to create.
-     * @param initializers Optional, to be performed on the newly created component.
      * @return Newly created child component.
      * @throws E
      */
-    @SuppressWarnings("unchecked")
-    public <C extends UIComponent,E extends Exception> UIComposite create(Class<C> type, Consumer<C,E>... initializers) throws E {
+    public <C extends UIComponent> C create( Class<C> type ) {
         try {
             @SuppressWarnings("deprecation")
             C component = type.newInstance();
             component.init( this );
             components.add( component );
-
-            for (Consumer<C,E> initializer : initializers) {
-                initializer.accept( component );
-            }
-            return this;
+            return component;
         }
         catch (InstantiationException | IllegalAccessException e) {
             throw new RuntimeException( e );
         }
+    }
+
+
+    /**
+     * Creates a new child of this composite.
+     *
+     * @param <C> The type of the component to create.
+     * @param <E> The Exception the initializer may throw.
+     * @param type The type of the component to create.
+     * @param initializers To be performed on the newly created component.
+     * @return Newly created child component.
+     * @throws E
+     */
+    public <C extends UIComponent,E extends Exception> C create( Class<C> type, Consumer<C,E> initializer ) throws E {
+        C component = create( type );
+        Assert.notNull( initializer ).accept( component );
+        return component;
     }
 
 

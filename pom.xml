@@ -15,5 +15,6 @@
   <modules>
     <module>areca.ui</module>
     <module>areca.rt.teavm</module>
+    <module>areca.app</module>
   </modules>
 </project>
