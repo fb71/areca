@@ -62,6 +62,8 @@ public class SequenceTest {
                 .transform( elm -> {LOG.info( "::"+elm ); return String.valueOf( elm ); } )
                 .reduce( String::concat ) );
 
+        Assert.that( sequence != sequence.transform( elm -> 0 ) );
+
         Assert.isEqual( "123", sequence.transform( String::valueOf ).reduce( String::concat ) );
     }
 
@@ -94,6 +96,7 @@ public class SequenceTest {
     @Test
     public void filterTest() {
         Sequence<Integer,RuntimeException> sequence = Sequence.of( 1, 2, 3 );
+        Assert.that( sequence != sequence.filter( elm -> true ) );
         Assert.isEqual( 2, sequence.filter( elm -> elm != 3 ).count() );
         Assert.isEqual( 2, sequence.filter( elm -> elm != 2 ).count() );
         Assert.isEqual( 2, sequence.filter( elm -> elm != 1 ).count() );

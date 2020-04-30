@@ -46,7 +46,7 @@ public class HtmlTestRunnerDecorator
     public void preRun( TestRunner runner ) {
         doc = Window.current().getDocument();
         doc.getBody().getStyle().setProperty( "font", "12px monospace" );
-        doc.getBody().appendChild( doc.createTextNode( "Starting..." ) );
+        doc.getBody().appendChild( doc.createTextNode( "Running tests..." ) );
     }
 
 
