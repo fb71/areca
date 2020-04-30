@@ -15,8 +15,8 @@ package areca.rt.teavm.ui;
 
 import java.util.logging.Logger;
 
+import areca.common.base.Consumer;
 import areca.ui.App;
-import areca.ui.UIComponent.Consumer;
 import areca.ui.UIComposite;
 
 /**
@@ -46,7 +46,7 @@ public class TeaApp
         rootWindow = new RootWindow();
         rootWindow.init( null );
 
-        initializer.perform( rootWindow );
+        initializer.accept( rootWindow );
         return rootWindow;
     }
 

@@ -13,7 +13,7 @@
  */
 package areca.ui;
 
-import areca.ui.UIComponent.Consumer;
+import areca.common.base.Consumer;
 
 /**
  *

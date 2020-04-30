@@ -109,10 +109,4 @@ public abstract class UIComponent {
 //        return (C)this;
 //    }
 
-    @FunctionalInterface
-    public interface Consumer<P,E extends Exception> {
-
-        public void perform(P param) throws E;
-    }
-
 }

@@ -16,6 +16,7 @@ package areca.ui;
 import java.util.Optional;
 import java.util.logging.Logger;
 
+import areca.common.base.Opt;
 import areca.common.event.EventManager;
 
 /**
@@ -99,8 +100,8 @@ public class Property<T> {
     }
 
 
-    public Optional<T> opt() {
-        return Optional.ofNullable( value );
+    public Opt<T> opt() {
+        return Opt.ofNullable( value );
     }
 
 

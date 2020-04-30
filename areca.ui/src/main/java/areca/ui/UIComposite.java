@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import areca.common.base.Consumer;
 import areca.ui.layout.LayoutManager;
 
 /**
@@ -58,7 +59,7 @@ public class UIComposite
             components.add( component );
 
             for (Consumer<C,E> initializer : initializers) {
-                initializer.perform( component );
+                initializer.accept( component );
             }
             return this;
         }
