@@ -15,6 +15,7 @@ package areca.rt.teavm.ui;
 
 import java.util.logging.Logger;
 
+import areca.common.Assert;
 import areca.common.base.Consumer;
 import areca.ui.App;
 import areca.ui.UIComposite;
@@ -42,7 +43,7 @@ public class TeaApp
     public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E {
         MainRenderEventHandler.start();
 
-        assert rootWindow == null;
+        Assert.isNull( rootWindow );
         rootWindow = new RootWindow();
         rootWindow.init( null );
 

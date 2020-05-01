@@ -50,11 +50,11 @@ public class Property<T> {
         this.value = value;
     }
 
+
     @Override
     public String toString() {
-        return "Property [" + component + "." + name + "]";
+        return "Property[" + component + "." + name + "]";
     }
-
 
 
     @Override
@@ -95,6 +95,13 @@ public class Property<T> {
         T oldValue = value;
         this.value = newValue;
         EventManager.instance().publish( new PropertyChangedEvent( this, oldValue, newValue ) );
+        return this;
+    }
+
+
+    /** Set value without firing {@link PropertyChangedEvent}. */
+    public Property<T> rawSet( T newValue ) {
+        this.value = newValue;
         return this;
     }
 

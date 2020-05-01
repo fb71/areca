@@ -1,4 +1,10 @@
 
+/* To get root window height */
+html,body {
+    height: 100%;
+    margin: 0px;
+}
+
 body {
     background-color: $bg1_color;
 }

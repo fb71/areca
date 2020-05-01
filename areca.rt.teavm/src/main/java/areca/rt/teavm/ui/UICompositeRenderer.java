@@ -15,8 +15,10 @@ package areca.rt.teavm.ui;
 
 import java.util.logging.Logger;
 
+import org.teavm.jso.dom.html.HTMLBodyElement;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import areca.ui.Size;
 import areca.ui.UIComposite;
 import areca.common.Assert;
 import areca.ui.Property.PropertyChangedEvent;
@@ -42,9 +44,16 @@ public class UICompositeRenderer
         // XXX check that none exists yet
         HTMLElement div = composite.data( DATA_ELM, () -> {
             HTMLElement newDiv = doc().createElement( "div" );
-            // root
+            // root window
             if (composite.parent() == null) {
-                return (HTMLElement)doc().getBody().appendChild( newDiv );
+                HTMLBodyElement body = doc().getBody();
+
+                Size bodySize = Size.of( body.getClientWidth(), body.getClientHeight() );
+                newDiv.getStyle().setProperty( "height", bodySize.height() + "px" );
+                composite.size.rawSet( bodySize );
+                LOG.info( "Root window: " + bodySize );
+
+                return (HTMLElement)body.appendChild( newDiv );
             }
             // other
             else {
@@ -57,8 +66,10 @@ public class UICompositeRenderer
 
         super.handleComponentCreated( ev, composite );
 
+        // root window
         if (composite.parent() == null) {
             div.getStyle().setProperty( "position", "relative" );
+            LOG.info( "rdiv: " + div.getClientWidth() + " / " + div.getClientHeight() );
         }
     }
 

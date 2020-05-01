@@ -16,6 +16,9 @@ package areca.ui.layout;
 import java.util.logging.Logger;
 
 import areca.ui.Orientation;
+import areca.ui.Point;
+import areca.ui.Size;
+import areca.ui.UIComponent;
 import areca.ui.UIComposite;
 
 /**
@@ -32,27 +35,20 @@ public class FillLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        LOG.warning( "not yet..." );
+        Size size = composite.size.get();
+        LOG.info( "Composite: " + size );
 
-//        LOG.info( "Body: " + Window.current().getDocument().getBody().getClientWidth() );
-//        LOG.info( "Composite: clientHeight= " + UIComponentRenderer.htmlElementOf( composite ).getClientWidth() );
-//
-//        for (UIComponent component : composite.components()) {
-//            HTMLElement elm = UIComponentRenderer.htmlElementOf( component );
-//            LOG.info( "Component: " + elm.getClientWidth() + " / " + elm.getClientHeight() );
-//        }
-
-//        Size parentSize = composite.parent().size.get();
-//
-//        if (orientation == Orientation.HORIZONTAL) {
-//            int componentWidth = parentSize.width() / composite.components().size();
-//            for (UIComponent component : composite.components()) {
-//                component.size.set( new Size( componentWidth, parentSize.height() ) );
-//            }
-//        }
-//        else {
-//            throw new RuntimeException( "not yet implemented." );
-//        }
+        if (orientation == Orientation.HORIZONTAL) {
+            int componentWidth = size.width() / composite.components().size();
+            int count = 0;
+            for (UIComponent component : composite.components()) {
+                component.size.set( Size.of( componentWidth, size.height() ) );
+                component.position.set( Point.of( count++ * componentWidth, 0 ) );
+            }
+        }
+        else {
+            throw new RuntimeException( "not yet implemented." );
+        }
     }
 
 }

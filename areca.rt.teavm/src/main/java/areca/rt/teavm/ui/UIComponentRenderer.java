@@ -76,8 +76,9 @@ public abstract class UIComponentRenderer<C extends UIComponent>
 
 
     protected void handleComponentCreated( UIRenderEvent.ComponentCreatedEvent ev, C component ) {
-        Assert.<HTMLElement>notNull( htmlElementOf( component ), "Call super.handleComponentCreated() *after* HTML-element was created." )
-                .getStyle().setProperty( "position", "absolute" );
+        HTMLElement elm = Assert.<HTMLElement>notNull( htmlElementOf( component ), "Call super.handleComponentCreated() *after* HTML-element was created." );
+        elm.getStyle().setProperty( "position", "absolute" );
+        elm.getStyle().setProperty( "transition", "top 0.5s, left 0.5s" );
     }
 
 
@@ -100,8 +101,8 @@ public abstract class UIComponentRenderer<C extends UIComponent>
         // position
         if (UIComponent.TYPE.position.equals( ev.getSource() )) {
             LOG.info( "Position: " + ev.getNewValue() );
-            elm.getStyle().setProperty( "top", ev.<Point>optNewValue().get().x() + "px" );
-            elm.getStyle().setProperty( "left", ev.<Point>optNewValue().get().y() + "px" );
+            elm.getStyle().setProperty( "top", ev.<Point>optNewValue().get().y() + "px" );
+            elm.getStyle().setProperty( "left", ev.<Point>optNewValue().get().x() + "px" );
         }
         // size
         if (UIComponent.TYPE.size.equals( ev.getSource() )) {
