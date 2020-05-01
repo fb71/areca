@@ -19,7 +19,7 @@ import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.xml.Node;
 
 import areca.ui.Text;
-import areca.ui.UIRenderEvent.ComponentCreated;
+import areca.ui.UIRenderEvent.ComponentCreatedEvent;
 
 /**
  *
@@ -35,7 +35,7 @@ public class TextRenderer
     }
 
     @Override
-    protected void handleComponentCreated( ComponentCreated ev, Text text ) {
+    protected void handleComponentCreated( ComponentCreatedEvent ev, Text text ) {
         // XXX check that none exists yet
         text.data( DATA_ELM, () -> {
             HTMLElement parentElement = htmlElementOf( text.parent() );

@@ -36,10 +36,10 @@ public class UIRenderEvent
     /**
      * 
      */
-    public static class ComponentCreated
+    public static class ComponentCreatedEvent
         extends UIRenderEvent {
 
-        public ComponentCreated( UIComponent source ) {
+        public ComponentCreatedEvent( UIComponent source ) {
             super( source );
         }
 
@@ -52,10 +52,10 @@ public class UIRenderEvent
     /**
      * 
      */
-    public static class ComponentDestroyed
+    public static class ComponentDestroyedEvent
         extends UIRenderEvent {
 
-        public ComponentDestroyed( UIComponent source ) {
+        public ComponentDestroyedEvent( UIComponent source ) {
             super( source );
         }
         

@@ -16,7 +16,6 @@ package areca.ui.layout;
 import java.util.logging.Logger;
 
 import areca.ui.Orientation;
-import areca.ui.UIComponent;
 import areca.ui.UIComposite;
 
 /**
@@ -33,7 +32,7 @@ public class FillLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        throw new RuntimeException( "Layout ist noch abhängig von RT/TeaVM" );
+        LOG.warning( "not yet..." );
 
 //        LOG.info( "Body: " + Window.current().getDocument().getBody().getClientWidth() );
 //        LOG.info( "Composite: clientHeight= " + UIComponentRenderer.htmlElementOf( composite ).getClientWidth() );

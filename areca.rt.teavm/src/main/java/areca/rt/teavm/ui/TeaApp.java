@@ -40,7 +40,7 @@ public class TeaApp
 
 
     public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E {
-        MainHandler.start();
+        MainRenderEventHandler.start();
 
         assert rootWindow == null;
         rootWindow = new RootWindow();

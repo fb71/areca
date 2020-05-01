@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -17,37 +17,44 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+import areca.common.Assert;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
 import areca.ui.UIRenderEvent;
 
 /**
- * 
+ *
  * @author falko
  */
-public class MainHandler 
+public class MainRenderEventHandler
         implements EventListener<UIRenderEvent> {
 
-    private static final Logger LOG = Logger.getLogger( MainHandler.class.getSimpleName() );
+    private static final Logger LOG = Logger.getLogger( MainRenderEventHandler.class.getSimpleName() );
 
     private static final List<UIRenderer>   RENDERERS = Arrays.asList(
             new UICompositeRenderer(),
             new ButtonRenderer() );
-    
-    private static MainHandler              mainHandler;
-    
+
+
+    private static MainRenderEventHandler              instance;
+
+
     public static void start() {
-        assert mainHandler == null;
-        EventManager.instance().subscribe( mainHandler = new MainHandler() );
+        Assert.isNull( instance );
+        instance = new MainRenderEventHandler();
+        EventManager.instance().subscribe( instance );
     }
-    
+
+
     // instance *******************************************
-    
+
     @Override
     public void handle( UIRenderEvent ev ) {
-        LOG.info( "MainHandler: " + ev );
-        for (UIRenderer renderer : RENDERERS) {
-            renderer.handle( ev );
+        LOG.info( "RENDER: " + ev );
+        if (ev != null) {  // XXX remove if event handler param type check is in place
+            for (UIRenderer renderer : RENDERERS) {
+                renderer.handle( ev );
+            }
         }
     }
 

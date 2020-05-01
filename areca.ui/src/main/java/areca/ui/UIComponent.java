@@ -44,7 +44,7 @@ public abstract class UIComponent {
 
     private Map<String,Object>              data = new TreeMap<>();
 
-    public Property<List<LayoutConstraint>> layoutConstraints = Property.create( this, "layoutConstraints" );
+    public Property<List<LayoutConstraint>> layoutConstraints = Property.create( this, "lc", new ArrayList<>() );
 
     public Property<Color>                  bgColor = Property.create( this, "bgcolor" );
 
@@ -59,14 +59,13 @@ public abstract class UIComponent {
 
     protected void init( UIComposite newParent ) {
         this.parent = newParent;
-        EventManager.instance().publish( new UIRenderEvent.ComponentCreated( this ) );
-        layoutConstraints.set( new ArrayList<>() );
+        EventManager.instance().publish( new UIRenderEvent.ComponentCreatedEvent( this ) );
     }
 
 
     public void dispose() {
         throw new RuntimeException( "not yet..." );
-        //EventManager.instance().publish( new UIRenderEvent.ComponentCreated( this ) );
+        //EventManager.instance().publish( new UIRenderEvent.ComponentCreatedEvent( this ) );
     }
 
 

@@ -44,14 +44,28 @@ public abstract class EventManager {
 
 
     protected EventManager() {
+        defaultOnError = e -> {
+            LOG.log( Level.WARNING, "Error during event handling. (" + e + ")", e );
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException)e;
+            }
+            else if (e instanceof Error) {
+                throw (Error)e;
+            }
+            else {
+                throw new RuntimeException( e );
+            }
+        };
     }
 
 
     public abstract EventHandlerInfo subscribe( Object annotatedOrListener );
 
+
     public EventHandlerInfo subscribe( EventListener<?> l ) {
         return subscribe( (Object)l );
     }
+
 
     protected abstract void unsubscribe( EventHandlerInfo eventHandlerInfo );
 

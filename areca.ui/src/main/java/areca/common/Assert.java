@@ -65,17 +65,17 @@ public class Assert {
     }
 
 
-    public static <R> R isNull( R actual ) {
+    public static <R> R isNull( R actual, String... msgs ) {
         if (enabled && actual != null) {
-            throw new AssertionException( null, actual, "null expected" );
+            throw new AssertionException( null, actual, message( msgs, "null expected" ) );
         }
         return actual;
     }
 
 
-    public static <R> R notNull( R actual ) {
+    public static <R> R notNull( R actual, String... msgs ) {
         if (enabled && actual == null) {
-            throw new AssertionException( null, actual, "non-null expected" );
+            throw new AssertionException( null, actual, message( msgs, "non-null expected" ) );
         }
         return actual;
     }

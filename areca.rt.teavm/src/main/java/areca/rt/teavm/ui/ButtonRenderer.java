@@ -21,9 +21,9 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.common.event.EventManager;
 import areca.ui.Button;
-import areca.ui.Property.PropertySetEvent;
+import areca.ui.Property.PropertyChangedEvent;
 import areca.ui.SelectionEvent;
-import areca.ui.UIRenderEvent.ComponentCreated;
+import areca.ui.UIRenderEvent.ComponentCreatedEvent;
 
 /**
  *
@@ -41,7 +41,7 @@ public class ButtonRenderer
 
 
     @Override
-    protected void handleComponentCreated( ComponentCreated ev, Button button ) {
+    protected void handleComponentCreated( ComponentCreatedEvent ev, Button button ) {
         // XXX check that none exists yet
         button.data( DATA_ELM, () -> {
             HTMLElement parentElement = htmlElementOf( button.parent() );
@@ -57,8 +57,8 @@ public class ButtonRenderer
 
 
     @Override
-    protected void handlePropertyChange( PropertySetEvent ev, Button button ) {
-        super.handlePropertyChange( ev, button );
+    protected void handlePropertyChanged( PropertyChangedEvent ev, Button button ) {
+        super.handlePropertyChanged( ev, button );
 
         HTMLButtonElement elm = htmlElementOf( button );
 

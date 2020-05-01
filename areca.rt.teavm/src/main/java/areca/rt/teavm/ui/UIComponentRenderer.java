@@ -17,12 +17,13 @@ import java.util.logging.Logger;
 
 import org.teavm.jso.dom.html.HTMLElement;
 
+import areca.common.Assert;
 import areca.ui.Color;
 import areca.ui.Property;
 import areca.ui.UIComponent;
 import areca.ui.UIRenderEvent;
-import areca.ui.UIRenderEvent.ComponentCreated;
-import areca.ui.UIRenderEvent.ComponentDestroyed;
+import areca.ui.UIRenderEvent.ComponentCreatedEvent;
+import areca.ui.UIRenderEvent.ComponentDestroyedEvent;
 
 /**
  *
@@ -45,43 +46,40 @@ public abstract class UIComponentRenderer<C extends UIComponent>
 
 
     @Override
+    @SuppressWarnings("unchecked")
     public void handle( UIRenderEvent ev ) {
         super.handle( ev );
 
-        // Property set
-        if (ev instanceof Property.PropertySetEvent) {
+        if (ev instanceof Property.PropertyChangedEvent) {
             UIComponent component = ((Property)ev.getSource()).component();
             if (componentType.isAssignableFrom( component.getClass() )) {
-                handlePropertyChange( (Property.PropertySetEvent)ev, (C)component );
-            }
-        }
-        // created
-        else if (ev instanceof UIRenderEvent.ComponentCreated) {
-            UIComponent component = ((ComponentCreated)ev).getSource();
-            if (componentType.isAssignableFrom( component.getClass() )) {
-                handleComponentCreated( (ComponentCreated)ev, (C)component );
-            }
-        }
-        // destroyed
-        else if (ev instanceof UIRenderEvent.ComponentDestroyed) {
-            UIComponent component = ((ComponentDestroyed)ev).getSource();
-            if (componentType.isAssignableFrom( component.getClass() )) {
-                handleComponentDestroyed( (ComponentDestroyed)ev, (C)component );
+                handlePropertyChanged( (Property.PropertyChangedEvent)ev, (C)component );
             }
         }
         else {
-            throw new RuntimeException( "Unhandled event type: " +  ev );
+            UIComponent component = (UIComponent)ev.getSource();
+            if (componentType.isAssignableFrom( component.getClass() )) {
+                if (ev instanceof UIRenderEvent.ComponentCreatedEvent) {
+                    handleComponentCreated( (ComponentCreatedEvent)ev, (C)component );
+                }
+                else if (ev instanceof UIRenderEvent.ComponentDestroyedEvent) {
+                    handleComponentDestroyed( (ComponentDestroyedEvent)ev, (C)component );
+                }
+                else {
+                    throw new IllegalStateException( "Unhandled event type: " +  ev );
+                }
+            }
         }
     }
 
 
-    protected void handleComponentCreated( UIRenderEvent.ComponentCreated ev, C component ) {
-        assert htmlElementOf( component ) != null : "Call super.handleComponentCreated() *after* HTML-element was created.";
-        htmlElementOf( component ).getStyle().setProperty( "position", "absolute" );
+    protected void handleComponentCreated( UIRenderEvent.ComponentCreatedEvent ev, C component ) {
+        Assert.<HTMLElement>notNull( htmlElementOf( component ), "Call super.handleComponentCreated() *after* HTML-element was created." )
+                .getStyle().setProperty( "position", "absolute" );
     }
 
 
-    protected void handlePropertyChange( Property.PropertySetEvent ev, C component ) {
+    protected void handlePropertyChanged( Property.PropertyChangedEvent ev, C component ) {
         HTMLElement elm = htmlElementOf( component );
         elm.setAttribute( "id", String.valueOf( component.id() ) );
 
@@ -100,7 +98,7 @@ public abstract class UIComponentRenderer<C extends UIComponent>
     }
 
 
-    protected void handleComponentDestroyed( UIRenderEvent.ComponentDestroyed ev, C component ) {
+    protected void handleComponentDestroyed( UIRenderEvent.ComponentDestroyedEvent ev, C component ) {
         throw new RuntimeException( "not yet implemented." );
     }
 

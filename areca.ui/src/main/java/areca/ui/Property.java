@@ -28,7 +28,11 @@ public class Property<T> {
     private static final Logger LOG = Logger.getLogger( Property.class.getSimpleName() );
 
     public static <R> Property<R> create( UIComponent component, String name ) {
-        return new Property<>( component, name );
+        return new Property<>( component, name, null );
+    }
+
+    public static <R> Property<R> create( UIComponent component, String name, R initialValue ) {
+        return new Property<>( component, name, initialValue );
     }
 
 
@@ -41,9 +45,10 @@ public class Property<T> {
     private T           value;
 
 
-    protected Property( UIComponent component, String name ) {
+    protected Property( UIComponent component, String name, T value ) {
         this.component = component;
         this.name = name;
+        this.value = value;
     }
 
     @Override
@@ -90,7 +95,7 @@ public class Property<T> {
     public Property<T> set( T newValue ) {
         T oldValue = value;
         this.value = newValue;
-        EventManager.instance().publish( new PropertySetEvent( this, oldValue, newValue ) );
+        EventManager.instance().publish( new PropertyChangedEvent( this, oldValue, newValue ) );
         return this;
     }
 
@@ -108,14 +113,14 @@ public class Property<T> {
     /**
      *
      */
-    public static class PropertySetEvent
+    public static class PropertyChangedEvent
             extends UIRenderEvent {
 
         private Object oldValue;
 
         private Object newValue;
 
-        protected PropertySetEvent( Property<?> source, Object oldValue, Object newValue ) {
+        protected PropertyChangedEvent( Property<?> source, Object oldValue, Object newValue ) {
             super( source );
             this.oldValue = oldValue;
             this.newValue = newValue;
@@ -123,7 +128,7 @@ public class Property<T> {
 
         @Override
         public String toString() {
-            return "PropertySetEvent [source=" + getSource() + ", newValue=" + newValue + "]";
+            return "PropertyChangedEvent [source=" + getSource() + ", newValue=" + newValue + "]";
         }
 
         @Override

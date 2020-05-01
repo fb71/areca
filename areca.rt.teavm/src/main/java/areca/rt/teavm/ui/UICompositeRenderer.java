@@ -19,8 +19,8 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.ui.UIComposite;
 import areca.common.Assert;
-import areca.ui.Property.PropertySetEvent;
-import areca.ui.UIRenderEvent.ComponentCreated;
+import areca.ui.Property.PropertyChangedEvent;
+import areca.ui.UIRenderEvent.ComponentCreatedEvent;
 
 /**
  *
@@ -38,7 +38,7 @@ public class UICompositeRenderer
 
 
     @Override
-    protected void handleComponentCreated( ComponentCreated ev, UIComposite composite ) {
+    protected void handleComponentCreated( ComponentCreatedEvent ev, UIComposite composite ) {
         // XXX check that none exists yet
         HTMLElement div = composite.data( DATA_ELM, () -> {
             HTMLElement newDiv = doc().createElement( "div" );
@@ -53,7 +53,7 @@ public class UICompositeRenderer
             }
         });
         Assert.notNull( div );
-        Assert.that( composite.optData( DATA_ELM ).isPresent(), "" );
+        Assert.that( composite.optData( DATA_ELM ).isPresent() );
 
         super.handleComponentCreated( ev, composite );
 
@@ -64,8 +64,8 @@ public class UICompositeRenderer
 
 
     @Override
-    protected void handlePropertyChange( PropertySetEvent ev, UIComposite composite ) {
-        super.handlePropertyChange( ev, composite );
+    protected void handlePropertyChanged( PropertyChangedEvent ev, UIComposite composite ) {
+        super.handlePropertyChanged( ev, composite );
 
         HTMLElement elm = htmlElementOf( composite );
         // ...
