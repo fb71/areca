@@ -36,7 +36,7 @@ public class UIComposite
     @SuppressWarnings("hiding")
     public static final UIComposite TYPE = new UIComposite();
 
-    public Property<LayoutManager>  layoutManager = Property.create( this, "layoutManager" );
+    public Property<LayoutManager>  layoutManager = Property.create( this, "lm" );
 
     private List<UIComponent>       components = new ArrayList<>();
 
@@ -83,7 +83,8 @@ public class UIComposite
 
 
     /**
-     * Refresh ("lay-out") the components of this composite.
+     * Refreshes the layout of the components of this composite.
+     *
      * @return this
      */
     public UIComposite layout() {

@@ -17,7 +17,9 @@ import java.util.logging.Logger;
 
 import areca.rt.teavm.ui.TeaApp;
 import areca.ui.Button;
+import areca.ui.Point;
 import areca.ui.SelectionEvent;
+import areca.ui.Size;
 import areca.ui.layout.FillLayout;
 
 /**
@@ -41,16 +43,18 @@ public class Main {
                     btn1.subscribe( (SelectionEvent ev) -> {
                         LOG.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
                     });
+                    btn1.size.set( Size.of( 100, 100 ) );
+                    btn1.position.set( Point.of( 100, 100 ) );
                 });
+                //           // Button2
+                //           .create( Button.class, self -> {
+                //               self.label.set( "Button2" );
+                //               self.bgColor.set( Color.WHITE );
+                //               self.subscribe( (SelectionEvent ev) -> {
+                //                   LOG.info( "" + ev );
+                //               });
+                //           })
             })
-            //           // Button2
-            //           .create( Button.class, self -> {
-            //               self.label.set( "Button2" );
-            //               self.bgColor.set( Color.WHITE );
-            //               self.subscribe( (SelectionEvent ev) -> {
-            //                   LOG.info( "" + ev );
-            //               });
-            //           })
             .layout();
         }
         catch (Exception e) {

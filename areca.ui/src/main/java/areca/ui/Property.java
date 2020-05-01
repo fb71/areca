@@ -13,7 +13,6 @@
  */
 package areca.ui;
 
-import java.util.Optional;
 import java.util.logging.Logger;
 
 import areca.common.base.Opt;
@@ -142,8 +141,8 @@ public class Property<T> {
         }
 
         @SuppressWarnings("unchecked")
-        public <R> Optional<R> optOldValue() {
-            return Optional.ofNullable( (R)oldValue );
+        public <R> Opt<R> optOldValue() {
+            return Opt.ofNullable( (R)oldValue );
         }
 
         @SuppressWarnings("unchecked")
@@ -152,8 +151,8 @@ public class Property<T> {
         }
 
         @SuppressWarnings("unchecked")
-        public <R> Optional<R> optNewValue() {
-            return Optional.ofNullable( (R)newValue );
+        public <R> Opt<R> optNewValue() {
+            return Opt.ofNullable( (R)newValue );
         }
     }
 

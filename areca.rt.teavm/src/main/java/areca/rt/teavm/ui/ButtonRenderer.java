@@ -63,7 +63,7 @@ public class ButtonRenderer
         HTMLButtonElement elm = htmlElementOf( button );
 
         if (Button.TYPE.label.equals( ev.getSource() )) {
-            elm.appendChild(doc().createTextNode( ev.getNewValue() ) );
+            elm.appendChild( doc().createTextNode( ev.getNewValue() ) );
         }
     }
 

@@ -19,7 +19,9 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.common.Assert;
 import areca.ui.Color;
+import areca.ui.Point;
 import areca.ui.Property;
+import areca.ui.Size;
 import areca.ui.UIComponent;
 import areca.ui.UIRenderEvent;
 import areca.ui.UIRenderEvent.ComponentCreatedEvent;
@@ -93,7 +95,19 @@ public abstract class UIComponentRenderer<C extends UIComponent>
         // background-color
         if (UIComponent.TYPE.bgColor.equals( ev.getSource() )) {
             LOG.info( "Color: " + ev.getNewValue() );
-            elm.getStyle().setProperty( "background-color", ev.<Color>optNewValue().map(c -> c.toHex() ).orElse( null ) );
+            elm.getStyle().setProperty( "background-color", ev.<Color>optNewValue().transform( Color::toHex ).orElse( null ) );
+        }
+        // position
+        if (UIComponent.TYPE.position.equals( ev.getSource() )) {
+            LOG.info( "Position: " + ev.getNewValue() );
+            elm.getStyle().setProperty( "top", ev.<Point>optNewValue().get().x() + "px" );
+            elm.getStyle().setProperty( "left", ev.<Point>optNewValue().get().y() + "px" );
+        }
+        // size
+        if (UIComponent.TYPE.size.equals( ev.getSource() )) {
+            LOG.info( "Size: " + ev.getNewValue() );
+            elm.getStyle().setProperty( "width", ev.<Size>optNewValue().get().width() + "px" );
+            elm.getStyle().setProperty( "height", ev.<Size>optNewValue().get().height() + "px" );
         }
     }
 

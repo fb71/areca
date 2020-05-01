@@ -19,20 +19,29 @@ package areca.ui;
  */
 public class Point {
 
+    public static final Point of( int x, int y ) {
+        return new Point( x, y );
+    }
+
+    // instance *******************************************
+
     private int         x;
 
     private int         y;
 
-    public Point( int x, int y ) {
+    protected Point( int x, int y ) {
         this.x = x;
         this.y = y;
     }
 
+    @Override
+    public String toString() {
+        return "Point[x=" + x + ", y=" + y + "]";
+    }
 
     public int x() {
         return x;
     }
-
 
     public int y() {
         return y;

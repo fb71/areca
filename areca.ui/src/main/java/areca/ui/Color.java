@@ -51,6 +51,7 @@ public class Color {
     }
 
     public String toHex() {
+        LOG.warning( "Color.toHex() !!!" );
         return "#f0000a"; //MessageFormat.
     }
 

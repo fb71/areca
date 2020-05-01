@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -14,28 +14,37 @@
 package areca.ui;
 
 /**
- * 
+ *
  * @author falko
  */
 public class Size {
-    
+
+    public static final Size of( int width, int height ) {
+        return new Size( width, height );
+    }
+
+    // instance *******************************************
+
     private final int       width;
-    
+
     private final int       height;
 
-    public Size( int width, int height ) {
+    protected Size( int width, int height ) {
         this.width = width;
         this.height = height;
     }
 
-    
     public int width() {
         return width;
     }
 
-    
     public int height() {
         return height;
+    }
+
+    @Override
+    public String toString() {
+        return "Size[width=" + width + ", height=" + height + "]";
     }
 
 }

@@ -42,7 +42,8 @@ public class MainRenderEventHandler
     public static void start() {
         Assert.isNull( instance );
         instance = new MainRenderEventHandler();
-        EventManager.instance().subscribe( instance );
+        EventManager.instance().subscribe( instance )
+                .performIf( ev -> ev instanceof UIRenderEvent );
     }
 
 

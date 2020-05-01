@@ -68,7 +68,7 @@ public class Opt<T> {
      */
     public <E extends Exception> void ifPresent( Consumer<? super T,E> action) throws E {
         Assert.notNull( action );
-        if (value != null) {
+        if (isPresent()) {
             action.accept( value );
         }
     }
@@ -84,10 +84,11 @@ public class Opt<T> {
      */
     public <E extends Exception> void ifAbsent( Consumer<? super T,E> action) throws E {
         Assert.notNull( action );
-        if (value == null) {
+        if (!isPresent()) {
             action.accept( value );
         }
     }
+
 
     /**
      * If a value is present, and the value matches the given condition,
@@ -102,6 +103,24 @@ public class Opt<T> {
     public <R,E extends Exception> Opt<R> transform( Function<? super T,? extends R,E> mapper) throws E {
         Assert.notNull( mapper );
         return isPresent() ? Opt.ofNullable( mapper.apply( value ) ) : absent();
+    }
+
+
+    /**
+     *
+     * @throws NoSuchElementException If value is not presnt.
+     * @return The value.
+     */
+    public T get() {
+        if (!isPresent()) {
+            throw new NoSuchElementException( "Opt<> is absent.");
+        }
+        return value;
+    }
+
+
+    public T orElse( T elseValue ) {
+        return isPresent() ? value : elseValue;
     }
 
 
