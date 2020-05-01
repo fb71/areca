@@ -1,10 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    
     <modelVersion>4.0.0</modelVersion>
-    <groupId>areca</groupId>
-    <artifactId>areca-rt-teavm</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    
+    <artifactId>areca.rt.teavm</artifactId>
+<!--     <groupId>areca</groupId> -->
+<!--     <version>0.0.1-SNAPSHOT</version> -->
     <packaging>jar</packaging>
+
+    <parent>
+        <groupId>areca</groupId>
+        <artifactId>areca</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
 
     <repositories>
         <repository>
@@ -28,7 +34,7 @@
     <dependencies>
         <dependency>
             <groupId>areca</groupId>
-            <artifactId>areca-ui</artifactId>
+            <artifactId>areca.ui</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
@@ -46,18 +52,18 @@
         </dependency>
 
         <!-- JavaScriptObjects (JSO) - a JavaScript binding for TeaVM -->
-        <dependency>
-            <groupId>org.teavm</groupId>
-            <artifactId>teavm-jso-apis</artifactId>
-            <version>${teavm.version}</version>
-            <scope>provided</scope>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.teavm</groupId> -->
+<!--             <artifactId>teavm-jso-apis</artifactId> -->
+<!--             <version>${teavm.version}</version> -->
+<!--             <scope>provided</scope> -->
+<!--         </dependency> -->
 
-        <dependency>
-            <groupId>org.teavm</groupId>
-            <artifactId>teavm-metaprogramming-api</artifactId>
-            <version>${teavm.version}</version>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.teavm</groupId> -->
+<!--             <artifactId>teavm-metaprogramming-api</artifactId> -->
+<!--             <version>${teavm.version}</version> -->
+<!--         </dependency> -->
 
         <!-- Servlet 3.1 specification -->
         <dependency>
