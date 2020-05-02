@@ -15,11 +15,14 @@ package areca.common.event;
 
 import java.util.EventObject;
 
+import areca.common.base.Predicate;
+
 /**
  *
  * @author Falko Bräutigam
  */
-public interface EventPredicate {
+public interface EventPredicate
+         extends Predicate<EventObject,RuntimeException> {
 
     /**
      * Evaluates this predicate on the given argument.
@@ -28,6 +31,22 @@ public interface EventPredicate {
      * @return {@code true} if the input argument matches the predicate,
      * otherwise {@code false}
      */
+    @Override
     boolean test( EventObject  t );
+
+    @Override
+    default EventPredicate and( Predicate<? super EventObject,RuntimeException> other ) {
+        return (EventPredicate)Predicate.super.and( other );
+    }
+
+    @Override
+    default Predicate<EventObject,RuntimeException> negate() {
+        return (EventPredicate)Predicate.super.negate();
+    }
+
+    @Override
+    default Predicate<EventObject,RuntimeException> or( Predicate<? super EventObject,RuntimeException> other ) {
+        return (EventPredicate)Predicate.super.or( other );
+    }
 
 }

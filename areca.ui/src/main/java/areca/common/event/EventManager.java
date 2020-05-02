@@ -103,8 +103,8 @@ public abstract class EventManager {
 
 
         public EventHandlerInfo performIf( @SuppressWarnings("hiding") EventPredicate performIf ) {
-            Assert.isNull( this.performIf );
-            this.performIf = Assert.notNull( performIf );
+            Assert.notNull( performIf );
+            this.performIf = this.performIf != null ? this.performIf.and( performIf ) : performIf;
             return this;
         }
 
