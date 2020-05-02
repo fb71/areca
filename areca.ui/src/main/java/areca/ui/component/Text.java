@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -11,18 +11,30 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui;
+package areca.ui.component;
 
-import java.util.EventObject;
+import java.util.logging.Logger;
 
 /**
- * 
+ *
  * @author falko
  */
-public class SelectionEvent extends EventObject {
+public class Text
+        extends UIComponent {
 
-    public SelectionEvent( Object src ) {
-        super( src );
+    private static final Logger LOG = Logger.getLogger( Text.class.getSimpleName() );
+
+    @SuppressWarnings("hiding")
+    public static final Text  TYPE = new Text();
+
+    public Property<String>     text = Property.create( this, "text" );
+
+
+    protected Text() { }
+
+
+    public Text( String text ) {
+        this.text.set( text );
     }
 
 }

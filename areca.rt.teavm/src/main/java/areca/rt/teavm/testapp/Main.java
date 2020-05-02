@@ -3,8 +3,8 @@ package areca.rt.teavm.testapp;
 import java.util.logging.Logger;
 
 import areca.rt.teavm.ui.TeaApp;
-import areca.ui.Button;
-import areca.ui.SelectionEvent;
+import areca.ui.component.Button;
+import areca.ui.component.SelectionEvent;
 import areca.ui.layout.FillLayout;
 
 /**

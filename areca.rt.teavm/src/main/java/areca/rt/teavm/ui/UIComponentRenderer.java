@@ -20,12 +20,12 @@ import org.teavm.jso.dom.html.HTMLElement;
 import areca.common.Assert;
 import areca.ui.Color;
 import areca.ui.Point;
-import areca.ui.Property;
 import areca.ui.Size;
-import areca.ui.UIComponent;
-import areca.ui.UIRenderEvent;
-import areca.ui.UIRenderEvent.ComponentCreatedEvent;
-import areca.ui.UIRenderEvent.ComponentDestroyedEvent;
+import areca.ui.component.Property;
+import areca.ui.component.UIComponent;
+import areca.ui.component.UIRenderEvent;
+import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
+import areca.ui.component.UIRenderEvent.ComponentDestroyedEvent;
 
 /**
  *

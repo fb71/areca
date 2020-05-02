@@ -19,7 +19,7 @@ import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLDocument;
 
 import areca.common.event.EventListener;
-import areca.ui.UIRenderEvent;
+import areca.ui.component.UIRenderEvent;
 
 /**
  *

@@ -14,6 +14,7 @@
 package areca.ui;
 
 import areca.common.base.Consumer;
+import areca.ui.component.UIComposite;
 
 /**
  *

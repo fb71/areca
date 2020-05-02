@@ -18,8 +18,8 @@ import java.util.logging.Logger;
 import areca.ui.Orientation;
 import areca.ui.Point;
 import areca.ui.Size;
-import areca.ui.UIComponent;
-import areca.ui.UIComposite;
+import areca.ui.component.UIComponent;
+import areca.ui.component.UIComposite;
 
 /**
  *

@@ -15,7 +15,7 @@ package areca.ui.layout;
 
 import java.util.logging.Logger;
 
-import areca.ui.UIComposite;
+import areca.ui.component.UIComposite;
 
 /**
  *

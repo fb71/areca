@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -11,30 +11,36 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui;
+package areca.ui.component;
 
 import java.util.logging.Logger;
 
 /**
- *
+ * 
  * @author falko
+ *
  */
-public class Text
+public class Button
         extends UIComponent {
 
-    private static final Logger LOG = Logger.getLogger( Text.class.getSimpleName() );
+    private static final Logger LOG = Logger.getLogger( Button.class.getSimpleName() );
 
     @SuppressWarnings("hiding")
-    public static final Text  TYPE = new Text();
+    public static final Button  TYPE = new Button();
 
-    public Property<String>     text = Property.create( this, "text" );
-
-
-    protected Text() { }
-
-
-    public Text( String text ) {
-        this.text.set( text );
+    public Property<String>     label = Property.create( this, "label" );
+        
+    
+    public Button() {
     }
+
+    
+    public Button( String label ) {
+        this.label.set( label );
+    }
+
+//    public <E extends Exception> Button props( Consumer<Button,E> task ) throws E {
+//        return super.props( task );
+//    }
 
 }

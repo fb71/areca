@@ -18,8 +18,8 @@ import java.util.logging.Logger;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.xml.Node;
 
-import areca.ui.Text;
-import areca.ui.UIRenderEvent.ComponentCreatedEvent;
+import areca.ui.component.Text;
+import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
 
 /**
  *

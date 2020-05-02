@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 import areca.common.Assert;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
-import areca.ui.UIRenderEvent;
+import areca.ui.component.UIRenderEvent;
 
 /**
  *

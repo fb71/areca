@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui;
+package areca.ui.component;
 
 import java.util.logging.Logger;
 

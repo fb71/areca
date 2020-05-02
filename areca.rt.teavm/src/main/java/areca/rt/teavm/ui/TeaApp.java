@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 import areca.common.Assert;
 import areca.common.base.Consumer;
 import areca.ui.App;
-import areca.ui.UIComposite;
+import areca.ui.component.UIComposite;
 
 /**
  *

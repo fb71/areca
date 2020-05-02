@@ -11,36 +11,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui;
+package areca.ui.component;
 
-import java.util.logging.Logger;
+import java.util.EventObject;
 
 /**
  * 
  * @author falko
- *
  */
-public class Button
-        extends UIComponent {
+public class SelectionEvent extends EventObject {
 
-    private static final Logger LOG = Logger.getLogger( Button.class.getSimpleName() );
-
-    @SuppressWarnings("hiding")
-    public static final Button  TYPE = new Button();
-
-    public Property<String>     label = Property.create( this, "label" );
-        
-    
-    public Button() {
+    public SelectionEvent( Object src ) {
+        super( src );
     }
-
-    
-    public Button( String label ) {
-        this.label.set( label );
-    }
-
-//    public <E extends Exception> Button props( Consumer<Button,E> task ) throws E {
-//        return super.props( task );
-//    }
 
 }

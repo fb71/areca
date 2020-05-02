@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui;
+package areca.ui.component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +20,14 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
+import areca.common.base.Consumer;
 import areca.common.base.Opt;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
 import areca.common.event.EventManager.EventHandlerInfo;
+import areca.ui.Color;
+import areca.ui.Point;
+import areca.ui.Size;
 import areca.ui.layout.LayoutConstraint;
 
 /**
