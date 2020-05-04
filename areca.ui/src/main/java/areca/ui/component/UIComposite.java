@@ -37,7 +37,7 @@ public class UIComposite
     @SuppressWarnings("hiding")
     public static final UIComposite TYPE = new UIComposite();
 
-    public Property<LayoutManager>  layoutManager = Property.create( this, "lm" );
+    public Property<LayoutManager>  layout = Property.create( this, "lm" );
 
     public Property<Size>           clientSize = Property.create( this, "clientSize" );
 
@@ -45,41 +45,30 @@ public class UIComposite
 
 
     /**
-     * Creates a new child of this composite.
+     * {@link UIComponent#init(UIComposite) Initializes} the given component and adds
+     * it to the children of this composite.
      *
-     * @see #create(Class, Consumer)
-     * @param <C> The type of the component to create.
-     * @param <E> The Exception the initializer may throw.
-     * @param type The type of the component to create.
-     * @return Newly created child component.
-     * @throws E
+     * @see #add(UIComponent)
+     * @param component The new child component.
+     * @return Newly added/initialized child component.
      */
-    public <C extends UIComponent> C create( Class<C> type ) {
-        try {
-            @SuppressWarnings("deprecation")
-            C component = type.newInstance();
-            component.init( this );
-            components.add( component );
-            return component;
-        }
-        catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException( e );
-        }
+    public <C extends UIComponent> C add( C component ) {
+        Assert.notNull( component ).init( this );
+        components.add( component );
+        return component;
     }
 
 
     /**
-     * Creates a new child of this composite.
+     * {@link UIComponent#init(UIComposite) Initializes} the given component and adds
+     * it to the children of this composite.
      *
-     * @param <C> The type of the component to create.
-     * @param <E> The Exception the initializer may throw.
-     * @param type The type of the component to create.
-     * @param initializers To be performed on the newly created component.
-     * @return Newly created child component.
-     * @throws E
+     * @see #add(UIComponent)
+     * @param component The new child component.
+     * @return Newly added/initialized child component.
      */
-    public <C extends UIComponent,E extends Exception> C create( Class<C> type, Consumer<C,E> initializer ) throws E {
-        C component = create( type );
+    public <C extends UIComponent,E extends Exception> C add( C component, Consumer<C,E> initializer ) throws E {
+        add( component );
         Assert.notNull( initializer ).accept( component );
         return component;
     }
@@ -91,14 +80,14 @@ public class UIComposite
      * @return this
      */
     public UIComposite layout() {
-//        components.stream().filter( UIComposite.class::isInstance ).forEach( c -> ((UIComposite)c).layout() );
+        layout.get().layout( this );
 
+        // components.stream().filter( UIComposite.class::isInstance ).forEach( c -> ((UIComposite)c).layout() );
         for (UIComponent component : components) {
             if (component instanceof UIComposite) {
                 ((UIComposite)component).layout();
             }
         }
-        layoutManager.get().layout( this );
         return this;
     }
 

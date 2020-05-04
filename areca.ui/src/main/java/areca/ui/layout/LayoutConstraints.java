@@ -17,6 +17,6 @@ package areca.ui.layout;
  * 
  * @author falko
  */
-public interface LayoutConstraint {
+public interface LayoutConstraints {
 
 }

@@ -103,9 +103,9 @@ public abstract class UIComponentRenderer<C extends UIComponent,H extends HTMLEl
 
         // PropertyChangedEvent
         if (ev instanceof Property.PropertyChangedEvent) {
-            UIComponent component = ((Property)ev.getSource()).component();
+            Object component = ((Property)ev.getSource()).component();
             if (componentType.isAssignableFrom( component.getClass() )) {
-                handlePropertyChanged( (Property.PropertyChangedEvent)ev, (C)component, htmlElementOf( component ) );
+                handlePropertyChanged( (Property.PropertyChangedEvent)ev, (C)component, htmlElementOf( (UIComponent)component ) );
             }
         }
         else {
@@ -132,7 +132,8 @@ public abstract class UIComponentRenderer<C extends UIComponent,H extends HTMLEl
 
 
     public static <R extends HTMLElement> R htmlElementOf( UIComponent component ) {
-        return component.<R>optData( DATA_ELM ).orElseThrow( () -> new IllegalStateException( "No HTML element found." ) );
+        return component.<R>optData( DATA_ELM )
+                .orElseThrow( () -> new IllegalStateException( "No HTML element for component: " + component.getClass().getSimpleName() ) );
     }
 
 

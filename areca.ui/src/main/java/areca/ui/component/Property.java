@@ -15,6 +15,8 @@ package areca.ui.component;
 
 import java.util.logging.Logger;
 
+import areca.common.Assert;
+import areca.common.base.Consumer;
 import areca.common.base.Opt;
 import areca.common.event.EventManager;
 
@@ -26,25 +28,25 @@ public class Property<T> {
 
     private static final Logger LOG = Logger.getLogger( Property.class.getSimpleName() );
 
-    public static <R> Property<R> create( UIComponent component, String name ) {
+    public static <R> Property<R> create( Object component, String name ) {
         return new Property<>( component, name, null );
     }
 
-    public static <R> Property<R> create( UIComponent component, String name, R initialValue ) {
+    public static <R> Property<R> create( Object component, String name, R initialValue ) {
         return new Property<>( component, name, initialValue );
     }
 
 
     // instance *******************************************
 
-    private UIComponent component;
+    private Object      component;
 
     private String      name;
 
     private T           value;
 
 
-    protected Property( UIComponent component, String name, T value ) {
+    protected Property( Object component, String name, T value ) {
         this.component = component;
         this.name = name;
         this.value = value;
@@ -81,13 +83,20 @@ public class Property<T> {
     }
 
 
-    public UIComponent component() {
+    public Object component() {
         return component;
     }
 
 
     public String name() {
         return name;
+    }
+
+
+    /** Set value without firing {@link PropertyChangedEvent}. */
+    public Property<T> rawSet( T newValue ) {
+        this.value = newValue;
+        return this;
     }
 
 
@@ -99,14 +108,15 @@ public class Property<T> {
     }
 
 
-    /** Set value without firing {@link PropertyChangedEvent}. */
-    public Property<T> rawSet( T newValue ) {
-        this.value = newValue;
+    public <TT extends T,E extends Exception> Property<T> modify( Consumer<TT,E> modifier ) throws E {
+        modifier.accept( (TT)value );
+        EventManager.instance().publish( new PropertyChangedEvent( this, value, value ) );
         return this;
     }
 
 
     public T get() {
+        Assert.notNull( value );
         return value;
     }
 

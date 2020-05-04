@@ -66,7 +66,7 @@ public class Opt<T> {
      * @throws NullPointerException if value is present and the given action is {@code null}.
      * @throws E If the action was throwing this exception.
      */
-    public <E extends Exception> void ifPresent( Consumer<? super T,E> action) throws E {
+    public <E extends Exception> void ifPresent( Consumer<? super T,E> action ) throws E {
         Assert.notNull( action );
         if (isPresent()) {
             action.accept( value );
@@ -82,7 +82,7 @@ public class Opt<T> {
      * @throws NullPointerException If value is present and the given action is {@code null}.
      * @throws E If the action was throwing this exception.
      */
-    public <E extends Exception> void ifAbsent( Consumer<? super T,E> action) throws E {
+    public <E extends Exception> void ifAbsent( Consumer<? super T,E> action ) throws E {
         Assert.notNull( action );
         if (!isPresent()) {
             action.accept( value );
@@ -100,7 +100,13 @@ public class Opt<T> {
     }
 
 
-    public <R,E extends Exception> Opt<R> transform( Function<? super T,? extends R,E> mapper) throws E {
+    /**
+     * If {@link #isPresent()} transform the value with the given mapper function,
+     * other wise return {@link #absent()}.
+     *
+     * @return The transformed value or {@link #absent()}.
+     */
+    public <R,E extends Exception> Opt<R> transform( Function<? super T,? extends R,E> mapper ) throws E {
         Assert.notNull( mapper );
         return isPresent() ? Opt.ofNullable( mapper.apply( value ) ) : absent();
     }

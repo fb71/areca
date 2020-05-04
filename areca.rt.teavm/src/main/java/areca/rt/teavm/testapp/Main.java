@@ -22,11 +22,10 @@ public class Main {
     public static void main( String[] args ) throws Exception {
         try {
             TeaApp.instance().createUI( self -> {
-                self.layoutManager.set( new FillLayout() );
+                self.layout.set( new FillLayout() );
                 // Button1
-                self.create( Button.class, btn -> {
+                self.add( new Button(), btn -> {
                     btn.label.set( "Button! --- !" );
-                    btn.layoutConstraints.get().clear();
                     btn.subscribe( (SelectionEvent ev) -> {
                         LOG.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
                     });

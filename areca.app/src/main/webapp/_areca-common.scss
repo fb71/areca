@@ -7,6 +7,8 @@ html,body {
 
 body {
     background-color: $bg1_color;
+    color: $font_color;
+    font-family: arial, sans-serif;
 }
 
 .RootWindow {
@@ -19,7 +21,6 @@ body {
 }
 
 .UIComponent {
-    color: $font_color;
 }
 
 .UIComposite {

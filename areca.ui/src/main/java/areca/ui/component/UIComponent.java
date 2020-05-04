@@ -13,8 +13,6 @@
  */
 package areca.ui.component;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Supplier;
@@ -28,7 +26,7 @@ import areca.common.event.EventManager.EventHandlerInfo;
 import areca.ui.Color;
 import areca.ui.Position;
 import areca.ui.Size;
-import areca.ui.layout.LayoutConstraint;
+import areca.ui.layout.LayoutConstraints;
 
 /**
  *
@@ -48,7 +46,7 @@ public abstract class UIComponent {
 
     private Map<String,Object>              data = new TreeMap<>();
 
-    public Property<List<LayoutConstraint>> layoutConstraints = Property.create( this, "lc", new ArrayList<>() );
+    public Property<LayoutConstraints>      layoutConstraints = Property.create( this, "lc" );
 
     public Property<Color>                  bgColor = Property.create( this, "bgcolor" );
 
@@ -56,7 +54,7 @@ public abstract class UIComponent {
 
     public Property<Size>                   minSize = Property.create( this, "minSize" );
 
-    public Property<Position>                  position = Property.create( this, "position" );
+    public Property<Position>               position = Property.create( this, "position" );
 
 
     /** Instantiate via {@link UIComposite#create(Class, Consumer...)} only. */
@@ -85,8 +83,13 @@ public abstract class UIComponent {
     }
 
 
-    public Size computeMinimumSize( Size toCheck ) {
-        return toCheck;
+    public int computeMinimumWidth( int height ) {
+        return minSize.get().width();
+    }
+
+
+    public int computeMinimumHeight( int width ) {
+        return minSize.get().height();
     }
 
 

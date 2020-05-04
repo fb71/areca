@@ -36,11 +36,11 @@ public class FillLayout
     @Override
     public void layout( UIComposite composite ) {
         Size size = composite.size.get();
-        LOG.info( "Composite: " + size );
+        LOG.info( "FillLayout: " + size );
 
         if (orientation == Orientation.HORIZONTAL) {
             int compositeMaxWidth = composite.components().stream()
-                    .map( c -> c.size.get().width() ).reduce( Math::max ).orElse( 0 );
+                    .map( c -> c.computeMinimumWidth( size.height() ) ).reduce( Math::max ).orElse( 0 );
             int componentWidth = Math.max( size.width() / composite.components().size(), compositeMaxWidth );
             int count = 0;
             for (UIComponent component : composite.components()) {

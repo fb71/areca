@@ -14,6 +14,9 @@
 package areca.rt.teavm.ui;
 
 import org.teavm.jso.dom.html.HTMLElement;
+
+import areca.ui.Size;
+import areca.ui.component.Property.PropertyChangedEvent;
 import areca.ui.component.Text;
 import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
 
@@ -28,11 +31,30 @@ public class TextRenderer
         super( Text.class );
     }
 
+
     @Override
     protected HTMLElement handleComponentCreated( ComponentCreatedEvent ev, Text text, HTMLElement div ) {
         HTMLElement parentElm = htmlElementOf( text.parent() );
         div = (HTMLElement)parentElm.appendChild( doc().createElement( "div" ) );
         return super.handleComponentCreated( ev, text, div );
+    }
+
+
+    @Override
+    protected void handlePropertyChanged( PropertyChangedEvent ev, Text text, HTMLElement div ) {
+        super.handlePropertyChanged( ev, text, div );
+
+        // text
+        if (Text.TYPE.text.equals( ev.getSource() )) {
+            log( text, "SET " + ev.getNewValue() );
+            div.appendChild( doc().createTextNode( ev.getNewValue() ) );
+
+            // XXX this is ok only if size was not yet set by layout
+            Size size = Size.of( div.getOffsetWidth(), div.getOffsetHeight() );
+            text.size.rawSet( size );
+            text.minSize.rawSet( size );
+            log( text, "UPDATE " + text.size.get() );
+        }
     }
 
 }

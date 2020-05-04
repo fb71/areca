@@ -33,7 +33,8 @@ public class MainRenderEventHandler
 
     private static final List<UIRenderer>   RENDERERS = Arrays.asList(
             new UICompositeRenderer(),
-            new ButtonRenderer() );
+            new ButtonRenderer(),
+            new TextRenderer() );
 
 
     private static MainRenderEventHandler              instance;
@@ -42,8 +43,7 @@ public class MainRenderEventHandler
     public static void start() {
         Assert.isNull( instance );
         instance = new MainRenderEventHandler();
-        EventManager.instance().subscribe( instance )
-                .performIf( ev -> ev instanceof UIRenderEvent );
+        EventManager.instance().subscribe( instance ).performIf( ev -> ev instanceof UIRenderEvent );
     }
 
 
