@@ -17,10 +17,10 @@ package areca.ui;
  *
  * @author falko
  */
-public class Point {
+public class Position {
 
-    public static final Point of( int x, int y ) {
-        return new Point( x, y );
+    public static final Position of( int x, int y ) {
+        return new Position( x, y );
     }
 
     // instance *******************************************
@@ -29,14 +29,14 @@ public class Point {
 
     private int         y;
 
-    protected Point( int x, int y ) {
+    protected Position( int x, int y ) {
         this.x = x;
         this.y = y;
     }
 
     @Override
     public String toString() {
-        return "Point[x=" + x + ", y=" + y + "]";
+        return "Position[x=" + x + ", y=" + y + "]";
     }
 
     public int x() {

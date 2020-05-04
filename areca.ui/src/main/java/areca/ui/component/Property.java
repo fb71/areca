@@ -53,7 +53,7 @@ public class Property<T> {
 
     @Override
     public String toString() {
-        return "Property[" + component + "." + name + "]";
+        return "Property[" + component.getClass().getSimpleName() + "." + name + "]";
     }
 
 
@@ -134,7 +134,7 @@ public class Property<T> {
 
         @Override
         public String toString() {
-            return "PropertyChangedEvent [source=" + getSource() + ", newValue=" + newValue + "]";
+            return "PropertyChangedEvent[source=" + getSource() + ", newValue=" + newValue + "]";
         }
 
         @Override

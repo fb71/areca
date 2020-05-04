@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -16,7 +16,7 @@ package areca.ui.component;
 import java.util.EventObject;
 
 /**
- * 
+ *
  * @author falko
  */
 public class UIRenderEvent
@@ -26,15 +26,15 @@ public class UIRenderEvent
         super( source );
     }
 
-    
+
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "[" + getSource() + "]";
+        return getClass().getSimpleName() + "[" + getSource().getClass().getSimpleName() + "]";
     }
 
 
     /**
-     * 
+     *
      */
     public static class ComponentCreatedEvent
         extends UIRenderEvent {
@@ -50,15 +50,15 @@ public class UIRenderEvent
     }
 
     /**
-     * 
+     *
      */
-    public static class ComponentDestroyedEvent
+    public static class ComponentDisposedEvent
         extends UIRenderEvent {
 
-        public ComponentDestroyedEvent( UIComponent source ) {
+        public ComponentDisposedEvent( UIComponent source ) {
             super( source );
         }
-        
+
         @Override
         public UIComponent getSource() {
             return (UIComponent)super.getSource();

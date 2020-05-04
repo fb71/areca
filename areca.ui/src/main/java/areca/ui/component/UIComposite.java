@@ -22,6 +22,7 @@ import java.util.stream.StreamSupport;
 
 import areca.common.Assert;
 import areca.common.base.Consumer;
+import areca.ui.Size;
 import areca.ui.layout.LayoutManager;
 
 /**
@@ -37,6 +38,8 @@ public class UIComposite
     public static final UIComposite TYPE = new UIComposite();
 
     public Property<LayoutManager>  layoutManager = Property.create( this, "lm" );
+
+    public Property<Size>           clientSize = Property.create( this, "clientSize" );
 
     private List<UIComponent>       components = new ArrayList<>();
 
@@ -88,6 +91,13 @@ public class UIComposite
      * @return this
      */
     public UIComposite layout() {
+//        components.stream().filter( UIComposite.class::isInstance ).forEach( c -> ((UIComposite)c).layout() );
+
+        for (UIComponent component : components) {
+            if (component instanceof UIComposite) {
+                ((UIComposite)component).layout();
+            }
+        }
         layoutManager.get().layout( this );
         return this;
     }
@@ -106,6 +116,7 @@ public class UIComposite
         };
     }
 
+
     /**
      *
      */
@@ -117,6 +128,10 @@ public class UIComposite
         public default Stream<T> stream() {
             return StreamSupport.stream( spliterator(), false );
         }
+
+//        public default Sequence<T> sequence() {
+//            return Sequence.of( this );
+//        }
     }
 
 }

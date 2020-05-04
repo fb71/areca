@@ -22,6 +22,17 @@ body {
     color: $font_color;
 }
 
+.UIComposite {
+    @extend .Bordered;
+    ::-webkit-scrollbar { 
+         display: none;         /* Chrome Safari */
+    }
+    scrollbar-width: none;      /* Firefox */
+    -ms-overflow-style: none;   /* IE 10+ */
+    overflow-y:scroll;
+    overflow-x:scroll;
+}
+
 .Button {
     @extend .Bordered;
     padding: 7px 12px;

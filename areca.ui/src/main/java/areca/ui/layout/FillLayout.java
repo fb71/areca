@@ -16,7 +16,7 @@ package areca.ui.layout;
 import java.util.logging.Logger;
 
 import areca.ui.Orientation;
-import areca.ui.Point;
+import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component.UIComponent;
 import areca.ui.component.UIComposite;
@@ -39,11 +39,13 @@ public class FillLayout
         LOG.info( "Composite: " + size );
 
         if (orientation == Orientation.HORIZONTAL) {
-            int componentWidth = size.width() / composite.components().size();
+            int compositeMaxWidth = composite.components().stream()
+                    .map( c -> c.size.get().width() ).reduce( Math::max ).orElse( 0 );
+            int componentWidth = Math.max( size.width() / composite.components().size(), compositeMaxWidth );
             int count = 0;
             for (UIComponent component : composite.components()) {
                 component.size.set( Size.of( componentWidth, size.height() ) );
-                component.position.set( Point.of( count++ * componentWidth, 0 ) );
+                component.position.set( Position.of( count++ * componentWidth, 0 ) );
             }
         }
         else {

@@ -26,7 +26,7 @@ import areca.common.event.EventListener;
 import areca.common.event.EventManager;
 import areca.common.event.EventManager.EventHandlerInfo;
 import areca.ui.Color;
-import areca.ui.Point;
+import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.layout.LayoutConstraint;
 
@@ -54,7 +54,9 @@ public abstract class UIComponent {
 
     public Property<Size>                   size = Property.create( this, "size" );
 
-    public Property<Point>                  position = Property.create( this, "position" );
+    public Property<Size>                   minSize = Property.create( this, "minSize" );
+
+    public Property<Position>                  position = Property.create( this, "position" );
 
 
     /** Instantiate via {@link UIComposite#create(Class, Consumer...)} only. */

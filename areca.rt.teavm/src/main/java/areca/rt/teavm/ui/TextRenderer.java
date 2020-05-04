@@ -13,11 +13,7 @@
  */
 package areca.rt.teavm.ui;
 
-import java.util.logging.Logger;
-
 import org.teavm.jso.dom.html.HTMLElement;
-import org.teavm.jso.dom.xml.Node;
-
 import areca.ui.component.Text;
 import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
 
@@ -26,24 +22,17 @@ import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
  * @author falko
  */
 public class TextRenderer
-        extends UIComponentRenderer<Text> {
-
-    private static final Logger LOG = Logger.getLogger( TextRenderer.class.getSimpleName() );
+        extends UIComponentRenderer<Text,HTMLElement> {
 
     protected TextRenderer() {
         super( Text.class );
     }
 
     @Override
-    protected void handleComponentCreated( ComponentCreatedEvent ev, Text text ) {
-        // XXX check that none exists yet
-        text.data( DATA_ELM, () -> {
-            HTMLElement parentElement = htmlElementOf( text.parent() );
-            Node result = parentElement.appendChild( doc().createElement( "div" ) );
-            return result;
-        });
-
-        super.handleComponentCreated( ev, text );
+    protected HTMLElement handleComponentCreated( ComponentCreatedEvent ev, Text text, HTMLElement div ) {
+        HTMLElement parentElm = htmlElementOf( text.parent() );
+        div = (HTMLElement)parentElm.appendChild( doc().createElement( "div" ) );
+        return super.handleComponentCreated( ev, text, div );
     }
 
 }

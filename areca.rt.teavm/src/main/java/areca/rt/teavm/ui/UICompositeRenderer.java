@@ -15,21 +15,18 @@ package areca.rt.teavm.ui;
 
 import java.util.logging.Logger;
 
-import org.teavm.jso.dom.html.HTMLBodyElement;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.ui.Size;
 import areca.ui.component.UIComposite;
-import areca.ui.component.Property.PropertyChangedEvent;
 import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
-import areca.common.Assert;
 
 /**
  *
  * @author falko
  */
 public class UICompositeRenderer
-        extends UIComponentRenderer<UIComposite> {
+        extends UIComponentRenderer<UIComposite,HTMLElement> {
 
     private static final Logger LOG = Logger.getLogger( UICompositeRenderer.class.getSimpleName() );
 
@@ -40,46 +37,27 @@ public class UICompositeRenderer
 
 
     @Override
-    protected void handleComponentCreated( ComponentCreatedEvent ev, UIComposite composite ) {
-        // XXX check that none exists yet
-        HTMLElement div = composite.data( DATA_ELM, () -> {
-            HTMLElement newDiv = doc().createElement( "div" );
-            // root window
-            if (composite.parent() == null) {
-                HTMLBodyElement body = doc().getBody();
+    protected HTMLElement handleComponentCreated( ComponentCreatedEvent ev, UIComposite composite, HTMLElement div ) {
+        HTMLElement parentElm = composite.parent() == null
+                ? doc().getBody()
+                : htmlElementOf( composite.parent() );
 
-                Size bodySize = Size.of( body.getClientWidth(), body.getClientHeight() );
-                newDiv.getStyle().setProperty( "height", bodySize.height() + "px" );
-                composite.size.rawSet( bodySize );
-                LOG.info( "Root window: " + bodySize );
-
-                return (HTMLElement)body.appendChild( newDiv );
-            }
-            // other
-            else {
-                HTMLElement parentElement = htmlElementOf( composite.parent() );
-                return (HTMLElement)parentElement.appendChild( newDiv );
-            }
-        });
-        Assert.notNull( div );
-        Assert.that( composite.optData( DATA_ELM ).isPresent() );
-
-        super.handleComponentCreated( ev, composite );
+        div = doc().createElement( "div" );
+        parentElm.appendChild( div );
+        super.handleComponentCreated( ev, composite, div );
 
         // root window
         if (composite.parent() == null) {
+            Size bodySize = Size.of( parentElm.getClientWidth(), parentElm.getClientHeight() );
+            div.getStyle().setProperty( "height", bodySize.height() + "px" );
+            composite.size.rawSet( bodySize );
+            LOG.info( "Root window: " + bodySize );
             div.getStyle().setProperty( "position", "relative" );
             LOG.info( "rdiv: " + div.getClientWidth() + " / " + div.getClientHeight() );
+
+            div.getStyle().setProperty( "overflow", "scroll" );
         }
-    }
-
-
-    @Override
-    protected void handlePropertyChanged( PropertyChangedEvent ev, UIComposite composite ) {
-        super.handlePropertyChanged( ev, composite );
-
-        HTMLElement elm = htmlElementOf( composite );
-        // ...
+        return div;
     }
 
 }

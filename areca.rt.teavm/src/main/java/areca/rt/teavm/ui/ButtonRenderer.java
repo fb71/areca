@@ -20,9 +20,10 @@ import org.teavm.jso.dom.html.HTMLButtonElement;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.common.event.EventManager;
+import areca.ui.Size;
 import areca.ui.component.Button;
-import areca.ui.component.SelectionEvent;
 import areca.ui.component.Property.PropertyChangedEvent;
+import areca.ui.component.SelectionEvent;
 import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
 
 /**
@@ -30,7 +31,7 @@ import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
  * @author falko
  */
 public class ButtonRenderer
-        extends UIComponentRenderer<Button> {
+        extends UIComponentRenderer<Button, HTMLButtonElement> {
 
     private static final Logger LOG = Logger.getLogger( ButtonRenderer.class.getSimpleName() );
 
@@ -41,29 +42,30 @@ public class ButtonRenderer
 
 
     @Override
-    protected void handleComponentCreated( ComponentCreatedEvent ev, Button button ) {
-        // XXX check that none exists yet
-        button.data( DATA_ELM, () -> {
-            HTMLElement parentElement = htmlElementOf( button.parent() );
-            HTMLButtonElement elm = (HTMLButtonElement) parentElement.appendChild( doc().createElement( "button" ) );
-            elm.addEventListener( "click", (MouseEvent mev) -> {
-                EventManager.instance().publish( new SelectionEvent( button ) );
-            });
-            return elm;
+    protected HTMLButtonElement handleComponentCreated( ComponentCreatedEvent ev, Button button, HTMLButtonElement elm ) {
+        HTMLElement parentElm = htmlElementOf( button.parent() );
+        elm = (HTMLButtonElement)parentElm.appendChild( doc().createElement( "button" ) );
+        elm.addEventListener( "click", (MouseEvent mev) -> {
+            EventManager.instance().publish( new SelectionEvent( button ) );
         });
 
-        super.handleComponentCreated( ev, button );
+        return super.handleComponentCreated( ev, button, elm );
     }
 
 
     @Override
-    protected void handlePropertyChanged( PropertyChangedEvent ev, Button button ) {
-        super.handlePropertyChanged( ev, button );
-
-        HTMLButtonElement elm = htmlElementOf( button );
+    protected void handlePropertyChanged( PropertyChangedEvent ev, Button button, HTMLButtonElement elm ) {
+        super.handlePropertyChanged( ev, button, elm );
 
         if (Button.TYPE.label.equals( ev.getSource() )) {
+            log( button, "SET " + ev.getNewValue() );
             elm.appendChild( doc().createTextNode( ev.getNewValue() ) );
+
+            // XXX this is ok only if size was not yet set by layout
+            Size size = Size.of( elm.getOffsetWidth(), elm.getOffsetHeight() );
+            button.size.rawSet( size );
+            button.minSize.rawSet( size );
+            log( button, "UPDATE " + button.size.get() );
         }
     }
 

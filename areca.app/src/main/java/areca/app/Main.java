@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 import areca.rt.teavm.ui.TeaApp;
 import areca.ui.Color;
-import areca.ui.Point;
+import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component.Button;
 import areca.ui.component.SelectionEvent;
@@ -35,19 +35,20 @@ public class Main {
     public static void main( String[] args ) throws Exception {
         try {
             TeaApp.instance().createUI( appWindow -> {
+                appWindow.size.set( Size.of( 400, 400 ) );
                 appWindow.layoutManager.set( new FillLayout() );
 
                 // Button1
-                appWindow.create( Button.class, btn1 -> {
-                    btn1.label.set( "Button! --- !" );
-                    btn1.layoutConstraints.get().clear();
-                    btn1.subscribe( (SelectionEvent ev) -> {
+                appWindow.create( Button.class, btn -> {
+                    btn.label.set( "Button! --------------------------------------- !" );
+                    btn.layoutConstraints.get().clear();
+                    btn.subscribe( (SelectionEvent ev) -> {
                         LOG.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
-                        Point pos = btn1.position.get();
-                        btn1.position.set( Point.of( pos.x()-10, pos.y()-10 ) );
+                        Position pos = btn.position.get();
+                        btn.position.set( Position.of( pos.x()-10, pos.y()-10 ) );
                     });
-                    btn1.size.set( Size.of( 100, 100 ) );
-                    btn1.position.set( Point.of( 100, 100 ) );
+//                    btn.size.set( Size.of( 100, 100 ) );
+//                    btn.position.set( Position.of( 100, 100 ) );
                 });
                 // Button2
                 appWindow.create( Button.class, btn -> {
@@ -56,6 +57,8 @@ public class Main {
                     btn.subscribe( (SelectionEvent ev) -> {
                         LOG.info( "" + ev );
                     });
+//                    btn.position.set( Position.of( 100, 100 ) );
+//                    Thread.sleep( 100 );
                 });
             })
             .layout();
