@@ -62,7 +62,7 @@ public abstract class ListBase<T>
     protected void updateRows() {
         Assert.that( rows.isEmpty(), "Updating/adding data is not yet..." );
         for (T data : dataArray) {
-            rows.put( rowKey( data ), add( new UIComposite(), composite -> {
+            rows.put( rowKey( data ), add( new ListCell(), composite -> {
                 composite.layoutConstraints.set( new RowConstraints() {{height.set( 58 );}} );
                 initRow( data, composite );
             }));
@@ -79,4 +79,12 @@ public abstract class ListBase<T>
 
     protected abstract void updateRow( T data, UIComposite composite );
 
+
+    /**
+     * Just for CSS styling.
+     */
+    protected class ListCell
+            extends UIComposite {
+
+    }
 }

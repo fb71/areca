@@ -21,6 +21,7 @@ body {
 }
 
 .UIComponent {
+    color: $font_color;
 }
 
 .UIComposite {
@@ -43,4 +44,8 @@ body {
 
 .Button:hover {
     background-color: $bg2_color;
+}
+
+.ListCell {
+    background-color: $accent_color;
 }

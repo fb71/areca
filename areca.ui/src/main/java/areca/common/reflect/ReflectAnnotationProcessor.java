@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -211,11 +212,16 @@ public class ReflectAnnotationProcessor
 
     protected CodeBlock createAnnotation( AnnotationMirror am ) {
         CodeBlock.Builder codeBlock = CodeBlock.builder();
-        codeBlock.add( "new $T() {{", ClassName.bestGuess( am.getAnnotationType().toString() + "AnnotationInfo" ) );
-        for (Entry<? extends ExecutableElement,? extends AnnotationValue> entry : am.getElementValues().entrySet()) {
-            codeBlock.add( "this._$L = $L;", entry.getKey().getSimpleName(), entry.getValue() );
+        codeBlock.add( "new $T()", ClassName.bestGuess( am.getAnnotationType().toString() + "AnnotationInfo" ) );
+        Map<? extends ExecutableElement,? extends AnnotationValue> values = am.getElementValues();
+        if (!values.isEmpty()) {
+            codeBlock.add( " {{" );
+            for (Entry<? extends ExecutableElement,? extends AnnotationValue> entry : am.getElementValues().entrySet()) {
+                codeBlock.add( "this._$L = $L;", entry.getKey().getSimpleName(), entry.getValue() );
+            }
+            codeBlock.add( "}}" );
         }
-        return codeBlock.add( "}}" ).build();
+        return codeBlock.build();
     }
 
 
