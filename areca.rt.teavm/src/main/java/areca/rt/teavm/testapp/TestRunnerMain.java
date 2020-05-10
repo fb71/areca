@@ -22,18 +22,11 @@ public class TestRunnerMain {
      */
     @SuppressWarnings("unchecked")
     public static void main( String[] args ) throws Exception {
-        new TestRunner()
-                .addTests( areca.common.test.Tests.all() )
-                .addDecorators( HtmlTestRunnerDecoratorClassInfo.INFO, LogDecoratorClassInfo.INFO )
-                .run();
-
-//        for (Field f : mainWindow.getClass().getDeclaredFields()) {
-//            LOG.info( "Field: " + f );
-//            f.setAccessible( true );
-//            if (String.class.isAssignableFrom(f.getType())) {
-//                f.set(mainWindow, "Annotated!" );
-//            }
-//        }
+        try {
+            new TestRunner()
+                    .addTests( areca.common.test.Tests.all() )
+                    .addDecorators( HtmlTestRunnerDecoratorClassInfo.INFO, LogDecoratorClassInfo.INFO )
+                    .run();
 
 
 //        HandlerThread handler = new HandlerThread();
@@ -48,6 +41,16 @@ public class TestRunnerMain {
 //            System.gc();
 //            Thread.sleep( 1000 );
 //        }
+        }
+        catch (Exception e) {
+            System.out.println( "Exception: " + e + " --> " );
+            Throwable rootCause = e;
+            while (rootCause.getCause() != null) {
+                rootCause = rootCause.getCause();
+            }
+            System.out.println( "Root cause: " + rootCause + " : " + rootCause.getMessage() );
+            throw (Exception)rootCause;
+        }
     }
 
 

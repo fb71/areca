@@ -52,9 +52,12 @@ public class Opt<T> {
         this.value = value;
     }
 
-
     public boolean isPresent() {
         return value != null;
+    }
+
+    public boolean isAbsent() {
+        return value == null;
     }
 
 

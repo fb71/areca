@@ -13,6 +13,7 @@
  */
 package areca.common.base;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -20,6 +21,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -171,8 +173,20 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
+    public Opt<T> findAny() throws E {
+        SequenceIterator<T,E> it = iterator();
+        return it.hasNext() ? Opt.of( it.next() ) : Opt.absent();
+    }
+
+
     public int count() throws E {
         return reduce( new MutableInt( 0 ), (result,elm) -> {result.increment(); return result;} ).intValue();
+    }
+
+
+    public <R> R[] toArray( Function<Integer,R[],RuntimeException> generator ) throws E {
+        ArrayList<T> l = collect( Collectors.toCollection( ArrayList::new ) );
+        return l.toArray( generator.apply( l.size() ) );
     }
 
 

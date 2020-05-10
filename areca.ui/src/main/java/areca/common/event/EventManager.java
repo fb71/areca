@@ -14,12 +14,12 @@
 package areca.common.event;
 
 import java.util.EventObject;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import areca.common.Assert;
+import areca.common.base.Opt;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.MethodInfo;
 
@@ -134,15 +134,13 @@ public abstract class EventManager {
                     return;
                 }
                 // perform: annotated
-                Optional<ClassInfo<Object>> cli = ClassInfo.of( handler );
-                if (cli.isPresent()) {
-                    for (MethodInfo m : cli.get().methods()) {
-                        Optional<EventHandlerAnnotationInfo> a = m.annotation( EventHandlerAnnotationInfo.INFO );
-                        // FIXME check parameters
-                        if (a.isPresent()) {
-                            m.invoke( handler, ev );
-                            return;
-                        }
+                ClassInfo<Object> cli = ClassInfo.of( handler );
+                for (MethodInfo m : cli.methods()) {
+                    Opt<EventHandlerAnnotationInfo> a = m.annotation( EventHandlerAnnotationInfo.INFO );
+                    // FIXME check parameters
+                    if (a.isPresent()) {
+                        m.invoke( handler, ev );
+                        return;
                     }
                 }
                 throw new IllegalStateException( "handler is neither an EventListener nor annotated! " );

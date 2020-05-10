@@ -13,33 +13,87 @@
  */
 package areca.common.reflect;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.logging.Logger;
+
+import areca.common.Assert;
+import areca.common.base.Lazy;
 
 /**
  *
  * @author Falko Bräutigam
  */
 public abstract class ClassInfo<T>
-        implements Named, Annotated {
+        implements Named, Annotated, Typed {
 
     private static final Logger LOG = Logger.getLogger( ClassInfo.class.getName() );
 
-    public static Optional<ClassInfo<?>> of( Class<?> cl ) {
-        throw new RuntimeException( "not yet implemented." );
+    private static Map<Class<?>,ClassInfo<?>>  classInfos = new /*Concurrent*/HashMap<>( 128 );
+
+
+    @SuppressWarnings("unchecked")
+    public static <R> ClassInfo<R> of( Class<R> cl ) {
+        ClassInfo<R> result = (ClassInfo<R>)classInfos.get( cl );
+        if (result == null) {
+            throw new IllegalStateException( "ClassInfo: not found for: " + cl.getName() + " (Either not generated or not yet loaded. Static constant in class missing??)" );
+        }
+        return result;
+
+//        if (!classInfos.containsKey( cl )) {
+//            synchronized (classInfos) {
+//                if (!classInfos.containsKey( cl )) {
+//                    try {
+//                        String name = cl.getName() + "ClassInfo";
+//                        LOG.info( "Non-literal init: " + name );
+//                        Class<?> classInfoClass = Class.forName( name );
+//                        classInfoClass.newInstance();
+//                    }
+//                    catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+//                        throw new RuntimeException( e );
+//                    }
+//                }
+//            }
+//        }
+//        return Opt.of( (ClassInfo<R>)classInfos.get( cl ) ); // check map again to see if ctor worked
     }
 
-    public static <R> Optional<ClassInfo<R>> of( R o ) {
-        throw new RuntimeException( "not yet implemented." );
+
+    @SuppressWarnings("unchecked")
+    public static <R> ClassInfo<R> of( R o ) {
+        Assert.notNull( o );
+        return of( (Class<R>)o.getClass() );
     }
 
 
     // instance *******************************************
 
-    private List<MethodInfo>        methods;
+    private Lazy<List<MethodInfo>,RuntimeException> methods = new Lazy<>( () -> createMethods() );
 
-    private List<AnnotationInfo>    annotations;
+    private Lazy<List<AnnotationInfo>,RuntimeException> annotations = new Lazy<>( () -> createAnnotations() );
+
+    private Lazy<List<FieldInfo>,RuntimeException> fields = new Lazy<>( () -> createFields() );
+
+
+    protected ClassInfo() {
+        // either literal access via INFO variable or via of() static method.
+        classInfos.put( type(), this );
+        LOG.info( "ClassInfo: " + type().getName() );
+    }
+
+    @Override
+    public int hashCode() {
+        return type().hashCode();
+    }
+
+    @Override
+    public boolean equals( Object other ) {
+        if (other instanceof ClassInfo) {
+            return type().equals( ((Typed)other).type() );
+        }
+        return false;
+    }
 
 
     public abstract Class<T> type();
@@ -50,31 +104,23 @@ public abstract class ClassInfo<T>
 
     @Override
     public List<AnnotationInfo> annotations() {
-        if (annotations == null) {
-            synchronized (this) {
-                if (annotations == null) {
-                    annotations = createAnnotations();
-                }
-            }
-        }
-        return annotations;
+        return annotations.supply();
     }
-
 
     protected abstract List<AnnotationInfo> createAnnotations();
 
 
     public List<MethodInfo> methods() {
-        if (methods == null) {
-            synchronized (this) {
-                if (methods == null) {
-                    methods = createMethods();
-                }
-            }
-        }
-        return methods;
+        return methods.supply();
     }
 
-
     protected abstract List<MethodInfo> createMethods();
+
+
+    public List<FieldInfo> fields() {
+        return fields.supply();
+    }
+
+    protected abstract List<FieldInfo> createFields();
+
 }

@@ -24,6 +24,8 @@ import java.util.Set;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -46,6 +48,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
+
 import com.squareup.javapoet.WildcardTypeName;
 
 /**
@@ -147,6 +150,62 @@ public class ReflectAnnotationProcessor
         createAnnotations.addStatement( "return result" );
         classBuilder.addMethod( createAnnotations.build() );
 
+        // fields
+        MethodSpec.Builder createFields = MethodSpec.methodBuilder( "createFields" )
+                .addModifiers( Modifier.PROTECTED )
+                .returns( ParameterizedTypeName.get( ClassName.get( List.class ), ClassName.get( FieldInfo.class ) ) )
+                .addStatement( "List<FieldInfo> result = new ArrayList<>()" );
+
+        for (Element element : type.getEnclosedElements()) { // XXX all vs. declared
+            if (element instanceof VariableElement
+                    && !element.getModifiers().contains( Modifier.STATIC )) {  // XXX
+                VariableElement varElm = (VariableElement)element;
+                log( "    Field: ", varElm.getSimpleName(), " -> ", varElm.asType() );
+
+                String methodName = varElm.getSimpleName().toString() + "FieldInfo";
+                MethodSpec.Builder m = MethodSpec.methodBuilder( methodName )
+                        .addModifiers( Modifier.PUBLIC )
+                        .returns( FieldInfo.class );
+                m.addCode( "return new FieldInfo() {{\n" );
+                m.addStatement( "  type = $T.class", rawTypeName( TypeName.get( varElm.asType() ) ) );
+                m.addStatement( "  genericType = $L", createGenericType( TypeName.get( varElm.asType() ) ) );
+                m.addStatement( "  name = $S", varElm.getSimpleName() );
+                m.addStatement( "  declaringClassInfo = $L", ClassName.get( type ) + "ClassInfo.INFO" );
+
+                TypeName genericTypeName = TypeName.get( varElm.asType() );
+                if (genericTypeName instanceof ParameterizedTypeName) {
+                    ParameterizedTypeName parameterized = (ParameterizedTypeName)genericTypeName;
+                    log( "RAW: " +  parameterized.rawType );
+                    log( "PARAM: " + genericTypeName + " -> " + parameterized.typeArguments );
+                }
+
+                // annotations
+                m.addCode( "  annotations = $T.asList(\n", Arrays.class );
+                int c1 = 0;
+                for (AnnotationMirror am : processingEnv.getElementUtils().getAllAnnotationMirrors( varElm )) {
+                    if (processedAnnotations.contains( am.getAnnotationType().asElement() )) {
+                        m.addCode( c1++ > 0 ? ",\n" : "" ).addCode( "    " + createAnnotation( am ) );
+                    }
+                }
+                m.addCode( "  );\n  }\n" );
+
+                // get
+                m.addCode( "  public Object get( Object obj ) throws $T{\n", IllegalArgumentException.class );
+                m.addCode( "    return (($T)obj).$L;\n", type, varElm.getSimpleName() );
+                m.addCode( "  }\n" );
+                // set
+                m.addCode( "  public void set( Object obj, Object value ) throws $T{\n", IllegalArgumentException.class );
+                m.addCode( "    (($T)obj).$L = ($T)value;\n", type, varElm.getSimpleName(), varElm.asType() );
+                m.addCode( "  }\n" );
+
+                m.addCode( "};\n" );
+                classBuilder.addMethod( m.build() );
+
+                createFields.addStatement( "result.add( $L() )", methodName );
+            }
+        }
+        createFields.addStatement( "return result" );
+        classBuilder.addMethod( createFields.build() );
 
         // methods
         MethodSpec.Builder createMethods = MethodSpec.methodBuilder( "createMethods" )
@@ -154,7 +213,7 @@ public class ReflectAnnotationProcessor
                 .returns( ParameterizedTypeName.get( ClassName.get( List.class ), ClassName.get( MethodInfo.class ) ) )
                 .addStatement( "List<MethodInfo> result = new ArrayList<>()" );
 
-        for (Element element : type.getEnclosedElements()) {
+        for (Element element : type.getEnclosedElements()) { // XXX all vs. declared
             if (element instanceof ExecutableElement) {
                 ExecutableElement methodElm = (ExecutableElement)element;
                 log( "    Method: ", methodElm.getSimpleName(), "() -> ", methodElm.getReturnType() );
@@ -179,8 +238,9 @@ public class ReflectAnnotationProcessor
                         m.addCode( c1++ > 0 ? ",\n" : "" ).addCode( "    " + createAnnotation( am ) );
                     }
                 }
-                // invoke
                 m.addCode( "  );\n  }\n" );
+
+                // invoke
                 m.addCode( "  public void invoke( Object obj, Object... params ) throws $T{\n", InvocationTargetException.class );
                 m.addCode( "    try {\n" );
                 m.addCode( "      (($T)obj).$L(", type, methodElm.getSimpleName() );
@@ -203,14 +263,14 @@ public class ReflectAnnotationProcessor
         classBuilder.addMethod( createMethods.build() );
 
         // file
-        log( "package: " + packageName );
+        log( "    package: " + packageName );
         JavaFile javaFile = JavaFile.builder( packageName, classBuilder.build() ).build();
         //javaFile.writeTo( System.out );
         javaFile.writeTo( processingEnv.getFiler() );
     }
 
 
-    protected CodeBlock createAnnotation( AnnotationMirror am ) {
+    private CodeBlock createAnnotation( AnnotationMirror am ) {
         CodeBlock.Builder codeBlock = CodeBlock.builder();
         codeBlock.add( "new $T()", ClassName.bestGuess( am.getAnnotationType().toString() + "AnnotationInfo" ) );
         Map<? extends ExecutableElement,? extends AnnotationValue> values = am.getElementValues();
@@ -222,6 +282,48 @@ public class ReflectAnnotationProcessor
             codeBlock.add( "}}" );
         }
         return codeBlock.build();
+    }
+
+
+    private CodeBlock createGenericType( TypeName typeName ) {
+        CodeBlock.Builder codeBlock = CodeBlock.builder();
+        createGenericType( typeName, codeBlock );
+        return codeBlock.build();
+    }
+
+
+    private void createGenericType( TypeName typeName, CodeBlock.Builder codeBlock ) {
+        codeBlock = codeBlock != null ? codeBlock : CodeBlock.builder();
+        if (typeName instanceof ClassName || typeName.isPrimitive()) {
+            codeBlock.add( "new $T($T.class)", GenericType.ClassType.class, typeName );
+        }
+        else if (typeName instanceof ParameterizedTypeName) {
+            createParameterizedType( (ParameterizedTypeName)typeName, codeBlock );
+        }
+        else {
+            log( "createGenericType(): unhandled type: " + typeName.getClass().getName() );
+            //throw new RuntimeException( "createGenericType(): unhandled type: " + typeName.getClass().getName() );
+            codeBlock.add( "null" );
+        }
+    }
+
+
+    private void createParameterizedType( ParameterizedTypeName typeName, CodeBlock.Builder codeBlock ) {
+        codeBlock.add( "new $T($T.class,$L", GenericType.ParameterizedType.class, rawTypeName( typeName), "null" );
+        codeBlock.add( ",new $T[] {", GenericType.class );
+        int c = 0;
+        for (TypeName argTypeName : typeName.typeArguments) {
+            codeBlock.add( c++ == 0 ? "" : "," );
+            createGenericType( argTypeName, codeBlock );
+        }
+        codeBlock.add( "})", Type.class );
+    }
+
+
+    private TypeName rawTypeName( TypeName typeName ) {
+        return (typeName instanceof ParameterizedTypeName)
+                ? ((ParameterizedTypeName)typeName).rawType
+                : typeName;
     }
 
 
@@ -271,14 +373,14 @@ public class ReflectAnnotationProcessor
                 .build() );
 
         // file
-        log( "package: " + packageName );
+        log( "    package: " + packageName );
         JavaFile javaFile = JavaFile.builder( packageName, classBuilder.build() ).build();
         //javaFile.writeTo( System.out );
         javaFile.writeTo( processingEnv.getFiler() );
     }
 
 
-    protected static void log( Object... parts ) {
+    private static void log( Object... parts ) {
         System.out.print( "REFLECT: " );
         for (Object part : parts) {
             System.out.print( part != null ? part.toString() : "[null]" );

@@ -13,6 +13,7 @@
  */
 package areca.common.test;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import java.lang.annotation.Documented;
@@ -22,6 +23,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.ref.WeakReference;
 
+import areca.common.Assert;
+import areca.common.reflect.ClassInfo;
+import areca.common.reflect.GenericType.ClassType;
+import areca.common.reflect.GenericType.ParameterizedType;
 import areca.common.testrunner.Test;
 
 /**
@@ -33,7 +38,35 @@ public class AnnotationTest {
 
     private static final Logger LOG = Logger.getLogger( AnnotationTest.class.getSimpleName() );
 
-    public static final AnnotationTestClassInfo INFO = AnnotationTestClassInfo.INFO;
+    public static final AnnotationTestClassInfo info = AnnotationTestClassInfo.INFO;
+
+    public List<String>         parameterized;
+
+    public List<List<String>>   parameterized2;
+
+    public int                  primitive;
+
+
+    @Test
+    public void parameterizedFieldTest() {
+        ClassType primitiveType = (ClassType)info.primitiveFieldInfo().genericType();
+        Assert.that( primitiveType.getRawType().equals( Integer.TYPE ) );
+
+        ParameterizedType parameterizedType = (ParameterizedType)info.parameterizedFieldInfo().genericType();
+        Assert.that( parameterizedType.getRawType().equals( List.class ) );
+        Assert.that( ((ClassType)parameterizedType.getActualTypeArguments()[0]).getRawType().equals( String.class ) );
+    }
+
+
+    @Test
+    public void classInfoOfTest() {
+        LOG.info( ": " + RuntimeInfoTest.class );
+        ClassInfo<RuntimeInfoTest> classInfo = ClassInfo.of( RuntimeInfoTest.class );
+        Assert.notNull( classInfo );
+        LOG.info( "INFO: " + classInfo.name() );
+//        ClassInfo<AnnotationTest> classInfo2 = ClassInfo.of( AnnotationTest.class ).get();
+//        Assert.isSame( classInfo, classInfo2 );
+    }
 
 
     //@Test
@@ -56,14 +89,14 @@ public class AnnotationTest {
     }
 
 
-    @Test
-    public void declaredSuperTest() {
-        System.out.println( "    " + "declaredSuperTest()" );
-        LOG.info( INFO.declaredSuperTestMethodInfo().name() + " ..." );
-        for (Class<?> cl=Annotated.class; cl!=null; cl=cl.getSuperclass()) {
-
-        }
-    }
+//    @Test
+//    public void declaredSuperTest() {
+//        System.out.println( "    " + "declaredSuperTest()" );
+//        LOG.info( AnnotationTestClassInfo.INFO.declaredSuperTestMethodInfo().name() + " ..." );
+//        for (Class<?> cl=Annotated.class; cl!=null; cl=cl.getSuperclass()) {
+//
+//        }
+//    }
 
 
     /** */

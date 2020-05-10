@@ -152,7 +152,6 @@
                         <configuration>
                             <!-- This configuration conforms to the settings of the WAR plugin -->
                             <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
-
                             <mainClass>areca.rt.teavm.testapp.TestRunnerMain</mainClass>
                             <minifying>false</minifying>
                             <debugInformationGenerated>true</debugInformationGenerated>
@@ -161,7 +160,7 @@
                             <!-- Optimization level. Valid values are: SIMPLE, ADVANCED, FULL -->
                             <optimizationLevel>ADVANCED</optimizationLevel>
                             <stopOnErrors>true</stopOnErrors>
-                            <!-- <incremental>false</incremental> -->
+                            <incremental>false</incremental>
                             <!-- <targetType>WEBASSEMBLY</targetType> -->
                             <targetType>JAVASCRIPT</targetType>
                         </configuration>

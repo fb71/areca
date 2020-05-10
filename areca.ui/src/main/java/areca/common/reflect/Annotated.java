@@ -14,9 +14,10 @@
 package areca.common.reflect;
 
 import java.util.List;
-import java.util.Optional;
-
 import java.lang.annotation.Annotation;
+
+import areca.common.base.Opt;
+import areca.common.base.Sequence;
 
 /**
  *
@@ -28,23 +29,17 @@ public interface Annotated {
 
 
     @SuppressWarnings("unchecked")
-    public default <R extends AnnotationInfo> Optional<R> annotation( R type ) {
-        for (AnnotationInfo a : annotations()) {
-            if (type.annotationType().isAssignableFrom( a.annotationType() ) ) {
-                return Optional.of( (R)a );
-            }
-        }
-        return Optional.empty();
-
-//        return annotations().stream()
-//                .filter( a -> type.annotationType().isAssignableFrom( a.annotationType() ) )
-//                .map( a -> (R)a )
-//                .findAny();
+    public default <R extends AnnotationInfo> Opt<R> annotation( R type ) {
+        return (Opt<R>)annotation( type.annotationType() );
     }
 
 
-    public default <R extends Annotation> Optional<R> annotation( Class<R> type ) {
-        throw new RuntimeException( "not yet implemented." );
+    @SuppressWarnings("unchecked")
+    public default <R extends Annotation> Opt<R> annotation( Class<R> type ) {
+        return Sequence.of( annotations() )
+                .filter( a -> type.equals( a.annotationType() ) )
+                .transform( a -> (R)a )
+                .findAny();
     }
 
 }
