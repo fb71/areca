@@ -48,17 +48,17 @@ public class LogDecorator
 
     @Override
     public void preTestMethod( TestMethod m ) {
-        System.out.print( ("---[" + m.name() + "]------------------------------").substring( 0, 40 ) );
+        System.out.println( ("---[" + m.name() + "]------------------------------").substring( 0, 40 ) );
     }
 
     @Override
     public void postTestMethod( TestMethod m, TestResult testResult ) {
         if (testResult.passed()) {
-            System.out.println( "---ok (" + testResult.elapsedMillis() + "ms)" );
+            System.out.println( "---------------------------------ok (" + testResult.elapsedMillis() + "ms)" );
         }
         else {
             Throwable e = testResult.getException();
-            System.out.println( "---failed (" + e.toString() + ")" );
+            System.out.println( "---------------------------------failed (" + e.toString() + ")" );
             Throwable cause = e;
             while (cause.getCause() != null) {
                 cause = cause.getCause();

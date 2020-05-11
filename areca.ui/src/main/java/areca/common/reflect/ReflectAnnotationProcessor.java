@@ -48,7 +48,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
-
+import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 
 /**
@@ -101,15 +101,16 @@ public class ReflectAnnotationProcessor
         log( ("=== " + type + " ==============================================").substring( 0, 68 ) );
 
         String packageName = StringUtils.substringBeforeLast( type.getQualifiedName().toString(), "." );
-        String typeName = type.getSimpleName() + "ClassInfo";
+        String infoTypeName = type.getSimpleName() + "ClassInfo";
+        ClassName rawTypeName = ClassName.get( type );
 
         // class
-        Builder classBuilder = TypeSpec.classBuilder( typeName )
+        Builder classBuilder = TypeSpec.classBuilder( infoTypeName )
                 .addModifiers( Modifier.PUBLIC, Modifier.FINAL )
-                .superclass( ParameterizedTypeName.get( ClassName.get( ClassInfo.class ), ClassName.get( type ) ) );
+                .superclass( ParameterizedTypeName.get( ClassName.get( ClassInfo.class ), rawTypeName ) );
 
         // INFO field
-        ClassName className = ClassName.get( packageName, typeName );
+        ClassName className = ClassName.get( packageName, infoTypeName );
         classBuilder.addField( FieldSpec.builder( className, "INFO", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL )
                 .initializer( "new $L()", className )
                 .build() );
@@ -124,7 +125,7 @@ public class ReflectAnnotationProcessor
         // type()
         classBuilder.addMethod( MethodSpec.methodBuilder( "type" )
                 .addModifiers( Modifier.PUBLIC )
-                .returns( ParameterizedTypeName.get( ClassName.get( Class.class ), ClassName.get( type ) ) )
+                .returns( ParameterizedTypeName.get( ClassName.get( Class.class ), rawTypeName ) )
                 .addStatement( "return $L.class", type.getSimpleName() )
                 .build() );
 
@@ -134,7 +135,7 @@ public class ReflectAnnotationProcessor
                 .returns( ClassName.get( type ) )
                 .addException( InstantiationException.class )
                 .addException( IllegalAccessException.class )
-                .addStatement( "return new $T()", type )
+                .addStatement( "return new $T()", rawTypeName ) //.getSimpleName()
                 .build() );
 
         // createAnnotations()
@@ -191,11 +192,11 @@ public class ReflectAnnotationProcessor
 
                 // get
                 m.addCode( "  public Object get( Object obj ) throws $T{\n", IllegalArgumentException.class );
-                m.addCode( "    return (($T)obj).$L;\n", type, varElm.getSimpleName() );
+                m.addCode( "    return (($T)obj).$L;\n", rawTypeName, varElm.getSimpleName() );
                 m.addCode( "  }\n" );
                 // set
                 m.addCode( "  public void set( Object obj, Object value ) throws $T{\n", IllegalArgumentException.class );
-                m.addCode( "    (($T)obj).$L = ($T)value;\n", type, varElm.getSimpleName(), varElm.asType() );
+                m.addCode( "    (($T)obj).$L = ($T)value;\n", rawTypeName, varElm.getSimpleName(), varElm.asType() );
                 m.addCode( "  }\n" );
 
                 m.addCode( "};\n" );
@@ -243,10 +244,18 @@ public class ReflectAnnotationProcessor
                 // invoke
                 m.addCode( "  public void invoke( Object obj, Object... params ) throws $T{\n", InvocationTargetException.class );
                 m.addCode( "    try {\n" );
-                m.addCode( "      (($T)obj).$L(", type, methodElm.getSimpleName() );
+                m.addCode( "      (($T)obj).$L(", rawTypeName, methodElm.getSimpleName() );
                 int c2 = 0;
                 for (VariableElement paramElement : methodElm.getParameters()) {
-                    m.addCode( c2 > 0 ? "," : "" ).addCode( "($T)params[$L]", paramElement.asType(), c2++ );
+                    m.addCode( c2 > 0 ? "," : "" );
+                    TypeName paramTypeName = TypeName.get( paramElement.asType() );
+                    if (paramTypeName instanceof TypeVariableName) {
+                        // XXX use Object
+                    }
+                    else {
+                        m.addCode( "($T)", paramTypeName );
+                    }
+                    m.addCode( "params[$L]", c2++ );
                 }
                 m.addCode( ");\n", type, methodElm.getSimpleName() );
                 m.addCode( "    } catch (Throwable e) {\n" );
@@ -276,8 +285,16 @@ public class ReflectAnnotationProcessor
         Map<? extends ExecutableElement,? extends AnnotationValue> values = am.getElementValues();
         if (!values.isEmpty()) {
             codeBlock.add( " {{" );
-            for (Entry<? extends ExecutableElement,? extends AnnotationValue> entry : am.getElementValues().entrySet()) {
-                codeBlock.add( "this._$L = $L;", entry.getKey().getSimpleName(), entry.getValue() );
+            for (Entry<? extends ExecutableElement,? extends AnnotationValue> entry : values.entrySet()) {
+                String valueCode = entry.getValue().toString();
+                codeBlock.add( "this._$L = ", entry.getKey().getSimpleName() );
+                if (valueCode.startsWith( "{" )) {
+                    // XXX array type: check and handling are probable not meant to do this way
+                    codeBlock.add( "($L) new Object[] $L;", entry.getKey().asType().toString().substring( 2 ), valueCode );
+                }
+                else {
+                    codeBlock.add( "$L;", valueCode );
+                }
             }
             codeBlock.add( "}}" );
         }
@@ -319,6 +336,10 @@ public class ReflectAnnotationProcessor
         codeBlock.add( "})", Type.class );
     }
 
+
+    private TypeName rawTypeName( TypeElement type ) {
+        return rawTypeName( TypeName.get( type.asType() ) );
+    }
 
     private TypeName rawTypeName( TypeName typeName ) {
         return (typeName instanceof ParameterizedTypeName)
