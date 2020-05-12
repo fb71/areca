@@ -36,7 +36,7 @@ public class Main {
 
           for (int i=0; i<100; i++) {
               log( "[" + i + "] ..." );
-              List<Flyweight> l = new LinkedList();
+              List<Flyweight> l = new LinkedList<>();
               for (int c=0; c<1000; c++) {
                   l.add( new Flyweight(c) );
               }
