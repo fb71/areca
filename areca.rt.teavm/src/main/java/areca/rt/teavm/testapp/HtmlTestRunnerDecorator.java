@@ -35,6 +35,8 @@ public class HtmlTestRunnerDecorator
 
     private static final Logger LOG = Logger.getLogger( HtmlTestRunnerDecorator.class.getName() );
 
+    public static final ClassInfo<HtmlTestRunnerDecorator> info = HtmlTestRunnerDecoratorClassInfo.instance();
+
     protected HTMLDocument          doc;
 
     protected HTMLElement           testElm;

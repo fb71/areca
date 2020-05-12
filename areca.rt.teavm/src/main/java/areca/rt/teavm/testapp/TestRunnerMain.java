@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.logging.Logger;
 
-import areca.common.testrunner.LogDecoratorClassInfo;
+import areca.common.testrunner.LogDecorator;
 import areca.common.testrunner.TestRunner;
 
 /**
@@ -25,7 +25,7 @@ public class TestRunnerMain {
         try {
             new TestRunner()
                     .addTests( areca.common.test.Tests.all() )
-                    .addDecorators( HtmlTestRunnerDecoratorClassInfo.INFO, LogDecoratorClassInfo.INFO )
+                    .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();
 
 

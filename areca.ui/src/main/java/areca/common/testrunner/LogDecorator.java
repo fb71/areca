@@ -31,6 +31,8 @@ public class LogDecorator
 
     private static final Logger LOG = Logger.getLogger( LogDecorator.class.getSimpleName() );
 
+    public static final ClassInfo<LogDecorator> info = LogDecoratorClassInfo.instance();
+
     @Override
     public void preRun( TestRunner runner ) {
         System.out.println( "Running tests..." );

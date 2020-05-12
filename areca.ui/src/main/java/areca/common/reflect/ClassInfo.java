@@ -33,30 +33,24 @@ public abstract class ClassInfo<T>
     private static Map<Class<?>,ClassInfo<?>>  classInfos = new /*Concurrent*/HashMap<>( 128 );
 
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "deprecation"})
     public static <R> ClassInfo<R> of( Class<R> cl ) {
         ClassInfo<R> result = (ClassInfo<R>)classInfos.get( cl );
+        if (result == null) {
+            try {
+                // this is (teavm?) magic; it forces the particular ClassInfo class to
+                // be fully (!?) loaded -> instance constant initialized -> classInfo
+                // registered
+                cl.newInstance();
+                result = (ClassInfo<R>)classInfos.get( cl );
+            }
+            catch (InstantiationException | IllegalAccessException e) {
+            }
+        }
         if (result == null) {
             throw new IllegalStateException( "ClassInfo: not found for: " + cl.getName() + " (Either not generated or not yet loaded. Static constant in class missing??)" );
         }
         return result;
-
-//        if (!classInfos.containsKey( cl )) {
-//            synchronized (classInfos) {
-//                if (!classInfos.containsKey( cl )) {
-//                    try {
-//                        String name = cl.getName() + "ClassInfo";
-//                        LOG.info( "Non-literal init: " + name );
-//                        Class<?> classInfoClass = Class.forName( name );
-//                        classInfoClass.newInstance();
-//                    }
-//                    catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-//                        throw new RuntimeException( e );
-//                    }
-//                }
-//            }
-//        }
-//        return Opt.of( (ClassInfo<R>)classInfos.get( cl ) ); // check map again to see if ctor worked
     }
 
 
@@ -77,7 +71,7 @@ public abstract class ClassInfo<T>
 
 
     protected ClassInfo() {
-        // either literal access via INFO variable or via of() static method.
+        // either literal access via instance variable or via of() static method.
         classInfos.put( type(), this );
         LOG.info( "ClassInfo: " + type().getName() );
     }
@@ -95,9 +89,11 @@ public abstract class ClassInfo<T>
         return false;
     }
 
+    public abstract String name();
+
+    public abstract String simpleName();
 
     public abstract Class<T> type();
-
 
     public abstract T newInstance() throws InstantiationException, IllegalAccessException;
 

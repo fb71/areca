@@ -21,6 +21,7 @@ import areca.common.event.EventHandler;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
 import areca.common.event.SameStackEventManager;
+import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.After;
 import areca.common.testrunner.Before;
 import areca.common.testrunner.Test;
@@ -33,6 +34,8 @@ import areca.common.testrunner.Test;
 public class EventManagerTest {
 
     private static final Logger LOG = Logger.getLogger( EventManagerTest.class.getName() );
+
+    public static final ClassInfo<EventManagerTest> info = EventManagerTestClassInfo.instance();
 
     protected EventManager      em;
 

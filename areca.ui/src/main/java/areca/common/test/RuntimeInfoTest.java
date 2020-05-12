@@ -18,9 +18,6 @@ import areca.common.reflect.RuntimeInfo;
 @RuntimeInfo
 public class RuntimeInfoTest {
 
-    public static final RuntimeInfoTestClassInfo info;  // = RuntimeInfoTestClassInfo.INFO;
+    public static final RuntimeInfoTestClassInfo info = RuntimeInfoTestClassInfo.instance();
 
-    static {
-        info = RuntimeInfoTestClassInfo.INFO;
-    }
 }

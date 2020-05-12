@@ -38,7 +38,7 @@ public class AnnotationTest {
 
     private static final Logger LOG = Logger.getLogger( AnnotationTest.class.getSimpleName() );
 
-    public static final AnnotationTestClassInfo info = AnnotationTestClassInfo.INFO;
+    public static final AnnotationTestClassInfo info = AnnotationTestClassInfo.instance();
 
     public List<String>         parameterized;
 
@@ -60,7 +60,6 @@ public class AnnotationTest {
 
     @Test
     public void classInfoOfTest() {
-        LOG.info( ": " + RuntimeInfoTest.class );
         ClassInfo<RuntimeInfoTest> classInfo = ClassInfo.of( RuntimeInfoTest.class );
         Assert.notNull( classInfo );
         LOG.info( "INFO: " + classInfo.name() );

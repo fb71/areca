@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.io.IOException;
 import areca.common.Assert;
 import areca.common.base.Sequence;
+import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.Test;
 
 /**
@@ -33,6 +34,8 @@ import areca.common.testrunner.Test;
 public class SequenceTest {
 
     private static final Logger LOG = Logger.getLogger( SequenceTest.class.getName() );
+
+    public static final ClassInfo<SequenceTest> info = SequenceTestClassInfo.instance();
 
     protected int       result;
 

@@ -76,7 +76,9 @@ public class ReflectAnnotationProcessor
 
             // create AnnotationInfos
             for (TypeElement annotation : annotations) {
-                if (!annotation.getQualifiedName().toString().startsWith( "java." )) {
+                // XXX
+                if (!annotation.getQualifiedName().toString().startsWith( "java." )
+                        && !annotation.getQualifiedName().toString().startsWith( "org.teavm." )) {
                     createAnnotationInfo( annotation );
                     processedAnnotations.add( annotation );
                     annotatedElements.addAll( roundEnv.getElementsAnnotatedWith( annotation ) );
@@ -107,16 +109,31 @@ public class ReflectAnnotationProcessor
         // class
         Builder classBuilder = TypeSpec.classBuilder( infoTypeName )
                 .addModifiers( Modifier.PUBLIC, Modifier.FINAL )
+                //.addAnnotation( AnnotationSpec.builder( SuppressWarnings.class ).addMember( "value", "\"unchecked\"" ).build() )
                 .superclass( ParameterizedTypeName.get( ClassName.get( ClassInfo.class ), rawTypeName ) );
 
-        // INFO field
+        // INFO/instance field
         ClassName className = ClassName.get( packageName, infoTypeName );
-        classBuilder.addField( FieldSpec.builder( className, "INFO", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL )
+        classBuilder.addField( FieldSpec.builder( className, "instance", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL )
                 .initializer( "new $L()", className )
+                .build() );
+
+        // instance()
+        classBuilder.addMethod( MethodSpec.methodBuilder( "instance" )
+                .addModifiers( Modifier.PUBLIC, Modifier.STATIC )
+                .returns( className )
+                .addStatement( "return instance", type.getSimpleName() )
                 .build() );
 
         // name()
         classBuilder.addMethod( MethodSpec.methodBuilder( "name" )
+                .addModifiers( Modifier.PUBLIC )
+                .returns( String.class )
+                .addStatement( "return $S", type.getQualifiedName() )
+                .build() );
+
+        // simpleName()
+        classBuilder.addMethod( MethodSpec.methodBuilder( "simpleName" )
                 .addModifiers( Modifier.PUBLIC )
                 .returns( String.class )
                 .addStatement( "return $S", type.getSimpleName() )
@@ -171,7 +188,7 @@ public class ReflectAnnotationProcessor
                 m.addStatement( "  type = $T.class", rawTypeName( TypeName.get( varElm.asType() ) ) );
                 m.addStatement( "  genericType = $L", createGenericType( TypeName.get( varElm.asType() ) ) );
                 m.addStatement( "  name = $S", varElm.getSimpleName() );
-                m.addStatement( "  declaringClassInfo = $L", ClassName.get( type ) + "ClassInfo.INFO" );
+                m.addStatement( "  declaringClassInfo = $L", ClassName.get( type ) + "ClassInfo.instance()" );
 
                 TypeName genericTypeName = TypeName.get( varElm.asType() );
                 if (genericTypeName instanceof ParameterizedTypeName) {
