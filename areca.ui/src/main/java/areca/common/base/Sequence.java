@@ -68,7 +68,7 @@ public abstract class Sequence<T, E extends Exception> {
             int callCount = 0;
             @Override
             protected SequenceIterator<R,E> iterator() {
-                Assert.that( callCount++ == 0 );
+                Assert.that( callCount++ == 0, "Sequence.of(Iterator) must not be iterated multiple times." );
                 return new DelegatingIterator<R,R,E>( null ) {
                     @Override public R next() throws E {
                         return iterator.next();
@@ -132,15 +132,12 @@ public abstract class Sequence<T, E extends Exception> {
             protected SequenceIterator<T,E> iterator() {
                 return new DelegatingIterator<T,T,E>( (SequenceIterator<T,E>)parent.iterator() ) {
                     private T nextElm = null;
-                    @Override
-                    public T next() throws E {
-                        if (nextElm == null) {
-                            throw new NoSuchElementException();
-                        }
-                        return nextElm;
-                    }
+
                     @Override
                     public boolean hasNext() throws E {
+                        if (nextElm != null) {
+                            return true;
+                        }
                         nextElm = null;
                         while (delegate.hasNext()) {
                             T candidate = delegate.next();
@@ -150,6 +147,15 @@ public abstract class Sequence<T, E extends Exception> {
                             }
                         }
                         return false;
+                    }
+                    @Override
+                    public T next() throws E {
+                        if (!hasNext()) {
+                            throw new NoSuchElementException();
+                        }
+                        T result = Assert.notNull( nextElm );
+                        nextElm = null;
+                        return result;
                     }
                 };
             }
@@ -165,7 +171,7 @@ public abstract class Sequence<T, E extends Exception> {
                 return new DelegatingIterator<T,T,E>( null ) {
                     Iterator<SequenceIterator<T,E>> outer = Arrays.asList(((Sequence<T,E>)parent).iterator(), other.iterator() ).iterator();
                     SequenceIterator<T,E>           inner;
-
+                    int                             index;
                     @Override
                     public boolean hasNext() throws E {
                         while (inner == null || !inner.hasNext()) {
@@ -179,8 +185,9 @@ public abstract class Sequence<T, E extends Exception> {
                     @Override
                     public T next() throws E {
                         if (!hasNext()) {
-                            throw new NoSuchElementException();
+                            throw new NoSuchElementException( "index=" + index );
                         }
+                        index ++;
                         return inner.next();
                     }
                 };
@@ -257,7 +264,7 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
-    public <RE extends E> Iterable<T> toIterable() throws E {
+    public <RE extends E> Iterable<T> asIterable() throws E {
         return new Iterable<T>() {
             /** fail fast toIterator() method if Sequence throws checked Exception */
             @SuppressWarnings("unchecked")

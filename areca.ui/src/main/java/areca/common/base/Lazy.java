@@ -29,6 +29,10 @@ public class Lazy<T,E extends Exception>
     private T                   value;
 
 
+    public Lazy() {
+    }
+
+
     public Lazy( Supplier<T,E> delegate ) {
         this.delegate = Assert.notNull( delegate );
     }
@@ -36,11 +40,16 @@ public class Lazy<T,E extends Exception>
 
     @Override
     public T supply() throws E {
+        return supply( Assert.notNull( delegate, "Lazy was initialized without supplier." ) );
+    }
+
+
+    public T supply( Supplier<T,E> supplier ) throws E {
         if (!initialized) {
             synchronized(this) {
                 if (!initialized) {
                     initialized = true;
-                    value = delegate.supply();
+                    value = supplier.supply();
                 }
             }
         }
