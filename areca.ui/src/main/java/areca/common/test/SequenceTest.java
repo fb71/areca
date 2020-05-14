@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.io.IOException;
+
+import org.apache.commons.lang3.mutable.MutableInt;
 import areca.common.Assert;
 import areca.common.base.Sequence;
 import areca.common.reflect.ClassInfo;
@@ -37,12 +39,22 @@ public class SequenceTest {
 
     public static final ClassInfo<SequenceTest> info = SequenceTestClassInfo.instance();
 
-    protected int       result;
 
     @Test
     public void forEachTest() {
-        Sequence.of( Arrays.asList( 1, 2, 3 ) ).forEach( elm -> result += elm );
-        Assert.isEqual( 6, result );
+        MutableInt result = new MutableInt();
+        Sequence.of( Arrays.asList( 1, 2, 3 ) ).forEach( elm -> result.add( elm ) );
+        Assert.isEqual( 6, result.intValue() );
+    }
+
+
+    @Test
+    public void concatTest() {
+        Sequence<String,RuntimeException> s = Sequence.of( "1", "2" ).concat( Sequence.of( "4", "5" ) );
+        Assert.isEqual( 4, s.count() );
+        Assert.isEqual( "1245", s.reduce( String::concat ) );
+        Assert.isEqual( 2, Sequence.of().concat( Sequence.of( "4", "5" ) ).count() );
+        Assert.isEqual( 0, Sequence.of().concat( Sequence.of() ).count() );
     }
 
 

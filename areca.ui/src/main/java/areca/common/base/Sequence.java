@@ -26,6 +26,8 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import areca.common.Assert;
+
 /**
  *
  * @author Falko Bräutigam
@@ -61,6 +63,25 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
+    public static <R,E extends Exception> Sequence<R,E> of( Class<E> type, Iterator<R> iterator ) {
+        return new Sequence<R,E>( null ) {
+            int callCount = 0;
+            @Override
+            protected SequenceIterator<R,E> iterator() {
+                Assert.that( callCount++ == 0 );
+                return new DelegatingIterator<R,R,E>( null ) {
+                    @Override public R next() throws E {
+                        return iterator.next();
+                    }
+                    @Override public boolean hasNext() throws E {
+                        return iterator.hasNext();
+                    }
+                };
+            }
+        };
+    }
+
+
     // instance *******************************************
 
     protected Sequence<?,E>     parent;
@@ -70,8 +91,14 @@ public abstract class Sequence<T, E extends Exception> {
         this.parent = parent;
     }
 
-    protected abstract SequenceIterator<T,E> iterator();
 
+    @SuppressWarnings("unchecked")
+    protected <R> Sequence<R,E> parent() {
+        return (Sequence<R,E>)parent;
+    }
+
+
+    protected abstract SequenceIterator<T,E> iterator();
 
 
     public <R,RE extends E> Sequence<R,E> transform( Function<T,R,RE> function ) throws RE {
@@ -87,6 +114,14 @@ public abstract class Sequence<T, E extends Exception> {
                 };
             }
         };
+    }
+
+
+    /**
+     * Synonym for {@link #transform(Function)}
+     */
+    public <R,RE extends E> Sequence<R,E> map( Function<T,R,RE> function ) throws RE {
+        return transform( function );
     }
 
 
@@ -115,6 +150,38 @@ public abstract class Sequence<T, E extends Exception> {
                             }
                         }
                         return false;
+                    }
+                };
+            }
+        };
+    }
+
+
+    public Sequence<T,E> concat( Sequence<T,E> other ) {
+        return new Sequence<T,E>( this ) {
+            @Override
+            @SuppressWarnings("unchecked")
+            protected SequenceIterator<T,E> iterator() {
+                return new DelegatingIterator<T,T,E>( null ) {
+                    Iterator<SequenceIterator<T,E>> outer = Arrays.asList(((Sequence<T,E>)parent).iterator(), other.iterator() ).iterator();
+                    SequenceIterator<T,E>           inner;
+
+                    @Override
+                    public boolean hasNext() throws E {
+                        while (inner == null || !inner.hasNext()) {
+                            if (!outer.hasNext()) {
+                                return false;
+                            }
+                            inner = outer.next();
+                        }
+                        return inner.hasNext();
+                    }
+                    @Override
+                    public T next() throws E {
+                        if (!hasNext()) {
+                            throw new NoSuchElementException();
+                        }
+                        return inner.next();
                     }
                 };
             }
@@ -190,10 +257,27 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
-//    public <RE extends E> List<T> asList() throws E {
-//        for (Iterator<T> it=iterate(); it.hasNext(); ) {
-//            action.accept( it.next() );
-//        }
-//    }
+    public <RE extends E> Iterable<T> toIterable() throws E {
+        return new Iterable<T>() {
+            /** fail fast toIterator() method if Sequence throws checked Exception */
+            @SuppressWarnings("unchecked")
+            Sequence<T,RuntimeException> noExceptionSequence = (Sequence<T,RuntimeException>)Sequence.this;
+
+            @Override
+            public Iterator<T> iterator() {
+                return new Iterator<T>() {
+                    SequenceIterator<T,RuntimeException> delegate = noExceptionSequence.iterator();
+                    @Override
+                    public boolean hasNext() {
+                        return delegate.hasNext();
+                    }
+                    @Override
+                    public T next() {
+                        return delegate.next();
+                    }
+                };
+            }
+        };
+    }
 
 }
