@@ -20,7 +20,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Forces the reflect/info annotation processor to build runtime info
+ * Forces the reflect/info annotation processor to create a {@link ClassInfo}
  * for an annotated class.
  *
  * @author Falko Bräutigam

@@ -79,7 +79,7 @@ public class ReflectAnnotationProcessor
                 // XXX
                 if (!annotation.getQualifiedName().toString().startsWith( "java." )
                         && !annotation.getQualifiedName().toString().startsWith( "org.teavm." )) {
-                    createAnnotationInfo( annotation );
+                    checkCreateAnnotationInfo( annotation );
                     processedAnnotations.add( annotation );
                     annotatedElements.addAll( roundEnv.getElementsAnnotatedWith( annotation ) );
                 }
@@ -365,12 +365,20 @@ public class ReflectAnnotationProcessor
     }
 
 
-    protected void createAnnotationInfo( TypeElement annotation ) throws IOException {
+    protected void checkCreateAnnotationInfo( TypeElement annotation ) throws IOException {
         log( ("=== " + annotation + " ==============================================").substring( 0, 68 ) );
-        log( "Enclosing:" + annotation.getEnclosedElements() );
+        //log( "Enclosing: " + annotation.getEnclosedElements() );
 
         String packageName = StringUtils.substringBeforeLast( annotation.getQualifiedName().toString(), "." );
         String typeName = annotation.getSimpleName() + "AnnotationInfo";
+        try {
+            Class.forName( annotation.getQualifiedName().toString() );
+            log( "    already exists!" );  // imported from other jar
+            return;
+        }
+        catch (ClassNotFoundException e) {
+            // not found -> generating...
+        }
 
         // class
         Builder classBuilder = TypeSpec.classBuilder( typeName )
