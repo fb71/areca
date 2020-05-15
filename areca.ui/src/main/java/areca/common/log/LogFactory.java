@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.base.log;
+package areca.common.log;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
