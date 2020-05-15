@@ -37,26 +37,27 @@
             <artifactId>areca.ui</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-
         <dependency>
             <groupId>areca</groupId>
             <artifactId>areca.rt.teavm</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.polymap</groupId>
+            <artifactId>model2</artifactId>
+            <version>3.0.2-areca-SNAPSHOT</version>
+        </dependency>
+        <!-- TeaVM -->
         <dependency>
             <groupId>org.teavm</groupId>
             <artifactId>teavm-core</artifactId>
             <version>${teavm.version}</version>
         </dependency>
-    
-        <!-- Emulator of Java class library for TeaVM -->
         <dependency>
             <groupId>org.teavm</groupId>
             <artifactId>teavm-classlib</artifactId>
             <version>${teavm.version}</version>
         </dependency>
-
         <!-- Servlet 3.1 specification -->
         <dependency>
             <groupId>javax.servlet</groupId>

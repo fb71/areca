@@ -13,8 +13,14 @@
  */
 package areca.app;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
+import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.store.tidbstore.IDBStore;
+
+import areca.app.model.Anchor;
+import areca.common.base.Lazy;
 import areca.rt.teavm.ui.TeaApp;
 import areca.ui.Position;
 import areca.ui.Size;
@@ -31,6 +37,17 @@ public class Main {
 
     private static final Logger LOG = Logger.getLogger( Main.class.getName() );
 
+    private static Lazy<EntityRepository,Exception> repo;
+
+    static {
+        repo = new Lazy<>( () -> {
+            LOG.info( "MAIN: creating repo..." );
+            return EntityRepository.newConfiguration()
+                    .entities.set( Arrays.asList( Anchor.info ) )
+                    .store.set( new IDBStore( "main", 1 ) )
+                    .create();
+        });
+    }
 
     public static void main( String[] args ) throws Exception {
         try {

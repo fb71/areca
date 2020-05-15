@@ -13,10 +13,17 @@
  */
 package areca.app.model;
 
+import org.polymap.model2.Entity;
+
+import areca.common.reflect.RuntimeInfo;
+
 /**
  *
  * @author Falko Bräutigam
  */
-public class Anchor {
+@RuntimeInfo
+public class Anchor extends Entity {
+
+    public static final AnchorClassInfo info = AnchorClassInfo.instance();
 
 }
