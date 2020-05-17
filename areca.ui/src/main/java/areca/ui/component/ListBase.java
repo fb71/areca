@@ -18,8 +18,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
 import areca.common.Assert;
 import areca.common.base.Sequence;
 import areca.ui.layout.RowConstraints;
@@ -27,6 +25,7 @@ import areca.ui.layout.RowLayout;
 
 /**
  *
+ * @param <T> The type of the data elements in this list.
  * @author Falko Bräutigam
  */
 public abstract class ListBase<T>
@@ -47,15 +46,16 @@ public abstract class ListBase<T>
 
 
     public ListBase<T> setData( int start, Iterable<T> data ) {
-        return setData( start, Sequence.of( data ).collect( Collectors.toList() ) );
-    }
-
-    public ListBase<T> setData( int start, @SuppressWarnings("unchecked") T... data ) {
         Assert.that( start == 0, "Fragmented data array is not yet supported." );
         dataArray.clear();
-        dataArray.addAll( Arrays.asList( data ) );
+        dataArray.addAll( Sequence.of( data ).asCollection() );
         updateRows();
         return this;
+    }
+
+
+    public ListBase<T> setData( int start, @SuppressWarnings("unchecked") T... data ) {
+        return setData( start, Arrays.asList( data ) );
     }
 
 

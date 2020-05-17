@@ -16,7 +16,6 @@ package areca.app.model;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
-import org.polymap.model2.runtime.config.Mandatory;
 
 import areca.common.reflect.RuntimeInfo;
 
@@ -25,12 +24,14 @@ import areca.common.reflect.RuntimeInfo;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class Anchor extends Entity {
+public class Contact extends Entity {
 
-    public static final AnchorClassInfo info = AnchorClassInfo.instance();
+    public static final ContactClassInfo    info = ContactClassInfo.instance();
 
-    @Mandatory
     @Queryable
-    public Property<String>     name;
+    public Property<String>         firstname;
+
+    @Queryable
+    public Property<String>         lastname;
 
 }

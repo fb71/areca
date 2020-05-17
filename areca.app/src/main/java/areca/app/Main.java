@@ -14,13 +14,16 @@
 package areca.app;
 
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
+import areca.app.model.Contact;
 import areca.common.base.Lazy;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.ui.TeaApp;
 import areca.ui.Position;
 import areca.ui.Size;
@@ -35,22 +38,30 @@ import areca.ui.viewer.LabeledList;
  */
 public class Main {
 
-    private static final Logger LOG = Logger.getLogger( Main.class.getName() );
+    private static final Log log = LogFactory.getLog( Main.class );
 
-    private static Lazy<EntityRepository,Exception> repo;
+    public static Lazy<EntityRepository,RuntimeException>   repo;
+
+    public static Lazy<UnitOfWork,RuntimeException>         uow;
 
     static {
         repo = new Lazy<>( () -> {
-            LOG.info( "MAIN: creating repo..." );
-            return EntityRepository.newConfiguration()
-                    .entities.set( Arrays.asList( Anchor.info ) )
-                    .store.set( new IDBStore( "main", 1 ) )
+            log.info( "creating repo..." );
+            EntityRepository result = EntityRepository.newConfiguration()
+                    .entities.set( Arrays.asList( Anchor.info, Contact.info ) )
+                    .store.set( new IDBStore( "main", 2 ) )
                     .create();
+            log.info( "creating test data..." );
+            TestDataBuilder.run( result );
+            return result;
         });
+        uow = new Lazy<>( () -> repo.supply().newUnitOfWork() );
     }
+
 
     public static void main( String[] args ) throws Exception {
         try {
+            log.info( "repo: " + repo.supply() );
             TeaApp.instance().createUI( appWindow -> {
                 appWindow.size.set( Size.of( 400, 300 ) );
                 appWindow.layout.set( new FillLayout() );
@@ -59,7 +70,7 @@ public class Main {
                 appWindow.add( new Button(), btn -> {
                     btn.label.set( "Button!" );
                     btn.subscribe( (SelectionEvent ev) -> {
-                        LOG.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
+                        log.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
                         Position pos = btn.position.get();
                         btn.position.set( Position.of( pos.x()-10, pos.y()-10 ) );
                     });
@@ -67,9 +78,10 @@ public class Main {
                     btn.position.set( Position.of( 100, 100 ) );
                 });
 
-                appWindow.add( new LabeledList<String>(), l -> {
-                    l.firstLineLabeler.set( data -> ":: " + data );
-                    l.setData( 0, new String[] {"1", "2", "3", "4", "5", "6", "7"} );
+                // Anchors list
+                appWindow.add( new LabeledList<Anchor>(), l -> {
+                    l.firstLineLabeler.set( data -> data.name.get() );
+                    l.setData( 0, uow.supply().query( Anchor.class ).execute() );
                 });
 //                Thread.sleep( 100 );
             })

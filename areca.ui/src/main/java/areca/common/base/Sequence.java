@@ -13,8 +13,10 @@
  */
 package areca.common.base;
 
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
@@ -261,6 +263,24 @@ public abstract class Sequence<T, E extends Exception> {
     public <R> R[] toArray( Function<Integer,R[],RuntimeException> generator ) throws E {
         ArrayList<T> l = collect( Collectors.toCollection( ArrayList::new ) );
         return l.toArray( generator.apply( l.size() ) );
+    }
+
+
+    public <RE extends E> Collection<T> asCollection() throws E {
+        return new AbstractCollection<T>() {
+            /** fail fast if Sequence throws checked Exception */
+            @SuppressWarnings("unchecked")
+            Sequence<T,RuntimeException>    noExceptionSequence = (Sequence<T,RuntimeException>)Sequence.this;
+            Lazy<Integer,RuntimeException>  size = new Lazy<>();
+            @Override
+            public Iterator<T> iterator() {
+                return noExceptionSequence.asIterable().iterator();
+            }
+            @Override
+            public int size() {
+                return size.supply( () -> noExceptionSequence.count() );
+            }
+        };
     }
 
 

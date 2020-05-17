@@ -193,8 +193,8 @@ public class ReflectAnnotationProcessor
                 TypeName genericTypeName = TypeName.get( varElm.asType() );
                 if (genericTypeName instanceof ParameterizedTypeName) {
                     ParameterizedTypeName parameterized = (ParameterizedTypeName)genericTypeName;
-                    log( "RAW: " +  parameterized.rawType );
-                    log( "PARAM: " + genericTypeName + " -> " + parameterized.typeArguments );
+                    log( "        raw: " +  parameterized.rawType );
+                    log( "        param: " + genericTypeName + " -> " + parameterized.typeArguments );
                 }
 
                 // annotations
@@ -372,7 +372,7 @@ public class ReflectAnnotationProcessor
         String packageName = StringUtils.substringBeforeLast( annotation.getQualifiedName().toString(), "." );
         String typeName = annotation.getSimpleName() + "AnnotationInfo";
         try {
-            Class.forName( annotation.getQualifiedName().toString() );
+            Class.forName( packageName + "." + typeName );
             log( "    already exists!" );  // imported from other jar
             return;
         }

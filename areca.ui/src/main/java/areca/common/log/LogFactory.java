@@ -16,6 +16,8 @@ package areca.common.log;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import areca.common.base.Lazy;
+
 /**
  *
  * @author Falko Bräutigam
@@ -23,7 +25,11 @@ import java.util.logging.Logger;
 public class LogFactory {
 
     public static Log getLog( Class<?> cl ) {
-        return new Log( cl );
+        return new Log( cl, null );
+    }
+
+    public static Log getLog( String prefix, Class<?> cl ) {
+        return new Log( cl, prefix );
     }
 
     /**
@@ -31,30 +37,43 @@ public class LogFactory {
      */
     public static class Log {
 
-        protected Logger        delegate;
+        protected Class<?>                      cl;
 
-        public Log( Class<?> cl ) {
-            delegate = Logger.getLogger( cl.getName() );
+        protected Lazy<Logger,RuntimeException> delegate;
+
+        protected String                        prefix;
+
+
+        public Log( Class<?> cl, String prefix ) {
+            this.cl = cl;
+            this.delegate = new Lazy<>( () -> Logger.getLogger( Log.this.cl.getName() ) );
+            this.prefix = prefix;
+        }
+
+        protected String prefixed( String msg ) {
+            return new StringBuilder( 64 )
+                    .append( prefix != null ? prefix : cl.getSimpleName() ).append( ": " )
+                    .append( msg ).toString();
         }
 
         public void warning( String msg ) {
-            delegate.warning( msg );
+            delegate.supply().warning( prefixed( msg ) );
         }
 
         public void warn( String msg ) {
-            delegate.warning( msg );
+            delegate.supply().warning( prefixed( msg ) );
         }
 
         public void warn( String msg, Throwable e ) {
-            delegate.log( Level.WARNING, msg, e );
+            delegate.supply().log( Level.WARNING, prefixed( msg ), e );
         }
 
         public void info( String msg ) {
-            delegate.info( msg );
+            delegate.supply().info( prefixed( msg ) );
         }
 
         public void debug( String msg ) {
-            delegate.log( Level.FINE, msg );
+            delegate.supply().log( Level.FINE, prefixed( msg ) );
         }
     }
 }
