@@ -13,10 +13,10 @@
  */
 package areca.rt.teavm.ui;
 
-import java.util.logging.Logger;
-
 import org.teavm.jso.dom.html.HTMLElement;
 
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.ui.Size;
 import areca.ui.component.UIComposite;
 import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
@@ -28,7 +28,7 @@ import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
 public class UICompositeRenderer
         extends UIComponentRenderer<UIComposite,HTMLElement> {
 
-    private static final Logger LOG = Logger.getLogger( UICompositeRenderer.class.getSimpleName() );
+    private static final Log LOG = LogFactory.getLog( UICompositeRenderer.class );
 
 
     protected UICompositeRenderer() {
@@ -43,6 +43,9 @@ public class UICompositeRenderer
                 : htmlElementOf( composite.parent() );
 
         div = doc().createElement( "div" );
+//        div.addEventListener( "scroll", sev -> {
+//            LOG.info( "scroll: " + ((HTMLElement)sev.getTarget()).getScrollTop() );
+//        });
         parentElm.appendChild( div );
         super.handleComponentCreated( ev, composite, div );
 
