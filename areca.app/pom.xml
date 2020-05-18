@@ -43,6 +43,11 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>areca</groupId>
+            <artifactId>areca.systemservice</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.polymap</groupId>
             <artifactId>model2</artifactId>
             <version>3.0.2-areca-SNAPSHOT</version>
@@ -52,6 +57,7 @@
             <groupId>org.teavm</groupId>
             <artifactId>teavm-core</artifactId>
             <version>${teavm.version}</version>
+            <scope></scope>
         </dependency>
         <dependency>
             <groupId>org.teavm</groupId>
@@ -152,6 +158,11 @@
                             <directory>${project.build.directory}/generated/js</directory>
                         </resource>
                     </webResources>
+                    <packagingExcludes>
+                        WEB-INF/lib/teavm*.jar,
+                        WEB-INF/lib/areca.rt.teavm*.jar,
+                        WEB-INF/lib/model2*.jar
+                    </packagingExcludes>
                 </configuration>
             </plugin>
 

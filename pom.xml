@@ -16,6 +16,7 @@
     <module>areca.ui</module>
     <module>areca.rt.teavm</module>
     <module>../polymap4-model/org.polymap.model2</module>
+    <module>areca.systemservice</module>
     <module>areca.app</module>
   </modules>
 </project>
