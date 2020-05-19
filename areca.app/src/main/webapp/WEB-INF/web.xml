@@ -13,17 +13,21 @@
             <param-value>io.milton.http.annotated.AnnotationResourceFactory</param-value>
         </init-param>
 <!--         <init-param> -->
-<!--             <param-name>milton.configurator</param-name> -->
-<!--             <param-value>areca.systemservice.MiltonConfigurator</param-value> -->
+<!--             <param-name>authenticationHandlers</param-name> -->
+<!--             <param-value>areca.systemservice.NoAuthenticationHandler</param-value> -->
 <!--         </init-param> -->
+        <init-param>
+            <param-name>milton.configurator</param-name>
+            <param-value>areca.systemservice.MiltonConfigurator</param-value>
+        </init-param>
         <init-param>
             <param-name>controllerPackagesToScan</param-name>
             <param-value>areca.systemservice</param-value>
         </init-param>       
-        <init-param>
-            <param-name>contextPath</param-name>
-            <param-value>/webdav</param-value>
-        </init-param>       
+<!--         <init-param> -->
+<!--             <param-name>contextPath</param-name> -->
+<!--             <param-value>/webdav</param-value> -->
+<!--         </init-param>        -->
     </filter>
 
     <filter-mapping>

@@ -35,6 +35,12 @@ public class Timer {
     private long        start = System.nanoTime();
 
 
+    public Timer restart() {
+        start = System.nanoTime();
+        return this;
+    }
+
+
     public long elapsedNanos() {
         return System.nanoTime() - start;
     }

@@ -16,24 +16,24 @@ package areca.systemservice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import io.milton.http.fs.NullSecurityManager;
-import io.milton.servlet.DefaultMiltonConfigurator;
+import io.milton.http.ResourceFactory;
+import io.milton.http.exceptions.BadRequestException;
+import io.milton.http.exceptions.NotAuthorizedException;
+import io.milton.resource.Resource;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class MiltonConfigurator
-        extends DefaultMiltonConfigurator {
+public class SystemServiceResourceFactory
+        implements ResourceFactory {
 
-    private static final Log log = LogFactory.getLog( MiltonConfigurator.class );
+    private static final Log log = LogFactory.getLog( SystemServiceResourceFactory.class );
 
     @Override
-    protected void build() {
-        log.debug( "build(): ..." );
-        builder.setSecurityManager( new NullSecurityManager() );
-        builder.setContextPath( "/areca.app-0.0.1-SNAPSHOT/webdav" );
-        super.build();
+    public Resource getResource( String host, String path ) throws NotAuthorizedException, BadRequestException {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
     }
 
 }

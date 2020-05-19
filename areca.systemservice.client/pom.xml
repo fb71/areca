@@ -16,4 +16,11 @@
         <milton.version>2.8.0.1</milton.version>
     </properties>
   
+    <dependencies>
+        <dependency>
+            <groupId>areca</groupId>
+            <artifactId>areca.ui</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>

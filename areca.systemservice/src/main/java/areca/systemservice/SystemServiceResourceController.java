@@ -26,10 +26,29 @@ import io.milton.annotations.Root;
 @ResourceController
 public class SystemServiceResourceController {
 
-    private static final Log log = LogFactory.getLog( SystemServiceResourceController.class );
+    static final Log log = LogFactory.getLog( SystemServiceResourceController.class );
 
     @Root
-    public SystemServiceResourceController getRoot() {
-        return this;
+    public String getRoot() {
+        return "root"; //this;
     }
+
+    //@Name
+    public String getName() {
+       return "areca";
+    }
+
+//    @ChildrenOf
+//    public List<EmailFolder> getEmailFolders( SystemServiceResourceController root ) {
+//        log.info( "getEmailMessages(): ..." );
+//        return Arrays.asList( new EmailFolder( "First" ) );
+//    }
+//
+//
+//    @ChildrenOf
+//    public List<EmailMessage> getEmailMessages( EmailFolder folder ) {
+//        log.info( "getEmailMessages(): " + folder.getName() );
+//        return Arrays.asList( new EmailMessage( "Message!" ) );
+//    }
+
 }

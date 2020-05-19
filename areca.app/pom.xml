@@ -122,7 +122,7 @@
                             <!-- Optimization level. Valid values are: SIMPLE, ADVANCED, FULL -->
                             <optimizationLevel>ADVANCED</optimizationLevel>
                             <stopOnErrors>true</stopOnErrors>
-                            <!-- <incremental>false</incremental> -->
+                            <incremental>true</incremental>
                             <!-- <targetType>WEBASSEMBLY</targetType> -->
                             <targetType>JAVASCRIPT</targetType>
                         </configuration>

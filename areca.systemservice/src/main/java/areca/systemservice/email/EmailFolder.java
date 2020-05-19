@@ -11,29 +11,31 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.systemservice;
+package areca.systemservice.email;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import io.milton.http.fs.NullSecurityManager;
-import io.milton.servlet.DefaultMiltonConfigurator;
+import io.milton.annotations.Name;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class MiltonConfigurator
-        extends DefaultMiltonConfigurator {
+public class EmailFolder {
 
-    private static final Log log = LogFactory.getLog( MiltonConfigurator.class );
+    private static final Log log = LogFactory.getLog( EmailFolder.class );
 
-    @Override
-    protected void build() {
-        log.debug( "build(): ..." );
-        builder.setSecurityManager( new NullSecurityManager() );
-        builder.setContextPath( "/areca.app-0.0.1-SNAPSHOT/webdav" );
-        super.build();
+    private String name;
+
+    public EmailFolder( String name ) {
+        this.name = name;
+    }
+
+    @Name
+    public String getName() {
+        log.info( "getName(): " + name );
+        return name;
     }
 
 }
