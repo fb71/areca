@@ -161,7 +161,8 @@
                     <packagingExcludes>
                         WEB-INF/lib/teavm*.jar,
                         WEB-INF/lib/areca.rt.teavm*.jar,
-                        WEB-INF/lib/model2*.jar
+                        WEB-INF/lib/model2*.jar,
+                        WEB-INF/lib/javapoet*.jar
                     </packagingExcludes>
                 </configuration>
             </plugin>

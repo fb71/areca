@@ -53,8 +53,9 @@ public class SystemServiceClient {
                 log.info( "response: " + responses.get( i ).getFirstChild().getNodeValue() );
             }
         });
-        request.open( "PROPFIND", "webdav/First", true ); //, "user", "password" );
+        request.open( "PROPFIND", "webdav/support@polymap.de", true ); //, "user", "password" );
         //request.setRequestHeader( "Accept", "application/json" );
+        request.setRequestHeader( "Depth", "1" );
         request.send();
         timer.restart();
     }

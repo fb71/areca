@@ -307,4 +307,18 @@ public abstract class Sequence<T, E extends Exception> {
         };
     }
 
+
+    @Override
+    public String toString() {
+        try {
+            return asCollection().toString();
+        }
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new RuntimeException( e );
+        }
+    }
+
 }

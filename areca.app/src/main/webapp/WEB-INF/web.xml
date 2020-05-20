@@ -10,8 +10,12 @@
         <filter-class>io.milton.servlet.MiltonFilter</filter-class>
         <init-param>
             <param-name>resource.factory.class</param-name>
-            <param-value>io.milton.http.annotated.AnnotationResourceFactory</param-value>
+            <param-value>areca.systemservice.SystemServiceResourceFactory</param-value>
         </init-param>
+<!--         <init-param> -->
+<!--             <param-name>resource.factory.class</param-name> -->
+<!--             <param-value>io.milton.http.annotated.AnnotationResourceFactory</param-value> -->
+<!--         </init-param> -->
 <!--         <init-param> -->
 <!--             <param-name>authenticationHandlers</param-name> -->
 <!--             <param-value>areca.systemservice.NoAuthenticationHandler</param-value> -->

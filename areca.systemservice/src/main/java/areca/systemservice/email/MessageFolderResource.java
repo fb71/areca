@@ -13,29 +13,38 @@
  */
 package areca.systemservice.email;
 
+import java.util.Collections;
+
+import javax.mail.Message;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import io.milton.annotations.Name;
+import io.milton.resource.Resource;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class EmailFolder {
+public class MessageFolderResource
+        extends FolderResourceBase {
 
-    private static final Log log = LogFactory.getLog( EmailFolder.class );
+    private static final Log log = LogFactory.getLog( MessageFolderResource.class );
 
-    private String name;
+    private Message      message;
 
-    public EmailFolder( String name ) {
-        this.name = name;
+    public MessageFolderResource( Message message ) {
+        this.message = message;
     }
 
-    @Name
+    @Override
     public String getName() {
-        log.info( "getName(): " + name );
-        return name;
+        return "message-" + message.getMessageNumber();
+    }
+
+    @Override
+    protected Iterable<? extends Resource> createChildren() throws Exception {
+        return Collections.emptyList();
     }
 
 }
