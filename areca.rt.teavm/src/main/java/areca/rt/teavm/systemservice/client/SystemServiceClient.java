@@ -47,13 +47,14 @@ public class SystemServiceClient {
             log.info( "complete: content=" + request.getResponseXML().getNodeName() );
 
             Document doc = request.getResponseXML();
-            NodeList<Element> responses = doc.getElementsByTagName( "d:href" );
+            NodeList<Element> responses = doc.getElementsByTagName( "headers" ); //d:href" );
             log.info( "getLength(): " + responses.getLength() );
             for (int i=0; i<responses.getLength(); i++) {
                 log.info( "response: " + responses.get( i ).getFirstChild().getNodeValue() );
             }
         });
-        request.open( "PROPFIND", "webdav/support@polymap.de", true ); //, "user", "password" );
+        request.open( "GET", "webdav/support@polymap.de/Sent/messages/chunk-1/message-1/envelope.xml", true );
+        //request.open( "PROPFIND", "webdav/support@polymap.de", true ); //, "user", "password" );
         //request.setRequestHeader( "Accept", "application/json" );
         request.setRequestHeader( "Depth", "1" );
         request.send();

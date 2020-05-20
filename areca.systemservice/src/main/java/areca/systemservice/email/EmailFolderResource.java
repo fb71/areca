@@ -46,13 +46,10 @@ public class EmailFolderResource
         this.folder = f;
     }
 
-
     @Override
     public String getName() {
         return folder.getName();
     }
-
-
 
     @Override
     protected Iterable<? extends FolderChildBase> createChildren() throws Exception {
@@ -125,7 +122,7 @@ public class EmailFolderResource
 
         @Override
         public String getName() {
-            return "chunk-" + startIndex;
+            return "chunk-" + (startIndex+1);
         }
 
         @Override
@@ -140,19 +137,15 @@ public class EmailFolderResource
 
                 log.debug( "Fetching messages: " + messages.length );
                 Timer t = Timer.start();
-                FetchProfile metadataProfile = new FetchProfile();
-                // load flags, such as SEEN (read), ANSWERED, DELETED, ...
-                metadataProfile.add( FetchProfile.Item.FLAGS );
-                // also load From, To, Cc, Bcc, ReplyTo, Subject and Date
-                metadataProfile.add( FetchProfile.Item.ENVELOPE );
-                // we could as well load the entire messages (headers and body, including all "attachments")
-                // metadataProfile.add(IMAPFolder.FetchProfileItem.MESSAGE);
-                folder.fetch( messages, metadataProfile );
+                FetchProfile profile = new FetchProfile();
+                profile.add( FetchProfile.Item.FLAGS );
+                profile.add( FetchProfile.Item.ENVELOPE );
+                profile.add( FetchProfile.Item.CONTENT_INFO );
+                profile.add( "X-mailer" );
+                folder.fetch( messages, profile );
                 log.debug( "Fetched: " + messages.length + " messages (" + t.elapsedHumanReadable() + ")" );
 
-                return Sequence.of( messages )
-                        .transform( MessageFolderResource::new )
-                        .asIterable();
+                return Sequence.of( messages ).transform( MessageFolderResource::new ).asIterable();
             }
             finally {
                 folder.close( false );
