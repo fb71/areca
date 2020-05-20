@@ -24,6 +24,7 @@ import javax.mail.Message;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import areca.common.Timer;
 import areca.common.base.Sequence;
 
 
@@ -93,8 +94,14 @@ public class EmailFolderResource
        @Override
        protected Iterable<MessagesChunkFolderResource> createChildren() throws Exception {
            List<MessagesChunkFolderResource> result = new ArrayList<>( 128 );
-           for (int i=0; i < folder.getMessageCount(); i += CHUNK_SIZE) {
-               result.add( new MessagesChunkFolderResource( i ) );
+           int messageCount = folder.getMessageCount();
+           log.debug( "messages: " + messageCount );
+           if (messageCount > 0) {
+               for (int i=0; i < (messageCount/CHUNK_SIZE)+1; i++) {
+                   int start = i * CHUNK_SIZE;
+                   int size = Math.min( CHUNK_SIZE, messageCount - start );
+                   result.add( new MessagesChunkFolderResource( start, size ) );
+               }
            }
            return result;
        }
@@ -109,8 +116,11 @@ public class EmailFolderResource
 
         private int startIndex;
 
-        public MessagesChunkFolderResource( int startIndex ) {
+        private int chunkSize;
+
+        public MessagesChunkFolderResource( int startIndex, int chunkSize ) {
             this.startIndex = startIndex;
+            this.chunkSize = chunkSize;
         }
 
         @Override
@@ -120,20 +130,33 @@ public class EmailFolderResource
 
         @Override
         protected Iterable<MessageFolderResource> createChildren() throws Exception {
-            Message[] messages = folder.getMessages( startIndex, startIndex+CHUNK_SIZE );
+            try {
+                if (!folder.isOpen()) {
+                    log.debug( "Opening folder: " + folder.getName() );
+                    folder.open( Folder.READ_ONLY );
+                }
+                log.debug( "Get messages: " + folder.getName() + ": start=" + startIndex );
+                Message[] messages = folder.getMessages( startIndex+1, startIndex+chunkSize );
 
-            FetchProfile metadataProfile = new FetchProfile();
-            // load flags, such as SEEN (read), ANSWERED, DELETED, ...
-            metadataProfile.add( FetchProfile.Item.FLAGS );
-            // also load From, To, Cc, Bcc, ReplyTo, Subject and Date
-            metadataProfile.add( FetchProfile.Item.ENVELOPE );
-            // we could as well load the entire messages (headers and body, including all "attachments")
-            // metadataProfile.add(IMAPFolder.FetchProfileItem.MESSAGE);
-            folder.fetch( messages, metadataProfile );
+                log.debug( "Fetching messages: " + messages.length );
+                Timer t = Timer.start();
+                FetchProfile metadataProfile = new FetchProfile();
+                // load flags, such as SEEN (read), ANSWERED, DELETED, ...
+                metadataProfile.add( FetchProfile.Item.FLAGS );
+                // also load From, To, Cc, Bcc, ReplyTo, Subject and Date
+                metadataProfile.add( FetchProfile.Item.ENVELOPE );
+                // we could as well load the entire messages (headers and body, including all "attachments")
+                // metadataProfile.add(IMAPFolder.FetchProfileItem.MESSAGE);
+                folder.fetch( messages, metadataProfile );
+                log.debug( "Fetched: " + messages.length + " messages (" + t.elapsedHumanReadable() + ")" );
 
-            return Sequence.of( messages )
-                    .transform( MessageFolderResource::new )
-                    .asIterable();
+                return Sequence.of( messages )
+                        .transform( MessageFolderResource::new )
+                        .asIterable();
+            }
+            finally {
+                folder.close( false );
+            }
         }
     }
 

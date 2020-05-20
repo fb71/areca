@@ -47,4 +47,5 @@ public class MessageFolderResource
         return Collections.emptyList();
     }
 
+
 }

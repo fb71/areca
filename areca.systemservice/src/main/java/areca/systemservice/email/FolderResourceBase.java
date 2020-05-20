@@ -69,7 +69,7 @@ public abstract class FolderResourceBase
             synchronized (this) {
                 if (childrenCache == null) {
                     try {
-                        log.info( "Creating children of: " + getName() );
+                        log.info( "createChildren(): " + getName() );
                         childrenCache = new HashMap<>();
                         for (Resource child : createChildren()) {
                             if (child instanceof FolderResourceBase) {
