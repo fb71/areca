@@ -24,9 +24,9 @@ import java.io.OutputStream;
 import javax.mail.Address;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
-import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlElement;
@@ -34,6 +34,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.mail.util.MimeMessageParser;
 
 import areca.common.base.Sequence;
 import io.milton.http.Auth;
@@ -81,6 +82,9 @@ public class MessageFolderResource
 
         private Message message;
 
+        private MimeMessageParser parser;
+
+
         protected EnvelopeResource() {
         }
 
@@ -103,6 +107,8 @@ public class MessageFolderResource
                 throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
             try {
                 message.getFolder().open( Folder.READ_ONLY );
+                parser = new MimeMessageParser( (MimeMessage)message ).parse();
+
                 JAXBContext jaxbContext = JAXBContext.newInstance( EnvelopeResource.class );
                 Marshaller marshaller = jaxbContext.createMarshaller();
                 marshaller.setProperty( Marshaller.JAXB_FORMATTED_OUTPUT, true );
@@ -114,6 +120,7 @@ public class MessageFolderResource
             }
             finally {
                 try {
+                    parser = null;
                     message.getFolder().close( false );
                 }
                 catch (MessagingException e) {
@@ -128,6 +135,26 @@ public class MessageFolderResource
         }
 
         @XmlElement
+        public String getSubject() throws MessagingException {
+            return message.getSubject();
+        }
+
+        @XmlElement
+        public String getPlainBody() throws Exception {
+            return parser.getPlainContent();
+        }
+
+        @XmlElement
+        public String getHtmlBody() throws Exception {
+            return parser.getHtmlContent();
+        }
+
+        @XmlElement
+        public String getSentDate() throws MessagingException {
+            return String.valueOf( message.getSentDate().getTime() );
+        }
+
+        @XmlElement
         public String getReceivedDate() throws MessagingException {
             return String.valueOf( message.getReceivedDate().getTime() );
         }
@@ -137,13 +164,13 @@ public class MessageFolderResource
             return Sequence.of( message.getFlags().getSystemFlags() ).transform( Flag::toString ).asCollection();
         }
 
-        @XmlElement
-        @SuppressWarnings("unchecked")
-        public Collection<String> getHeaders() throws Exception {
-            return Sequence.of( Collections.<Header>list( message.getAllHeaders() ) )
-                    .transform( h -> h.getName() + ":" + h.getValue() )
-                    .asCollection();
-        }
+//        @XmlElement
+//        @SuppressWarnings("unchecked")
+//        public Collection<String> getHeaders() throws Exception {
+//            return Sequence.of( Collections.<Header>list( message.getAllHeaders() ) )
+//                    .transform( h -> h.getName() + ":" + h.getValue() )
+//                    .asCollection();
+//        }
 
         @XmlElement
         public Collection<String> getReceipients() throws MessagingException {
