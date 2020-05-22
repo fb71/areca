@@ -2,7 +2,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>areca.ui</artifactId>
+  <artifactId>areca.common</artifactId>
   <packaging>jar</packaging>
 
     <parent>
@@ -18,9 +18,16 @@
 
   <dependencies>
     <dependency>
-      <groupId>areca</groupId>
-      <artifactId>areca.common</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <groupId>com.squareup</groupId>
+      <artifactId>javapoet</artifactId>
+      <version>1.12.1</version>
+      <scope>compile</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.9</version>
     </dependency>
   </dependencies>
 
@@ -35,6 +42,19 @@
           <target>${java.version}</target>
         </configuration>
         <executions>
+          <!-- Annotation processor -->
+          <execution>
+            <id>annoatation-processor</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>**/ReflectAnnotationProcessor.java</include>
+              </includes>
+            </configuration>
+          </execution>
           <!-- Regular sources  -->
           <execution>
             <id>default-compile</id>
@@ -72,25 +92,6 @@
           <attach>true</attach>
         </configuration>
       </plugin> 
-
-      <!-- SASS -->
-      <plugin>
-        <groupId>nl.geodienstencentrum.maven</groupId>
-        <artifactId>sass-maven-plugin</artifactId>
-        <version>3.7.2</version>
-        <configuration>
-          <resources>
-            <resource>
-              <source>
-                <directory>${basedir}/src/main/webapp</directory>
-              </source>
-              <relativeOutputDirectory>..</relativeOutputDirectory>
-              <destination>${project.build.directory}/${project.build.finalName}</destination>
-            </resource>
-          </resources>
-        </configuration>
-      </plugin>
-      
     </plugins>
   </build>
 </project>

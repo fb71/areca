@@ -33,7 +33,7 @@ public abstract class ClassInfo<T>
     private static Map<Class<?>,ClassInfo<?>>  classInfos = new /*Concurrent*/HashMap<>( 128 );
 
 
-    @SuppressWarnings({"unchecked", "deprecation"})
+    @SuppressWarnings({"unchecked"})
     public static <R> ClassInfo<R> of( Class<R> cl ) {
         ClassInfo<R> result = (ClassInfo<R>)classInfos.get( cl );
         if (result == null) {

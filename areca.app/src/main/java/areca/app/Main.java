@@ -24,7 +24,8 @@ import areca.app.model.Contact;
 import areca.common.base.Lazy;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.rt.teavm.systemservice.client.SystemServiceClient;
+import areca.systemservice.client.Path;
+import areca.systemservice.client.SystemServiceClient;
 
 /**
  *
@@ -55,8 +56,14 @@ public class Main {
 
     public static void main( String[] args ) throws Exception {
         try {
-            log.info( "XmlHttpRequest..." );
-            new SystemServiceClient().doRequest();
+            SystemServiceClient client = SystemServiceClient.connect( "webdav/" );
+            client.fetchFolder( Path.parse( "support@polymap.de" ),
+                    entries -> {
+
+                    },
+                    e -> {
+                        log.warn( "creating test data..." );
+                    });
 
 //            log.info( "repo: " + repo.supply() );
 //

@@ -18,12 +18,12 @@
         <teavm.version>0.7.0-dev-943</teavm.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>teavm-dev</id>
-            <url>https://dl.bintray.com/konsoletyper/teavm</url>
-        </repository>
-    </repositories>
+<!--     <repositories> -->
+<!--         <repository> -->
+<!--             <id>teavm-dev</id> -->
+<!--             <url>https://dl.bintray.com/konsoletyper/teavm</url> -->
+<!--         </repository> -->
+<!--     </repositories> -->
     <pluginRepositories>
         <pluginRepository>
             <id>teavm-dev</id>
@@ -48,29 +48,34 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>areca</groupId>
+            <artifactId>areca.systemservice.client</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.polymap</groupId>
             <artifactId>model2</artifactId>
             <version>3.0.2-areca-SNAPSHOT</version>
         </dependency>
         <!-- TeaVM -->
-        <dependency>
-            <groupId>org.teavm</groupId>
-            <artifactId>teavm-core</artifactId>
-            <version>${teavm.version}</version>
-            <scope></scope>
-        </dependency>
-        <dependency>
-            <groupId>org.teavm</groupId>
-            <artifactId>teavm-classlib</artifactId>
-            <version>${teavm.version}</version>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.teavm</groupId> -->
+<!--             <artifactId>teavm-core</artifactId> -->
+<!--             <version>${teavm.version}</version> -->
+<!--             <scope></scope> -->
+<!--         </dependency> -->
+<!--         <dependency> -->
+<!--             <groupId>org.teavm</groupId> -->
+<!--             <artifactId>teavm-classlib</artifactId> -->
+<!--             <version>${teavm.version}</version> -->
+<!--         </dependency> -->
         <!-- Servlet 3.1 specification -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-            <scope>provided</scope>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>javax.servlet</groupId> -->
+<!--             <artifactId>javax.servlet-api</artifactId> -->
+<!--             <version>3.1.0</version> -->
+<!--             <scope>provided</scope> -->
+<!--         </dependency> -->
     </dependencies>
   
     <build>
