@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>areca</groupId>
-            <artifactId>areca.ui</artifactId>
+            <artifactId>areca.common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -38,20 +38,20 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
-<!--                 <executions> -->
-<!--                     <execution> -->
-<!--                         <id>default-compile</id> -->
-<!--                         <phase>compile</phase> -->
-<!--                         <goals> -->
-<!--                             <goal>compile</goal> -->
-<!--                         </goals> -->
-<!--                         <configuration> -->
-<!--                             <annotationProcessors> -->
-<!--                                 <annotationProcessor>areca.common.reflect.ReflectAnnotationProcessor</annotationProcessor> -->
-<!--                             </annotationProcessors> -->
-<!--                         </configuration> -->
-<!--                    </execution> -->
-<!--                 </executions> -->
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <annotationProcessors>
+                                <annotationProcessor>areca.common.reflect.ReflectAnnotationProcessor</annotationProcessor>
+                            </annotationProcessors>
+                        </configuration>
+                   </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

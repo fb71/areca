@@ -36,6 +36,10 @@ public class TestRunner {
 
     private static final Object[] NOARGS = new Object[] {};
 
+    public enum TestStatus {
+        PASSED, SKIPPED, FAILED
+    }
+
     // instrance ******************************************
 
     private List<ClassInfo<?>>                  testTypes = new ArrayList<>( 128 );
@@ -81,13 +85,18 @@ public class TestRunner {
                 // method
                 TestResult testResult = new TestResult( m );
                 testResults.add( testResult );
-                Class<? extends Throwable> expected = m.m.annotation( TestAnnotationInfo.INFO ).get().expected();
+                Class<? extends Throwable> expected = m.m.annotation( Test.info ).get().expected();
                 try {
                     Object test = instantiate( cl );
                     for (MethodInfo before : befores) {
                         before.invoke( test, NOARGS );
                     }
-                    m.m.invoke( test, NOARGS );
+                    if (m.m.annotation( Skip.info ).isAbsent()) {
+                        m.m.invoke( test, NOARGS );
+                    }
+                    else {
+                        testResult.skipped = true;
+                    }
                     if (!expected.equals( Test.NoException.class )) {
                         testResult.setException( new AssertionException( "Exception expected: " + expected.getName() ) );
                     }
@@ -159,6 +168,8 @@ public class TestRunner {
      *
      */
     public static class TestResult {
+
+        private boolean     skipped;
         private TestMethod  m;
         private Throwable   exception;
         private long        start, end;
@@ -172,8 +183,20 @@ public class TestRunner {
             this.end = System.currentTimeMillis();
         }
 
-        public boolean passed() {
-            return exception == null;
+        public TestStatus getStatus() {
+            if (skipped) {
+                return TestStatus.SKIPPED;
+            }
+            else if (exception != null) {
+                return TestStatus.FAILED;
+            }
+            else {
+                return TestStatus.PASSED;
+            }
+        }
+
+        public boolean skipped() {
+            return skipped;
         }
 
         public Throwable getException() {

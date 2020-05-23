@@ -108,6 +108,7 @@ public class Property<T> {
     }
 
 
+    @SuppressWarnings("unchecked")
     public <TT extends T,E extends Exception> Property<T> modify( Consumer<TT,E> modifier ) throws E {
         modifier.accept( (TT)value );
         EventManager.instance().publish( new PropertyChangedEvent( this, value, value ) );

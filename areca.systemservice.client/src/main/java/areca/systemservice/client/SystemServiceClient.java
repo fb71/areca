@@ -21,8 +21,10 @@ import org.teavm.jso.dom.xml.Document;
 import org.teavm.jso.dom.xml.Element;
 import org.teavm.jso.dom.xml.NodeList;
 
+import areca.common.ProgressMonitor;
 import areca.common.Timer;
 import areca.common.base.Consumer;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -38,15 +40,7 @@ public class SystemServiceClient {
         return new SystemServiceClient( baseUri );
     }
 
-    /**
-     *
-     */
-    public static class FolderEntry {
-        public Path     path;
-        protected FolderEntry( Path path ) {
-            this.path = path;
-        }
-    }
+
 
 
     // instance *******************************************
@@ -56,6 +50,24 @@ public class SystemServiceClient {
 
     protected SystemServiceClient( String baseUri ) {
         this.baseUri = baseUri;
+    }
+
+
+    public void close() {
+    }
+
+
+    public void process( Path path, WebdavHierarchyVisitor visitor, ProgressMonitor monitor ) {
+        if (monitor.isCancelled()) {
+            return;
+        }
+        fetchFolder( path,
+                entries -> {
+                    if (visitor.visitFolder( path, entries )) {
+                        Sequence.of( entries ).forEach( entry -> process( entry.path, visitor, monitor ) );
+                    }
+                },
+                e -> visitor.onError( e ) );
     }
 
 

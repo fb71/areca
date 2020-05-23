@@ -11,24 +11,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.systemservice.client;
+package areca.systemservice.client.test;
 
-import java.util.List;
-
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
+import areca.common.reflect.ClassInfo;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class WebdavHierarchyVisitor {
+public class Tests {
 
-    private static final Log log = LogFactory.getLog( WebdavHierarchyVisitor.class );
+    public static ClassInfo<?>[] all() {
+        return new ClassInfo[] { ReadTest.info };
+    }
 
-    public abstract boolean visitFolder( Path path, List<FolderEntry> entries );
-
-    public abstract void visitFile( Path path, Object content );
-
-    public abstract void onError( Exception e );
 }

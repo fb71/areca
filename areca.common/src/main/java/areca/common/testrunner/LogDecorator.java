@@ -19,6 +19,7 @@ import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.common.testrunner.TestRunner.TestMethod;
 import areca.common.testrunner.TestRunner.TestResult;
+import areca.common.testrunner.TestRunner.TestStatus;
 
 
 /**
@@ -55,8 +56,11 @@ public class LogDecorator
 
     @Override
     public void postTestMethod( TestMethod m, TestResult testResult ) {
-        if (testResult.passed()) {
+        if (testResult.getStatus() == TestStatus.PASSED) {
             System.out.println( "---------------------------------ok (" + testResult.elapsedMillis() + "ms)" );
+        }
+        else if (testResult.getStatus() == TestStatus.SKIPPED) {
+            System.out.println( "---------------------------------skipped" );
         }
         else {
             Throwable e = testResult.getException();

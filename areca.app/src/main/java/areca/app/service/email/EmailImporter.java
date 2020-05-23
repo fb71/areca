@@ -13,15 +13,37 @@
  */
 package areca.app.service.email;
 
+import java.util.List;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.systemservice.client.FolderEntry;
+import areca.systemservice.client.Path;
+import areca.systemservice.client.WebdavHierarchyVisitor;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class EmailImporter {
+public class EmailImporter
+        extends WebdavHierarchyVisitor {
 
     private static final Log log = LogFactory.getLog( EmailImporter.class );
+
+    @Override
+    public boolean visitFolder( Path path, List<FolderEntry> entries ) {
+        log.info( "" );
+        return true;
+    }
+
+    @Override
+    public void visitFile( Path path, Object content ) {
+    }
+
+    @Override
+    public void onError( Exception e ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
 
 }

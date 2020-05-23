@@ -27,6 +27,7 @@ import areca.common.Assert;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.GenericType.ClassType;
 import areca.common.reflect.GenericType.ParameterizedType;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -68,7 +69,8 @@ public class AnnotationTest {
     }
 
 
-    //@Test
+    @Test
+    @Skip
     protected void weakReferenceTest() throws InterruptedException {
         WeakReference<Object> ref = new WeakReference<>( new Object() );
 

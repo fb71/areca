@@ -23,6 +23,7 @@ import areca.common.reflect.RuntimeInfo;
 import areca.common.testrunner.TestRunner;
 import areca.common.testrunner.TestRunner.TestMethod;
 import areca.common.testrunner.TestRunner.TestResult;
+import areca.common.testrunner.TestRunner.TestStatus;
 import areca.common.testrunner.TestRunnerDecorator;
 
 /**
@@ -74,9 +75,20 @@ public class HtmlTestRunnerDecorator
     public void postTestMethod( TestMethod m, TestResult testResult ) {
         HTMLElement span = doc.createElement( "span" );
         span.getStyle().setProperty( "font-weight", "bold" );
-        span.getStyle().setProperty( "color", testResult.passed() ? "green" : "red" );
+
+        if (testResult.getStatus() == TestStatus.PASSED) {
+            span.getStyle().setProperty( "color", "green" );
+            span.appendChild( doc.createTextNode( " ok" ) );
+        }
+        else if (testResult.getStatus() == TestStatus.SKIPPED) {
+            span.getStyle().setProperty( "color", "orange" );
+            span.appendChild( doc.createTextNode( " skipped" ) );
+        }
+        else {
+            span.getStyle().setProperty( "color", "red" );
+            span.appendChild( doc.createTextNode( " failed" ) );
+        }
         testMethodElm.appendChild( span );
-        span.appendChild( doc.createTextNode( testResult.passed() ? " ok" : " failed" ) );
         testMethodElm.appendChild( doc.createTextNode( " (" + testResult.elapsedMillis() + "ms)" ) );
     }
 

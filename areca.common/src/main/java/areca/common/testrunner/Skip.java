@@ -13,30 +13,21 @@
  */
 package areca.common.testrunner;
 
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as test.
  *
  * @author Falko Bräutigam
  */
 @Documented
 @Retention(RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
-public @interface Test {
+@Target(METHOD)
+public @interface Skip {
 
-    public static final TestAnnotationInfo info = TestAnnotationInfo.INFO;
-
-    class NoException
-            extends Exception {
-    }
-
-    /** Default: {@link NoException} */
-    public Class<? extends Throwable> expected() default NoException.class;
-
+    public static final SkipAnnotationInfo info = SkipAnnotationInfo.INFO;
 }

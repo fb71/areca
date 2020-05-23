@@ -13,22 +13,15 @@
  */
 package areca.systemservice.client;
 
-import java.util.List;
-
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
-
 /**
  *
- * @author Falko Bräutigam
  */
-public abstract class WebdavHierarchyVisitor {
+public class FolderEntry {
 
-    private static final Log log = LogFactory.getLog( WebdavHierarchyVisitor.class );
+    public Path path;
 
-    public abstract boolean visitFolder( Path path, List<FolderEntry> entries );
+    protected FolderEntry( Path path ) {
+        this.path = path;
+    }
 
-    public abstract void visitFile( Path path, Object content );
-
-    public abstract void onError( Exception e );
 }

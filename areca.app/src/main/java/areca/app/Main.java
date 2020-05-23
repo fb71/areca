@@ -15,6 +15,9 @@ package areca.app;
 
 import java.util.Arrays;
 
+import org.teavm.jso.browser.Location;
+import org.teavm.jso.browser.Window;
+
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
@@ -24,8 +27,6 @@ import areca.app.model.Contact;
 import areca.common.base.Lazy;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.systemservice.client.Path;
-import areca.systemservice.client.SystemServiceClient;
 
 /**
  *
@@ -38,6 +39,7 @@ public class Main {
     public static Lazy<EntityRepository,RuntimeException>   repo;
 
     public static Lazy<UnitOfWork,RuntimeException>         uow;
+
 
     static {
         repo = new Lazy<>( () -> {
@@ -56,14 +58,13 @@ public class Main {
 
     public static void main( String[] args ) throws Exception {
         try {
-            SystemServiceClient client = SystemServiceClient.connect( "webdav/" );
-            client.fetchFolder( Path.parse( "support@polymap.de" ),
-                    entries -> {
+            Location location = Window.current().getLocation();
+            log.info( "URL: " + location.getHash() );
+            if (location.getHash().equals( "#test" ) || location.getSearch().contains( "test=true" )) {
+                TestRunnerMain.main( args );
+                return;
+            }
 
-                    },
-                    e -> {
-                        log.warn( "creating test data..." );
-                    });
 
 //            log.info( "repo: " + repo.supply() );
 //
