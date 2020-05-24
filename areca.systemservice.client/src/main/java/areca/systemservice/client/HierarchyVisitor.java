@@ -11,21 +11,29 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common;
+package areca.systemservice.client;
+
+import java.util.List;
+
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public interface ProgressMonitor {
+public abstract class HierarchyVisitor {
 
-    boolean isCancelled();
+    private static final Log log = LogFactory.getLog( HierarchyVisitor.class );
 
-    void beginTask( String name, int totalWork );
+    public boolean visitFolder( Path path, List<FolderEntry> entries ) {
+        return true;
+    }
 
-    void subTask( String name );
+    public void visitFile( Path path, Object content ) {
+    }
 
-    void worked( int work );
+    public void onError( Exception e ) {
+    }
 
-    void done();
 }

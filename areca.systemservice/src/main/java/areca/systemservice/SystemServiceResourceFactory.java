@@ -21,7 +21,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import areca.systemservice.email.AccountFolderResource;
-import areca.systemservice.email.FolderResourceBase;
 import io.milton.common.Path;
 import io.milton.http.ResourceFactory;
 import io.milton.http.exceptions.BadRequestException;
@@ -62,7 +61,7 @@ public class SystemServiceResourceFactory
     public Resource getResource( String host, String pathString ) throws NotAuthorizedException, BadRequestException {
         Path path = Path.path( pathString );
 
-        // strip contextPath
+        // XXX strip contextPath
         path = path.getStripFirst().getStripFirst();
         log.debug( "getResource(): '" + path + "'" );
 

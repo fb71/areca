@@ -19,7 +19,7 @@ public class TestRunnerMain {
         try {
             new TestRunner()
                     .addTests( areca.common.test.Tests.all() )
-                    .addTests( org.polymap.model2.test2.Tests.all() )
+                    //.addTests( org.polymap.model2.test2.Tests.all() )
                     .addTests( areca.systemservice.client.test.Tests.all() )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();

@@ -11,24 +11,36 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.systemservice.client;
-
-import java.util.List;
-
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
+package areca.common;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class WebdavHierarchyVisitor {
+public class NullProgressMonitor
+        implements ProgressMonitor {
 
-    private static final Log log = LogFactory.getLog( WebdavHierarchyVisitor.class );
+    public static final NullProgressMonitor INSTANCE = new NullProgressMonitor();
 
-    public abstract boolean visitFolder( Path path, List<FolderEntry> entries );
+    @Override
+    public boolean isCancelled() {
+        return false;
+    }
 
-    public abstract void visitFile( Path path, Object content );
+    @Override
+    public void beginTask( String name, int totalWork ) {
+    }
 
-    public abstract void onError( Exception e );
+    @Override
+    public void subTask( String name ) {
+    }
+
+    @Override
+    public void worked( int work ) {
+    }
+
+    @Override
+    public void done() {
+    }
+
 }

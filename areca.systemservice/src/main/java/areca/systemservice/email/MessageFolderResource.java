@@ -15,7 +15,6 @@ package areca.systemservice.email;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 import java.io.IOException;
@@ -37,6 +36,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.mail.util.MimeMessageParser;
 
 import areca.common.base.Sequence;
+import areca.systemservice.FolderResourceBase;
+import areca.systemservice.ResourceBase;
 import io.milton.http.Auth;
 import io.milton.http.Range;
 import io.milton.http.exceptions.BadRequestException;
@@ -77,7 +78,7 @@ public class MessageFolderResource
      */
     @XmlRootElement(name = "envelope")
     public static class EnvelopeResource
-            extends FolderResourceBase
+            extends ResourceBase
             implements GetableResource {
 
         private Message message;
@@ -95,11 +96,6 @@ public class MessageFolderResource
         @Override
         public String getName() {
             return "envelope.xml";
-        }
-
-        @Override
-        protected Iterable<? extends Resource> createChildren() throws Exception {
-            return Collections.emptyList();
         }
 
         @Override

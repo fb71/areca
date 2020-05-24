@@ -15,6 +15,7 @@ package areca.systemservice.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
 
 import org.teavm.jso.ajax.XMLHttpRequest;
 import org.teavm.jso.dom.xml.Document;
@@ -24,7 +25,7 @@ import org.teavm.jso.dom.xml.NodeList;
 import areca.common.ProgressMonitor;
 import areca.common.Timer;
 import areca.common.base.Consumer;
-import areca.common.base.Sequence;
+import areca.common.base.Function;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -41,8 +42,6 @@ public class SystemServiceClient {
     }
 
 
-
-
     // instance *******************************************
 
     private String      baseUri;
@@ -57,40 +56,40 @@ public class SystemServiceClient {
     }
 
 
-    public void process( Path path, WebdavHierarchyVisitor visitor, ProgressMonitor monitor ) {
-        if (monitor.isCancelled()) {
-            return;
-        }
-        fetchFolder( path,
-                entries -> {
-                    if (visitor.visitFolder( path, entries )) {
-                        Sequence.of( entries ).forEach( entry -> process( entry.path, visitor, monitor ) );
-                    }
-                },
-                e -> visitor.onError( e ) );
+    public void process( Path path, HierarchyVisitor visitor, ProgressMonitor monitor ) {
+        new HierarchyWalker( this, visitor, monitor ).process( path );
     }
 
 
-    public <E extends Exception> void fetchFolder( Path path,
-            Consumer<List<FolderEntry>,E> onSuccess,
+    public <R,E extends Exception> ResponseFuture<R,E> fetchFolder( Path path,
+            Function<List<FolderEntry>,R,E> onSuccess,
             Consumer<E,RuntimeException> onError ) {
-        log.info( "fetchFolder(): " + path );
+        String uri = baseUri + "/" + path;
+        log.info( "fetchFolder(): " + uri );
         Timer timer = Timer.start();
         XMLHttpRequest request = createRequest();
-        request.open( "PROPFIND", path.toString(), true ); //, "user", "password" );
-        //request.setRequestHeader( "Accept", "application/json" );
+        request.open( "PROPFIND", uri, true ); //, "user", "password" );
         request.setRequestHeader( "Depth", "1" );
+
+        ResponseFuture<R,E> result = new ResponseFuture<>();
         request.onComplete( () -> {
             try {
-                log.info( "fetchFolder(): completed in " + timer.elapsedHumanReadable() );
+                // response status
+                log.info( "Status: " + request.getStatus() );
+                if (request.getStatus() > 299) {
+                    throw new IOException( "HTTP Status: " + request.getStatus() );
+                }
+                // parse XML
                 Document doc = request.getResponseXML();
                 NodeList<Element> hrefs = doc.getElementsByTagName( "d:href" );
+                log.info( "fetchFolder(): " + hrefs.getLength() + " (" + timer.elapsedHumanReadable() + ")" );
 
+                // create FolderEntry
                 ArrayList<FolderEntry> entries = new ArrayList<>();
-                for (int i=0; i<hrefs.getLength(); i++) {
-                    entries.add( new FolderEntry( path( hrefs.get( i ).getFirstChild().getNodeValue() ) ) );
+                for (int i=1; i<hrefs.getLength(); i++) {
+                    entries.add( new FolderEntry( parsePath( hrefs.get( i ).getFirstChild().getNodeValue() ) ) );
                 }
-                onSuccess.accept( entries );
+                result.setValue( onSuccess.apply( entries ) );
             }
             catch (Exception e) {
                 onError.accept( (E)e );
@@ -98,12 +97,64 @@ public class SystemServiceClient {
         });
         timer.restart();
         request.send();
+        return result;
+    }
+
+    /**
+     * Represents the result of an asynchronous {@link SystemServiceClient} method.
+     *
+     * @param <T>
+     * @param <E>
+     */
+    public static class ResponseFuture<T, E extends Exception> {
+
+        protected volatile T       value;
+
+        protected volatile boolean cancelled;
+
+        protected volatile boolean done;
+
+        public boolean cancel( boolean mayInterruptIfRunning ) {
+            cancelled = true;
+            return true;
+        }
+
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        public boolean isDone() {
+            return done;
+        }
+
+        public T waitAndGet() throws E {
+            if (!done) {
+                synchronized (this) {
+                    while (!done) {
+                        try {
+                            wait();
+                        }
+                        catch (InterruptedException e) {
+                        }
+                    }
+                }
+            }
+            return value;
+        }
+
+        protected void setValue( T newValue ) {
+            synchronized (this) {
+                this.done = true;
+                this.value = newValue;
+                notifyAll();
+            }
+        }
     }
 
 
-    protected Path path( String nodeValue ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    protected Path parsePath( String pathString ) {
+        // XXX strip contextPath
+        return Path.parse( pathString ).stripFirst( 2 );
     }
 
 

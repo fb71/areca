@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 
 import areca.common.Timer;
 import areca.common.base.Sequence;
+import areca.systemservice.FolderResourceBase;
 
 
 /**
@@ -52,7 +53,7 @@ public class EmailFolderResource
     }
 
     @Override
-    protected Iterable<? extends FolderChildBase> createChildren() throws Exception {
+    protected Iterable<? extends FolderResourceBase> createChildren() throws Exception {
         return Arrays.asList( new FoldersFolderResource(), new MessagesFolderResource() );
     }
 
@@ -61,7 +62,7 @@ public class EmailFolderResource
      *
      */
     public class FoldersFolderResource
-            extends FolderChildBase {
+            extends FolderResourceBase {
 
         @Override
         public String getName() {
@@ -81,7 +82,7 @@ public class EmailFolderResource
      *
      */
     public class MessagesFolderResource
-            extends FolderChildBase {
+            extends FolderResourceBase {
 
        @Override
        public String getName() {
@@ -109,7 +110,7 @@ public class EmailFolderResource
      *
      */
     public class MessagesChunkFolderResource
-            extends FolderChildBase {
+            extends FolderResourceBase {
 
         private int startIndex;
 
@@ -151,13 +152,6 @@ public class EmailFolderResource
                 folder.close( false );
             }
         }
-    }
-
-    /**
-     *
-     */
-    public abstract class FolderChildBase
-            extends FolderResourceBase {
     }
 
 }

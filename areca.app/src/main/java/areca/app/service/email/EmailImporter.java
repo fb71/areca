@@ -19,14 +19,14 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.systemservice.client.FolderEntry;
 import areca.systemservice.client.Path;
-import areca.systemservice.client.WebdavHierarchyVisitor;
+import areca.systemservice.client.HierarchyVisitor;
 
 /**
  *
  * @author Falko Bräutigam
  */
 public class EmailImporter
-        extends WebdavHierarchyVisitor {
+        extends HierarchyVisitor {
 
     private static final Log log = LogFactory.getLog( EmailImporter.class );
 

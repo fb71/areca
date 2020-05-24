@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import areca.common.base.Sequence;
+import areca.systemservice.FolderResourceBase;
 
 /**
  *
@@ -44,9 +45,6 @@ public class AccountFolderResource
     private Folder      root;
 
     private Store       store;
-
-    /** The entire folder hierachy */
-    //private List<Folder>  folders;
 
 
     public AccountFolderResource( String server, String username, String password ) throws MessagingException {
