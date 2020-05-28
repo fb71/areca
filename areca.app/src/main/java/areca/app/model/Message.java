@@ -11,18 +11,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.systemservice.client.test;
+package areca.app.model;
 
-import areca.common.reflect.ClassInfo;
+import org.polymap.model2.Entity;
+
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class Tests {
+public class Message
+        extends Entity {
 
-    public static ClassInfo<?>[] all() {
-        return new ClassInfo[] { SystemServiceClientTest.info };
-    }
+    private static final Log log = LogFactory.getLog( Message.class );
 
 }

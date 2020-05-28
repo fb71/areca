@@ -5,11 +5,11 @@
   <artifactId>areca.common</artifactId>
   <packaging>jar</packaging>
 
-    <parent>
-        <groupId>areca</groupId>
-        <artifactId>areca</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-    </parent>
+  <parent>
+    <groupId>areca</groupId>
+    <artifactId>areca</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
 
   <properties>
     <java.version>1.8</java.version>
@@ -74,6 +74,70 @@
         </executions>
       </plugin>
 
+      <!-- Unpack dependencies for Annotation processor.jar -->
+      <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>unpack</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>unpack</goal>
+                    </goals>
+                    <configuration>
+                        <artifactItems>
+                            <artifactItem>
+                                <groupId>areca</groupId>
+                                <artifactId>areca.common</artifactId>
+                                <version>0.0.1-SNAPSHOT</version>
+                            </artifactItem>
+                            <artifactItem>
+                                <groupId>com.squareup</groupId>
+                                <artifactId>javapoet</artifactId>
+                                <version>1.12.1</version>
+                                <type>jar</type>
+                            </artifactItem>
+                            <artifactItem>
+                                <groupId>org.apache.commons</groupId>
+                                <artifactId>commons-lang3</artifactId>
+                                <version>3.9</version>
+                            </artifactItem>
+                        </artifactItems>
+                        <outputDirectory>${project.build.directory}/processor.jar</outputDirectory>
+                    </configuration>
+                </execution>
+            </executions>
+      </plugin>
+        
+      <!-- Annotation processor.jar (for Eclipse) -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+        </configuration>
+        <executions>
+          <execution>
+            <id>annoatation-processor</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>processor</classifier>
+              <classesDirectory>${project.build.directory}/processor.jar</classesDirectory>
+<!--               <includes> -->
+<!--                 <include>**/ReflectAnnotationProcessor.class</include> -->
+<!--                 <include>**/javax.annotation.processing.Processor</include> -->
+<!--                 <include>com/**</include> -->
+<!--                 <include>org/**</include> -->
+<!--               </includes> -->
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- Source:jar -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -91,7 +155,29 @@
         <configuration>
           <attach>true</attach>
         </configuration>
-      </plugin> 
+      </plugin>
+
+      <!-- Clean: keep processor.jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+            <excludeDefaultDirectories>true</excludeDefaultDirectories>
+            <filesets>
+                <fileset>
+                    <directory>target</directory>
+                    <includes>
+                        <include>**</include>
+                    </includes>
+                    <excludes>
+                        <exclude>areca.common-0.0.1-SNAPSHOT-processor.jar</exclude>
+                    </excludes>
+                </fileset>
+            </filesets>
+        </configuration>
+      </plugin>
+      
     </plugins>
   </build>
 </project>

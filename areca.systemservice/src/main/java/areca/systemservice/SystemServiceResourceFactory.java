@@ -39,7 +39,7 @@ public class SystemServiceResourceFactory
     private FolderResourceBase              root;
 
     private List<AccountFolderResource>     accounts = Arrays.asList(
-            new AccountFolderResource( "mail.polymap.de", "support@polymap.de", "" )
+            new AccountFolderResource( "mail.polymap.de", "areca@polymap.de", "dienstag" )
     );
 
 

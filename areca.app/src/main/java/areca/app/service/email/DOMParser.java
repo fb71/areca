@@ -11,18 +11,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.systemservice.client.test;
+package areca.app.service.email;
 
-import areca.common.reflect.ClassInfo;
+import org.teavm.jso.JSBody;
+import org.teavm.jso.core.JSString;
+import org.teavm.jso.dom.xml.Document;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class Tests {
+public abstract class DOMParser {
 
-    public static ClassInfo<?>[] all() {
-        return new ClassInfo[] { SystemServiceClientTest.info };
-    }
+    @JSBody(script = "new DOMParser();")
+    public static native DOMParser create();
+
+
+    @JSBody(params = "{text, mimeType}", script = "")
+    public abstract Document parseFromString( JSString text, JSString  mimeType );
 
 }

@@ -33,7 +33,8 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-public class SystemServiceClient {
+public class SystemServiceClient
+        implements AutoCloseable {
 
     private static final Log log = LogFactory.getLog( SystemServiceClient.class );
 
@@ -56,14 +57,44 @@ public class SystemServiceClient {
     }
 
 
-    public void process( Path path, HierarchyVisitor visitor, ProgressMonitor monitor ) {
-        new HierarchyWalker( this, visitor, monitor ).process( path );
+    public ResponseFuture<Object,RuntimeException> process( Path path, HierarchyVisitor visitor, ProgressMonitor monitor ) {
+        return new HierarchyWalker( this, visitor, monitor ).process( path );
+    }
+
+
+    public <R,E extends Exception> ResponseFuture<R,E> fetchFile( Path path,
+            Function<String,R,E> onSuccess,
+            Consumer<Exception,RuntimeException> onError ) {
+        String uri = baseUri + "/" + path;
+        log.info( "fetchFile(): " + uri );
+        Timer timer = Timer.start();
+        XMLHttpRequest request = createRequest();
+        request.open( "GET", uri, true ); //, "user", "password" );
+
+        ResponseFuture<R,E> result = new ResponseFuture<>();
+        request.onComplete( () -> {
+            try {
+                log.info( "Status: " + request.getStatus() );
+                if (request.getStatus() > 299) {
+                    throw new IOException( "HTTP Status: " + request.getStatus() );
+                }
+                String content = request.getResponseText();
+                result.setValue( onSuccess.apply( content ) );
+            }
+            catch (Exception e) {
+                onError.accept( e );
+                result.setException( e );
+            }
+        });
+        timer.restart();
+        request.send();
+        return result;
     }
 
 
     public <R,E extends Exception> ResponseFuture<R,E> fetchFolder( Path path,
             Function<List<FolderEntry>,R,E> onSuccess,
-            Consumer<E,RuntimeException> onError ) {
+            Consumer<Exception,RuntimeException> onError ) {
         String uri = baseUri + "/" + path;
         log.info( "fetchFolder(): " + uri );
         Timer timer = Timer.start();
@@ -92,63 +123,13 @@ public class SystemServiceClient {
                 result.setValue( onSuccess.apply( entries ) );
             }
             catch (Exception e) {
-                onError.accept( (E)e );
+                onError.accept( e );
+                result.setException( e );
             }
         });
         timer.restart();
         request.send();
         return result;
-    }
-
-    /**
-     * Represents the result of an asynchronous {@link SystemServiceClient} method.
-     *
-     * @param <T>
-     * @param <E>
-     */
-    public static class ResponseFuture<T, E extends Exception> {
-
-        protected volatile T       value;
-
-        protected volatile boolean cancelled;
-
-        protected volatile boolean done;
-
-        public boolean cancel( boolean mayInterruptIfRunning ) {
-            cancelled = true;
-            return true;
-        }
-
-        public boolean isCancelled() {
-            return cancelled;
-        }
-
-        public boolean isDone() {
-            return done;
-        }
-
-        public T waitAndGet() throws E {
-            if (!done) {
-                synchronized (this) {
-                    while (!done) {
-                        try {
-                            wait();
-                        }
-                        catch (InterruptedException e) {
-                        }
-                    }
-                }
-            }
-            return value;
-        }
-
-        protected void setValue( T newValue ) {
-            synchronized (this) {
-                this.done = true;
-                this.value = newValue;
-                notifyAll();
-            }
-        }
     }
 
 

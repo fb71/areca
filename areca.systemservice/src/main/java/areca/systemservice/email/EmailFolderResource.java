@@ -129,9 +129,11 @@ public class EmailFolderResource
         @Override
         protected Iterable<MessageFolderResource> createChildren() throws Exception {
             try {
-                if (!folder.isOpen()) {
-                    log.debug( "Opening folder: " + folder.getName() );
-                    folder.open( Folder.READ_ONLY );
+                synchronized (folder) {
+                    if (!folder.isOpen()) {
+                        log.debug( "Opening folder: " + folder.getName() );
+                        folder.open( Folder.READ_ONLY );
+                    }
                 }
                 log.debug( "Get messages: " + folder.getName() + ": start=" + startIndex );
                 Message[] messages = folder.getMessages( startIndex+1, startIndex+chunkSize );
@@ -141,7 +143,7 @@ public class EmailFolderResource
                 FetchProfile profile = new FetchProfile();
                 profile.add( FetchProfile.Item.FLAGS );
                 profile.add( FetchProfile.Item.ENVELOPE );
-                profile.add( FetchProfile.Item.CONTENT_INFO );
+                //profile.add( FetchProfile.Item.CONTENT_INFO );
                 profile.add( "X-mailer" );
                 folder.fetch( messages, profile );
                 log.debug( "Fetched: " + messages.length + " messages (" + t.elapsedHumanReadable() + ")" );
@@ -149,7 +151,7 @@ public class EmailFolderResource
                 return Sequence.of( messages ).transform( MessageFolderResource::new ).asIterable();
             }
             finally {
-                folder.close( false );
+                // XXX folder.close( false );
             }
         }
     }

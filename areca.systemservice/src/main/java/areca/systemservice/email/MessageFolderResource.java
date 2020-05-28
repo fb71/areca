@@ -22,7 +22,6 @@ import java.io.OutputStream;
 
 import javax.mail.Address;
 import javax.mail.Flags.Flag;
-import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -102,7 +101,7 @@ public class MessageFolderResource
         public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType )
                 throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
             try {
-                message.getFolder().open( Folder.READ_ONLY );
+                // XXX message.getFolder().open( Folder.READ_ONLY );
                 parser = new MimeMessageParser( (MimeMessage)message ).parse();
 
                 JAXBContext jaxbContext = JAXBContext.newInstance( EnvelopeResource.class );
@@ -115,13 +114,13 @@ public class MessageFolderResource
                 throw new RuntimeException( e );
             }
             finally {
-                try {
-                    parser = null;
-                    message.getFolder().close( false );
-                }
-                catch (MessagingException e) {
-                    throw new RuntimeException( e );
-                }
+                parser = null;
+//                try {
+//                    message.getFolder().close( false );
+//                }
+//                catch (MessagingException e) {
+//                    throw new RuntimeException( e );
+//                }
             }
         }
 

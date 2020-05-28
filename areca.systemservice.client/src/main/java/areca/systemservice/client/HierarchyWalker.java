@@ -18,7 +18,8 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
- * Walk the hierarchy of webdav resources and notifies {@link HierarchyVisitor}.
+ * Simple, breadth-first, max-concurrent hierarchy walker of webdav resources,
+ * notifying {@link HierarchyVisitor}.
  *
  * @author Falko Bräutigam
  */
@@ -32,6 +33,10 @@ public class HierarchyWalker {
 
     private ProgressMonitor     monitor;
 
+    private ResponseFuture<Object,RuntimeException> result = new ResponseFuture<>();
+
+    private volatile int        openRequests;
+
 
     public HierarchyWalker( SystemServiceClient client, HierarchyVisitor visitor, ProgressMonitor monitor ) {
         this.client = client;
@@ -40,18 +45,54 @@ public class HierarchyWalker {
     }
 
 
-    public void process( Path path ) {
-        if (monitor.isCancelled()) {
-            return;
-        }
+    public ResponseFuture<Object,RuntimeException> process( Path path ) {
+        countOpenRequests( +1 );
         client.fetchFolder( path, entries -> {
-            if (visitor.visitFolder( path, entries )) {
-                for (FolderEntry entry : entries) {
-                    process( entry.path );
+            for (FolderEntry entry : entries) {
+                if (isCancelled()) {
+                    break;
+                }
+                else if (entry.isFolder()) {
+                    if (visitor.acceptsFolder( entry.path )) {
+                        process( entry.path );
+                    }
+                }
+                else {
+                    if (visitor.acceptsFile( entry.path )) {
+                        countOpenRequests( +1 );
+                        client.fetchFile( entry.path, content -> {
+                            visitor.visitFile( entry.path, content );
+                            countOpenRequests( -1 );
+                            return null;
+                        }, e -> visitor.onError( e ) );
+                    }
                 }
             }
+            countOpenRequests( -1 );
             return null;
         }, e -> visitor.onError( e ) );
+        return result;
+    }
+
+
+    protected void countOpenRequests( int count ) {
+        openRequests += count;
+        if (openRequests == 0) {
+            result.setValue( null );
+        }
+    }
+
+
+    protected boolean isCancelled() {
+        if (monitor.isCancelled()) {
+            // XXX sync result
+            return true;
+        }
+        if (result.isCancelled()) {
+            monitor.done();
+            return true;
+        }
+        return false;
     }
 
 }

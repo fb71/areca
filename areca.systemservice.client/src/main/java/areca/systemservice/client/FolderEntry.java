@@ -20,8 +20,14 @@ public class FolderEntry {
 
     public Path path;
 
+
     protected FolderEntry( Path path ) {
         this.path = path;
+    }
+
+    public boolean isFolder() {
+        // XXX better paarse response
+        return !path.lastPart().contains( "." );
     }
 
 }

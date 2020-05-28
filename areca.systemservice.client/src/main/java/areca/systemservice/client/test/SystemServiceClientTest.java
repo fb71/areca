@@ -24,7 +24,6 @@ import areca.common.log.LogFactory.Log;
 import areca.common.testrunner.After;
 import areca.common.testrunner.Before;
 import areca.common.testrunner.Test;
-import areca.systemservice.client.FolderEntry;
 import areca.systemservice.client.HierarchyVisitor;
 import areca.systemservice.client.Path;
 import areca.systemservice.client.SystemServiceClient;
@@ -34,13 +33,13 @@ import areca.systemservice.client.SystemServiceClient;
  * @author Falko Bräutigam
  */
 @Test
-public class ReadTest {
+public class SystemServiceClientTest {
 
-    private static final Log log = LogFactory.getLog( ReadTest.class );
+    private static final Log log = LogFactory.getLog( SystemServiceClientTest.class );
 
-    public static final ReadTestClassInfo info = ReadTestClassInfo.instance();
+    public static final SystemServiceClientTestClassInfo info = SystemServiceClientTestClassInfo.instance();
 
-    private static final Path basePath = Path.parse( "support@polymap.de" );
+    private static final Path EMAIL_ROOT = Path.parse( "areca@polymap.de" );
 
     protected SystemServiceClient       client;
 
@@ -82,7 +81,7 @@ public class ReadTest {
 
     @Test
     public void requestTest() {
-        List<Path> result = client.fetchFolder( basePath,
+        List<Path> result = client.fetchFolder( EMAIL_ROOT,
                 entries -> Sequence.of( entries ).transform( entry -> entry.path ).collect( Collectors.toList() ),
                 e -> { log.warn( e.toString() ); })
                 .waitAndGet();
@@ -93,25 +92,48 @@ public class ReadTest {
 
 
     @Test
-    public void hierarchyVisitorTest() {
-        client.process( basePath.plusPath( "INBOX/messages" ), new TestHierachyVisitor(), new NullProgressMonitor() );
+    public void hierarchyVisitorCountAllTest() {
+        CountHierachyVisitor visitor = new CountHierachyVisitor();
+        client.process( EMAIL_ROOT.plusPath( "Test1/messages" ), visitor, new NullProgressMonitor() )
+                .waitAndGet();
+        Assert.isEqual( 17, visitor.count );
     }
 
 
-    static class TestHierachyVisitor extends HierarchyVisitor {
+    @Test
+    public void hierarchyVisitorCountTest() {
+        CountHierachyVisitor visitor = new CountHierachyVisitor();
+        visitor.maxResults = 12;
+        client.process( EMAIL_ROOT.plusPath( "Test1/messages" ), visitor, new NullProgressMonitor() )
+                .waitAndGet();
+        Assert.isEqual( visitor.maxResults, visitor.count );
+    }
+
+
+    static class CountHierachyVisitor extends HierarchyVisitor {
+        protected int maxResults = Integer.MAX_VALUE;
+        protected volatile int count = 0;
         @Override
-        public boolean visitFolder( Path path, List<FolderEntry> entries ) {
-            log.info( "visit: " + path );
-            return true;
+        public boolean acceptsFolder( Path path ) {
+            log.info( "FOLDER: " + path );
+            return count < maxResults;
+        }
+        @Override
+        public boolean acceptsFile( Path path ) {
+            log.info( "FILE: " + count++ + ": " + path );
+            return count <= maxResults;
         }
         @Override
         public void visitFile( Path path, Object content ) {
-            log.info( "visit: " + path );
+            log.info( "FILE CONTENT: " + path );
+            //log.info( content.toString());
         }
         @Override
         public void onError( Exception e ) {
-            throw new RuntimeException( "not yet implemented." );
+            log.warn( "" + e.toString() );
+            super.onError( e );
         }
+
     }
 
 }

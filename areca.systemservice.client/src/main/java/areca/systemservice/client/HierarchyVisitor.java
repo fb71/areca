@@ -13,27 +13,31 @@
  */
 package areca.systemservice.client;
 
-import java.util.List;
-
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
-
 /**
  *
  * @author Falko Bräutigam
  */
 public abstract class HierarchyVisitor {
 
-    private static final Log log = LogFactory.getLog( HierarchyVisitor.class );
-
-    public boolean visitFolder( Path path, List<FolderEntry> entries ) {
+    public boolean acceptsFolder( Path path ) {
         return true;
     }
+
+
+    public boolean acceptsFile( Path path ) {
+        return true;
+    }
+
 
     public void visitFile( Path path, Object content ) {
     }
 
+
     public void onError( Exception e ) {
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException)e;
+        }
+        throw new RuntimeException( e );
     }
 
 }

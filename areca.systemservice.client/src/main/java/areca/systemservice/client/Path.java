@@ -98,4 +98,9 @@ public class Path
         return parts.get( index );
     }
 
+
+    public String lastPart() {
+        return part( length()-1 );
+    }
+
 }

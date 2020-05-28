@@ -60,15 +60,11 @@ import com.squareup.javapoet.WildcardTypeName;
 public class ReflectAnnotationProcessor
         extends AbstractProcessor {
 
-    private static int      round = 0;
-
-
     @Override
     public boolean process( Set<? extends TypeElement> annotations, RoundEnvironment roundEnv ) {
-        log( round, " -- ", roundEnv.toString() );
-        if (round++ > 0) {
-            return false;
-        }
+//        log( "processingOver(): ", roundEnv.processingOver() );
+//        log( "errorRaised(): ", roundEnv.errorRaised() );
+//        log( "annotations:" + annotations.size() );
 
         try {
             Set<Element> annotatedElements = new HashSet<>();
@@ -77,8 +73,10 @@ public class ReflectAnnotationProcessor
             // create AnnotationInfos
             for (TypeElement annotation : annotations) {
                 // XXX
-                if (!annotation.getQualifiedName().toString().startsWith( "java." )
-                        && !annotation.getQualifiedName().toString().startsWith( "org.teavm." )) {
+                String qualifiedName = annotation.getQualifiedName().toString();
+                if (!qualifiedName.startsWith( "java." )
+                        && !qualifiedName.startsWith( "javax." )
+                        && !qualifiedName.startsWith( "org.teavm." )) {
                     checkCreateAnnotationInfo( annotation );
                     processedAnnotations.add( annotation );
                     annotatedElements.addAll( roundEnv.getElementsAnnotatedWith( annotation ) );
@@ -95,7 +93,7 @@ public class ReflectAnnotationProcessor
         catch (IOException e) {
             throw new RuntimeException( e );
         }
-        return false;
+        return true;
     }
 
 
@@ -305,9 +303,14 @@ public class ReflectAnnotationProcessor
             for (Entry<? extends ExecutableElement,? extends AnnotationValue> entry : values.entrySet()) {
                 String valueCode = entry.getValue().toString();
                 codeBlock.add( "this._$L = ", entry.getKey().getSimpleName() );
+                // XXX array type: check and handling are probable not meant to do this way
                 if (valueCode.startsWith( "{" )) {
-                    // XXX array type: check and handling are probable not meant to do this way
-                    codeBlock.add( "($L) new Object[] $L;", entry.getKey().asType().toString().substring( 2 ), valueCode );
+                    String typeName = entry.getKey().asType().toString();
+                    // in Maven there are those "()"; missing in Eclipse!?
+                    if (typeName.startsWith( "()" )) {
+                        typeName = typeName.substring( 2 );
+                    }
+                    codeBlock.add( "($L) new Object[] $L;", typeName, valueCode );
                 }
                 else {
                     codeBlock.add( "$L;", valueCode );
