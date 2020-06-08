@@ -11,23 +11,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.app.service.email;
+package areca.systemservice.client;
 
 import org.teavm.jso.JSBody;
-import org.teavm.jso.core.JSString;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.dom.xml.Document;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class DOMParser {
+public abstract class DOMParser implements JSObject {
 
-    @JSBody(script = "new DOMParser();")
+    @JSBody(script = "return new DOMParser();")
     public static native DOMParser create();
 
-
-    @JSBody(params = "{text, mimeType}", script = "")
-    public abstract Document parseFromString( JSString text, JSString  mimeType );
+    public abstract Document parseFromString(String s, String mimeType);
 
 }

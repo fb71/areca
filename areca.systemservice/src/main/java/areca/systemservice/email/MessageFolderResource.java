@@ -15,6 +15,7 @@ package areca.systemservice.email;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.io.OutputStream;
 
 import javax.mail.Address;
 import javax.mail.Flags.Flag;
+import javax.mail.Header;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -54,11 +56,11 @@ public class MessageFolderResource
 
     private static final Log log = LogFactory.getLog( MessageFolderResource.class );
 
-    private Message      message;
+    private MimeMessage         message;
 
 
     public MessageFolderResource( Message message ) {
-        this.message = message;
+        this.message = (MimeMessage)message;
     }
 
     @Override
@@ -80,15 +82,15 @@ public class MessageFolderResource
             extends ResourceBase
             implements GetableResource {
 
-        private Message message;
+        private MimeMessage         message;
 
-        private MimeMessageParser parser;
+        private MimeMessageParser   parser;
 
 
         protected EnvelopeResource() {
         }
 
-        public EnvelopeResource( Message message ) {
+        public EnvelopeResource( MimeMessage message ) {
             this.message = message;
         }
 
@@ -159,19 +161,37 @@ public class MessageFolderResource
             return Sequence.of( message.getFlags().getSystemFlags() ).transform( Flag::toString ).asCollection();
         }
 
-//        @XmlElement
-//        @SuppressWarnings("unchecked")
-//        public Collection<String> getHeaders() throws Exception {
-//            return Sequence.of( Collections.<Header>list( message.getAllHeaders() ) )
-//                    .transform( h -> h.getName() + ":" + h.getValue() )
-//                    .asCollection();
-//        }
+        @XmlElement
+        @SuppressWarnings("unchecked")
+        public Collection<String> getHeaders() throws Exception {
+            return Sequence.of( Collections.<Header>list( message.getAllHeaders() ) )
+                    .transform( h -> h.getName() + "::" + h.getValue() )
+                    .asCollection();
+        }
 
         @XmlElement
-        public Collection<String> getReceipients() throws MessagingException {
-            return Sequence.of( message.getAllRecipients() )
-                    .transform( Address::toString )
-                    .asCollection();
+        public String getSender() throws MessagingException {
+            return message.getSender().toString();
+        }
+
+        @XmlElement
+        public String getFrom() throws Exception {
+            return parser.getFrom();
+        }
+
+        @XmlElement
+        public Collection<String> getTo() throws Exception {
+            return Sequence.of( parser.getTo() ).transform( Address::toString ).asCollection();
+        }
+
+        @XmlElement
+        public Collection<String> getCc() throws Exception {
+            return Sequence.of( parser.getCc() ).transform( Address::toString ).asCollection();
+        }
+
+        @XmlElement
+        public Collection<String> getBcc() throws Exception {
+            return Sequence.of( parser.getBcc() ).transform( Address::toString ).asCollection();
         }
 
         @Override

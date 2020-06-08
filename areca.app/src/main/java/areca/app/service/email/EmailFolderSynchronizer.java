@@ -13,14 +13,25 @@
  */
 package areca.app.service.email;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.teavm.jso.dom.xml.Element;
+
+import org.apache.commons.lang.StringUtils;
+
+import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
 
-import areca.app.Main;
 import areca.app.model.Message;
+import areca.common.ProgressMonitor;
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.systemservice.client.HierarchyVisitor;
 import areca.systemservice.client.Path;
+import areca.systemservice.client.SimpleDocument;
 import areca.ui.component.Property;
 
 /**
@@ -34,15 +45,16 @@ public class EmailFolderSynchronizer
 
     public Property<Boolean>        checkExisting = Property.create( this, "checkExisting", false );
 
-    private UnitOfWork              uow;
+    protected volatile int          fileCount;
 
-    protected volatile int          count;
+    public Opt<Exception>           exception = Opt.absent();
+
+    public Map<Path,String>         envelopes;
 
 
     @Override
     public boolean acceptsFolder( Path path ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        return true;
     }
 
 
@@ -54,23 +66,49 @@ public class EmailFolderSynchronizer
 
     @Override
     public void visitFile( Path path, Object content ) {
-        count ++;
-        try (
-            UnitOfWork uow = Main.repo.supply().newUnitOfWork();
-        ) {
-            uow.createEntity( Message.class, null, proto -> {
-                return proto;
-            });
-            DOMParser parser = DOMParser.create();
-            uow.commit();
+        if (envelopes == null) {
+            envelopes = new HashMap<>( 256 );
         }
+        envelopes.put( path, (String)content );
     }
 
 
     @Override
     public void onError( Exception e ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        exception = Opt.of( e );
+        e.printStackTrace();
+    }
+
+
+    public void processEnvelopes( EntityRepository repo, ProgressMonitor monitor ) {
+        for (Entry<Path,String> envelope : envelopes.entrySet()) {
+            if (monitor.isCancelled()) {
+                return;
+            }
+            fileCount ++;
+            try (
+                UnitOfWork uow = repo.newUnitOfWork();
+            ){
+                uow.createEntity( Message.class, null, (Message proto) -> {
+                    SimpleDocument doc = SimpleDocument.parseXml( envelope.getValue() );
+                    for (Element elm : doc.getElementsByTagName( "headers" )) {
+                        String[] kv = StringUtils.splitByWholeSeparator( elm.getFirstChild().getNodeValue(), "::" );
+                        //log.info( "KeyValue: " + Arrays.asList( kv ) );
+                        if (kv[0].equalsIgnoreCase( "from" )) {
+                            proto.from.set( kv[1] );
+                        }
+                    }
+                    doc.elementsByTagName( "htmlBody" ).findAny().ifPresent( elm -> {
+                        proto.text.set( elm.getFirstChild().getNodeValue() );
+                    });
+                    doc.elementsByTagName( "plainBody" ).findAny().ifPresent( elm -> {
+                        proto.text.set( elm.getFirstChild().getNodeValue() );
+                    });
+                    return proto;
+                });
+                uow.commit();
+            }
+        }
     }
 
 }

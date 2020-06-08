@@ -13,17 +13,24 @@
  */
 package areca.app.service.email;
 
-import org.polymap.model2.runtime.UnitOfWork;
+import java.util.Arrays;
 
-import areca.app.Main;
+import org.polymap.model2.query.ResultSet;
+import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.UnitOfWork;
+import org.polymap.model2.store.tidbstore.IDBStore;
+import areca.app.model.Anchor;
+import areca.app.model.Contact;
+import areca.app.model.Message;
+import areca.common.Assert;
 import areca.common.NullProgressMonitor;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.testrunner.After;
 import areca.common.testrunner.Before;
-import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 import areca.systemservice.client.Path;
+import areca.systemservice.client.SimpleDocument;
 import areca.systemservice.client.SystemServiceClient;
 
 /**
@@ -41,6 +48,15 @@ public class EmailServiceTest {
 
     protected SystemServiceClient       client;
 
+    protected static EntityRepository   repo;
+
+    static {
+        log.info( "Creating repo..." );
+        repo = EntityRepository.newConfiguration()
+                .entities.set( Arrays.asList( Message.info, Contact.info, Anchor.info) )
+                .store.set( new IDBStore( "main2" /*EmailServiceTest.class.getSimpleName()*/, 1, true ) )
+                .create();
+    }
 
     @Before
     public void setup() {
@@ -54,21 +70,33 @@ public class EmailServiceTest {
 
 
     @Test
-    public void importTest() {
+    public void domParserTest() {
+        SimpleDocument doc = SimpleDocument.parseXml( "<start><child></child><child></child></start>" );
+        Assert.isEqual( 1, doc.getElementsByTagName( "start" ).size() );
+        Assert.isEqual( 2, doc.getElementsByTagName( "child" ).size() );
+    }
+
+
+    @Test
+    public void importTest() throws Exception {
         EmailFolderSynchronizer synchronizer = new EmailFolderSynchronizer();
         client.process( EMAIL_ROOT.plusPath( "Test1/messages" ), synchronizer, new NullProgressMonitor() )
                 .waitAndGet();
+        synchronizer.processEnvelopes( repo, new NullProgressMonitor() );
+
+        synchronizer.exception.<Exception>ifPresent( e -> {
+            throw e;
+        });
+
         try (
-            UnitOfWork uow = Main.repo.supply().newUnitOfWork();
+            UnitOfWork uow = repo.newUnitOfWork();
         ){
-            //uow.query( Message.class ).where( );
+            ResultSet<Message> rs = uow.query( Message.class ).execute();
+            Assert.isEqual( 17, rs.size() );
+            for (Message message : rs) {
+                log.info( "Message - From: " + message.from.get() );
+            }
         }
-    }
-
-    @Test
-    @Skip
-    public void import2Test() {
-
     }
 
 }

@@ -14,17 +14,26 @@
 package areca.app.model;
 
 import org.polymap.model2.Entity;
+import org.polymap.model2.Property;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.common.reflect.RuntimeInfo;
 
 /**
  *
  * @author Falko Bräutigam
  */
+@RuntimeInfo
 public class Message
         extends Entity {
 
     private static final Log log = LogFactory.getLog( Message.class );
+
+    public static final MessageClassInfo    info = MessageClassInfo.instance();
+
+    public Property<String>         from;
+
+    public Property<String>         text;
 
 }

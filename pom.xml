@@ -1,24 +1,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>areca</groupId>
-  <artifactId>areca</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>pom</packaging>
+    <groupId>areca</groupId>
+    <artifactId>areca</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-  <properties>
-    <java.version>1.8</java.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+    <properties>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+<!--         <teavm.version>0.7.0-SNAPSHOT</teavm.version> -->
+        <teavm.version>0.7.0-dev-943</teavm.version>
+    </properties>
 
-  <modules>
-    <module>areca.common</module>
-    <module>areca.ui</module>
-    <module>areca.rt.teavm</module>
-    <module>../polymap4-model/org.polymap.model2</module>
-    <module>areca.systemservice</module>
-    <module>areca.systemservice.client</module>
-    <module>areca.app</module>
-  </modules>
+    <modules>
+        <module>areca.common</module>
+        <module>areca.ui</module>
+        <module>areca.rt.teavm</module>
+        <module>../polymap4-model/org.polymap.model2</module>
+        <module>areca.systemservice</module>
+        <module>areca.systemservice.client</module>
+        <module>areca.app</module>
+    </modules>
 </project>

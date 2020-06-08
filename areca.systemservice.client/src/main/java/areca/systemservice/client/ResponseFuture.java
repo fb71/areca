@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2020, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -59,7 +59,7 @@ public class ResponseFuture<T, E extends Exception> {
 
     protected void setException( Exception e ) {
         this.exception = e;
-        setValue( null );
+        setValue( null );  // force notify()
     }
 
     protected void setValue( T newValue ) {

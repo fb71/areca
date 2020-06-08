@@ -66,9 +66,9 @@ public class LogDecorator
             Throwable e = testResult.getException();
             System.out.println( "---------------------------------failed (" + e.toString() + ")" );
             Throwable cause = e;
-            while (cause.getCause() != null) {
-                cause = cause.getCause();
-            }
+//            while (cause.getCause() != null) {
+//                cause = cause.getCause();
+//            }
             throw (RuntimeException)cause;
         }
     }

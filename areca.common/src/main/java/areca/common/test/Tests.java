@@ -25,7 +25,8 @@ public class Tests {
         return new ClassInfo[] {
                 AnnotationTest.info,
                 EventManagerTest.info,
-                SequenceTest.info
+                SequenceTest.info,
+                RuntimeTest.info
                 //AssertTest.class
         };
     }

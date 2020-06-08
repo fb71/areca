@@ -35,7 +35,7 @@ public class HierarchyWalker {
 
     private ResponseFuture<Object,RuntimeException> result = new ResponseFuture<>();
 
-    private volatile int        openRequests;
+    private volatile int        openRequestsCount;
 
 
     public HierarchyWalker( SystemServiceClient client, HierarchyVisitor visitor, ProgressMonitor monitor ) {
@@ -49,14 +49,17 @@ public class HierarchyWalker {
         countOpenRequests( +1 );
         client.fetchFolder( path, entries -> {
             for (FolderEntry entry : entries) {
+                // cancelled?
                 if (isCancelled()) {
                     break;
                 }
+                // folder
                 else if (entry.isFolder()) {
                     if (visitor.acceptsFolder( entry.path )) {
                         process( entry.path );
                     }
                 }
+                // file
                 else {
                     if (visitor.acceptsFile( entry.path )) {
                         countOpenRequests( +1 );
@@ -64,20 +67,29 @@ public class HierarchyWalker {
                             visitor.visitFile( entry.path, content );
                             countOpenRequests( -1 );
                             return null;
-                        }, e -> visitor.onError( e ) );
+                        }, e -> {
+                            result.cancelled = true;
+                            result.setException( e );
+                            visitor.onError( e );
+                            throw (RuntimeException)e;
+                        });
                     }
                 }
             }
             countOpenRequests( -1 );
             return null;
-        }, e -> visitor.onError( e ) );
+        }, e -> {
+            result.cancelled = true;
+            result.setException( e );
+            visitor.onError( e );
+        });
         return result;
     }
 
 
     protected void countOpenRequests( int count ) {
-        openRequests += count;
-        if (openRequests == 0) {
+        openRequestsCount += count;
+        if (openRequestsCount == 0) {
             result.setValue( null );
         }
     }

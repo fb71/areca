@@ -65,8 +65,24 @@ public class Path
     }
 
 
+    @Override
     public String toString() {
         return String.join( DELIMITER, parts );
+    }
+
+
+    @Override
+    public int hashCode() {
+        return parts.hashCode();
+    }
+
+
+    @Override
+    public boolean equals( Object other ) {
+        if (other instanceof Path) {
+            return parts.equals( ((Path)other).parts );
+        }
+        return false;
     }
 
 

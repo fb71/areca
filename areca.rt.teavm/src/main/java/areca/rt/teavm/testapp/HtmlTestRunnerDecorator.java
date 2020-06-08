@@ -44,12 +44,16 @@ public class HtmlTestRunnerDecorator
 
     protected HTMLElement           testMethodElm;
 
+    protected int                   lineWidth;
+
 
     @Override
     public void preRun( TestRunner runner ) {
         doc = Window.current().getDocument();
         doc.getBody().getStyle().setProperty( "font", "12px monospace" );
         doc.getBody().appendChild( doc.createTextNode( "Running tests..." ) );
+
+        lineWidth = doc.getBody().getClientWidth() / 9;
     }
 
 
@@ -66,7 +70,7 @@ public class HtmlTestRunnerDecorator
     public void preTestMethod( TestMethod m ) {
         doc.getBody().appendChild( testMethodElm = doc.createElement( "p" ));
         testMethodElm.getStyle().setProperty( "margin", "0px 0px" );
-        String l = (m.name() + " ............................................................").substring( 0, 60 );
+        String l = (m.name() + " ............................................................").substring( 0, lineWidth );
         testMethodElm.appendChild( doc.createTextNode( l ) );
     }
 

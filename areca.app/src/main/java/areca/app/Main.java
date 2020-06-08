@@ -24,9 +24,17 @@ import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
+import areca.app.model.Message;
 import areca.common.base.Lazy;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.rt.teavm.ui.TeaApp;
+import areca.ui.Position;
+import areca.ui.Size;
+import areca.ui.component.Button;
+import areca.ui.component.SelectionEvent;
+import areca.ui.layout.FillLayout;
+import areca.ui.viewer.LabeledList;
 
 /**
  *
@@ -45,8 +53,8 @@ public class Main {
         repo = new Lazy<>( () -> {
             log.info( "creating repo..." );
             EntityRepository result = EntityRepository.newConfiguration()
-                    .entities.set( Arrays.asList( Anchor.info, Contact.info ) )
-                    .store.set( new IDBStore( "main", 2 ) )
+                    .entities.set( Arrays.asList( Anchor.info, Contact.info, Message.info ) )
+                    .store.set( new IDBStore( "main2", 1, false ) )
                     .create();
             log.info( "creating test data..." );
             TestDataBuilder.run( result );
@@ -57,46 +65,46 @@ public class Main {
 
 
     public static void main( String[] args ) throws Exception {
+        Location location = Window.current().getLocation();
+        if (location.getHash().equals( "#test" ) || location.getSearch().contains( "test=true" )) {
+            TestRunnerMain.main( args );
+            log.info( "done." );
+            return;
+        }
+
         try {
-            Location location = Window.current().getLocation();
-            log.info( "URL: " + location.getHash() );
-            if (location.getHash().equals( "#test" ) || location.getSearch().contains( "test=true" )) {
-                TestRunnerMain.main( args );
-                return;
-            }
+            log.info( "repo: " + repo.supply() );
 
+            TeaApp.instance().createUI( appWindow -> {
+                appWindow.size.set( Size.of( 400, 300 ) );
+                appWindow.layout.set( new FillLayout() );
 
-//            log.info( "repo: " + repo.supply() );
-//
-//            TeaApp.instance().createUI( appWindow -> {
-//                appWindow.size.set( Size.of( 400, 300 ) );
-//                appWindow.layout.set( new FillLayout() );
-//
-//                // Button1
-//                appWindow.add( new Button(), btn -> {
-//                    btn.label.set( "Button!" );
-//                    btn.subscribe( (SelectionEvent ev) -> {
-//                        log.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
-//                        Position pos = btn.position.get();
-//                        btn.position.set( Position.of( pos.x()-10, pos.y()-10 ) );
-//                    });
-////                    btn.size.set( Size.of( 100, 100 ) );
-//                    btn.position.set( Position.of( 100, 100 ) );
-//                });
-//
-//                // Anchors list
-//                appWindow.add( new LabeledList<Anchor>(), l -> {
-//                    l.firstLineLabeler.set( data -> data.name.get() );
-//                    l.setData( 0, uow.supply().query( Anchor.class ).execute() );
-//                });
-////                Thread.sleep( 100 );
-//            })
-//            .layout();
+                // Button1
+                appWindow.add( new Button(), btn -> {
+                    btn.label.set( "Button!" );
+                    btn.subscribe( (SelectionEvent ev) -> {
+                        log.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
+                        Position pos = btn.position.get();
+                        btn.position.set( Position.of( pos.x()-10, pos.y()-10 ) );
+                    });
+//                    btn.size.set( Size.of( 100, 100 ) );
+                    btn.position.set( Position.of( 100, 100 ) );
+                });
+
+                // Messages list
+                appWindow.add( new LabeledList<Message>(), l -> {
+                    l.firstLineLabeler.set( data -> data.from.get() );
+                    l.setData( 0, uow.supply().query( Message.class ).execute() );
+                });
+//                Thread.sleep( 100 );
+            })
+            .layout();
         }
         catch (Throwable e) {
             System.out.println( "Exception: " + e + " --> " );
             Throwable rootCause = e;
             while (rootCause.getCause() != null) {
+
                 rootCause = rootCause.getCause();
             }
             System.out.println( "Root cause: " + rootCause );

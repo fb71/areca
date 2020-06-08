@@ -1,7 +1,9 @@
 package areca.app;
 
+import areca.app.service.email.EmailServiceTest;
 import areca.common.testrunner.LogDecorator;
 import areca.common.testrunner.TestRunner;
+import areca.rt.teavm.test.TeavmRuntimeTest;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
 
 /**
@@ -19,7 +21,9 @@ public class TestRunnerMain {
         try {
             new TestRunner()
                     .addTests( areca.common.test.Tests.all() )
-                    //.addTests( org.polymap.model2.test2.Tests.all() )
+                    .addTests( org.polymap.model2.test2.Tests.all() )
+                    .addTests( TeavmRuntimeTest.info )
+                    .addTests( EmailServiceTest.info )
                     .addTests( areca.systemservice.client.test.Tests.all() )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();
@@ -28,7 +32,11 @@ public class TestRunnerMain {
             System.out.println( "Exception: " + e + " --> " );
             Throwable rootCause = e;
             while (rootCause.getCause() != null) {
-                rootCause = rootCause.getCause();
+                Throwable parent = rootCause.getCause();
+                if (parent == rootCause) {
+                    break;
+                }
+                rootCause = parent;
             }
             System.out.println( "Root cause: " + rootCause + " : " + rootCause.getMessage() );
             throw (Exception)rootCause;

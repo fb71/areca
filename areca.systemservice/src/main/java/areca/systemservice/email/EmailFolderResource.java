@@ -20,7 +20,6 @@ import java.util.List;
 import javax.mail.FetchProfile;
 import javax.mail.Folder;
 import javax.mail.Message;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

@@ -50,12 +50,13 @@
               <goal>compile</goal>
             </goals>
             <configuration>
+              <proc>none</proc>
               <includes>
                 <include>**/ReflectAnnotationProcessor.java</include>
               </includes>
             </configuration>
           </execution>
-          <!-- Regular sources  -->
+          <!-- Regular sources -->
           <execution>
             <id>default-compile</id>
             <phase>compile</phase>
@@ -86,6 +87,7 @@
                         <goal>unpack</goal>
                     </goals>
                     <configuration>
+                    
                         <artifactItems>
                             <artifactItem>
                                 <groupId>areca</groupId>

@@ -105,9 +105,10 @@ public class TestRunner {
                     }
                 }
                 catch (InvocationTargetException e ) {
+                    System.out.println( "getCause()..." + e);
                     if (expected.equals( Test.NoException.class )
-                            || !expected.isAssignableFrom( e.getCause().getClass() )) {
-                        testResult.setException( e.getCause() );
+                            || !expected.isAssignableFrom( e.getTargetException().getClass() )) {
+                        testResult.setException( e.getTargetException() );
                     }
                 }
                 catch (Throwable e ) {
