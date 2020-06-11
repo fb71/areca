@@ -165,7 +165,8 @@ public class MessageFolderResource
         @SuppressWarnings("unchecked")
         public Collection<String> getHeaders() throws Exception {
             return Sequence.of( Collections.<Header>list( message.getAllHeaders() ) )
-                    .transform( h -> h.getName() + "::" + h.getValue() )
+                    // XXX javac from Maven needs this cast, Eclipse does not need it
+                    .transform( h -> ((Header)h).getName() + "::" + ((Header)h).getValue() )
                     .asCollection();
         }
 

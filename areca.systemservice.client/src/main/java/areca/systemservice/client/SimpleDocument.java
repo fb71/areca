@@ -17,6 +17,7 @@ import java.util.AbstractList;
 import java.util.List;
 import java.util.RandomAccess;
 
+import org.teavm.jso.dom.xml.DOMParser;
 import org.teavm.jso.dom.xml.Document;
 import org.teavm.jso.dom.xml.Element;
 import org.teavm.jso.dom.xml.Node;

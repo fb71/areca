@@ -24,7 +24,7 @@ public class TestRunnerMain {
                     .addTests( org.polymap.model2.test2.Tests.all() )
                     .addTests( TeavmRuntimeTest.info )
                     .addTests( EmailServiceTest.info )
-                    .addTests( areca.systemservice.client.test.Tests.all() )
+//                    .addTests( areca.systemservice.client.test.Tests.all() )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();
         }
