@@ -26,8 +26,10 @@ import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.common.base.Lazy;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.rt.teavm.SetTimeoutEventManager;
 import areca.rt.teavm.ui.TeaApp;
 import areca.ui.Position;
 import areca.ui.Size;
@@ -65,19 +67,28 @@ public class Main {
 
 
     public static void main( String[] args ) throws Exception {
+        // TestRunner
         Location location = Window.current().getLocation();
         if (location.getHash().equals( "#test" ) || location.getSearch().contains( "test=true" )) {
             TestRunnerMain.main( args );
             log.info( "done." );
             return;
         }
-
+        // App
         try {
-            log.info( "repo: " + repo.supply() );
+            EventManager.setInstance( new SetTimeoutEventManager() );
+            log.info( "EventManager: " + EventManager.instance().getClass().getSimpleName() );
+
+            log.info( "Repo: " + repo.supply() );
+            System.out.println( "Hallo" );
 
             TeaApp.instance().createUI( appWindow -> {
                 appWindow.size.set( Size.of( 400, 300 ) );
                 appWindow.layout.set( new FillLayout() );
+
+//                appWindow.add( new Button() {{
+//                    label.set( "Initializer" );
+//                }});
 
                 // Button1
                 appWindow.add( new Button(), btn -> {

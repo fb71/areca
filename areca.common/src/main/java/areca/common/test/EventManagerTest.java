@@ -13,14 +13,16 @@
  */
 package areca.common.test;
 
+import java.util.ArrayList;
 import java.util.EventObject;
+import java.util.List;
 import java.util.logging.Logger;
 
 import areca.common.Assert;
 import areca.common.event.EventHandler;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
-import areca.common.event.SameStackEventManager;
+import areca.common.event.ThreadedEventManager;
 import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.After;
 import areca.common.testrunner.Before;
@@ -37,7 +39,7 @@ public class EventManagerTest {
 
     public static final ClassInfo<EventManagerTest> info = EventManagerTestClassInfo.instance();
 
-    protected EventManager      em;
+    public EventManager         em;
 
     protected EventObject       handled;
 
@@ -45,13 +47,13 @@ public class EventManagerTest {
 
 
     @Before
-    protected void setup() {
-        em = new SameStackEventManager();
-        em.defaultOnError = e -> { throw (RuntimeException)e; };
+    public void setup() {
+        em = new ThreadedEventManager(); //kEventManager();
+        em.defaultOnError = (ev,e) -> { throw (RuntimeException)e; };
     }
 
     @After
-    protected void tearDown() {
+    public void tearDown() {
     }
 
 
@@ -117,6 +119,54 @@ public class EventManagerTest {
         em.publishAndWait( new Event1( null ) );
         LOG.info( "count: " + count );
         Assert.isEqual( 100010, count, "" );
+    }
+
+
+    @Test
+    public void eventCascadeTest() {
+        List<EventObject> caught = new ArrayList<>();
+        em.subscribe( ev -> {
+            caught.add( ev );
+            em.publishAndWait( new Event2( null ) );
+        })
+        .performIf( ev -> ev instanceof Event1 );
+
+        em.subscribe( ev -> {
+            caught.add( ev );
+        })
+        .performIf( ev -> ev instanceof Event2 );
+
+        em.publishAndWait( new Event1( null ) );
+
+        Assert.that( caught.get( 0 ) instanceof Event1 );
+        Assert.that( caught.get( 1 ) instanceof Event2 );
+    }
+
+
+    @Test
+    public void newHandlerInHandlerTest() {
+        List<EventObject> caught = new ArrayList<>();
+        em.subscribe( ev -> {
+            em.subscribe( ev2 -> caught.add( ev ) );
+        });
+        em.publishAndWait( new Event1( null ) );
+    }
+
+
+    @Test
+    public void test() {
+        em.subscribe( ev -> {
+            System.out.println( "THREAD: " + Thread.currentThread() );
+            throwSomething();
+        });
+        em.publish( new EventObject( null ) );
+    }
+
+
+    protected void throwSomething() {
+        RuntimeException e = new RuntimeException();
+        e.fillInStackTrace();
+        throw e;
     }
 
 

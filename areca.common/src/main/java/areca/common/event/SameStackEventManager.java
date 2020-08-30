@@ -14,8 +14,6 @@
 package areca.common.event;
 
 import java.util.EventObject;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -29,37 +27,9 @@ public class SameStackEventManager
 
     private static final Logger LOG = Logger.getLogger( SameStackEventManager.class.getName() );
 
-    private Map<Integer,EventHandlerInfo>      handlers = new HashMap<>( 256 );
-
-
-    protected Integer keyOf( Object annotatedOrListener ) {
-        return Integer.valueOf( System.identityHashCode( annotatedOrListener ) );
-    }
-
-
-    @Override
-    public EventHandlerInfo subscribe( Object annotatedOrListener ) {
-        EventHandlerInfo info = new EventHandlerInfo( annotatedOrListener );
-        if (handlers.put( keyOf( annotatedOrListener ), info ) != null) {
-            throw new IllegalStateException( "Event handler already subscribed!" );
-        }
-        return info;
-    }
-
-
-    @Override
-    protected void unsubscribe( EventHandlerInfo eventHandlerInfo ) {
-        if (handlers.remove( keyOf( eventHandlerInfo.handler ) ) == null) {
-            throw new IllegalStateException( "Event handler was not subscribed!" );
-        }
-    }
-
-
     @Override
     public void publish( EventObject ev ) {
-        for (EventHandlerInfo handler : handlers.values()) {
-            handler.perform( ev );
-        }
+        fireEvent( ev );
     }
 
 

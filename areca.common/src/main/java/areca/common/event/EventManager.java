@@ -13,8 +13,11 @@
  */
 package areca.common.event;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EventObject;
-import java.util.function.Consumer;
+import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,35 +34,75 @@ public abstract class EventManager {
 
     private static final Logger LOG = Logger.getLogger( EventManager.class.getSimpleName() );
 
-    private static final EventManager   INSTANCE = new SameStackEventManager();
+    private static EventManager     INSTANCE = new SameStackEventManager();
 
     public static EventManager instance() {
         return INSTANCE;
     }
 
+    public static void setInstance( EventManager manager ) {
+        INSTANCE = manager;
+    }
+
 
     // instance *******************************************
 
-    public Consumer<Throwable>      defaultOnError = e -> LOG.log( Level.WARNING, "Error during event handling.", e );
+    public BiConsumer<EventObject,Throwable>    defaultOnError;
+
+    /** Copy-on-Write */
+    private List<EventHandlerInfo>      handlers = Collections.emptyList();
 
 
     protected EventManager() {
-        defaultOnError = e -> {
-            LOG.log( Level.WARNING, "Error during event handling. (" + e + ")", e );
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException)e;
-            }
-            else if (e instanceof Error) {
-                throw (Error)e;
-            }
-            else {
-                throw new RuntimeException( e );
-            }
+        defaultOnError = (ev, e) -> {
+            LOG.log( Level.WARNING, "Error during handling of event: " + ev, e );
+
+            // FIXME no (correct) StackTrace in TeaVM; just throwing shows something useful :(
+//            System.out.println( "STACK: " + e.getStackTrace().length );
+//            for (StackTraceElement elm : e.getStackTrace()) {
+//                System.err.println( elm.getClassName() + "." + elm.getMethodName() + " : " + elm.getLineNumber() );
+//            }
+
+            throw (RuntimeException)e;
+
+//            if (e instanceof RuntimeException) {
+//                throw (RuntimeException)e;
+//            }
+//            else if (e instanceof Error) {
+//                throw (Error)e;
+//            }
+//            else {
+//                throw new RuntimeException( e );
+//            }
         };
     }
 
 
-    public abstract EventHandlerInfo subscribe( Object annotatedOrListener );
+    public EventHandlerInfo subscribe( Object annotatedOrListener ) {
+        EventHandlerInfo newHandler = new EventHandlerInfo( annotatedOrListener );
+
+        List<EventHandlerInfo> newHandlers = new ArrayList<>( handlers.size() + 1 );
+        for (EventHandlerInfo cursor : handlers) {
+            if (cursor.handler == annotatedOrListener) {
+                throw new IllegalStateException( "Event handler already subscribed!" );
+            }
+            newHandlers.add( cursor );
+        }
+        newHandlers.add( newHandler );
+        handlers = newHandlers;
+        return newHandler;
+    }
+
+
+    protected void unsubscribe( EventHandlerInfo eventHandlerInfo ) {
+        List<EventHandlerInfo> newHandlers = new ArrayList<>( handlers.size() - 1 );
+        for (EventHandlerInfo cursor : handlers) {
+            if (cursor != eventHandlerInfo) {
+                newHandlers.add( cursor );
+            }
+        }
+        handlers = newHandlers;
+    }
 
 
     public EventHandlerInfo subscribe( EventListener<?> l ) {
@@ -67,7 +110,24 @@ public abstract class EventManager {
     }
 
 
-    protected abstract void unsubscribe( EventHandlerInfo eventHandlerInfo );
+    protected int keyOf( Object annotatedOrListener ) {
+        return System.identityHashCode( annotatedOrListener );
+    }
+
+
+    /**
+     * Fire the given events.
+     * <p>
+     * The triggered event handlers may publish new events. The caller has to make
+     * sure that any event queue can handle insert during iteration.
+     *
+     * @param events
+     */
+    protected void fireEvent( EventObject ev ) {
+        for (EventHandlerInfo handler : handlers) {
+            handler.perform( ev );
+        }
+    }
 
 
     /**
@@ -94,7 +154,7 @@ public abstract class EventManager {
 
         protected EventPredicate            disposeIf;
 
-        protected Consumer<Throwable>       onError = defaultOnError;
+        protected BiConsumer<EventObject,Throwable> onError = defaultOnError;
 
 
         public EventHandlerInfo( Object handler ) {
@@ -146,7 +206,7 @@ public abstract class EventManager {
                 throw new IllegalStateException( "handler is neither an EventListener nor annotated! " );
             }
             catch (Throwable e) {
-                onError.accept( e );
+                onError.accept( ev, e );
             }
         }
 
