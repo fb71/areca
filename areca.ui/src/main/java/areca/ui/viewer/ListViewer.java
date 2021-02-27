@@ -11,19 +11,25 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.base;
+package areca.ui.viewer;
+
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
+import areca.ui.component.UIComponent;
+import areca.ui.component.UIComposite;
 
 /**
- * Similar to {@link java.util.function.Supplier} but allows checked Exceptions.
  *
  * @author Falko Bräutigam
  */
-@FunctionalInterface
-public interface Supplier<T,E extends Exception> {
+public class ListViewer
+        extends Viewer<SingleValueAdapter<?>> {
 
-    T supply() throws E;
+    private static final Log log = LogFactory.getLog( ListViewer.class );
 
-    default T get() throws E {
-        return supply();
+    @Override
+    public UIComponent create( UIComposite container ) {
+        throw new RuntimeException( "not implemented yet." );
     }
+
 }

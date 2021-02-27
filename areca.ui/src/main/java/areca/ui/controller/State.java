@@ -11,21 +11,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.context;
+package areca.ui.controller;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
+import areca.ui.component.Property;
 
+/**
+ *
+ * @author Falko Bräutigam
+ */
+public class State<T>
+        extends Property<T> {
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface ModelContext {
+    private static final Log log = LogFactory.getLog( State.class );
 
-    Class<?> type() default Object.class;
+    protected State( Object component, String name, T value ) {
+        super( component, name, value );
+    }
 
-    Class<?> viewer() default Object.class;
 }

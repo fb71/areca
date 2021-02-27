@@ -117,7 +117,7 @@ public class Property<T> {
 
 
     public T get() {
-        Assert.notNull( value );
+        Assert.notNull( value, "Property '" + name + "' must not be null." );
         return value;
     }
 

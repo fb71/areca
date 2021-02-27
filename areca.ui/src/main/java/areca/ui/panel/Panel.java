@@ -11,31 +11,19 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.context;
+package areca.ui.panel;
 
-import java.util.EventObject;
-
-import areca.common.event.EventListener;
-import areca.common.event.EventManager.EventHandlerInfo;
-import areca.ui.viewer.ModelAdapter;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
+import areca.ui.controller.Controller;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class UserInteractionContext {
+public abstract class Panel
+        extends Controller {
 
-    protected void init() {}
+    private static final Log log = LogFactory.getLog( Panel.class );
 
-    protected void dispose() {}
-
-
-    protected EventHandlerInfo subscribeUIEvent( EventListener<?> l ) {
-        throw new RuntimeException("not yet...");
-    }
-
-
-    protected boolean isSource( EventObject ev, ModelAdapter modelAdapter ) {
-        throw new RuntimeException("not yet...");
-    }
 }

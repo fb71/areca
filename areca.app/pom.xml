@@ -13,6 +13,8 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <kotlin.version>1.4.21</kotlin.version>
+        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
 
     <repositories>
@@ -54,10 +56,40 @@
             <artifactId>model2</artifactId>
             <version>3.0.2-areca-SNAPSHOT</version>
         </dependency>
+<!--         <dependency> -->
+<!--             <groupId>org.jetbrains.kotlin</groupId> -->
+<!--             <artifactId>kotlin-stdlib</artifactId> -->
+<!--             <version>${kotlin.version}</version> -->
+<!--         </dependency> -->
     </dependencies>
   
     <build>
         <plugins>
+            <!-- Kotlin compiler -->
+<!--             <plugin> -->
+<!--                 <groupId>org.jetbrains.kotlin</groupId> -->
+<!--                 <artifactId>kotlin-maven-plugin</artifactId> -->
+<!--                 <version>${kotlin.version}</version> -->
+<!--                 <configuration> -->
+<!--                     <sourceDirs> -->
+<!--                         <sourceDir>${project.basedir}/src/main/java</sourceDir> -->
+<!--                     </sourceDirs> -->
+<!--                 </configuration> -->
+<!--                 <executions> -->
+<!--                     <execution> -->
+<!--                         <id>compile</id> -->
+<!--                         <goals> -->
+<!--                             <goal>compile</goal> -->
+<!--                         </goals> -->
+<!--                         <configuration> -->
+<!--                             <sourceDirs> -->
+<!--                                 <sourceDir>${project.basedir}/src/main/java</sourceDir> -->
+<!--                             </sourceDirs> -->
+<!--                         </configuration> -->
+<!--                     </execution> -->
+<!--                 </executions> -->
+<!--             </plugin> -->
+            
             <!-- Java compiler -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

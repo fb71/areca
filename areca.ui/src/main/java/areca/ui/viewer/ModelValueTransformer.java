@@ -11,19 +11,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.base;
+package areca.ui.viewer;
 
 /**
- * Similar to {@link java.util.function.Supplier} but allows checked Exceptions.
  *
+ * @param <M> Type of the model value.
+ * @param <U> Type of the user interface value.
  * @author Falko Bräutigam
  */
-@FunctionalInterface
-public interface Supplier<T,E extends Exception> {
+public interface ModelValueTransformer<M,U> {
 
-    T supply() throws E;
+    public U transform2UI( M value );
 
-    default T get() throws E {
-        return supply();
+    public default M transfor2Model( U value ) {
+        throw new RuntimeException( "Implement this method if the field is modifiable." );
     }
+
 }

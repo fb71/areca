@@ -11,19 +11,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.base;
+package areca.ui.viewer;
 
 /**
- * Similar to {@link java.util.function.Supplier} but allows checked Exceptions.
  *
  * @author Falko Bräutigam
  */
-@FunctionalInterface
-public interface Supplier<T,E extends Exception> {
+public interface ModelValueValidator<T> {
 
-    T supply() throws E;
+    public ValidationResult validate( T value );
 
-    default T get() throws E {
-        return supply();
+    /**
+     * ???
+     */
+    public class ValidationResult {
+
     }
 }

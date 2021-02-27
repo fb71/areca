@@ -11,19 +11,30 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.base;
+package areca.ui.viewer;
+
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
+import areca.ui.component.UIComponent;
+import areca.ui.component.UIComposite;
 
 /**
- * Similar to {@link java.util.function.Supplier} but allows checked Exceptions.
  *
  * @author Falko Bräutigam
  */
-@FunctionalInterface
-public interface Supplier<T,E extends Exception> {
+public abstract class Viewer<A extends ModelAdapter> {
 
-    T supply() throws E;
+    private static final Log log = LogFactory.getLog( Viewer.class );
 
-    default T get() throws E {
-        return supply();
+    protected A         model;
+
+
+    @SuppressWarnings("hiding")
+    protected Viewer<A> init( A model ) {
+        this.model = model;
+        return this;
     }
+
+
+    public abstract UIComponent create( UIComposite container );
 }

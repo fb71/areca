@@ -25,7 +25,7 @@ public class Text
     private static final Logger LOG = Logger.getLogger( Text.class.getSimpleName() );
 
     @SuppressWarnings("hiding")
-    public static final Text  TYPE = new Text();
+    public static final Text TYPE = new Text();
 
     public Property<String>     text = Property.create( this, "text" );
 
