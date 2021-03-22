@@ -39,7 +39,7 @@ public interface Annotated {
         return Sequence.of( annotations() )
                 .filter( a -> type.equals( a.annotationType() ) )
                 .transform( a -> (R)a )
-                .findAny();
+                .first();
     }
 
 }

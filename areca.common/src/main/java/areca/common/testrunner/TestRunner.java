@@ -13,6 +13,8 @@
  */
 package areca.common.testrunner;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,7 +65,7 @@ public class TestRunner {
 
 
     public void run() {
-        List<TestRunnerDecorator> decorators = decoratorTypes.stream().map( cl -> instantiate( cl ) ).collect( Collectors.toList() );
+        List<TestRunnerDecorator> decorators = decoratorTypes.stream().map( cl -> instantiate( cl ) ).collect( toList() );
 
         // all test classes
         decorators.forEach( d -> d.preRun( this ) );
@@ -105,7 +107,7 @@ public class TestRunner {
                     }
                 }
                 catch (InvocationTargetException e ) {
-                    System.out.println( "getCause()..." + e);
+                    System.out.println( "getCause()..." + e );
                     if (expected.equals( Test.NoException.class )
                             || !expected.isAssignableFrom( e.getTargetException().getClass() )) {
                         testResult.setException( e.getTargetException() );

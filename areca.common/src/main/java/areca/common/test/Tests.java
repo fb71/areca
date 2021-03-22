@@ -24,9 +24,9 @@ public class Tests {
     public static ClassInfo<?>[] all() {
         return new ClassInfo[] {
                 AnnotationTest.info,
+                SequenceTest.info,
                 SameStackEventManagerTest.info,
                 ThreadedEventManagerTest.info,
-                SequenceTest.info,
                 RuntimeTest.info
                 //AssertTest.class
         };

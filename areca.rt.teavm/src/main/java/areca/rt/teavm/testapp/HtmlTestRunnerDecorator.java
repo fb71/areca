@@ -18,6 +18,9 @@ import java.util.logging.Logger;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
+
+import org.apache.commons.lang3.StringUtils;
+
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.common.testrunner.TestRunner;
@@ -53,7 +56,7 @@ public class HtmlTestRunnerDecorator
         doc.getBody().getStyle().setProperty( "font", "12px monospace" );
         doc.getBody().appendChild( doc.createTextNode( "Running tests..." ) );
 
-        lineWidth = doc.getBody().getClientWidth() / 9;
+        lineWidth = (doc.getBody().getClientWidth() / 9) - 2;
     }
 
 
@@ -70,7 +73,7 @@ public class HtmlTestRunnerDecorator
     public void preTestMethod( TestMethod m ) {
         doc.getBody().appendChild( testMethodElm = doc.createElement( "p" ));
         testMethodElm.getStyle().setProperty( "margin", "0px 0px" );
-        String l = (m.name() + " ............................................................").substring( 0, lineWidth );
+        String l = StringUtils.rightPad( m.name() + " ", lineWidth, '.' );
         testMethodElm.appendChild( doc.createTextNode( l ) );
     }
 

@@ -98,10 +98,10 @@ public class EmailFolderSynchronizer
                             proto.from.set( kv[1] );
                         }
                     }
-                    doc.elementsByTagName( "htmlBody" ).findAny().ifPresent( elm -> {
+                    doc.elementsByTagName( "htmlBody" ).first().ifPresent( elm -> {
                         proto.text.set( elm.getFirstChild().getNodeValue() );
                     });
-                    doc.elementsByTagName( "plainBody" ).findAny().ifPresent( elm -> {
+                    doc.elementsByTagName( "plainBody" ).first().ifPresent( elm -> {
                         proto.text.set( elm.getFirstChild().getNodeValue() );
                     });
                     return proto;

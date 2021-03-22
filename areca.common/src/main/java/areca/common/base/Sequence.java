@@ -17,9 +17,9 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collector;
@@ -32,9 +32,21 @@ import areca.common.Assert;
 
 /**
  *
+ * @param <T> The type of the elements of this sequence.
+ * @param <E> The super-type of any exception that might be thrown during processing.
  * @author Falko Bräutigam
  */
 public abstract class Sequence<T, E extends Exception> {
+
+//    /**
+//     * A {@link Sequence} that does not throw any checked {@link Exception} during
+//     * processing.
+//     */
+//    public static abstract class Seq<T> extends Sequence<T,RuntimeException> {
+//        protected Seq( Sequence<?,RuntimeException> parent ) {
+//            super( parent );
+//        }
+//    }
 
     @SafeVarargs
     public static <R> Sequence<R,RuntimeException> of( R... elements ) {
@@ -44,6 +56,12 @@ public abstract class Sequence<T, E extends Exception> {
 
     public static <R> Sequence<R,RuntimeException> of( Iterable<R> elements ) {
         return of( RuntimeException.class, elements );
+    }
+
+
+    @SafeVarargs
+    public static <R,E extends Exception> Sequence<R,E> of( Class<E> type, R... elements ) {
+        return of( type, Arrays.asList( elements ) );
     }
 
 
@@ -89,7 +107,7 @@ public abstract class Sequence<T, E extends Exception> {
     protected Sequence<?,E>     parent;
 
 
-    protected Sequence( Sequence<?,E> parent) {
+    protected Sequence( Sequence<?,E> parent ) {
         this.parent = parent;
     }
 
@@ -120,7 +138,7 @@ public abstract class Sequence<T, E extends Exception> {
 
 
     /**
-     * Synonym for {@link #transform(Function)}
+     * Same as {@link #transform(Function)}
      */
     public <R,RE extends E> Sequence<R,E> map( Function<T,R,RE> function ) throws RE {
         return transform( function );
@@ -165,6 +183,49 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
+    /**
+     * Returns the first element, if at least one element is present in this
+     * {@link Sequence}.
+     */
+    public Opt<T> first() throws E {
+        SequenceIterator<T,E> it = iterator();
+        return it.hasNext() ? Opt.of( it.next() ) : Opt.absent();
+    }
+
+
+    /**
+     * Returns the one and only element in this {@link Sequence}.
+     *
+     * @throws NoSuchElementException If the sequence contains no element.
+     * @throws IllegalStateException If the sequence contains more than one element.
+     */
+    public T single() throws E {
+        SequenceIterator<T,E> it = iterator();
+        try {
+            if (!it.hasNext()) {
+                throw new NoSuchElementException( "Sequence contains no element." );
+            }
+            return it.next();
+        }
+        finally {
+            if (it.hasNext()) {
+                throw new IllegalStateException( "Sequence contains more than one element." );
+            }
+        }
+    }
+
+
+    public <RE extends E> Opt<T> first( Predicate<T,RE> condition ) throws E {
+        return filter( condition ).first();
+    }
+
+
+
+    public int count() throws E {
+        return reduce( new MutableInt( 0 ), (result,elm) -> {result.increment(); return result;} ).intValue();
+    }
+
+
     public Sequence<T,E> concat( Sequence<T,E> other ) {
         return new Sequence<T,E>( this ) {
             @Override
@@ -198,12 +259,49 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
+    public <RE extends E> Sequence<T,E> onEach( Consumer<T,RE> consumer ) throws RE {
+        return new Sequence<T,E>( this ) {
+            @Override
+            @SuppressWarnings("unchecked")
+            protected SequenceIterator<T,E> iterator() {
+                return new DelegatingIterator<T,T,E>( (SequenceIterator<T,E>)parent.iterator() ) {
+                    @Override
+                    public T next() throws E {
+                        T next = delegate.next();
+                        consumer.accept( next );
+                        return next;
+                    }
+                };
+            }
+        };
+    }
+
+
     /**
-     * See {@link Stream#forEach(java.util.function.Consumer)}
+     * Performs the given operation for each element of this {@link Sequence}.
+     *
+     * @see Stream#forEach(java.util.function.Consumer)
      */
-    public <RE extends E> void forEach( Consumer<T,RE> action ) throws E {
-        for (SequenceIterator<T,E> it=iterator(); it.hasNext();) {
-            action.accept( it.next() );
+    public <RE extends E> void forEach( Consumer<T,RE> consumer ) throws E {
+        for (SequenceIterator<T,E> it = iterator(); it.hasNext(); ) {
+            consumer.accept( it.next() );
+        }
+    }
+
+
+    /**
+     * Performs the given operation for each element of this {@link Sequence}. The
+     * operation receives the <b>index</b> of the current element.
+     *
+     * @see Stream#forEach(java.util.function.Consumer)
+     * @param <RE>
+     * @param operation
+     * @throws E
+     */
+    public <RE extends E> void forEach( BiConsumer<T,Integer,RE> operation ) throws E {
+        int i = 0;
+        for (SequenceIterator<T,E> it=iterator(); it.hasNext(); i++) {
+            operation.accept( it.next(), i );
         }
     }
 
@@ -243,20 +341,17 @@ public abstract class Sequence<T, E extends Exception> {
      */
     public <A,R> R collect( Collector<T,A,R> collector ) throws E {
         A result = collector.supplier().get();
-        BiConsumer<A,T> accumulator = collector.accumulator();
+        java.util.function.BiConsumer<A,T> accumulator = collector.accumulator();
         forEach( elm -> accumulator.accept( result, elm ) );
         return collector.finisher().apply( result );
     }
 
 
-    public Opt<T> findAny() throws E {
-        SequenceIterator<T,E> it = iterator();
-        return it.hasNext() ? Opt.of( it.next() ) : Opt.absent();
-    }
-
-
-    public int count() throws E {
-        return reduce( new MutableInt( 0 ), (result,elm) -> {result.increment(); return result;} ).intValue();
+    /**
+     *
+     */
+    public <R extends Collection<T>> R collect( Supplier<R,RuntimeException> supplier ) throws E {
+        return reduce( supplier.get(), (r, elm) -> {r.add( elm ); return r;} );
     }
 
 
@@ -266,24 +361,85 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
+    /**
+     * Collects the elements into an {@link ArrayList}.
+     *
+     * @return Newly created {@link ArrayList}.
+     * @throws E
+     */
+    public ArrayList<T> toList() throws E {
+        return collect( Collectors.toCollection( ArrayList::new ) );
+    }
+
+
+    /**
+     *
+     *
+     * @param <K>
+     * @param <RE>
+     * @param keyMapper
+     * @return Newly created {@link HashMap}.
+     * @throws E
+     * @throws {@link IllegalStateException} If a key is not unique.
+     */
+    public <K,RE extends E> HashMap<K,T> toMap( Function<T,K,RE> keyMapper ) throws E {
+//        return reduce( new HashMap<K,T>(), (r, elm) -> {
+//            if (r.put( keyMapper.apply( elm ), elm ) != null) {
+//                throw new IllegalStateException( "Key already exists: " + keyMapper.apply( elm ) );
+//            }
+//            return r;
+//        });
+
+        HashMap<K,T> result = new HashMap<>();
+        forEach( elm -> {
+            if (result.put( keyMapper.apply( elm ), elm ) != null) {
+                throw new IllegalStateException( "Key already exists: " + keyMapper.apply( elm ) );
+            }
+        });
+        return result;
+    }
+
+
+    /**
+     * Returns a {@link Collection} view of this {@link Sequence}. In contrast to
+     * collect methods this does not copy the elements into a newly created
+     * Collection. The resulting Collection reflects changes of the underlying
+     * Sequence.
+     * <p>
+     * The {@link Collection#size()} method <b>caches</b> the result first time it is
+     * called!
+     *
+     * @param <RE>
+     * @return An unmodifiable {@link Collection} view of this {@link Sequence}.
+     * @throws E
+     */
     public <RE extends E> Collection<T> asCollection() throws E {
         return new AbstractCollection<T>() {
             /** fail fast if Sequence throws checked Exception */
             @SuppressWarnings("unchecked")
             Sequence<T,RuntimeException>    noExceptionSequence = (Sequence<T,RuntimeException>)Sequence.this;
-            Lazy<Integer,RuntimeException>  size = new Lazy<>();
+            Lazy<Integer,RuntimeException>  size = new Lazy<>( () -> noExceptionSequence.count() );
             @Override
             public Iterator<T> iterator() {
                 return noExceptionSequence.asIterable().iterator();
             }
             @Override
             public int size() {
-                return size.supply( () -> noExceptionSequence.count() );
+                return size.get();
             }
         };
     }
 
 
+    /**
+     * Returns an {@link Iterable} view of this {@link Sequence}. In contrast to
+     * collect methods this does not copy the elements into a newly created
+     * Collection. If the backing {@link Sequence} changes then the resulting
+     * {@link Iterable} will reflect these changes.
+     *
+     * @param <RE>
+     * @throws E
+     */
     public <RE extends E> Iterable<T> asIterable() throws E {
         return new Iterable<T>() {
             /** fail fast toIterator() method if Sequence throws checked Exception */

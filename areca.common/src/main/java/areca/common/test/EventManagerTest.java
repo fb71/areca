@@ -153,7 +153,7 @@ public class EventManagerTest {
     }
 
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void test() {
         em.subscribe( ev -> {
             System.out.println( "THREAD: " + Thread.currentThread() );

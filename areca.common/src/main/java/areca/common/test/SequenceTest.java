@@ -15,8 +15,11 @@ package areca.common.test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -45,6 +48,10 @@ public class SequenceTest {
         MutableInt result = new MutableInt();
         Sequence.of( Arrays.asList( 1, 2, 3 ) ).forEach( elm -> result.add( elm ) );
         Assert.isEqual( 6, result.intValue() );
+
+        MutableInt indices = new MutableInt();
+        Sequence.of( "1", "2", "3" ).forEach( (elm,i) -> indices.add( i ) );
+        Assert.isEqual( 3, indices.intValue() );
     }
 
 
@@ -98,7 +105,7 @@ public class SequenceTest {
 
         Set<Integer> s1 = Sequence.of( 1, 2, 3 ).collect( Collectors.toSet() );
         Assert.that( s1 instanceof HashSet );
-        Assert.isEqual( s1.size(), 3 );
+        Assert.isEqual( 3, s1.size() );
 
         // not supported by TeaVM
 //        Map<Integer,String> m1 = Sequence.withoutExceptions( 1, 2, 3 ).collect( Collectors.toMap( elm -> elm, elm -> "elm:"+elm) );
@@ -117,6 +124,42 @@ public class SequenceTest {
         Assert.isEqual( 2, sequence.filter( elm -> elm != 1 ).count() );
         Assert.isEqual( 3, sequence.filter( elm -> elm > 0 ).count() );
         Assert.isEqual( 0, sequence.filter( elm -> elm < 0 ).count() );
+    }
+
+
+    @Test
+    public void toListTest() {
+        ArrayList<String> result = Sequence.of( 1, 1 ).map( elm -> elm.toString() ).toList();
+        Assert.isEqual( "1", result.get( 0 ) );
+        Assert.isEqual( "1", result.get( 1 ) );
+    }
+
+
+    @Test
+    public void toMapTest() {
+        Map<String,Integer> result = Sequence.of( 1, 2 ).toMap( elm -> elm.toString() );
+        Assert.that( result instanceof HashMap );
+        Assert.isEqual( 1, result.get( "1" ) );
+        Assert.isEqual( 2, result.get( "2" ) );
+    }
+
+
+    @Test(expected = IllegalStateException.class)
+    public void toMapFailTest() {
+        Sequence.of( 1, 1 ).toMap( elm -> elm.toString() );
+    }
+
+
+    @Test(expected = IOException.class)
+    public void asCollectionFailTest() throws IOException {
+        Collection<String> result = Sequence.of( IOException.class, 1, 2, 3 )
+                .map( elm -> throwException() )
+                .asCollection();
+        iterateCollection( result );
+    }
+
+    protected void iterateCollection( Collection<?> coll ) {
+        coll.forEach( elm -> LOG.info( "" + elm ) );
     }
 
 
