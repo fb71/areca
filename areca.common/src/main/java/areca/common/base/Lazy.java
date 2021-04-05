@@ -22,6 +22,24 @@ import areca.common.Assert;
 public class Lazy<T,E extends Exception>
         implements Supplier<T,E> {
 
+    /**
+     * A {@link Lazy} that does not throw any checked Exception.
+     */
+    public static class $<T>
+            extends Lazy<T,RuntimeException> {
+
+        public $() {
+            super();
+        }
+
+        public $( Supplier<T,RuntimeException> delegate ) {
+            super( delegate );
+        }
+
+    }
+
+    // instance *******************************************
+
     private Supplier<T,E>       delegate;
 
     private volatile boolean    initialized = false;
@@ -55,5 +73,4 @@ public class Lazy<T,E extends Exception>
         }
         return value;
     }
-
 }

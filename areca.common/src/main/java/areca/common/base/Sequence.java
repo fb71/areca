@@ -55,17 +55,17 @@ public abstract class Sequence<T, E extends Exception> {
 
 
     public static <R> Sequence<R,RuntimeException> of( Iterable<R> elements ) {
-        return of( RuntimeException.class, elements );
+        return of( elements, RuntimeException.class );
     }
 
 
     @SafeVarargs
     public static <R,E extends Exception> Sequence<R,E> of( Class<E> type, R... elements ) {
-        return of( type, Arrays.asList( elements ) );
+        return of( Arrays.asList( elements ), type );
     }
 
 
-    public static <R,E extends Exception> Sequence<R,E> of( Class<E> type, Iterable<R> elements ) {
+    public static <R,E extends Exception> Sequence<R,E> of( Iterable<R> elements, Class<E> type ) {
         return new Sequence<R,E>( null ) {
             @Override
             protected SequenceIterator<R,E> iterator() {

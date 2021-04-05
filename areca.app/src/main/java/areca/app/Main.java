@@ -13,17 +13,10 @@
  */
 package areca.app;
 
-import java.util.Arrays;
-
-import org.teavm.jso.browser.Location;
 import org.teavm.jso.browser.Window;
 
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
-import org.polymap.model2.store.tidbstore.IDBStore;
-
-import areca.app.model.Anchor;
-import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.app.ui.MessageController;
 import areca.common.base.Lazy;
@@ -53,28 +46,29 @@ public class Main {
 
 
     static {
-        repo = new Lazy<>( () -> {
-            log.info( "creating repo..." );
-            EntityRepository result = EntityRepository.newConfiguration()
-                    .entities.set( Arrays.asList( Anchor.info, Contact.info, Message.info ) )
-                    .store.set( new IDBStore( "main2", 1, false ) )
-                    .create();
-            log.info( "creating test data..." );
-            TestDataBuilder.run( result );
-            return result;
-        });
-        uow = new Lazy<>( () -> repo.supply().newUnitOfWork() );
+//        repo = new Lazy<>( () -> {
+//            log.info( "creating repo..." );
+//            var result = EntityRepository.newConfiguration()
+//                    .entities.set( Arrays.asList( Anchor.info, Contact.info, Message.info ) )
+//                    .store.set( new IDBStore( "main2", 1, false ) )
+//                    .create();
+//            log.info( "creating test data..." );
+//            TestDataBuilder.run( result );
+//            return result;
+//        });
+//        uow = new Lazy<>( () -> repo.supply().newUnitOfWork() );
     }
 
 
     public static void main( String[] args ) throws Exception {
         // TestRunner
-        Location location = Window.current().getLocation();
+        var location = Window.current().getLocation();
         if (location.getHash().equals( "#test" ) || location.getSearch().contains( "test=true" )) {
             TestRunnerMain.main( args );
             log.info( "done." );
             return;
         }
+
         try {
             // Controller View
             if (location.getHash().equals( "#app" )) {
@@ -89,7 +83,6 @@ public class Main {
             System.out.println( "Exception: " + e + " --> " );
             Throwable rootCause = e;
             while (rootCause.getCause() != null) {
-
                 rootCause = rootCause.getCause();
             }
             System.out.println( "Root cause: " + rootCause );

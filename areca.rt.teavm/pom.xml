@@ -52,6 +52,13 @@
             <scope>compile</scope>
         </dependency>
 
+<!--         <dependency> -->
+<!--             <groupId>org.teavm.flavour</groupId> -->
+<!--             <artifactId>teavm-flavour-json</artifactId> -->
+<!--             <version>0.2.1</version> -->
+<!--             <scope>compile</scope> -->
+<!--         </dependency> -->
+
         <!-- JavaScriptObjects (JSO) - a JavaScript binding for TeaVM -->
 <!--         <dependency> -->
 <!--             <groupId>org.teavm</groupId> -->

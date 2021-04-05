@@ -1,9 +1,8 @@
 package areca.app;
 
+import areca.app.service.imap.ImapTest;
 import areca.common.testrunner.LogDecorator;
 import areca.common.testrunner.TestRunner;
-import areca.rt.teavm.test.SetTimeoutEventManagerTest;
-import areca.rt.teavm.test.TeavmRuntimeTest;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
 
 /**
@@ -20,12 +19,13 @@ public class TestRunnerMain {
     public static void main( String[] args ) throws Exception {
         try {
             new TestRunner()
-                    .addTests( areca.common.test.Tests.all() )
+//                    .addTests( areca.common.test.Tests.all() )
 //                    .addTests( org.polymap.model2.test2.Tests.all() )
-                    .addTests( TeavmRuntimeTest.info )
-                    .addTests( SetTimeoutEventManagerTest.info )
+//                    .addTests( TeavmRuntimeTest.info )
+//                    .addTests( SetTimeoutEventManagerTest.info )
 //                    .addTests( EmailServiceTest.info )
 //                    .addTests( areca.systemservice.client.test.Tests.all() )
+                    .addTests( ImapTest.info )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();
         }

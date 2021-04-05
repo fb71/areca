@@ -92,7 +92,7 @@ public class SequenceTest {
 
     @Test(expected = IOException.class)
     public void exceptionChainTest() throws IOException {
-        Sequence.of( IOException.class, Arrays.asList( 1, 2, 3 ) )
+        Sequence.of( Arrays.asList( 1, 2, 3 ), IOException.class )
                 .transform( elm -> throwException() )
                 .forEach( elm -> LOG.info( ":: " + elm ) );
     }

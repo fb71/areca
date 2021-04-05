@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2021, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,26 +11,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.base;
+package areca.app.service.imap;
+
+import areca.app.service.imap.ImapRequest.Command;
 
 /**
- * Similar to {@link java.util.function.Supplier} but allows checked Exceptions.
  *
  * @author Falko Bräutigam
  */
-@FunctionalInterface
-public interface Supplier<T,E extends Exception> {
+public class FolderStatusCommand extends Command {
 
-    /**
-     * A {@link Supplier} that does not throw any checked Exceptions.
-     */
-    public interface $<T>
-            extends Supplier<T,RuntimeException> {
-    }
-
-    T supply() throws E;
-
-    default T get() throws E {
-        return supply();
+    public FolderStatusCommand( String folderName ) {
+        command = String.format( "tag STATUS %s (MESSAGES)", folderName );
+        expected = "* STATUS";
     }
 }

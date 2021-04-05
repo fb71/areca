@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2021, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,23 +14,17 @@
 package areca.common.base;
 
 /**
- * Similar to {@link java.util.function.Supplier} but allows checked Exceptions.
  *
  * @author Falko Bräutigam
  */
-@FunctionalInterface
-public interface Supplier<T,E extends Exception> {
+public class Scope {
 
-    /**
-     * A {@link Supplier} that does not throw any checked Exceptions.
-     */
-    public interface $<T>
-            extends Supplier<T,RuntimeException> {
+    public static <T,R,E extends Exception> R with( T obj, Function<T,R,E> block ) throws E {
+        return block.apply( obj );
     }
 
-    T supply() throws E;
-
-    default T get() throws E {
-        return supply();
+    public static <T,E extends Exception> void with( T obj, Consumer<T,E> block ) throws E {
+        block.accept( obj );
     }
+
 }
