@@ -22,7 +22,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Range;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.james.mime4j.util.MimeUtil;
 
 import areca.app.service.imap.ImapRequest.Command;
@@ -41,7 +43,12 @@ public class MessageFetchHeadersCommand extends Command {
     public static final Pattern PATTERN = Pattern.compile( "\\* (\\d+) FETCH \\(BODY\\[HEADER.FIELDS \\(([^)]+)\\)\\] \\{(\\d+)\\}", IGNORE_CASE );
 
     public enum FieldEnum {
-        SUBJECT, FROM, TO, DATE;
+        SUBJECT, FROM, TO, DATE, MESSAGE_ID;
+
+        @Override
+        public String toString() {
+            return super.toString().replace( "_", "-" ); // Message-ID
+        }
 
         public boolean equalsString( String s ) {
             return toString().equalsIgnoreCase( s );
@@ -61,10 +68,12 @@ public class MessageFetchHeadersCommand extends Command {
 
 
     public MessageFetchHeadersCommand( Range<Integer> msgNum, FieldEnum field, FieldEnum... more ) {
-        var fieldsString = field.toString() + Sequence.of( more ).reduce( "", (r,f) -> r + " " + f );
-        command = format( "%s FETCH %d:%d (BODY[HEADER.FIELDS (%s)])", tag, msgNum.getMinimum(), msgNum.getMaximum(), fieldsString );
+        var fields = StringUtils.join( ArrayUtils.add( more, field ), " " );
+        // var fields = field.toString() + Sequence.of( more ).reduce( "", (r,f) -> r + " " + f );
+        command = format( "%s FETCH %d:%d (BODY[HEADER.FIELDS (%s)])", tag, msgNum.getMinimum(), msgNum.getMaximum(), fields );
         expected = format( "%s OK FETCH completed", tag );
     }
+
 
     @Override
     protected boolean parseLine( String line ) {

@@ -13,6 +13,8 @@
  */
 package areca.common.base;
 
+import static java.util.Arrays.asList;
+
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,8 +115,8 @@ public abstract class Sequence<T, E extends Exception> {
 
 
     @SuppressWarnings("unchecked")
-    protected <R> Sequence<R,E> parent() {
-        return (Sequence<R,E>)parent;
+    protected Sequence<T,E> parent() {
+        return (Sequence<T,E>)parent;
     }
 
 
@@ -229,10 +231,9 @@ public abstract class Sequence<T, E extends Exception> {
     public Sequence<T,E> concat( Sequence<T,E> other ) {
         return new Sequence<T,E>( this ) {
             @Override
-            @SuppressWarnings("unchecked")
             protected SequenceIterator<T,E> iterator() {
                 return new DelegatingIterator<T,T,E>( null ) {
-                    Iterator<SequenceIterator<T,E>> outer = Arrays.asList(((Sequence<T,E>)parent).iterator(), other.iterator() ).iterator();
+                    Iterator<SequenceIterator<T,E>> outer = asList( parent().iterator(), other.iterator() ).iterator();
                     SequenceIterator<T,E>           inner;
                     int                             index;
                     @Override
@@ -256,6 +257,51 @@ public abstract class Sequence<T, E extends Exception> {
                 };
             }
         };
+    }
+
+
+    public Sequence<T,E> concat( Iterable<T> other ) throws E {
+        return new Sequence<T,E>( this ) {
+            @Override
+            protected SequenceIterator<T,E> iterator() {
+                return new DelegatingIterator<T,T,E>( null ) {
+                    Iterator<Iterator<T>>   outer;
+                    Iterator<T>             inner;
+                    int                     index;
+                    {
+                        try {
+                            outer = asList( parent().asIterable().iterator(), other.iterator() ).iterator();
+                        }
+                        catch (Exception e) {
+                        }
+                    }
+                    @Override
+                    public boolean hasNext() throws E {
+                        while (inner == null || !inner.hasNext()) {
+                            if (!outer.hasNext()) {
+                                return false;
+                            }
+                            inner = outer.next();
+                        }
+                        return inner.hasNext();
+                    }
+                    @Override
+                    public T next() throws E {
+                        if (!hasNext()) {
+                            throw new NoSuchElementException( "index=" + index );
+                        }
+                        index ++;
+                        return inner.next();
+                    }
+                };
+            }
+        };
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public Sequence<T,E> concat( T... other ) throws E {
+        return concat( Arrays.asList( other ) );
     }
 
 

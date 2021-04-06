@@ -15,7 +15,6 @@ package areca.app.service.imap;
 
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
-import java.util.Date;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -26,12 +25,13 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
+import java.time.Instant;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -46,6 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import areca.app.service.imap.ImapForwardServlet.SocketPool.PooledSocket;
 import areca.app.service.imap.ImapRequestData.CommandData;
 import areca.common.Timer;
 
@@ -58,12 +59,9 @@ import areca.common.Timer;
 //@WebServlet(name = "ImapForwardServlet", urlPatterns = {"/imap"})
 public class ImapForwardServlet extends HttpServlet {
 
-    private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    static class InOut {
-        public PrintWriter      out;
-        public BufferedReader   in;
-    }
+    private static final Duration POOL_DURATION = Duration.ofSeconds( 3 );
 
     @FunctionalInterface
     interface Consumer<T,E extends Exception> {
@@ -73,12 +71,40 @@ public class ImapForwardServlet extends HttpServlet {
 
     // instance *******************************************
 
-    private SocketPool     socketPool = new SocketPool();
+    private SocketPool          socketPool = new SocketPool();
+
+    private SSLContext          sslContext;
 
 
     @Override
     public void init() throws ServletException {
         log( "" + getClass().getSimpleName() + " init..." );
+        try {
+            sslContext = SSLContext.getInstance( "TLS" );
+               TrustManager tm = new X509TrustManager() {
+                   @Override
+                   public void checkClientTrusted( X509Certificate[] chain, String authType ) throws CertificateException {
+                   }
+                   @Override
+                   public void checkServerTrusted( X509Certificate[] chain, String authType ) throws CertificateException {
+                   }
+                   @Override
+                   public X509Certificate[] getAcceptedIssuers() {
+                       return null;
+                   }
+               };
+               sslContext.init( null, new TrustManager[] { tm }, null );
+        }
+        catch (KeyManagementException | NoSuchAlgorithmException e) {
+            throw new ServletException("Unable to initialize SSL context: " + e.getMessage(), e );
+        }
+    }
+
+
+    @Override
+    public void destroy() {
+        socketPool.dispose();
+        super.destroy();
     }
 
 
@@ -89,48 +115,36 @@ public class ImapForwardServlet extends HttpServlet {
         var imapRequest = gson.fromJson( request.getReader(), ImapRequestData.class );
         var out = response.getWriter();
 
-        try (
-            var ssl = createSSLSocket( imapRequest );
-            var sslOut = new PrintWriter( new BufferedWriter( new OutputStreamWriter( ssl.getOutputStream(), "UTF8" ) ) );
-            var sslIn = new BufferedReader( new InputStreamReader( ssl.getInputStream(), "UTF8" ) );
-        ){
-            debug( "####################################### SSL connection: established. (" + timer.elapsedHumanReadable() + ")" );
-            timer.restart();
-
-            var imap = new InOut() {{out = sslOut; in = sslIn;}};
-            debug( "<< " + imap.in.readLine() );
-            debug( "####################################### First line: read. (" + timer.elapsedHumanReadable() + ")" );
-            timer.restart();
-
-            performCommand( imapRequest.loginCommand, imap, null );
+        var imap = socketPool.aquireSocket( imapRequest );
+        try {
+            imap.ifCreated( s -> {
+                debug( "<< " + imap.in.readLine() );
+                debug( "####################################### First line: read. (" + timer.elapsedHumanReadable() + ")" );
+                performCommand( imapRequest.loginCommand, imap, null );
+            });
 
             for (var command : imapRequest.commands) {
                 performCommand( command, imap, line -> {
                     out.write( line );
-                    out.write( "\n" );
+                    out.write( '\n' );
                 });
-                // out.write( ImapRequest.RESPONSE_COMMAND_DELIMITER );
                 out.flush();
             }
-
-            performCommand( new ImapRequest.LogoutCommand(), imap, null );
+            socketPool.release( imap );
         }
-        catch (/*KeyManagementException | NoSuchAlgorithmException |*/ Exception e) {
+        catch (Exception e) {
+            imap.close();
             throw new ServletException( e );
         }
-        debug( "SSL connection closed." );
     }
 
 
-    protected <E extends Exception> void performCommand( CommandData command, InOut imap, Consumer<String,E> sink ) throws E, IOException {
+    protected <E extends Exception> void performCommand( CommandData command, PooledSocket imap, Consumer<String,E> sink ) throws E, IOException {
         Timer timer = Timer.start();
         debug( "> " + command.command );
-        imap.out.println( command.command );
+        imap.out.write( command.command );
+        imap.out.write( "\r\n" );
         imap.out.flush();
-
-        if (imap.out.checkError()) {
-            throw new IOException( "SSLSocketClient: java.io.PrintWriter error" );
-        }
 
         for (String line = imap.in.readLine();; line = imap.in.readLine()) {
             debug( "< " + line );
@@ -145,27 +159,13 @@ public class ImapForwardServlet extends HttpServlet {
     }
 
 
-    protected SSLSocket createSSLSocket( ImapRequestData imapRequest )
-            throws IOException, NoSuchAlgorithmException, KeyManagementException {
-        SSLContext sslContext = SSLContext.getInstance( "TLS" );
-        TrustManager tm = new X509TrustManager() {
-            @Override
-            public void checkClientTrusted( X509Certificate[] chain, String authType ) throws CertificateException {
-            }
-            @Override
-            public void checkServerTrusted( X509Certificate[] chain, String authType ) throws CertificateException {
-            }
-            @Override
-            public X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
-        };
-        sslContext.init( null, new TrustManager[] { tm }, null );
-
+    protected SSLSocket createSSLSocket( ImapRequestData imapRequest ) throws IOException {
+        Timer timer = Timer.start();
         debug( "trying %s:%s ...", imapRequest.host, imapRequest.port );
         SSLSocketFactory factory = sslContext.getSocketFactory();
         SSLSocket socket = (SSLSocket)factory.createSocket( imapRequest.host, imapRequest.port );
         socket.startHandshake();
+        debug( "####################################### SSL connection: established. (" + timer.elapsedHumanReadable() + ")" );
         return socket;
     }
 
@@ -182,39 +182,108 @@ public class ImapForwardServlet extends HttpServlet {
 
         private ConcurrentMap<String,BlockingDeque<PooledSocket>> pool = new ConcurrentHashMap<>();
 
+        private Thread  scavenger;
 
-        protected String key( ImapRequestData request ) {
-            return String.join( "_", request.host, String.valueOf( request.port ), request.loginCommand.command.toString() );
+        protected SocketPool() {
+            scavenger = new Thread( () -> {
+                while (scavenger != null) {
+                    try {
+                        Thread.sleep( 1000 );
+
+                        var threshold = Instant.now().minus( POOL_DURATION );
+                        for (var poolkey : pool.keySet()) {
+                            var newDeque = new LinkedBlockingDeque<PooledSocket>();
+                            var sockets = pool.put( poolkey, newDeque );
+                            for (var pooled : sockets) {
+                                if (pooled.lastUsed.isBefore( threshold ) || scavenger == null) {
+                                    pooled.close();
+                                }
+                                else {
+                                    newDeque.addFirst( pooled );
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        debug( "%s", e.getMessage() );
+                        e.printStackTrace();
+                    }
+                }
+                debug( "POOL: stopped." );
+            }, "SocketPool Scavenger"  );
+            scavenger.setDaemon( true );
+            scavenger.start();
         }
 
-        public PooledSocket aquireSocket( ImapRequest request ) throws Exception {
-            var sockets = pool.computeIfAbsent( key( request ), k -> new LinkedBlockingDeque<>() );
+
+        protected void dispose() {
+            this.scavenger = null;
+        }
+
+
+        public PooledSocket aquireSocket( ImapRequestData request ) throws IOException {
+            String poolkey = String.join( "|", request.host, String.valueOf( request.port ), request.loginCommand.command );
+            var sockets = pool.computeIfAbsent( poolkey, k -> new LinkedBlockingDeque<>() );
             var pooled = sockets.poll();
             if (pooled != null) {
+                debug( "POOL: aquired POOLED (pool size: %d/%d)", pool.size(), sockets.size() );
                 return pooled;
             }
             else {
-                return new PooledSocket( createSSLSocket( request ) );
+                debug( "POOL: aquired NEW (pool size: %d/%d)", pool.size(), sockets.size() );
+                return new PooledSocket( createSSLSocket( request ), poolkey );
             }
         }
 
-        public void release( PooledSocket socket ) {
-            // var sockets = pool.get( key( request ) );
+
+        public void release( PooledSocket pooled ) {
+            pool.get( pooled.poolkey).addLast( pooled.touch() );
+            debug( "POOL: pooled socket released (pool size: %d/%d)", pool.size(), pool.get( pooled.poolkey ).size() );
         }
+
 
         class PooledSocket {
 
-            private Socket  socket;
+            private String          poolkey;
 
-            private Date    lastUsed;
+            private Socket          socket;
 
-            public PooledSocket( Socket socket ) {
+            private BufferedWriter  out;
+
+            private BufferedReader  in;
+
+            private Instant         lastUsed;
+
+            public PooledSocket( Socket socket, String poolkey ) throws IOException {
+                this.poolkey = poolkey;
                 this.socket = socket;
+                this.out = new BufferedWriter( new OutputStreamWriter( socket.getOutputStream(), "UTF8" ) );
+                this.in = new BufferedReader( new InputStreamReader( socket.getInputStream(), "UTF8" ) );
             }
 
-            public Socket use() {
-                lastUsed = new Date();
-                return socket;
+            public <E extends Exception> void ifCreated( Consumer<Socket,E> block ) throws E {
+                if (lastUsed == null) {
+                    block.accept( socket );
+                }
+            }
+
+            public PooledSocket touch() {
+                lastUsed = Instant.now();
+                return this;
+            }
+
+            public void close() {
+                try {
+                    // performCommand( new ImapRequest.LogoutCommand(), imap, null );
+                    socket.close();
+                    socket = null;
+                    in = null;
+                    out = null;
+                }
+                catch (IOException e) {
+                    debug( "ERROR: while closing socket: %s", e.getMessage() );
+                }
+                debug( "POOL: socket closed." );
             }
         }
     }

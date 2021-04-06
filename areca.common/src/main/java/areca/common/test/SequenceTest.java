@@ -62,6 +62,7 @@ public class SequenceTest {
         Assert.isEqual( "1245", s.reduce( String::concat ) );
         Assert.isEqual( 2, Sequence.of().concat( Sequence.of( "4", "5" ) ).count() );
         Assert.isEqual( 0, Sequence.of().concat( Sequence.of() ).count() );
+        Assert.isEqual( "1234", Sequence.of( "1", "2" ).concat( "3", "4" ).reduce( String::concat ) );
     }
 
 

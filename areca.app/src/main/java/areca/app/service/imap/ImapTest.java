@@ -13,10 +13,16 @@
  */
 package areca.app.service.imap;
 
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.DATE;
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.FROM;
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.MESSAGE_ID;
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.SUBJECT;
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.TO;
 import static org.apache.commons.lang3.Range.between;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.teavm.jso.json.JSON;
 
@@ -27,7 +33,6 @@ import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.app.service.imap.ImapRequest.LoginCommand;
-import areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum;
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.Timer;
@@ -36,7 +41,7 @@ import areca.common.base.With;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
-import areca.common.testrunner.Before;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -58,12 +63,11 @@ public class ImapTest {
                 .create();
     });
 
-    protected ImapRequest   request;
+    protected ImapRequest   request = newRequest();
 
 
-    @Before
-    protected void setup() {
-        request = new ImapRequest( self -> {
+    protected ImapRequest newRequest() {
+        return new ImapRequest( self -> {
             self.host = "mail.polymap.de";
             self.port = 993;
             self.loginCommand = new LoginCommand( "areca@polymap.de", "dienstag" );
@@ -137,13 +141,36 @@ public class ImapTest {
     @Test
     public void fetchMessageHeadersTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
-        request.commands.add( new MessageFetchHeadersCommand( between( 1, 3 ), FieldEnum.FROM, FieldEnum.SUBJECT, FieldEnum.TO, FieldEnum.DATE ) );
+        request.commands.add( new MessageFetchHeadersCommand( between( 1, 3 ), FROM, SUBJECT, TO, DATE, MESSAGE_ID ) );
         request.submit().thenWait( commands -> {
             var fetchCommand = (MessageFetchHeadersCommand)commands[1];
             for (var entry : fetchCommand.headers.entrySet()) {
-                log.info( "" + entry.getKey() + ": " + entry.getValue() );
+                log.info( "%s: %s", entry.getKey(), entry.getValue() );
             }
         });
+    }
+
+
+    @Test
+    @Skip
+    public void poolTest() throws InterruptedException {
+        var count = 10;
+        AtomicInteger result = new AtomicInteger( 0 );
+        for (int i = 0; i < count; i++) {
+            var r = newRequest();
+            r.commands.add( new FolderSelectCommand( "INBOX" ) );
+            r.submit().then( commands -> {
+                synchronized (result) {
+                    result.incrementAndGet();
+                    result.notifyAll();
+                }
+            });
+        }
+        while (result.get() < count) {
+            synchronized (result) {
+                result.wait();
+            }
+        }
     }
 
 }

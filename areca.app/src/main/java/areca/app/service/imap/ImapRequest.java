@@ -111,7 +111,8 @@ public class ImapRequest
     public static class LoginCommand extends Command {
 
         public LoginCommand( String username, String passwd ) {
-            command = String.format( "%s login %s %s", tag, username, passwd );
+            // must not change for different request for servlet pool (no variable tag)
+            command = String.format( "tag login %s %s", username, passwd );
             expected = "LOGIN completed";
         }
     }
