@@ -46,11 +46,11 @@
                 </exclusion>
             </exclusions>
         </dependency>     
-<!--         <dependency> -->
-<!--             <groupId>io.milton</groupId> -->
-<!--             <artifactId>milton-api</artifactId> -->
-<!--             <version>${milton.version}</version> -->
-<!--         </dependency>      -->
+        <dependency>
+            <groupId>io.milton</groupId>
+            <artifactId>milton-api</artifactId>
+            <version>${milton.version}</version>
+        </dependency>     
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
