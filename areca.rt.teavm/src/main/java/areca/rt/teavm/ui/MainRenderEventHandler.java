@@ -31,13 +31,13 @@ public class MainRenderEventHandler
 
     private static final Logger LOG = Logger.getLogger( MainRenderEventHandler.class.getSimpleName() );
 
-    private static final List<UIRenderer>   RENDERERS = Arrays.asList(
+    private static final List<UIRenderer> RENDERERS = Arrays.asList(
             new UICompositeRenderer(),
             new ButtonRenderer(),
             new TextRenderer() );
 
 
-    private static MainRenderEventHandler              instance;
+    private static MainRenderEventHandler instance;
 
 
     public static void start() {

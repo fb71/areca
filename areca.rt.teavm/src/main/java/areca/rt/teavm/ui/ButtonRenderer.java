@@ -48,7 +48,6 @@ public class ButtonRenderer
         elm.addEventListener( "click", (MouseEvent mev) -> {
             EventManager.instance().publish( new SelectionEvent( button ) );
         });
-
         return super.handleComponentCreated( ev, button, elm );
     }
 

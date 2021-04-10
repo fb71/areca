@@ -355,8 +355,8 @@ public abstract class Sequence<T, E extends Exception> {
     /**
      * See {@link Stream#reduce(BinaryOperator)}
      */
-    public final T reduce( BinaryOperator<T> accumulator ) throws E {
-        return reduce( null, accumulator, (result,r) -> r );
+    public final Opt<T> reduce( BinaryOperator<T> accumulator ) throws E {
+        return Opt.ofNullable( reduce( null, accumulator, (result,r) -> r ) );
     }
 
 

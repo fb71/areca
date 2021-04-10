@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2019, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -16,7 +16,7 @@ package areca.ui.component;
 import java.util.logging.Logger;
 
 /**
- * 
+ *
  * @author falko
  *
  */
@@ -29,15 +29,16 @@ public class Button
     public static final Button  TYPE = new Button();
 
     public Property<String>     label = Property.create( this, "label" );
-        
-    
+
+
     public Button() {
+        bordered.rawSet( true );
     }
 
-    
-    public Button( String label ) {
-        this.label.set( label );
-    }
+
+//    public Button( String label ) {
+//        this.label.set( label );
+//    }
 
 //    public <E extends Exception> Button props( Consumer<Button,E> task ) throws E {
 //        return super.props( task );

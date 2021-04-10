@@ -16,7 +16,6 @@ package areca.app.service.imap;
 import org.polymap.model2.runtime.EntityRepository;
 import areca.common.base.Consumer;
 import areca.common.base.Opt;
-import areca.common.base.Supplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component.Property;
@@ -31,7 +30,7 @@ public class ImapFolderSynchronizer {
 
     public Property<Boolean>            checkExisting = Property.create( this, "checkExisting", false );
 
-    protected Supplier.$<ImapRequest>   requestFactory;
+//    protected Supplier.$<ImapRequest>   requestFactory;
 
     protected EntityRepository          repo;
 

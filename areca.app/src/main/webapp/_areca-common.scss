@@ -15,17 +15,14 @@ body {
     background-color: $bg1_color  
 }
 
-.Bordered {
-    border: 1px solid $separator_color;
-    border-radius: 4px;
-}
-
 .UIComponent {
+    border: 0px solid $separator_color;
+    border-radius: 4px;
     color: $font_color;
 }
 
 .UIComposite {
-    @extend .Bordered;
+    // @extend .Bordered;
     ::-webkit-scrollbar { 
          display: none;         /* Chrome Safari */
     }
@@ -36,7 +33,7 @@ body {
 }
 
 .Button {
-    @extend .Bordered;
+    // @extend .Bordered;
     padding: 7px 12px;
     background-color: $bg3_color;
     box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
@@ -49,3 +46,10 @@ body {
 .ListCell {
     background-color: $accent_color;
 }
+
+.Bordered {
+    border: 1px solid $separator_color;
+    border-radius: 4px;
+    margin: -1px;
+}
+

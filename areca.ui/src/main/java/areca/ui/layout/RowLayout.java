@@ -43,7 +43,7 @@ public class RowLayout
 
         int componentTop = 0;
         for (UIComponent component : composite.components()) {
-            RowConstraints constraints = (RowConstraints)component.layoutConstraints.get();
+            RowConstraints constraints = component.layoutConstraints();
             component.size.set( Size.of( size.width(), constraints.height.get() ) );
             component.position.set( Position.of( 0, componentTop ) );
 

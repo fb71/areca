@@ -59,20 +59,20 @@ public class SequenceTest {
     public void concatTest() {
         Sequence<String,RuntimeException> s = Sequence.of( "1", "2" ).concat( Sequence.of( "4", "5" ) );
         Assert.isEqual( 4, s.count() );
-        Assert.isEqual( "1245", s.reduce( String::concat ) );
+        Assert.isEqual( "1245", s.reduce( String::concat ).get() );
         Assert.isEqual( 2, Sequence.of().concat( Sequence.of( "4", "5" ) ).count() );
         Assert.isEqual( 0, Sequence.of().concat( Sequence.of() ).count() );
-        Assert.isEqual( "1234", Sequence.of( "1", "2" ).concat( "3", "4" ).reduce( String::concat ) );
+        Assert.isEqual( "1234", Sequence.of( "1", "2" ).concat( "3", "4" ).reduce( String::concat ).get() );
     }
 
 
     @Test
     public void reduceTest() {
-        Assert.isEqual( 6, Sequence.of( 1, 2, 3 ).reduce( (r,elm) -> r + elm ) );
+        Assert.isEqual( 6, Sequence.of( 1, 2, 3 ).reduce( (r,elm) -> r + elm ).get() );
         Assert.isEqual( 16, Sequence.of( 1, 2, 3 ).reduce( 10, SequenceTest::sum ) );
 
         Assert.isEqual( "123", Sequence.of( 1, 2, 3 ).reduce( "", (r,elm) -> r + elm ) );
-        Assert.isEqual( "123", Sequence.of( "1", "2", "3" ).reduce( String::concat ) );
+        Assert.isEqual( "123", Sequence.of( "1", "2", "3" ).reduce( String::concat ).get() );
         Assert.isEqual( "123", Sequence.of( 1, 2, 3 ).reduce( new StringBuilder(), StringBuilder::append ).toString() );
     }
 
@@ -83,11 +83,11 @@ public class SequenceTest {
         Assert.isEqual( "234", sequence
                 .transform( elm -> {LOG.info( ":"+elm ); return elm + 1; } )
                 .transform( elm -> {LOG.info( "::"+elm ); return String.valueOf( elm ); } )
-                .reduce( String::concat ) );
+                .reduce( String::concat ).get() );
 
         Assert.that( sequence != sequence.transform( elm -> 0 ) );
 
-        Assert.isEqual( "123", sequence.transform( String::valueOf ).reduce( String::concat ) );
+        Assert.isEqual( "123", sequence.transform( String::valueOf ).reduce( String::concat ).get() );
     }
 
 

@@ -20,23 +20,15 @@ import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.SUBJEC
 import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.TO;
 import static org.apache.commons.lang3.Range.between;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.teavm.jso.json.JSON;
 
-import org.polymap.model2.runtime.EntityRepository;
-import org.polymap.model2.store.tidbstore.IDBStore;
-
-import areca.app.model.Anchor;
-import areca.app.model.Contact;
-import areca.app.model.Message;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.Timer;
-import areca.common.base.Lazy;
 import areca.common.base.With;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -55,13 +47,13 @@ public class ImapTest {
 
     public static final ImapTestClassInfo info = ImapTestClassInfo.instance();
 
-    protected static Lazy.$<EntityRepository> repo = new Lazy.$<>( () -> {
-        log.info( "Creating 'ImapTest' repo..." );
-        return EntityRepository.newConfiguration()
-                .entities.set( Arrays.asList( Message.info, Contact.info, Anchor.info) )
-                .store.set( new IDBStore( "ImapTest", 1, true ) )
-                .create();
-    });
+//    protected static Lazy.$<EntityRepository> repo = new Lazy.$<>( () -> {
+//        log.info( "Creating 'ImapTest' repo..." );
+//        return EntityRepository.newConfiguration()
+//                .entities.set( Arrays.asList( Message.info, Contact.info, Anchor.info) )
+//                .store.set( new IDBStore( "ImapTest", 1, true ) )
+//                .create();
+//    });
 
     protected ImapRequest   request = newRequest();
 

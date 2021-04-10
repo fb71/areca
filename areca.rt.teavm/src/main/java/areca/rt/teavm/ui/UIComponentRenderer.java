@@ -50,7 +50,8 @@ public abstract class UIComponentRenderer<C extends UIComponent,H extends HTMLEl
 
     protected H handleComponentCreated( ComponentCreatedEvent ev, C component, H elm ) {
         elm.getStyle().setProperty( "position", "absolute" );
-        elm.getStyle().setProperty( "transition", "top 0.5s, left 0.5s" );
+        elm.getStyle().setProperty( "transition", "top 0.75s, left 0.75s, width 0.75s, height 0.75s" );
+        elm.getStyle().setProperty( "box-sizing", "border-box" );
 
         component.position.rawSet( Position.of( 0, 0 ) );
         Size size = Size.of( elm.getOffsetWidth(), elm.getOffsetHeight() );
@@ -68,6 +69,9 @@ public abstract class UIComponentRenderer<C extends UIComponent,H extends HTMLEl
         StringBuilder classes = new StringBuilder( 128 );
         for (Class cl=component.getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
             classes.append( classes.length() > 0 ? " " : "" ).append( cl.getSimpleName() );
+        }
+        if (component.bordered.get()) {
+            classes.append( " Bordered" );
         }
         elm.setAttribute( "class", classes.toString() );
 

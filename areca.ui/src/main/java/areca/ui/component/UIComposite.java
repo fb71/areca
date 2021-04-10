@@ -17,11 +17,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
 import areca.common.Assert;
 import areca.common.base.Consumer;
+import areca.common.base.Sequence;
 import areca.ui.Size;
 import areca.ui.layout.LayoutManager;
 
@@ -114,13 +112,13 @@ public class UIComposite
 
         public int size();
 
-        public default Stream<T> stream() {
-            return StreamSupport.stream( spliterator(), false );
-        }
-
-//        public default Sequence<T> sequence() {
-//            return Sequence.of( this );
+//        public default Stream<T> stream() {
+//            return StreamSupport.stream( spliterator(), false );
 //        }
+
+        public default Sequence<T,RuntimeException> sequence() {
+            return Sequence.of( this );
+        }
     }
 
 }

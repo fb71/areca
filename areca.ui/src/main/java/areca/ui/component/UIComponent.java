@@ -56,6 +56,8 @@ public abstract class UIComponent {
 
     public Property<Position>               position = Property.create( this, "position" );
 
+    public Property<Boolean>                bordered = Property.create( this, "bordered", false );
+
 
     /** Instantiate via {@link UIComposite#create(Class, Consumer...)} only. */
     protected UIComponent() { }
@@ -80,6 +82,12 @@ public abstract class UIComponent {
 
     public UIComposite parent() {
         return parent;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public <R> R layoutConstraints() {
+        return (R)layoutConstraints.get();
     }
 
 

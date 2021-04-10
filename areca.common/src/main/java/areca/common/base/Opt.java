@@ -94,7 +94,7 @@ public class Opt<T> {
 
 
     /**
-     * If a value is present, and the value matches the given condition,
+     * If a value is present and the value matches the given condition then
      * returns this, otherwise return {@link #absent()}.
      */
     public <E extends Exception> Opt<T> matches( Predicate<? super T,E> condition ) throws E {
@@ -104,14 +104,26 @@ public class Opt<T> {
 
 
     /**
-     * If {@link #isPresent()} transform the value with the given mapper function,
-     * other wise return {@link #absent()}.
+     * If the value {@link #isPresent()} then transform the value with the given
+     * mapper function, otherwise return {@link #absent()}.
      *
-     * @return The transformed value or {@link #absent()}.
+     * @return The transformed value, or {@link #absent()}.
      */
     public <R,E extends Exception> Opt<R> transform( Function<? super T,? extends R,E> mapper ) throws E {
-        Assert.notNull( mapper );
         return isPresent() ? Opt.ofNullable( mapper.apply( value ) ) : absent();
+    }
+
+
+    public <R,E extends Exception> Opt<R> ifPresentTransform( Function<? super T,? extends R,E> mapper ) throws E {
+        return isPresent() ? Opt.ofNullable( mapper.apply( value ) ) : absent();
+    }
+
+
+    /**
+     * Synonym for {@link #transform(Function)}.
+     */
+    public <R,E extends Exception> Opt<R> ifPresentMap( Function<? super T,? extends R,E> mapper ) throws E {
+        return transform( mapper );
     }
 
 
@@ -122,7 +134,7 @@ public class Opt<T> {
      */
     public T get() {
         if (!isPresent()) {
-            throw new NoSuchElementException( "Opt<> is absent.");
+            throw new NoSuchElementException( "The value of this Opt is null.");
         }
         return value;
     }
