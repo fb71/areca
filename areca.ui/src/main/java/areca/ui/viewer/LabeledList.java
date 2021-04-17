@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 
 import areca.ui.component.ListBase;
 import areca.ui.component.Property;
+import areca.ui.component.Property.ReadWrite;
 import areca.ui.component.Text;
 import areca.ui.component.UIComposite;
 import areca.ui.layout.FillLayout;
@@ -31,7 +32,7 @@ public class LabeledList<T>
 
     private static final Logger LOG = Logger.getLogger( LabeledList.class.getName() );
 
-    public Property<Labeler<T,String>>  firstLineLabeler = Property.create( this, "firstLineLabeler" );
+    public ReadWrite<Labeler<T,String>> firstLineLabeler = Property.create( this, "firstLineLabeler" );
 
 
     @Override

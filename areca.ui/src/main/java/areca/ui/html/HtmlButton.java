@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019, the @authors. All rights reserved.
+ * Copyright (C) 2021, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,22 +11,22 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.component;
+package areca.ui.html;
 
-import java.util.logging.Logger;
+import areca.ui.component.Property.ReadWrite;
 
 /**
  *
- * @author falko
+ * @author Falko Bräutigam
  */
-public class Text
-        extends UIComponent {
+public class HtmlButton
+        extends HtmlElement {
 
-    private static final Logger LOG = Logger.getLogger( Text.class.getSimpleName() );
+    public ReadWrite<String>        value;
 
-    @SuppressWarnings("hiding")
-    public static final Text TYPE = new Text();
 
-   // public ReadWrite<String>     text = Property.create( this, "text" );
+    public HtmlButton() {
+        super();
+    }
 
 }

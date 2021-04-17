@@ -18,6 +18,7 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component.Property;
+import areca.ui.component.Property.ReadWrite;
 import areca.ui.component.UIComposite;
 
 /**
@@ -29,7 +30,7 @@ public class GridLayout
 
     private static final Log log = LogFactory.getLog( GridLayout.class );
 
-    public Property<Integer>    spacing = Property.create( this, "spacing", 5 );
+    public ReadWrite<Integer>   spacing = Property.create( this, "spacing", 5 );
 
 
     @Override

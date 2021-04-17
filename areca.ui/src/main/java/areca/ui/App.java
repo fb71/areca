@@ -13,6 +13,7 @@
  */
 package areca.ui;
 
+import areca.common.Assert;
 import areca.common.base.Consumer;
 import areca.ui.component.UIComposite;
 
@@ -20,8 +21,41 @@ import areca.ui.component.UIComposite;
  *
  * @author falko
  */
-public abstract class App {
+public class App {
 
-    public abstract <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E;
+    private static App      instance;
+
+    public static App instance() {
+        return instance != null ? instance : (instance = new App());
+    }
+
+    // instance *******************************************
+
+    private RootWindow           rootWindow;
+
+
+    public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E {
+        // MainRenderEventHandler.start();
+
+        Assert.isNull( rootWindow );
+        rootWindow = new RootWindow();
+        rootWindow.init( null );
+
+        initializer.accept( rootWindow );
+        return rootWindow;
+    }
+
+
+    /**
+     *
+     */
+    protected class RootWindow
+            extends UIComposite {
+
+        @Override
+        public void init( UIComposite newParent ) {
+            super.init( newParent );
+        }
+    }
 
 }

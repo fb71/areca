@@ -14,6 +14,7 @@
 package areca.ui.layout;
 
 import areca.ui.component.Property;
+import areca.ui.component.Property.ReadWrite;
 
 /**
  *
@@ -22,6 +23,6 @@ import areca.ui.component.Property;
 public class RowConstraints
         implements LayoutConstraints {
 
-    public Property<Integer>        height = Property.create( this, "height" );
+    public ReadWrite<Integer>       height = Property.create( this, "height" );
 
 }

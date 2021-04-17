@@ -11,14 +11,13 @@ body {
     font-family: arial, sans-serif;
 }
 
-.RootWindow {
-    background-color: $bg1_color  
-}
-
 .UIComponent {
+    position: absolute;
     border: 0px solid $separator_color;
     border-radius: 4px;
     color: $font_color;
+    transition: top 0.75s, left 0.75s, width 0.75s, height .75s;
+    box-sizing: border-box;
 }
 
 .UIComposite {
@@ -50,6 +49,13 @@ body {
 .Bordered {
     border: 1px solid $separator_color;
     border-radius: 4px;
-    margin: -1px;
+    // margin: -1px;
+}
+
+.RootWindow {
+    position: relative;
+    background-color: $bg1_color;
+    width: 100%;
+    height: 100%;
 }
 

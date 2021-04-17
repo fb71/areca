@@ -49,7 +49,7 @@ public class AppWindow {
         toolbar.layout.set( new FillLayout() );
         toolbar.add( new Button(), proto -> {
             proto.label.set( "toolbar" );
-            proto.subscribe( ev -> proto.bordered.set( !proto.bordered.get() ) );
+            proto.onClick( ev -> proto.bordered.set( !proto.bordered.get() ) );
         });
         toolbar.bordered.set( true );
 

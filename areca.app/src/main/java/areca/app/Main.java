@@ -15,7 +15,9 @@ package areca.app;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.rt.teavm.ui.TeaApp;
+import areca.rt.teavm.html.TeaHtmlImplFactory;
+import areca.ui.App;
+import areca.ui.html.HtmlElement;
 import areca.ui.pageflow.AppWindow;
 
 /**
@@ -29,17 +31,39 @@ public class Main {
 
     public static void main( String[] args ) throws Exception {
         // TestRunner
-        TestsRunnerMain.main( args );
-        log.info( "done." );
+//        TestsMain.main( args );
+//        log.info( "done." );
 //        return;
 
         try {
-            //FirstGroovy.test();
+            HtmlElement.factory = new TeaHtmlImplFactory();
+
             //createApp();
-            ComponentTestsMain.createGridLayoutApp();
+            UITestsMain.createGridLayoutApp();
+
+//            var div = new HtmlElement( Type.DIV );
+//            var btn = div.children.add( new HtmlButton() );
+//            // btn.styles.set( "background-color", Color.WHITE );
+//            btn.styles.set( "width", "50px" );
+//            btn.styles.set( "height", "%spx", 50 );
+//            btn.styles.set( "position", "absolute" );
+//            btn.styles.set( "top", "%spx", 50 );
+//            btn.styles.set( "left", "%spx", 50 );
+//            log.info( "client= %s", btn.clientSize.get() );
+//            log.info( "offset= %s", btn.offsetSize.get() );
+//            log.info( "position= %s", btn.offsetPosition.get() );
+//            var handle = btn.listeners.click( ev -> {
+//                log.info( "position= %s", ev.clientPosition.get() );
+//            });
+//            btn.listeners.remove( handle );
+//            btn.listeners.mouseMove( ev -> {
+//                btn.styles.set( "left", "%spx", ev.clientPosition.get().x() );
+//            });
+//
+//           // btn.children.append( new TextNode() );
         }
         catch (Throwable e) {
-            System.out.println( "Exception: " + e + " --> " );
+            //System.out.println( "Exception: " + e + " --> " );
             Throwable rootCause = e;
             while (rootCause.getCause() != null) {
                 rootCause = rootCause.getCause();
@@ -51,7 +75,7 @@ public class Main {
 
 
     protected static void createApp() {
-        TeaApp.instance().createUI( rootWindow -> {
+        App.instance().createUI( rootWindow -> {
             var appWindow = new AppWindow( rootWindow );
 
 //            appWindow.layout.set( new GridLayout() {{spacing.set( 10 );}} );

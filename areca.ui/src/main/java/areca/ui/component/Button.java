@@ -15,6 +15,10 @@ package areca.ui.component;
 
 import java.util.logging.Logger;
 
+import areca.ui.component.Property.ReadWrite;
+import areca.ui.html.HtmlButton;
+import areca.ui.html.HtmlTextNode;
+
 /**
  *
  * @author falko
@@ -25,23 +29,29 @@ public class Button
 
     private static final Logger LOG = Logger.getLogger( Button.class.getSimpleName() );
 
-    @SuppressWarnings("hiding")
-    public static final Button  TYPE = new Button();
+//    @SuppressWarnings("hiding")
+//    public static final Button  TYPE = new Button();
 
-    public Property<String>     label = Property.create( this, "label" );
+    public ReadWrite<String> label = new ReadWrite<>( this, "label" ) {
+        private String value;
+        @Override
+        protected void doSet( String newValue ) {
+            value = newValue;
+            HtmlTextNode text = new HtmlTextNode( newValue );
+            htmlElm.children.add( text );
+        }
+        @Override
+        protected String doGet() {
+            return value;
+        }
+    };
 
 
-    public Button() {
+    @Override
+    protected void init( UIComposite newParent ) {
+        htmlElm = new HtmlButton();
         bordered.rawSet( true );
+        super.init( newParent );
     }
-
-
-//    public Button( String label ) {
-//        this.label.set( label );
-//    }
-
-//    public <E extends Exception> Button props( Consumer<Button,E> task ) throws E {
-//        return super.props( task );
-//    }
 
 }

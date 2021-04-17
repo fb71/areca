@@ -13,61 +13,88 @@
  */
 package areca.ui.component;
 
-import java.util.logging.Logger;
-
 import areca.common.Assert;
 import areca.common.base.Consumer;
 import areca.common.base.Opt;
+import areca.common.base.Sequence;
+import areca.common.base.Supplier;
 import areca.common.event.EventManager;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 
 /**
  *
  * @author falko
  */
-public class Property<T> {
+public abstract class Property<T> {
 
-    private static final Logger LOG = Logger.getLogger( Property.class.getSimpleName() );
+    private static final Log LOG = LogFactory.getLog( Property.class );
 
-    public static <R> Property<R> create( Object component, String name ) {
-        return new Property<>( component, name, null );
+    /**
+     * Creates a field backed read-write property.
+     */
+    public static <R> ReadWrite<R> create( Object component, String name ) {
+        return new FieldBackedProperty<>( component, name, null );
     }
 
-    public static <R> Property<R> create( Object component, String name, R initialValue ) {
-        return new Property<>( component, name, initialValue );
+    /**
+     * Creates a field backed read-write property with the given initial value.
+     */
+    public static <R> ReadWrite<R> create( Object component, String name, R initialValue ) {
+        return new FieldBackedProperty<>( component, name, initialValue );
     }
 
+    /**
+     *
+     */
+    public static <R> ReadOnly<R> create( Object component, String name, Supplier.$<R> getter ) {
+        return new ReadOnly<>( component, name ) {
+            @Override protected R doGet() {
+                return getter.get();
+            }
+        };
+    }
+
+    /**
+     *
+     */
+    public static <R> ReadWrite<R> create( Object component, String name, Supplier.$<R> getter, Consumer.$<R> setter ) {
+        return new ReadWrite<>( component, name ) {
+            @Override protected R doGet() {
+                return getter.get();
+            }
+            @Override protected void doSet( R newValue ) {
+                LOG.info( "%s.%s = %s", component.getClass().getSimpleName(), name, newValue );
+                setter.accept( newValue );
+            }
+        };
+    }
 
     // instance *******************************************
 
-    private Object      component;
+    protected Object component;
 
-    private String      name;
-
-    private T           value;
+    protected String name;
 
 
-    protected Property( Object component, String name, T value ) {
+    protected Property( Object component, String name ) {
         this.component = component;
         this.name = name;
-        this.value = value;
     }
-
 
     @Override
     public String toString() {
-        return "Property[" + component.getClass().getSimpleName() + "." + name + "]";
+        return String.format( "Property[%s]", name );
     }
-
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((component == null) ? 0 : component.getClass().getName().hashCode());
+       // result = prime * result + ((component == null) ? 0 : component.getClass().getName().hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         return result;
     }
-
 
     @Override
     public boolean equals( Object obj ) {
@@ -82,48 +109,138 @@ public class Property<T> {
         return false;
     }
 
-
-    public Object component() {
-        return component;
-    }
-
-
     public String name() {
         return name;
     }
 
-
-    /** Set value without firing {@link PropertyChangedEvent}. */
-    public Property<T> rawSet( T newValue ) {
-        this.value = newValue;
-        return this;
-    }
-
-
-    public Property<T> set( T newValue ) {
-        T oldValue = value;
-        this.value = newValue;
+    protected void fireEvent( Object oldValue, Object newValue ) {
         EventManager.instance().publish( new PropertyChangedEvent( this, oldValue, newValue ) );
-        return this;
     }
 
 
-    @SuppressWarnings("unchecked")
-    public <TT extends T,E extends Exception> Property<T> modify( Consumer<TT,E> modifier ) throws E {
-        modifier.accept( (TT)value );
-        EventManager.instance().publish( new PropertyChangedEvent( this, value, value ) );
-        return this;
+    /**
+     *
+     */
+    public static abstract class ReadOnly<T>
+            extends Property<T> {
+
+        protected ReadOnly( Object component, String name ) {
+            super( component, name );
+        }
+
+        protected abstract T doGet();
+
+        public T get() {
+            return Assert.notNull( doGet(), "Property '" + name + "' is null." );
+        }
+
+        public Opt<T> opt() {
+            return Opt.ofNullable( doGet() );
+        }
     }
 
 
-    public T get() {
-        Assert.notNull( value, "Property '" + name + "' must not be null." );
-        return value;
+    /**
+     *
+     */
+    public static abstract class ReadWrite<T>
+            extends ReadOnly<T> {
+
+        protected ReadWrite( Object component, String name ) {
+            super( component, name );
+        }
+
+        protected abstract void doSet( T newValue );
+
+        /** Set value without firing {@link PropertyChangedEvent}. */
+        public ReadWrite<T> rawSet( T newValue ) {
+            doSet( newValue );
+            return this;
+        }
+
+        public ReadWrite<T> set( T newValue ) {
+            doSet( newValue );
+            return this;
+        }
+
+//        @SuppressWarnings("unchecked")
+//        public <TT extends T,E extends Exception> Property<T> modify( Consumer<TT,E> modifier ) throws E {
+//            modifier.accept( (TT)value );
+//            EventManager.instance().publish( new PropertyChangedEvent( this, value, value ) );
+//            return this;
+//        }
     }
 
 
-    public Opt<T> opt() {
-        return Opt.ofNullable( value );
+    /**
+     *
+     */
+    public static class FieldBackedProperty<T>
+            extends ReadWrite<T> {
+
+        protected T value;
+
+        protected FieldBackedProperty( Object component, String name, T initialValue ) {
+            super( component, name );
+            this.value = initialValue;
+        }
+
+        @Override
+        protected void doSet( T newValue ) {
+            value = newValue;
+        }
+
+        @Override
+        protected T doGet() {
+            return value;
+        }
+
+
+//        @SuppressWarnings("unchecked")
+//        public <TT extends T,E extends Exception> Property<T> modify( Consumer<TT,E> modifier ) throws E {
+//            modifier.accept( (TT)value );
+//            EventManager.instance().publish( new PropertyChangedEvent( this, value, value ) );
+//            return this;
+//        }
+    }
+
+
+    /**
+     *
+     */
+    public static abstract class ReadOnlys<T>
+            extends Property<T> {
+
+        protected ReadOnlys( Object component, String name ) {
+            super( component, name );
+        }
+
+        public abstract Sequence<T,RuntimeException> sequence();
+    }
+
+
+    /**
+     *
+     */
+    public static abstract class ReadWrites<T>
+            extends ReadOnlys<T> {
+
+        protected ReadWrites( Object component, String name ) {
+            super( component, name );
+        }
+
+        protected abstract void doAdd( T value );
+
+        protected abstract void doRemove( T value );
+
+        public <R extends T> R add( R value ) {
+            doAdd( value );
+            return value;
+        }
+
+        protected void remove( T value ) {
+            doRemove( value );
+        }
     }
 
 

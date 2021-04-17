@@ -20,7 +20,7 @@ import areca.app.model.Message;
 import areca.common.base.Lazy;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.rt.teavm.ui.TeaApp;
+import areca.ui.App;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component.Button;
@@ -33,9 +33,9 @@ import areca.ui.viewer.LabeledList;
  *
  * @author Falko Bräutigam
  */
-public class ComponentTestsMain {
+public class UITestsMain {
 
-    private static final Log log = LogFactory.getLog( ComponentTestsMain.class );
+    private static final Log log = LogFactory.getLog( UITestsMain.class );
 
     public static Lazy<EntityRepository,RuntimeException>   repo;
 
@@ -58,14 +58,14 @@ public class ComponentTestsMain {
 
 
     public static void createMessagesListApp() {
-        TeaApp.instance().createUI( appWindow -> {
+        App.instance().createUI( appWindow -> {
             appWindow.size.set( Size.of( 400, 300 ) );
             appWindow.layout.set( new FillLayout() );
 
             // Button1
             appWindow.add( new Button(), btn -> {
                 btn.label.set( "Button!" );
-                btn.subscribe( (SelectionEvent ev) -> {
+                btn.onClick( (SelectionEvent ev) -> {
                     log.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
                     Position pos = btn.position.get();
                     btn.position.set( Position.of( pos.x()-10, pos.y()-10 ) );
@@ -84,15 +84,15 @@ public class ComponentTestsMain {
 
 
     public static void createGridLayoutApp() {
-        TeaApp.instance().createUI( appWindow -> {
+        App.instance().createUI( appWindow -> {
             //appWindow.size.set( Size.of( 400, 300 ) );
             appWindow.layout.set( new GridLayout() {{spacing.set( 10 );}} );
 
-            for (int i = 0; i < 40; i++) {
-                var l = "" + i;
+            for (int i = 0; i < 2; i++) {
+                var label = "" + i;
                 appWindow.add( new Button(), btn -> {
-                    btn.label.set( l );
-                    btn.subscribe( (SelectionEvent ev) ->  {
+                    btn.label.set( label );
+                    btn.onClick( ev ->  {
                         appWindow.layout.set( (appWindow.layout.get() instanceof FillLayout)
                                 ? new GridLayout() : new FillLayout() );
                         appWindow.layout();

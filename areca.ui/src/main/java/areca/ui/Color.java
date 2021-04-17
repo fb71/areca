@@ -29,6 +29,10 @@ public class Color {
         return new Color( r, g, b, (short)0 );
     }
 
+    public static Color ofHex( String hex ) {
+        throw new RuntimeException("...");
+    }
+
     // instance *******************************************
 
     private short   r, g, b, a;

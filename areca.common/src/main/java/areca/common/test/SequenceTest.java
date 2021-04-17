@@ -129,6 +129,20 @@ public class SequenceTest {
 
 
     @Test
+    public void seriesTest() {
+        var s = Sequence.series( 0, n -> n + 1, n -> n < 10 );
+        Assert.isEqual( 0, s.first().get() );
+        Assert.isEqual( 10, s.count() );
+        Assert.isEqual( 45, s.reduce( SequenceTest::sum ).get() );
+
+        s = Sequence.series( 0, n -> n + 2, n -> n < 10 );
+        Assert.isEqual( 0, s.first().get() );
+        Assert.isEqual( 5, s.count() );
+        Assert.isEqual( 20, s.reduce( SequenceTest::sum ).get() );
+    }
+
+
+    @Test
     public void toListTest() {
         ArrayList<String> result = Sequence.of( 1, 1 ).map( elm -> elm.toString() ).toList();
         Assert.isEqual( "1", result.get( 0 ) );

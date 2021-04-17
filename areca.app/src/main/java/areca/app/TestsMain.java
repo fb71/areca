@@ -1,6 +1,5 @@
 package areca.app;
 
-import areca.app.service.imap.ImapTest;
 import areca.common.testrunner.LogDecorator;
 import areca.common.testrunner.TestRunner;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
@@ -10,7 +9,7 @@ import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
  *
  * @author Falko Bräutigam
  */
-public class TestsRunnerMain {
+public class TestsMain {
 
     /**
      *
@@ -25,7 +24,7 @@ public class TestsRunnerMain {
 //                    .addTests( SetTimeoutEventManagerTest.info )
 //                    .addTests( EmailServiceTest.info )
 //                    .addTests( areca.systemservice.client.test.Tests.all() )
-                    .addTests( ImapTest.info )
+//                    .addTests( ImapTest.info )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();
         }

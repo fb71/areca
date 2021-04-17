@@ -21,6 +21,10 @@ import areca.common.Assert;
 import areca.common.base.Consumer;
 import areca.common.base.Sequence;
 import areca.ui.Size;
+import areca.ui.component.Property.ReadOnly;
+import areca.ui.component.Property.ReadWrite;
+import areca.ui.html.HtmlElement;
+import areca.ui.html.HtmlElement.Type;
 import areca.ui.layout.LayoutManager;
 
 /**
@@ -35,11 +39,18 @@ public class UIComposite
     @SuppressWarnings("hiding")
     public static final UIComposite TYPE = new UIComposite();
 
-    public Property<LayoutManager>  layout = Property.create( this, "lm" );
+    public ReadWrite<LayoutManager> layout = Property.create( this, "lm" );
 
-    public Property<Size>           clientSize = Property.create( this, "clientSize" );
+    public ReadOnly<Size>           clientSize = Property.create( this, "clientSize", () -> htmlElm.clientSize.get() );
 
     private List<UIComponent>       components = new ArrayList<>();
+
+
+    @Override
+    protected void init( UIComposite newParent ) {
+        htmlElm = new HtmlElement( Type.DIV );
+        super.init( newParent );
+    }
 
 
     /**
@@ -52,6 +63,7 @@ public class UIComposite
      */
     public <C extends UIComponent> C add( C component ) {
         Assert.notNull( component ).init( this );
+        htmlElm.children.add( component.htmlElm );
         components.add( component );
         return component;
     }

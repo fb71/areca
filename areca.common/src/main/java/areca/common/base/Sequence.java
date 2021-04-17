@@ -13,6 +13,8 @@
  */
 package areca.common.base;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 
 import java.util.AbstractCollection;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
@@ -97,6 +100,39 @@ public abstract class Sequence<T, E extends Exception> {
                     }
                     @Override public boolean hasNext() throws E {
                         return iterator.hasNext();
+                    }
+                };
+            }
+        };
+    }
+
+
+    /**
+     * Creates a {@link Sequence} that produces a series of values in the given range.
+     *
+     * @param <R>
+     * @param start The first value returned.
+     * @param next The function that creates the next value.
+     * @param as_long_as Continue the series as long as this condition is met.
+     * @return Newly created {@link Sequence}.
+     */
+    public static <R> Sequence<R,RuntimeException> series( R start,
+            Function<R,R,RuntimeException> next,
+            Predicate<R,RuntimeException> as_long_as ) {
+        return new Sequence<R,RuntimeException>( null ) {
+            @Override
+            protected SequenceIterator<R,RuntimeException> iterator() {
+                return new DelegatingIterator<R,R,RuntimeException>( null ) {
+                    private R value = start;
+                    @Override public R next() throws RuntimeException {
+                        try {
+                            return value;
+                        } finally {
+                            value = next.apply( value );
+                        }
+                    }
+                    @Override public boolean hasNext() throws RuntimeException {
+                        return as_long_as.test( value );
                     }
                 };
             }
@@ -221,6 +257,10 @@ public abstract class Sequence<T, E extends Exception> {
         return filter( condition ).first();
     }
 
+
+    public <RE extends E> Boolean anyMatches( Predicate<T,RE> condition ) throws E {
+        return filter( condition ).first().ifPresentMap( v -> TRUE ).orElse( FALSE );
+    }
 
 
     public int count() throws E {
@@ -415,6 +455,17 @@ public abstract class Sequence<T, E extends Exception> {
      */
     public ArrayList<T> toList() throws E {
         return collect( Collectors.toCollection( ArrayList::new ) );
+    }
+
+
+    /**
+     * Collects the elements into an {@link HashSet}.
+     *
+     * @return Newly created {@link HashSet}.
+     * @throws E
+     */
+    public HashSet<T> toSet() throws E {
+        return reduce( new HashSet<>(), (result, elm) -> { result.add( elm ); return result; } );
     }
 
 
