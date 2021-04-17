@@ -25,6 +25,7 @@ import areca.ui.component.Property.ReadOnly;
 import areca.ui.component.Property.ReadWrite;
 import areca.ui.html.HtmlElement;
 import areca.ui.html.HtmlElement.Type;
+import areca.ui.html.HtmlNode;
 import areca.ui.layout.LayoutManager;
 
 /**
@@ -47,9 +48,10 @@ public class UIComposite
 
 
     @Override
-    protected void init( UIComposite newParent ) {
+    protected HtmlNode init( UIComposite newParent ) {
         htmlElm = new HtmlElement( Type.DIV );
         super.init( newParent );
+        return htmlElm;
     }
 
 
@@ -62,8 +64,8 @@ public class UIComposite
      * @return Newly added/initialized child component.
      */
     public <C extends UIComponent> C add( C component ) {
-        Assert.notNull( component ).init( this );
-        htmlElm.children.add( component.htmlElm );
+        var childElm = Assert.notNull( component ).init( this );
+        htmlElm.children.add( childElm );
         components.add( component );
         return component;
     }

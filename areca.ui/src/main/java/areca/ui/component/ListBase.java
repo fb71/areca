@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import areca.common.Assert;
 import areca.common.base.Sequence;
+import areca.ui.html.HtmlNode;
 import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
 
@@ -39,9 +40,9 @@ public abstract class ListBase<T>
 
 
     @Override
-    protected void init( UIComposite newParent ) {
-        super.init( newParent );
+    protected HtmlNode init( UIComposite newParent ) {
         layout.set( new RowLayout() );
+        return super.init( newParent );
     }
 
 

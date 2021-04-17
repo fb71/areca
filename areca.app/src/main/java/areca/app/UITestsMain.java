@@ -25,6 +25,7 @@ import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component.Button;
 import areca.ui.component.SelectionEvent;
+import areca.ui.component.Text;
 import areca.ui.layout.FillLayout;
 import areca.ui.layout.GridLayout;
 import areca.ui.viewer.LabeledList;
@@ -87,6 +88,8 @@ public class UITestsMain {
         App.instance().createUI( appWindow -> {
             //appWindow.size.set( Size.of( 400, 300 ) );
             appWindow.layout.set( new GridLayout() {{spacing.set( 10 );}} );
+
+            appWindow.add( new Text(), text -> text.text.set( "Samstagabend" ) );
 
             for (int i = 0; i < 2; i++) {
                 var label = "" + i;

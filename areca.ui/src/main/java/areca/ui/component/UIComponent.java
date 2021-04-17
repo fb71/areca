@@ -29,6 +29,7 @@ import areca.ui.Size;
 import areca.ui.component.Property.ReadWrite;
 import areca.ui.component.Property.ReadWrites;
 import areca.ui.html.HtmlElement;
+import areca.ui.html.HtmlNode;
 import areca.ui.layout.LayoutConstraints;
 import areca.ui.layout.LayoutManager;
 
@@ -40,7 +41,7 @@ public abstract class UIComponent {
 
     private static final Logger LOG = Logger.getLogger( UIComponent.class.getSimpleName() );
 
-    //public static final UIComponent         TYPE = new UIComponent() {};
+    public static final UIComponent     TYPE = new UIComponent() {};
 
     private static volatile int         ID_COUNT;
 
@@ -108,7 +109,13 @@ public abstract class UIComponent {
     protected UIComponent() { }
 
 
-    protected void init( UIComposite newParent ) {
+    /**
+     * Called when this component is added to the component hierarchy.
+     *
+     * @return The HTML node that represents this component. This node is added to
+     *         the HTML tree by the caller.
+     */
+    protected HtmlNode init( UIComposite newParent ) {
         this.parent = newParent;
 
         for (Class<?> cl=getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
@@ -117,6 +124,7 @@ public abstract class UIComponent {
 
         LOG.info( "INIT " + size.get() );
         //EventManager.instance().publish( new UIRenderEvent.ComponentCreatedEvent( this ) );
+        return null;
     }
 
 

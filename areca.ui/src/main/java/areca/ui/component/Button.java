@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 
 import areca.ui.component.Property.ReadWrite;
 import areca.ui.html.HtmlButton;
+import areca.ui.html.HtmlNode;
 import areca.ui.html.HtmlTextNode;
 
 /**
@@ -48,10 +49,11 @@ public class Button
 
 
     @Override
-    protected void init( UIComposite newParent ) {
+    protected HtmlNode init( UIComposite newParent ) {
         htmlElm = new HtmlButton();
         bordered.rawSet( true );
         super.init( newParent );
+        return htmlElm;
     }
 
 }

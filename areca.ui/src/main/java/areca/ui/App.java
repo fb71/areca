@@ -16,6 +16,7 @@ package areca.ui;
 import areca.common.Assert;
 import areca.common.base.Consumer;
 import areca.ui.component.UIComposite;
+import areca.ui.html.HtmlNode;
 
 /**
  *
@@ -53,8 +54,8 @@ public class App {
             extends UIComposite {
 
         @Override
-        public void init( UIComposite newParent ) {
-            super.init( newParent );
+        public HtmlNode init( UIComposite newParent ) {
+            return super.init( newParent );
         }
     }
 

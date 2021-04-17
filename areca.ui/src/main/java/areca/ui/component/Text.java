@@ -15,6 +15,12 @@ package areca.ui.component;
 
 import java.util.logging.Logger;
 
+import areca.ui.component.Property.ReadWrite;
+import areca.ui.html.HtmlElement;
+import areca.ui.html.HtmlElement.Type;
+import areca.ui.html.HtmlNode;
+import areca.ui.html.HtmlTextNode;
+
 /**
  *
  * @author falko
@@ -27,6 +33,19 @@ public class Text
     @SuppressWarnings("hiding")
     public static final Text TYPE = new Text();
 
-   // public ReadWrite<String>     text = Property.create( this, "text" );
+    protected HtmlTextNode      textNode;
+
+    public ReadWrite<String> text = Property.create( this, "text",
+            () -> textNode.value.get(),
+            v -> textNode.value.set( v ) );
+
+
+    @Override
+    protected HtmlNode init( UIComposite newParent ) {
+        htmlElm = new HtmlElement( Type.DIV );
+        htmlElm.children.add( textNode = new HtmlTextNode( "" ) );
+        super.init( newParent );
+        return htmlElm;
+    }
 
 }
