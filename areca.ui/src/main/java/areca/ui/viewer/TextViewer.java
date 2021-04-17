@@ -13,8 +13,6 @@
  */
 package areca.ui.viewer;
 
-import java.util.EventObject;
-
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component.Text;
@@ -35,7 +33,7 @@ public class TextViewer
         return container.add( new Text(), t -> {
             t.text.set( model.getValue() );
 
-            t.subscribe( (EventObject ev) -> {
+            t.onClick( ev -> {
                 throw new RuntimeException( "Modifying text is not supported yet." );
                 //model.setValue();
             });

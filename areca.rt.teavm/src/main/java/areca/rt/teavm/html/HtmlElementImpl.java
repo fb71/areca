@@ -43,7 +43,7 @@ public class HtmlElementImpl {
         LOG.debug( "elm= " + elm );
         HTMLElement delegate = (HTMLElement)doc.createElement( "div" );
         init( elm, delegate );
-        doc.getBody().appendChild( delegate );
+        doc.getBody().appendChild( delegate );  // FIXME
     }
 
 

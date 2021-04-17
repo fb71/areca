@@ -22,7 +22,7 @@ import areca.ui.Property;
  * @author Falko Bräutigam
  */
 public class State<T>
-        extends Property<T> {
+        extends Property.FieldBackedProperty<T> {
 
     private static final Log log = LogFactory.getLog( State.class );
 
