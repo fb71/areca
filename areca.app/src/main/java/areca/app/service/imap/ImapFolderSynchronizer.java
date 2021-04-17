@@ -18,7 +18,7 @@ import areca.common.base.Consumer;
 import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.Property;
+import areca.ui.Property;
 
 /**
  *

@@ -11,7 +11,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.component;
+package areca.ui;
+
+import java.util.EventObject;
 
 import areca.common.Assert;
 import areca.common.base.Consumer;
@@ -21,6 +23,7 @@ import areca.common.base.Supplier;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+//import areca.ui.component.UIRenderEvent;
 
 /**
  *
@@ -238,7 +241,7 @@ public abstract class Property<T> {
             return value;
         }
 
-        protected void remove( T value ) {
+        public void remove( T value ) {
             doRemove( value );
         }
     }
@@ -247,8 +250,7 @@ public abstract class Property<T> {
     /**
      *
      */
-    public static class PropertyChangedEvent
-            extends UIRenderEvent {
+    public static class PropertyChangedEvent extends EventObject {
 
         private Object oldValue;
 

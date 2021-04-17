@@ -15,7 +15,7 @@ package areca.ui.controller;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.Property;
+import areca.ui.Property;
 
 /**
  *

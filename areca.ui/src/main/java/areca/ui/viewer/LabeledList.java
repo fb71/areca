@@ -15,9 +15,9 @@ package areca.ui.viewer;
 
 import java.util.logging.Logger;
 
+import areca.ui.Property;
+import areca.ui.Property.ReadWrite;
 import areca.ui.component.ListBase;
-import areca.ui.component.Property;
-import areca.ui.component.Property.ReadWrite;
 import areca.ui.component.Text;
 import areca.ui.component.UIComposite;
 import areca.ui.layout.FillLayout;

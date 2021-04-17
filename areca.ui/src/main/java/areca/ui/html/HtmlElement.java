@@ -18,9 +18,9 @@ import areca.common.base.Opt;
 import areca.ui.Color;
 import areca.ui.Position;
 import areca.ui.Size;
-import areca.ui.component.Property.ReadOnly;
-import areca.ui.component.Property.ReadWrite;
-import areca.ui.component.Property.ReadWrites;
+import areca.ui.Property.ReadOnly;
+import areca.ui.Property.ReadWrite;
+import areca.ui.Property.ReadWrites;
 
 /**
  *

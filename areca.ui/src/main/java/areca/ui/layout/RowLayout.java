@@ -16,8 +16,8 @@ package areca.ui.layout;
 import java.util.logging.Logger;
 
 import areca.ui.Position;
+import areca.ui.Property;
 import areca.ui.Size;
-import areca.ui.component.Property;
 import areca.ui.component.UIComponent;
 import areca.ui.component.UIComposite;
 

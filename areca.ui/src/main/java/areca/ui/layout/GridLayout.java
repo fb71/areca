@@ -16,9 +16,9 @@ package areca.ui.layout;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
+import areca.ui.Property;
 import areca.ui.Size;
-import areca.ui.component.Property;
-import areca.ui.component.Property.ReadWrite;
+import areca.ui.Property.ReadWrite;
 import areca.ui.component.UIComposite;
 
 /**

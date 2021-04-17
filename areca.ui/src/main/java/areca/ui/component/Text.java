@@ -15,7 +15,8 @@ package areca.ui.component;
 
 import java.util.logging.Logger;
 
-import areca.ui.component.Property.ReadWrite;
+import areca.ui.Property;
+import areca.ui.Property.ReadWrite;
 import areca.ui.html.HtmlElement;
 import areca.ui.html.HtmlElement.Type;
 import areca.ui.html.HtmlNode;

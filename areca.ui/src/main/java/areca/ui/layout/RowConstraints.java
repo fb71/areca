@@ -13,8 +13,8 @@
  */
 package areca.ui.layout;
 
-import areca.ui.component.Property;
-import areca.ui.component.Property.ReadWrite;
+import areca.ui.Property;
+import areca.ui.Property.ReadWrite;
 
 /**
  *

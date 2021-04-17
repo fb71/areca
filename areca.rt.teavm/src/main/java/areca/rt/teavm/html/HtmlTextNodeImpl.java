@@ -18,7 +18,7 @@ import org.teavm.jso.dom.xml.Text;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.Property;
+import areca.ui.Property;
 import areca.ui.html.HtmlTextNode;
 
 /**

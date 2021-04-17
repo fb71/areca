@@ -15,7 +15,7 @@ package areca.ui.html;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.Property.ReadWrite;
+import areca.ui.Property.ReadWrite;
 
 /**
  *

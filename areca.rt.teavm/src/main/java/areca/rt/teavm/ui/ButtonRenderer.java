@@ -21,8 +21,8 @@ import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.common.event.EventManager;
 import areca.ui.Size;
+import areca.ui.Property.PropertyChangedEvent;
 import areca.ui.component.Button;
-import areca.ui.component.Property.PropertyChangedEvent;
 import areca.ui.component.SelectionEvent;
 import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
 

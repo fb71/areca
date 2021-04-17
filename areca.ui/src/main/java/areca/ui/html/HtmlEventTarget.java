@@ -17,7 +17,7 @@ import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
-import areca.ui.component.Property.ReadOnly;
+import areca.ui.Property.ReadOnly;
 
 /**
  *

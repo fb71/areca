@@ -16,7 +16,7 @@ package areca.rt.teavm.ui;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.ui.Size;
-import areca.ui.component.Property.PropertyChangedEvent;
+import areca.ui.Property.PropertyChangedEvent;
 import areca.ui.component.Text;
 import areca.ui.component.UIRenderEvent.ComponentCreatedEvent;
 
