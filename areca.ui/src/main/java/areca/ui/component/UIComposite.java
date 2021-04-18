@@ -24,6 +24,7 @@ import areca.ui.Property;
 import areca.ui.Size;
 import areca.ui.Property.ReadOnly;
 import areca.ui.Property.ReadWrite;
+import areca.ui.Property.ReadWrites;
 import areca.ui.html.HtmlElement;
 import areca.ui.html.HtmlElement.Type;
 import areca.ui.html.HtmlNode;
@@ -41,11 +42,71 @@ public class UIComposite
     @SuppressWarnings("hiding")
     public static final UIComposite TYPE = new UIComposite();
 
-    public ReadWrite<LayoutManager> layout = Property.create( this, "lm" );
+    /**
+     *
+     */
+    public class Children
+            extends ReadWrites<UIComponent>
+            implements Iterable<UIComponent> {
+
+        protected List<UIComponent> list = new ArrayList<>();
+
+        protected Children() {
+            super( UIComposite.this, "components" );
+        }
+
+        @Override
+        public Sequence<UIComponent,RuntimeException> sequence() {
+            return Sequence.of( list );
+        }
+
+        /**
+         * {@link UIComponent#init(UIComposite) Initializes} the given component and adds
+         * it to the children of this composite.
+         *
+         * @see #add(UIComponent)
+         * @param child The new child component.
+         * @return Newly added/initialized child component.
+         */
+        @SafeVarargs
+        public final <C extends UIComponent,E extends Exception> C add( C child, Consumer<C,E>... initializers ) throws E {
+            doAdd( child );
+            for (var initializer : initializers) {
+                initializer.accept( child );
+            }
+            return child;
+        }
+
+        @Override
+        protected void doAdd( UIComponent child ) {
+            var childElm = Assert.notNull( child ).init( UIComposite.this );
+            htmlElm.children.add( childElm );
+            list.add( child );
+        }
+
+        @Override
+        protected void doRemove( UIComponent child ) {
+            throw new RuntimeException( "..." );
+            //list.remove( child );
+        }
+
+        @Override
+        public Iterator<UIComponent> iterator() {
+            return list.iterator();
+        }
+
+        public int size() {
+            return list.size();
+        }
+    };
+
+    // instance *******************************************
+
+    public ReadWrite<LayoutManager> layout = Property.create( this, "layout" );
 
     public ReadOnly<Size>           clientSize = Property.create( this, "clientSize", () -> htmlElm.clientSize.get() );
 
-    private List<UIComponent>       components = new ArrayList<>();
+    public Children                 components = new Children();
 
 
     @Override
@@ -57,33 +118,10 @@ public class UIComposite
 
 
     /**
-     * {@link UIComponent#init(UIComposite) Initializes} the given component and adds
-     * it to the children of this composite.
-     *
-     * @see #add(UIComponent)
-     * @param component The new child component.
-     * @return Newly added/initialized child component.
-     */
-    public <C extends UIComponent> C add( C component ) {
-        var childElm = Assert.notNull( component ).init( this );
-        htmlElm.children.add( childElm );
-        components.add( component );
-        return component;
-    }
-
-
-    /**
-     * {@link UIComponent#init(UIComposite) Initializes} the given component and adds
-     * it to the children of this composite.
-     *
-     * @see #add(UIComponent)
-     * @param component The new child component.
-     * @return Newly added/initialized child component.
+     * @deprecated In favour of {@link #components}.
      */
     public <C extends UIComponent,E extends Exception> C add( C component, Consumer<C,E> initializer ) throws E {
-        add( component );
-        Assert.notNull( initializer ).accept( component );
-        return component;
+        return components.add( component, initializer );
     }
 
 
@@ -93,47 +131,12 @@ public class UIComposite
      * @return this
      */
     public UIComposite layout() {
-        layout.get().layout( this );
+        layout.opt().ifPresent( lm -> lm.layout( this ) );
 
-        // components.stream().filter( UIComposite.class::isInstance ).forEach( c -> ((UIComposite)c).layout() );
-        for (UIComponent component : components) {
-            if (component instanceof UIComposite) {
-                ((UIComposite)component).layout();
-            }
-        }
+        components.sequence()
+                .filter( UIComposite.class::isInstance )
+                .forEach( c -> ((UIComposite)c).layout() );
         return this;
-    }
-
-
-    public ExtIterable<UIComponent> components() {
-        return new ExtIterable<UIComponent>() {
-            @Override
-            public Iterator<UIComponent> iterator() {
-                return components.iterator();
-            }
-            @Override
-            public int size() {
-                return components.size();
-            }
-        };
-    }
-
-
-    /**
-     *
-     */
-    public interface ExtIterable<T>
-            extends Iterable<T> {
-
-        public int size();
-
-//        public default Stream<T> stream() {
-//            return StreamSupport.stream( spliterator(), false );
-//        }
-
-        public default Sequence<T,RuntimeException> sequence() {
-            return Sequence.of( this );
-        }
     }
 
 }

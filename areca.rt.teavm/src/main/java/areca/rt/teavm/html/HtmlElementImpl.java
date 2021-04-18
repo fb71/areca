@@ -47,7 +47,7 @@ public class HtmlElementImpl {
 
 
     public static void init( HtmlElement elm, HTMLElement delegate ) {
-        LOG.debug( "elm= " + elm );
+        // LOG.debug( "elm= " + elm );
         elm.delegate = delegate;
 
         HtmlEventTargetImpl.init( elm, delegate );
@@ -72,7 +72,7 @@ public class HtmlElementImpl {
         elm.attributes = new Attributes( elm ) {
             @Override
             protected void doAdd( NameValue value ) {
-                LOG.info( "Attributes: %s = %s", value.name, value.value );
+                //LOG.debug( "Attributes: %s = %s", value.name, value.value );
                 delegate.setAttribute( value.name, value.value );
             }
             @Override
@@ -103,7 +103,7 @@ public class HtmlElementImpl {
             }
             @Override
             protected void doAdd( NameValue value ) {
-                LOG.info( "Styles: %s = %s", value.name, value.value );
+                //LOG.debug( "Styles: %s = %s", value.name, value.value );
                 delegate.getStyle().setProperty( value.name, value.value );
             }
             @Override

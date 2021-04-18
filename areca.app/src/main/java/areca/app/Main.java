@@ -13,12 +13,19 @@
  */
 package areca.app;
 
+import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.html.TeaHtmlImplFactory;
 import areca.ui.App;
+import areca.ui.component.Button;
+import areca.ui.component.SelectionEvent;
+import areca.ui.component.Text;
 import areca.ui.html.HtmlElement;
+import areca.ui.layout.GridLayout;
 import areca.ui.pageflow.AppWindow;
+import areca.ui.pageflow.PageStackLayout;
 
 /**
  *
@@ -30,37 +37,16 @@ public class Main {
 
 
     public static void main( String[] args ) throws Exception {
-        // TestRunner
 //        TestsMain.main( args );
 //        log.info( "done." );
 //        return;
 
         try {
             HtmlElement.factory = new TeaHtmlImplFactory();
+            Platform.instance = new TeaPlatform();
 
-            //createApp();
-            UITestsMain.createGridLayoutApp();
-
-//            var div = new HtmlElement( Type.DIV );
-//            var btn = div.children.add( new HtmlButton() );
-//            // btn.styles.set( "background-color", Color.WHITE );
-//            btn.styles.set( "width", "50px" );
-//            btn.styles.set( "height", "%spx", 50 );
-//            btn.styles.set( "position", "absolute" );
-//            btn.styles.set( "top", "%spx", 50 );
-//            btn.styles.set( "left", "%spx", 50 );
-//            log.info( "client= %s", btn.clientSize.get() );
-//            log.info( "offset= %s", btn.offsetSize.get() );
-//            log.info( "position= %s", btn.offsetPosition.get() );
-//            var handle = btn.listeners.click( ev -> {
-//                log.info( "position= %s", ev.clientPosition.get() );
-//            });
-//            btn.listeners.remove( handle );
-//            btn.listeners.mouseMove( ev -> {
-//                btn.styles.set( "left", "%spx", ev.clientPosition.get().x() );
-//            });
-//
-//           // btn.children.append( new TextNode() );
+            createApp();
+            //UITestsMain.createGridLayoutApp();
         }
         catch (Throwable e) {
             //System.out.println( "Exception: " + e + " --> " );
@@ -76,22 +62,24 @@ public class Main {
 
     protected static void createApp() {
         App.instance().createUI( rootWindow -> {
+            rootWindow.layout.set( new PageStackLayout() );
+
             var appWindow = new AppWindow( rootWindow );
 
-//            appWindow.layout.set( new GridLayout() {{spacing.set( 10 );}} );
-//
-//            for (int i = 0; i < 40; i++) {
-//                var l = "" + i;
-//                appWindow.add( new Button(), btn -> {
-//                    btn.label.set( l );
-//                    btn.subscribe( (SelectionEvent ev) ->  {
-//                        appWindow.layout.set( (appWindow.layout.get() instanceof FillLayout)
-//                                ? new GridLayout() : new FillLayout() );
-//                        appWindow.layout();
-//                    });
-//                });
-//            }
-
+            appWindow.pages.layout.set( new GridLayout() {{spacing.set( 10 );}} );
+            for (int i = 0; i < 20; i++) {
+                var l = "" + i;
+                appWindow.pages.components.add( new Button(), btn -> {
+                    btn.label.set( l );
+                    btn.htmlElm.styles.set( "border-radius", "20px" );
+                    btn.onClick( (SelectionEvent ev) ->  {
+                        var second = new AppWindow( rootWindow );
+                        second.header.components.add( new Text(), t -> t.text.set( "Second") );
+                        rootWindow.layout();
+                    });
+                });
+            }
+            rootWindow.layout();
         });
     }
 }

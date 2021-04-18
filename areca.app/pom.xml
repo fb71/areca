@@ -66,56 +66,15 @@
             <version>3.1.0</version>
             <scope>provided</scope>
         </dependency>
-<!--         <dependency> -->
-<!--             <groupId>javax.activation</groupId> -->
-<!--             <artifactId>javax.activation-api</artifactId> -->
-<!--             <version>1.2.0</version> -->
-<!--         </dependency> -->
-<!--         <dependency> -->
-<!--                 <groupId>com.sun.mail</groupId> -->
-<!--                 <artifactId>javax.mail</artifactId> -->
-<!--                 <version>1.6.2</version> -->
-<!--         </dependency>         -->
-    <dependency>
-        <groupId>org.apache.james</groupId>
-        <artifactId>apache-mime4j-core</artifactId>
-        <version>0.8.3</version>
-    </dependency>
-        
-<!--         <dependency> -->
-<!--             <groupId>org.jetbrains.kotlin</groupId> -->
-<!--             <artifactId>kotlin-stdlib</artifactId> -->
-<!--             <version>${kotlin.version}</version> -->
-<!--         </dependency> -->
+        <dependency>
+            <groupId>org.apache.james</groupId>
+            <artifactId>apache-mime4j-core</artifactId>
+            <version>0.8.3</version>
+        </dependency>
     </dependencies>
   
     <build>
         <plugins>
-            <!-- Kotlin compiler -->
-<!--             <plugin> -->
-<!--                 <groupId>org.jetbrains.kotlin</groupId> -->
-<!--                 <artifactId>kotlin-maven-plugin</artifactId> -->
-<!--                 <version>${kotlin.version}</version> -->
-<!--                 <configuration> -->
-<!--                     <sourceDirs> -->
-<!--                         <sourceDir>${project.basedir}/src/main/java</sourceDir> -->
-<!--                     </sourceDirs> -->
-<!--                 </configuration> -->
-<!--                 <executions> -->
-<!--                     <execution> -->
-<!--                         <id>compile</id> -->
-<!--                         <goals> -->
-<!--                             <goal>compile</goal> -->
-<!--                         </goals> -->
-<!--                         <configuration> -->
-<!--                             <sourceDirs> -->
-<!--                                 <sourceDir>${project.basedir}/src/main/java</sourceDir> -->
-<!--                             </sourceDirs> -->
-<!--                         </configuration> -->
-<!--                     </execution> -->
-<!--                 </executions> -->
-<!--             </plugin> -->
-            
             <!-- Java compiler -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

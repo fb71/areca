@@ -39,12 +39,13 @@ public class FillLayout
         LOG.info( "FillLayout: " + size );
 
         if (orientation == Orientation.HORIZONTAL) {
-            int compositeMaxWidth = composite.components().sequence()
+            int componentsMaxWidth = composite.components.sequence()
                     .map( c -> c.computeMinimumWidth( size.height() ) )
                     .reduce( Math::max ).orElse( 0 );
-            int componentWidth = Math.max( size.width() / composite.components().size(), compositeMaxWidth );
+
+            int componentWidth = Math.max( size.width() / composite.components.size(), componentsMaxWidth );
             int count = 0;
-            for (UIComponent component : composite.components()) {
+            for (UIComponent component : composite.components) {
                 component.size.set( Size.of( componentWidth, size.height() ) );
                 component.position.set( Position.of( count++ * componentWidth, 0 ) );
             }

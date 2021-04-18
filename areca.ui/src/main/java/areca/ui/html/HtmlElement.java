@@ -128,6 +128,10 @@ public class HtmlElement
             var value = String.format( format, args );
             set( name, value );
         }
+
+        public void remove( String name ) {
+            doRemove( new NameValue( name, null ) );
+        }
     }
 
     /**

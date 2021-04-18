@@ -11,15 +11,22 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.pageflow;
+package areca.common;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class Page {
+public abstract class Platform {
 
-    public static interface PageSite {
+    public static Platform instance;
+
+    public static Platform instance() {
+        return instance;
     }
+
+    // API ************************************************
+
+    public abstract void schedule( int delayMillis, Runnable block );
 
 }

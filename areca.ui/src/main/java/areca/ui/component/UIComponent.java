@@ -51,12 +51,12 @@ public abstract class UIComponent {
 
     private Map<String,Object>          data = new TreeMap<>();
 
-    protected HtmlElement               htmlElm;
+    public HtmlElement               htmlElm;
 
     /**
      * The styling classes of this component.
      */
-    protected ReadWrites<String> cssClasses = new ReadWrites<>( this, "cssClasses" ) {
+    public ReadWrites<String> cssClasses = new ReadWrites<>( this, "cssClasses" ) {
         @Override
         public Sequence<String,RuntimeException> sequence() {
             return Sequence.of( htmlElm.attributes.opt( "class" ).orElse( "" ).split( " " ) );

@@ -35,7 +35,7 @@ public class GridLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        Size size = composite.size.get();
+        Size size = composite.clientSize.get();
 
 //        composite.components().sequence().forEach( c -> {
 //            c.position.set( Position.of( 1, 1 ) );
@@ -44,9 +44,9 @@ public class GridLayout
 
         var cols = size.width() / 50;
         var i = 0;
-        for (var component : composite.components()) {
-            component.size.set( Size.of( 40, 40 ) );
-            component.position.set( Position.of( 50 * (i % cols), 50 * (i / cols) ) );
+        for (var component : composite.components) {
+            component.size.set( Size.of( 48, 48 ) );
+            component.position.set( Position.of( 53 * (i % cols), 53 * (i / cols) ) );
             i++;
         }
     }

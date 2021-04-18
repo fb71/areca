@@ -9,4 +9,6 @@ $separator_color: darken($font_color, 50%);
 $accent_color: rgb(198, 98, 11);
 $primary_color: darken($accent_color, 30%);
 
+$transition_duration: 0.75s;
+
 @import 'areca-common';

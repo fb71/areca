@@ -141,6 +141,15 @@ public class SequenceTest {
         Assert.isEqual( 20, s.reduce( SequenceTest::sum ).get() );
     }
 
+    @Test
+    public void firstLastTest() {
+        Assert.isEqual( 1, Sequence.of( 1, 2 ).first().get() );
+        Assert.isEqual( 2, Sequence.of( 1, 2 ).last().get() );
+        Assert.isEqual( 3, Sequence.of().last().orElse( 3 ) );
+        Assert.isEqual( 3, Sequence.of().first().orElse( 3 ) );
+        Assert.isEqual( 2, Sequence.of( 1, 2 ).first( n -> n>1).get() );
+        Assert.isEqual( 1, Sequence.of( 1, 2 ).last( n -> n<2).get() );
+    }
 
     @Test
     public void toListTest() {

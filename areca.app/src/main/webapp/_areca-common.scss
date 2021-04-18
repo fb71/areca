@@ -8,7 +8,7 @@ html,body {
 body {
     background-color: $bg1_color;
     color: $font_color;
-    font-family: arial, sans-serif;
+    font-family: ubuntu, arial, sans-serif;
 }
 
 .UIComponent {
@@ -16,7 +16,12 @@ body {
     border: 0px solid $separator_color;
     border-radius: 4px;
     color: $font_color;
-    transition: top 0.75s, left 0.75s, width 0.75s, height .75s;
+    transition: 
+        top $transition_duration, 
+        left $transition_duration, 
+        width $transition_duration, 
+        height $transition_duration, 
+        transform $transition_duration;
     box-sizing: border-box;
 }
 
@@ -50,6 +55,9 @@ body {
     border: 1px solid $separator_color;
     border-radius: 4px;
     // margin: -1px;
+}
+.AppWindow {
+    background-color: $bg1_color;    
 }
 
 .RootWindow {

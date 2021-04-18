@@ -67,7 +67,7 @@ public abstract class Property<T> {
                 return getter.get();
             }
             @Override protected void doSet( R newValue ) {
-                LOG.info( "%s.%s = %s", component.getClass().getSimpleName(), name, newValue );
+                // LOG.debug( "%s.%s = %s", component.getClass().getSimpleName(), name, newValue );
                 setter.accept( newValue );
             }
         };

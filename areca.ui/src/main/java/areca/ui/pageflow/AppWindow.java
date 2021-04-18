@@ -30,35 +30,39 @@ public class AppWindow {
 
     private static final Log log = LogFactory.getLog( AppWindow.class );
 
-    private UIComposite     rootWindow;
+    private UIComposite     container;
 
-    private UIComposite     header;
+    public UIComposite      header;
 
     private UIComposite     toolbar;
 
-    private UIComposite     pages;
+    public UIComposite      pages;
 
 
-    public AppWindow( UIComposite composite ) {
-        rootWindow = composite;
-        rootWindow.layout.set( new AppWindowLayout() );
+    public AppWindow( UIComposite parent ) {
+        container = parent.components.add( new UIComposite() );
+        container.cssClasses.add( "AppWindow" );
+        container.layout.set( new AppWindowLayout() );
 
-        header = rootWindow.add( new UIComposite() );
-
-        toolbar = rootWindow.add( new UIComposite() );
-        toolbar.layout.set( new FillLayout() );
-        toolbar.add( new Button(), proto -> {
-            proto.label.set( "toolbar" );
-            proto.onClick( ev -> proto.bordered.set( !proto.bordered.get() ) );
+        header = container.components.add( new UIComposite(), h -> {
+            h.layout.set( new FillLayout() );
         });
-        toolbar.bordered.set( true );
 
-        pages = rootWindow.add( new UIComposite() );
-        pages.layout.set( new PageStackLayout() );
+        toolbar = container.components.add( new UIComposite(), tb -> {
+            tb.layout.set( new FillLayout() );
+            tb.components.add( new Button(), btn -> {
+                btn.label.set( "toolbar" );
+                btn.bordered.set( false );
+                btn.onClick( ev -> btn.bordered.set( !btn.bordered.get() ) );
+            });
+            tb.bordered.set( true );
+        });
 
-        rootWindow.layout();
+        pages = container.components.add( new UIComposite() );
+        // pages.layout.set( new PageStackLayout() );
+
+        //container.layout();
     }
-
 
     /**
      *
@@ -66,18 +70,22 @@ public class AppWindow {
     class AppWindowLayout
             extends LayoutManager {
 
+        public static final int HEADER_HEIGHT = 30;
+        public static final int TOOLBAR_HEIGHT = 40;
+
         @Override
         public void layout( UIComposite composite ) {
-            var size = rootWindow.size.get();
+            var size = container.clientSize.get();
 
             header.position.set( Position.of( 0, 0 ) );
-            header.size.set( Size.of( size.width(), 50 ) );
+            header.size.set( Size.of( size.width(), HEADER_HEIGHT ) );
 
-            toolbar.position.set( Position.of( 0, 50 ) );
-            toolbar.size.set( Size.of( size.width(), 50 ) );
+            toolbar.position.set( Position.of( 0, HEADER_HEIGHT ) );
+            toolbar.size.set( Size.of( size.width(), TOOLBAR_HEIGHT ) );
 
-            pages.position.set( Position.of( 0, 100 ) );
-            pages.size.set( Size.of( size.width(), size.height() - 100 ) );
+            var bodyHeight = HEADER_HEIGHT + TOOLBAR_HEIGHT;
+            pages.position.set( Position.of( 0,bodyHeight ) );
+            pages.size.set( Size.of( size.width(), size.height() - bodyHeight ) );
         }
 
     }

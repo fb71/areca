@@ -106,6 +106,27 @@ public class UITestsMain {
         .layout();
     }
 
+//  var div = new HtmlElement( Type.DIV );
+//  var btn = div.children.add( new HtmlButton() );
+//  // btn.styles.set( "background-color", Color.WHITE );
+//  btn.styles.set( "width", "50px" );
+//  btn.styles.set( "height", "%spx", 50 );
+//  btn.styles.set( "position", "absolute" );
+//  btn.styles.set( "top", "%spx", 50 );
+//  btn.styles.set( "left", "%spx", 50 );
+//  log.info( "client= %s", btn.clientSize.get() );
+//  log.info( "offset= %s", btn.offsetSize.get() );
+//  log.info( "position= %s", btn.offsetPosition.get() );
+//  var handle = btn.listeners.click( ev -> {
+//      log.info( "position= %s", ev.clientPosition.get() );
+//  });
+//  btn.listeners.remove( handle );
+//  btn.listeners.mouseMove( ev -> {
+//      btn.styles.set( "left", "%spx", ev.clientPosition.get().x() );
+//  });
+//
+// // btn.children.append( new TextNode() );
+
 
 //  protected static void createControllerView() {
 //  TeaApp.instance().createUI( appWindow -> {

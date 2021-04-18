@@ -11,15 +11,26 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.pageflow;
+package areca.rt.teavm;
+
+import org.teavm.jso.browser.Window;
+
+import areca.common.Platform;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class Page {
+public class TeaPlatform
+        extends Platform {
 
-    public static interface PageSite {
+    private static final Log log = LogFactory.getLog( TeaPlatform.class );
+
+    @Override
+    public void schedule( int delayMillis, Runnable block ) {
+        Window.setTimeout( () -> block.run(), delayMillis );
     }
 
 }

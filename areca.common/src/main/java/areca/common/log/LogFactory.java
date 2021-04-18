@@ -76,8 +76,8 @@ public class LogFactory {
             delegate.supply().info( prefixed( String.format( format, args ) ) );
         }
 
-        public void debug( String msg ) {
-            delegate.supply().log( Level.FINE, prefixed( msg ) );
+        public void debug( String format, Object... args ) {
+            delegate.supply().log( Level.FINE, prefixed( String.format( format, args ) ) );
         }
     }
 }

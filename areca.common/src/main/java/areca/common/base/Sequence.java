@@ -231,6 +231,25 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
+    public <RE extends E> Opt<T> first( Predicate<T,RE> condition ) throws E {
+        return filter( condition ).first();
+    }
+
+
+    /**
+     * Returns the last element, if at least one element is present in this
+     * {@link Sequence}.
+     */
+    public Opt<T> last() throws E {
+        return reduce( (r,elm) -> elm );
+    }
+
+
+    public <RE extends E> Opt<T> last( Predicate<T,RE> condition ) throws E {
+        return filter( condition ).last();
+    }
+
+
     /**
      * Returns the one and only element in this {@link Sequence}.
      *
@@ -250,11 +269,6 @@ public abstract class Sequence<T, E extends Exception> {
                 throw new IllegalStateException( "Sequence contains more than one element." );
             }
         }
-    }
-
-
-    public <RE extends E> Opt<T> first( Predicate<T,RE> condition ) throws E {
-        return filter( condition ).first();
     }
 
 
