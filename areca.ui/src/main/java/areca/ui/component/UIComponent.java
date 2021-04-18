@@ -18,7 +18,6 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
-import areca.common.base.Consumer;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.event.EventListener;
@@ -106,7 +105,6 @@ public abstract class UIComponent {
     public ReadWrite<LayoutConstraints> layoutConstraints = Property.create( this, "lc" );
 
 
-    /** Instantiate via {@link UIComposite#create(Class, Consumer...)} only. */
     protected UIComponent() { }
 
 
@@ -118,11 +116,9 @@ public abstract class UIComponent {
      */
     protected HtmlNode init( UIComposite newParent ) {
         this.parent = newParent;
-
         for (Class<?> cl=getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
             cssClasses.add( cl.getSimpleName() );
         }
-
         LOG.info( "INIT " + size.get() );
         //EventManager.instance().publish( new UIRenderEvent.ComponentCreatedEvent( this ) );
         return null;

@@ -40,7 +40,6 @@ public class HtmlElementImpl {
 
 
     public static void init( HtmlElement elm, HTMLDocument doc ) {
-        LOG.debug( "elm= " + elm );
         HTMLElement delegate = (HTMLElement)doc.createElement( "div" );
         init( elm, delegate );
         doc.getBody().appendChild( delegate );  // FIXME
@@ -48,6 +47,7 @@ public class HtmlElementImpl {
 
 
     public static void init( HtmlElement elm, HTMLElement delegate ) {
+        LOG.debug( "elm= " + elm );
         elm.delegate = delegate;
 
         HtmlEventTargetImpl.init( elm, delegate );

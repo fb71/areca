@@ -31,7 +31,6 @@ public class HtmlButtonImpl {
 
 
     public static void init( HtmlButton elm, Document doc ) {
-        log.debug( "elm= " + elm );
         HTMLButtonElement delegate = (HTMLButtonElement)doc.createElement( "button" );
         HtmlElementImpl.init( elm, delegate );
 

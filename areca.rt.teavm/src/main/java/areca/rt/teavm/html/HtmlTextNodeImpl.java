@@ -30,8 +30,6 @@ public class HtmlTextNodeImpl {
     private static final Log log = LogFactory.getLog( HtmlTextNodeImpl.class );
 
     public static void init( HtmlTextNode elm, Document doc ) {
-        log.debug( "elm= " + elm );
-
         Text delegate = doc.createTextNode("");
         elm.delegate = delegate;
 
