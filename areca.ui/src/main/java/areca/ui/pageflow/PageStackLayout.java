@@ -40,6 +40,7 @@ public class PageStackLayout
             // component.zIndex.set( zIndex++ );
         }
 
+        // scale last one
         composite.components.sequence().last().ifPresent( last -> {
             last.bordered.set( true );
             last.htmlElm.styles.set( "transition", "none" );

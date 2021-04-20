@@ -138,7 +138,7 @@ public abstract class Property<T> {
         }
 
         public Opt<T> opt() {
-            return Opt.ofNullable( doGet() );
+            return Opt.of( doGet() );
         }
     }
 
@@ -279,7 +279,7 @@ public abstract class Property<T> {
 
         @SuppressWarnings("unchecked")
         public <R> Opt<R> optOldValue() {
-            return Opt.ofNullable( (R)oldValue );
+            return Opt.of( (R)oldValue );
         }
 
         @SuppressWarnings("unchecked")
@@ -289,7 +289,7 @@ public abstract class Property<T> {
 
         @SuppressWarnings("unchecked")
         public <R> Opt<R> optNewValue() {
-            return Opt.ofNullable( (R)newValue );
+            return Opt.of( (R)newValue );
         }
     }
 

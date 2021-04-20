@@ -181,7 +181,7 @@ public abstract class UIComponent {
 
     @SuppressWarnings("unchecked")
     public <R> Opt<R> optData( String name ) {
-        return Opt.ofNullable( (R)data.get( name ) );
+        return Opt.of( (R)data.get( name ) );
     }
 
 

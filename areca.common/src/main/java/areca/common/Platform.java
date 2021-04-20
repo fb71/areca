@@ -29,4 +29,7 @@ public abstract class Platform {
 
     public abstract void schedule( int delayMillis, Runnable block );
 
+    public void async( Runnable block ) {
+        schedule( 0, block );
+    }
 }

@@ -82,7 +82,7 @@ public class HtmlElementImpl {
             @Override
             @SuppressWarnings("hiding")
             public Opt<String> opt( String name ) {
-                return Opt.ofNullable( delegate.getAttribute( name ) );
+                return Opt.of( delegate.getAttribute( name ) );
             }
             @Override
             public Sequence<NameValue,RuntimeException> sequence() {
@@ -99,7 +99,7 @@ public class HtmlElementImpl {
             @Override
             @SuppressWarnings("hiding")
             public Opt<String> opt( String name ) {
-                return Opt.ofNullable( delegate.getStyle().getPropertyValue( name ) );
+                return Opt.of( delegate.getStyle().getPropertyValue( name ) );
             }
             @Override
             protected void doAdd( NameValue value ) {

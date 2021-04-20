@@ -14,7 +14,6 @@
 package areca.common.base;
 
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -29,18 +28,18 @@ public class Opt<T> {
 
     /** Common instance for {@code empty()}.  */
     @SuppressWarnings("rawtypes")
-    private static final Opt EMPTY = new Opt<>( null );
-
-    public static <R> Opt<R> ofNullable( R value ) {
-        return value != null ? new Opt<>( value ) : EMPTY;
-    }
+    private static final Opt ABSENT = new Opt<>( null );
 
     public static <R> Opt<R> of( R value ) {
-        return new Opt<>( Objects.requireNonNull( value ) );
+        return value != null ? new Opt<>( value ) : ABSENT;
     }
 
+//    public static <R> Opt<R> of( R value ) {
+//        return new Opt<>( Objects.requireNonNull( value ) );
+//    }
+
     public static <R> Opt<R> absent() {
-        return EMPTY;
+        return ABSENT;
     }
 
 
@@ -110,12 +109,12 @@ public class Opt<T> {
      * @return The transformed value, or {@link #absent()}.
      */
     public <R,E extends Exception> Opt<R> transform( Function<? super T,? extends R,E> mapper ) throws E {
-        return isPresent() ? Opt.ofNullable( mapper.apply( value ) ) : absent();
+        return isPresent() ? Opt.of( mapper.apply( value ) ) : absent();
     }
 
 
     public <R,E extends Exception> Opt<R> ifPresentTransform( Function<? super T,? extends R,E> mapper ) throws E {
-        return isPresent() ? Opt.ofNullable( mapper.apply( value ) ) : absent();
+        return isPresent() ? Opt.of( mapper.apply( value ) ) : absent();
     }
 
 
