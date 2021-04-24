@@ -13,6 +13,8 @@
  */
 package areca.common.event;
 
+import static areca.common.Assert.notNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
@@ -50,7 +52,7 @@ public abstract class EventManager {
     public BiConsumer<EventObject,Throwable>    defaultOnError;
 
     /** Copy-on-Write */
-    private List<EventHandlerInfo>      handlers = Collections.emptyList();
+    private List<EventHandlerInfo>              handlers = Collections.emptyList();
 
 
     protected EventManager() {
@@ -158,7 +160,7 @@ public abstract class EventManager {
 
 
         public EventHandlerInfo( Object handler ) {
-            this.handler = Assert.notNull( handler );
+            this.handler = notNull( handler );
         }
 
 
@@ -171,7 +173,7 @@ public abstract class EventManager {
 
         public EventHandlerInfo disposeIf( @SuppressWarnings("hiding") EventPredicate disposeIf ) {
             Assert.isNull( this.disposeIf );
-            this.disposeIf = Assert.notNull( disposeIf );
+            this.disposeIf = notNull( disposeIf );
             return this;
         }
 

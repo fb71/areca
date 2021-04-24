@@ -18,6 +18,7 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
+import areca.common.Assert;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.ui.Color;
@@ -118,6 +119,7 @@ public abstract class UIComponent {
      *         the HTML tree by the caller.
      */
     protected HtmlNode init( UIComposite newParent ) {
+        Assert.notNull( htmlElm, "No htmlElm set in init()" );
         this.parent = newParent;
         for (Class<?> cl=getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
             cssClasses.add( cl.getSimpleName() );
@@ -130,8 +132,15 @@ public abstract class UIComponent {
 
     public void dispose() {
         events.dispose();
+        parent = null; // remove from parent???
+        htmlElm = null; // dispose???
         throw new RuntimeException( "not yet..." );
         //EventManager.instance().publish( new UIRenderEvent.ComponentCreatedEvent( this ) );
+    }
+
+
+    public boolean isDisposed() {
+        return htmlElm == null;
     }
 
 
