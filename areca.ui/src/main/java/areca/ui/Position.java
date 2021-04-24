@@ -13,6 +13,8 @@
  */
 package areca.ui;
 
+import static java.lang.Math.round;
+
 /**
  *
  * @author falko
@@ -45,6 +47,18 @@ public class Position {
 
     public int y() {
         return y;
+    }
+
+    public Position substract( Position rhs ) {
+        return new Position( x - rhs.x, y - rhs.y );
+    }
+
+    public Position add( Position rhs ) {
+        return new Position( x + rhs.x, y + rhs.y );
+    }
+
+    public Position multiply( float factor ) {
+        return new Position( round(x * factor), Math.round(y * factor) );
     }
 
 }

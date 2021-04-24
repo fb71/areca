@@ -13,12 +13,18 @@
  */
 package areca.ui.pageflow;
 
+import static areca.common.base.With.with;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component.Button;
+import areca.ui.component.Text;
+import areca.ui.component.UIComponent;
 import areca.ui.component.UIComposite;
+import areca.ui.html.HtmlEventTarget.EventType;
+import areca.ui.html.HtmlEventTarget.HtmlMouseEvent;
 import areca.ui.layout.FillLayout;
 import areca.ui.layout.LayoutManager;
 
@@ -30,7 +36,7 @@ public class AppWindow {
 
     private static final Log log = LogFactory.getLog( AppWindow.class );
 
-    private UIComposite     container;
+    public UIComposite      container;
 
     public UIComposite      header;
 
@@ -53,16 +59,109 @@ public class AppWindow {
             tb.components.add( new Button(), btn -> {
                 btn.label.set( "toolbar" );
                 btn.bordered.set( false );
-                btn.onClick( ev -> btn.bordered.set( !btn.bordered.get() ) );
+                btn.events.onSelection( ev -> btn.bordered.set( !btn.bordered.get() ) );
             });
             tb.bordered.set( true );
         });
 
         pages = container.components.add( new UIComposite() );
-        // pages.layout.set( new PageStackLayout() );
 
-        //container.layout();
+        //
+        new PanGesture( container );
     }
+
+
+    /**
+     *
+     */
+    public class PanGesture {
+
+        private UIComponent     component;
+
+        private boolean         isDown;
+
+        private long            lastTime;
+
+        private Position        lastPos;
+
+        protected PanGesture( UIComponent component ) {
+            this.component = component;
+//            component.htmlElm.listeners.add( EventType.TOUCHSTART, ev -> {
+//                log.info( "TOUCH: " + ev );
+//                onStart( ev );
+//            });
+//            component.htmlElm.listeners.add( EventType.TOUCHMOVE, ev -> {
+//                log.info( "TOUCH: " + ev );
+//                onMove( ev );
+//            });
+//            component.htmlElm.listeners.add( EventType.TOUCHEND, ev -> {
+//                log.info( "TOUCH: " + ev );
+//                onEnd( ev );
+//            });
+
+//            isDown = true;
+//            lastTime = System.currentTimeMillis();
+//            lastPos = component.position.get();
+            var t = header.add( new Text(), _t -> _t.text.set( "..." ) );
+            component.htmlElm.listeners.add( EventType.MOUSEDOWN, ev -> {
+                t.text.set( "DOWN" );
+                try {
+                    onStart( ev );
+                }
+                catch (Exception e) {
+                    t.text.set( "" + e.getMessage() );
+                }
+            });
+            component.htmlElm.listeners.add( EventType.MOUSEMOVE, ev -> {
+                t.text.set( "MOVE" );
+                try {
+                    onMove( ev );
+                }
+                catch (Exception e) {
+                    t.text.set( "" + e.getMessage() );
+                }
+            });
+            component.htmlElm.listeners.add( EventType.MOUSEUP, ev -> {
+                t.text.set( "UP" );
+                onEnd( ev );
+            });
+        }
+
+        protected void onStart( HtmlMouseEvent ev ) {
+            log.info( "DOWN: " + ev );
+            isDown = true;
+            lastTime = System.currentTimeMillis();
+            lastPos = ev.clientPosition.get();
+        }
+
+        protected void onMove( HtmlMouseEvent ev ) {
+            if (isDown) {
+                if ((System.currentTimeMillis() - lastTime) < 250) {
+                    log.info( "IGNORED" );
+                    return;
+                }
+                var delta = ev.clientPosition.get().substract( lastPos );
+                lastPos = ev.clientPosition.get();
+                lastTime = System.currentTimeMillis();
+                log.info( "delta: %s", delta );
+
+                handle( delta );
+            }
+        }
+
+        protected void onEnd( HtmlMouseEvent ev ) {
+            log.info( "UP: " + ev );
+            isDown = false;
+        }
+
+        protected void handle( Position delta ) {
+            with( component.position ).apply( pos -> pos.set( pos.get().add( delta.multiply( 2f ) ) ) );
+
+            //Scope.with( component.position, pos -> pos.set( pos.get().add(delta) ) );
+        }
+
+    }
+
 
     /**
      *

@@ -22,8 +22,7 @@ import areca.ui.Property.ReadWrite;
 public class HtmlButton
         extends HtmlElement {
 
-    public ReadWrite<String>        value;
-
+    public ReadWrite<HtmlButton,String> value;
 
     public HtmlButton() {
         super();

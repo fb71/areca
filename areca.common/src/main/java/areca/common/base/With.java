@@ -40,7 +40,11 @@ public class With<T> {
         this.obj = obj;
     }
 
-    public <R,E extends Exception> R apply( Function<T,R,E> block ) throws E {
+    public <R,E extends Exception> R map( Function<T,R,E> block ) throws E {
+        return transform( block );
+    }
+
+    public <R,E extends Exception> R transform( Function<T,R,E> block ) throws E {
         return block.apply( obj );
     }
 

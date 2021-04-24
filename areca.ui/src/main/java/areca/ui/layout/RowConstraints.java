@@ -23,6 +23,6 @@ import areca.ui.Property.ReadWrite;
 public class RowConstraints
         implements LayoutConstraints {
 
-    public ReadWrite<Integer>       height = Property.create( this, "height" );
+    public ReadWrite<RowConstraints,Integer>       height = Property.create( this, "height" );
 
 }

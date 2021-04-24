@@ -16,7 +16,7 @@ package areca.ui;
 import java.util.EventObject;
 
 import areca.common.Assert;
-import areca.common.base.Consumer;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.base.Supplier;
@@ -27,30 +27,32 @@ import areca.common.log.LogFactory.Log;
 
 /**
  *
+ * @param <T> The type of the value of this property.
+ * @param <C> The type of the component this is a property of.
  * @author falko
  */
-public abstract class Property<T> {
+public abstract class Property<C,T> {
 
     private static final Log LOG = LogFactory.getLog( Property.class );
 
     /**
      * Creates a field backed read-write property.
      */
-    public static <R> ReadWrite<R> create( Object component, String name ) {
+    public static <RC,R> ReadWrite<RC,R> create( RC component, String name ) {
         return new FieldBackedProperty<>( component, name, null );
     }
 
     /**
      * Creates a field backed read-write property with the given initial value.
      */
-    public static <R> ReadWrite<R> create( Object component, String name, R initialValue ) {
+    public static <RC,R> ReadWrite<RC,R> create( RC component, String name, R initialValue ) {
         return new FieldBackedProperty<>( component, name, initialValue );
     }
 
     /**
      *
      */
-    public static <R> ReadOnly<R> create( Object component, String name, Supplier.$<R> getter ) {
+    public static <RC,R> ReadOnly<RC,R> create( RC component, String name, Supplier.$<R> getter ) {
         return new ReadOnly<>( component, name ) {
             @Override protected R doGet() {
                 return getter.get();
@@ -61,7 +63,7 @@ public abstract class Property<T> {
     /**
      *
      */
-    public static <R> ReadWrite<R> create( Object component, String name, Supplier.$<R> getter, Consumer.$<R> setter ) {
+    public static <RC,R> ReadWrite<RC,R> create( RC component, String name, Supplier.$<R> getter, RConsumer<R> setter ) {
         return new ReadWrite<>( component, name ) {
             @Override protected R doGet() {
                 return getter.get();
@@ -75,12 +77,12 @@ public abstract class Property<T> {
 
     // instance *******************************************
 
-    protected Object component;
+    protected C         component;
 
-    protected String name;
+    protected String    name;
 
 
-    protected Property( Object component, String name ) {
+    protected Property( C component, String name ) {
         this.component = component;
         this.name = name;
     }
@@ -102,7 +104,7 @@ public abstract class Property<T> {
     @Override
     public boolean equals( Object obj ) {
         if (obj instanceof Property) {
-            Property<?> other = (Property<?>)obj;
+            Property<?,?> other = (Property<?,?>)obj;
             return name.equals( other.name ); // &&
 //                    // XXX we don't know to correct Type the Property is a Field of
 //                    (component.getClass().isAssignableFrom( other.component.getClass() )
@@ -124,10 +126,10 @@ public abstract class Property<T> {
     /**
      *
      */
-    public static abstract class ReadOnly<T>
-            extends Property<T> {
+    public static abstract class ReadOnly<C,T>
+            extends Property<C,T> {
 
-        protected ReadOnly( Object component, String name ) {
+        protected ReadOnly( C component, String name ) {
             super( component, name );
         }
 
@@ -146,22 +148,22 @@ public abstract class Property<T> {
     /**
      *
      */
-    public static abstract class ReadWrite<T>
-            extends ReadOnly<T> {
+    public static abstract class ReadWrite<C,T>
+            extends ReadOnly<C,T> {
 
-        protected ReadWrite( Object component, String name ) {
+        protected ReadWrite( C component, String name ) {
             super( component, name );
         }
 
         protected abstract void doSet( T newValue );
 
         /** Set value without firing {@link PropertyChangedEvent}. */
-        public ReadWrite<T> rawSet( T newValue ) {
+        public ReadWrite<C,T> rawSet( T newValue ) {
             doSet( newValue );
             return this;
         }
 
-        public ReadWrite<T> set( T newValue ) {
+        public ReadWrite<C,T> set( T newValue ) {
             doSet( newValue );
             return this;
         }
@@ -178,12 +180,12 @@ public abstract class Property<T> {
     /**
      *
      */
-    public static class FieldBackedProperty<T>
-            extends ReadWrite<T> {
+    public static class FieldBackedProperty<C,T>
+            extends ReadWrite<C,T> {
 
         protected T value;
 
-        protected FieldBackedProperty( Object component, String name, T initialValue ) {
+        protected FieldBackedProperty( C component, String name, T initialValue ) {
             super( component, name );
             this.value = initialValue;
         }
@@ -211,10 +213,10 @@ public abstract class Property<T> {
     /**
      *
      */
-    public static abstract class ReadOnlys<T>
-            extends Property<T> {
+    public static abstract class ReadOnlys<C,T>
+            extends Property<C,T> {
 
-        protected ReadOnlys( Object component, String name ) {
+        protected ReadOnlys( C component, String name ) {
             super( component, name );
         }
 
@@ -225,10 +227,10 @@ public abstract class Property<T> {
     /**
      *
      */
-    public static abstract class ReadWrites<T>
-            extends ReadOnlys<T> {
+    public static abstract class ReadWrites<C,T>
+            extends ReadOnlys<C,T> {
 
-        protected ReadWrites( Object component, String name ) {
+        protected ReadWrites( C component, String name ) {
             super( component, name );
         }
 
@@ -256,7 +258,7 @@ public abstract class Property<T> {
 
         private Object newValue;
 
-        protected PropertyChangedEvent( Property<?> source, Object oldValue, Object newValue ) {
+        protected PropertyChangedEvent( Property<?,?> source, Object oldValue, Object newValue ) {
             super( source );
             this.oldValue = oldValue;
             this.newValue = newValue;
@@ -268,8 +270,8 @@ public abstract class Property<T> {
         }
 
         @Override
-        public Property<?> getSource() {
-            return (Property<?>)super.getSource();
+        public Property<?,?> getSource() {
+            return (Property<?,?>)super.getSource();
         }
 
         @SuppressWarnings("unchecked")

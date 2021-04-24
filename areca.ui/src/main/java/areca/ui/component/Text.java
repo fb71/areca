@@ -36,7 +36,7 @@ public class Text
 
     protected HtmlTextNode      textNode;
 
-    public ReadWrite<String> text = Property.create( this, "text",
+    public ReadWrite<Text,String> text = Property.create( this, "text",
             () -> textNode.value.get(),
             v -> textNode.value.set( v ) );
 

@@ -20,10 +20,9 @@ import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.html.TeaHtmlImplFactory;
 import areca.ui.App;
 import areca.ui.component.Button;
-import areca.ui.component.SelectionEvent;
 import areca.ui.component.Text;
 import areca.ui.html.HtmlElement;
-import areca.ui.layout.GridLayout;
+import areca.ui.layout.RasterLayout;
 import areca.ui.pageflow.AppWindow;
 import areca.ui.pageflow.PageStackLayout;
 
@@ -66,16 +65,20 @@ public class Main {
 
             var appWindow = new AppWindow( rootWindow );
 
-            appWindow.pages.layout.set( new GridLayout() {{spacing.set( 10 );}} );
+            appWindow.pages.layout.set( new RasterLayout() {{spacing.set( 10 );}} );
             for (int i = 0; i < 20; i++) {
                 var l = "" + i;
                 appWindow.pages.components.add( new Button(), btn -> {
                     btn.label.set( l );
-                    btn.htmlElm.styles.set( "border-radius", "20px" );
-                    btn.onClick( (SelectionEvent ev) ->  {
+                    btn.htmlElm.styles.set( "border-radius", "9px" );
+                    btn.events.onSelection( ev ->  {
                         var second = new AppWindow( rootWindow );
-                        second.header.components.add( new Text(), t -> t.text.set( "Second") );
+                        second.header.components.add( new Text(), t -> t.text.set( "Second!") );
                         rootWindow.layout();
+
+//                        second.container.events.on( MOUSEMOVE, mev -> {
+//                            log.info( "MOUSEMOVE: " + mev );
+//                        });
                     });
                 });
             }

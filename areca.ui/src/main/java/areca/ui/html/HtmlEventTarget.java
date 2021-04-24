@@ -13,7 +13,7 @@
  */
 package areca.ui.html;
 
-import areca.common.base.Consumer;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
@@ -28,6 +28,27 @@ public abstract class HtmlEventTarget
 
     private static final Log log = LogFactory.getLog( HtmlEventTarget.class );
 
+    public enum EventType {
+        CLICK,
+        CONTEXTMENU,
+        DBLCLICK,
+        MOUSEDOWN,
+        MOUSEENTER,
+        MOUSELEAVE,
+        MOUSEMOVE,
+        MOUSEOUT,
+        MOUSEOVER,
+        MOUSEUP,
+        TOUCHSTART,
+        TOUCHEND,
+        TOUCHMOVE,
+        TOUCHCANCEL;
+
+        public String html() {
+            return name().toLowerCase();
+        }
+    }
+
     public HtmlEventListeners       listeners;
 
 
@@ -36,9 +57,7 @@ public abstract class HtmlEventTarget
      */
     public static abstract class HtmlEventListeners {
 
-        public abstract ListenerHandle click( Consumer<HtmlMouseEvent,RuntimeException> handler );
-
-        public abstract ListenerHandle mouseMove( Consumer<HtmlMouseEvent,RuntimeException> handler );
+        public abstract ListenerHandle add( EventType type, RConsumer<HtmlMouseEvent> handle );
 
         public abstract void remove( ListenerHandle handle );
 
@@ -64,6 +83,6 @@ public abstract class HtmlEventTarget
     public static class HtmlMouseEvent
             extends HtmlEvent {
 
-        public ReadOnly<Position>   clientPosition;
+        public ReadOnly<HtmlMouseEvent,Position> clientPosition;
     }
 }

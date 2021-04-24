@@ -32,6 +32,13 @@ public interface Consumer<T,E extends Exception> {
     }
 
     /**
+     * A {@link Consumer} that does not throw checked Exceptions.
+     */
+    public interface RConsumer<T>
+            extends Consumer<T,RuntimeException> {
+    }
+
+    /**
      * Performs this operation on the given argument.
      */
     public void accept( T t ) throws E;

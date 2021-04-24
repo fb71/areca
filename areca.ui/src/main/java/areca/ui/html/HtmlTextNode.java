@@ -26,7 +26,7 @@ public class HtmlTextNode
 
     private static final Log log = LogFactory.getLog( HtmlTextNode.class );
 
-    public ReadWrite<String>    value;
+    public ReadWrite<HtmlTextNode,String> value;
 
     public HtmlTextNode(String newValue) {
         HtmlElement.factory.init( this );

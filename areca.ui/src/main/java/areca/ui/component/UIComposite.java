@@ -46,7 +46,7 @@ public class UIComposite
      *
      */
     public class Children
-            extends ReadWrites<UIComponent>
+            extends ReadWrites<UIComposite,UIComponent>
             implements Iterable<UIComponent> {
 
         protected List<UIComponent> list = new ArrayList<>();
@@ -102,11 +102,11 @@ public class UIComposite
 
     // instance *******************************************
 
-    public ReadWrite<LayoutManager> layout = Property.create( this, "layout" );
+    public ReadWrite<UIComposite,LayoutManager> layout = Property.create( this, "layout" );
 
-    public ReadOnly<Size>           clientSize = Property.create( this, "clientSize", () -> htmlElm.clientSize.get() );
+    public ReadOnly<UIComposite,Size> clientSize = Property.create( this, "clientSize", () -> htmlElm.clientSize.get() );
 
-    public Children                 components = new Children();
+    public Children components = new Children();
 
 
     @Override
@@ -118,7 +118,7 @@ public class UIComposite
 
 
     /**
-     * @deprecated In favour of {@link #components}.
+     * Shortcut to .{@link #components}.{@link Children#add(UIComponent) add}()
      */
     public <C extends UIComponent,E extends Exception> C add( C component, Consumer<C,E> initializer ) throws E {
         return components.add( component, initializer );

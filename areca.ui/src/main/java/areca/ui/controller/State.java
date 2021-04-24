@@ -22,11 +22,11 @@ import areca.ui.Property;
  * @author Falko Bräutigam
  */
 public class State<T>
-        extends Property.FieldBackedProperty<T> {
+        extends Property.FieldBackedProperty<Controller,T> {
 
     private static final Log log = LogFactory.getLog( State.class );
 
-    protected State( Object component, String name, T value ) {
+    protected State( Controller component, String name, T value ) {
         super( component, name, value );
     }
 

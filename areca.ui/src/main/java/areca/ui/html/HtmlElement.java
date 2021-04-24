@@ -37,21 +37,21 @@ public class HtmlElement
 
     // instance *******************************************
 
-    public Type                     type = null;
+    public Type                             type = null;
 
-    public ReadWrites<HtmlNode>     children;
+    public ReadWrites<HtmlElement,HtmlNode> children;
 
-    public Styles                   styles;
+    public Styles                           styles;
 
-    public Attributes               attributes;
+    public Attributes                       attributes;
 
-    public ReadWrite<Boolean>       hidden;
+    public ReadWrite<HtmlElement,Boolean>   hidden;
 
-    public ReadOnly<Size>           clientSize;
+    public ReadOnly<HtmlElement,Size>       clientSize;
 
-    public ReadOnly<Size>           offsetSize;
+    public ReadOnly<HtmlElement,Size>       offsetSize;
 
-    public ReadOnly<Position>       offsetPosition;
+    public ReadOnly<HtmlElement,Position>   offsetPosition;
 
 
     public HtmlElement( Type type ) {
@@ -69,9 +69,9 @@ public class HtmlElement
      *
      */
     public static abstract class Attributes
-            extends ReadWrites<NameValue> {
+            extends ReadWrites<HtmlElement,NameValue> {
 
-        protected Attributes( Object component ) {
+        protected Attributes( HtmlElement component ) {
             super( component, "attributes" );
         }
 
@@ -91,9 +91,9 @@ public class HtmlElement
      */
     @SuppressWarnings("hiding")
     public static abstract class Styles
-            extends ReadWrites<NameValue> {
+            extends ReadWrites<HtmlElement,NameValue> {
 
-        protected Styles( Object component ) {
+        protected Styles( HtmlElement component ) {
             super( component, "styles" );
         }
 

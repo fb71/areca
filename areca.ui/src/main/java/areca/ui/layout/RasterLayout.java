@@ -25,12 +25,12 @@ import areca.ui.component.UIComposite;
  *
  * @author Falko Bräutigam
  */
-public class GridLayout
+public class RasterLayout
          extends LayoutManager {
 
-    private static final Log log = LogFactory.getLog( GridLayout.class );
+    private static final Log log = LogFactory.getLog( RasterLayout.class );
 
-    public ReadWrite<Integer>   spacing = Property.create( this, "spacing", 5 );
+    public ReadWrite<RasterLayout,Integer> spacing = Property.create( this, "spacing", 5 );
 
 
     @Override

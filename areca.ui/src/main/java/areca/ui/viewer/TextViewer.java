@@ -33,7 +33,7 @@ public class TextViewer
         return container.add( new Text(), t -> {
             t.text.set( model.getValue() );
 
-            t.onClick( ev -> {
+            t.events.onSelection( ev -> {
                 throw new RuntimeException( "Modifying text is not supported yet." );
                 //model.setValue();
             });

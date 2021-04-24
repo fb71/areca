@@ -18,7 +18,6 @@ import areca.common.base.Consumer;
 import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.Property;
 
 /**
  *
@@ -28,7 +27,7 @@ public class ImapFolderSynchronizer {
 
     private static final Log log = LogFactory.getLog( ImapFolderSynchronizer.class );
 
-    public Property<Boolean>            checkExisting = Property.create( this, "checkExisting", false );
+//    public Property<Boolean>            checkExisting = Property.create( this, "checkExisting", false );
 
 //    protected Supplier.$<ImapRequest>   requestFactory;
 

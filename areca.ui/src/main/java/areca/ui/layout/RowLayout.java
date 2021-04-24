@@ -31,9 +31,9 @@ public class RowLayout
 
     private static final Logger LOG = Logger.getLogger( RowLayout.class.getName() );
 
-    public Property<Integer>        margins = Property.create( this, "margins" );
+    public Property<RowLayout,Integer> margins = Property.create( this, "margins" );
 
-    public Property<Integer>        spacing = Property.create( this, "spacing" );
+    public Property<RowLayout,Integer> spacing = Property.create( this, "spacing" );
 
 
     @Override

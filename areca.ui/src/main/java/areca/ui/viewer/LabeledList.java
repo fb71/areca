@@ -32,7 +32,7 @@ public class LabeledList<T>
 
     private static final Logger LOG = Logger.getLogger( LabeledList.class.getName() );
 
-    public ReadWrite<Labeler<T,String>> firstLineLabeler = Property.create( this, "firstLineLabeler" );
+    public ReadWrite<LabeledList<T>,Labeler<T,String>> firstLineLabeler = Property.create( this, "firstLineLabeler" );
 
 
     @Override

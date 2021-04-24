@@ -20,8 +20,6 @@ import java.util.logging.Logger;
 
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
-import areca.common.event.EventListener;
-import areca.common.event.EventManager;
 import areca.ui.Color;
 import areca.ui.Position;
 import areca.ui.Property;
@@ -56,7 +54,7 @@ public abstract class UIComponent {
     /**
      * The styling classes of this component.
      */
-    public ReadWrites<String> cssClasses = new ReadWrites<>( this, "cssClasses" ) {
+    public ReadWrites<UIComponent,String> cssClasses = new ReadWrites<>( this, "cssClasses" ) {
         @Override
         public Sequence<String,RuntimeException> sequence() {
             return Sequence.of( htmlElm.attributes.opt( "class" ).orElse( "" ).split( " " ) );
@@ -74,35 +72,40 @@ public abstract class UIComponent {
     /**
      * Background color.
      */
-    public ReadWrite<Color> bgColor = Property.create( this, "bgcolor",
+    public ReadWrite<UIComponent,Color> bgColor = Property.create( this, "bgcolor",
             () -> htmlElm.styles.color( "background-color").orElse( null ),
             newValue -> htmlElm.styles.set( "background-color", newValue ) );
 
     /**
      * The size of the component. Usually this is set by a {@link LayoutManager} only.
      */
-    public ReadWrite<Size> size = Property.create( this, "size",
+    public ReadWrite<UIComponent,Size> size = Property.create( this, "size",
             () -> htmlElm.offsetSize.get(),
             newValue -> htmlElm.styles.set( "", newValue ) );
 
     /**
      * The position of the component. Usually this is set by a {@link LayoutManager} only.
      */
-    public ReadWrite<Position> position = Property.create( this, "position",
+    public ReadWrite<UIComponent,Position> position = Property.create( this, "position",
             () -> htmlElm.offsetPosition.get(),
             newValue -> htmlElm.styles.set( "", newValue ) );
 
     /**
      *
      */
-    public ReadWrite<Boolean> bordered = Property.create( this, "bordered",
+    public ReadWrite<UIComponent,Boolean> bordered = Property.create( this, "bordered",
             () -> cssClasses.sequence().anyMatches( v -> v.equals( "Bordered" ) ),
             newValue -> { if (newValue) cssClasses.add( "Bordered" ); else cssClasses.remove( "Bordered" ); } );
 
     /**
      *
      */
-    public ReadWrite<LayoutConstraints> layoutConstraints = Property.create( this, "lc" );
+    public ReadWrite<UIComponent,LayoutConstraints> layoutConstraints = Property.create( this, "lc" );
+
+    /**
+     *
+     */
+    public Events events = new Events( this );
 
 
     protected UIComponent() { }
@@ -126,6 +129,7 @@ public abstract class UIComponent {
 
 
     public void dispose() {
+        events.dispose();
         throw new RuntimeException( "not yet..." );
         //EventManager.instance().publish( new UIRenderEvent.ComponentCreatedEvent( this ) );
     }
@@ -155,21 +159,6 @@ public abstract class UIComponent {
     public int computeMinimumHeight( int width ) {
         return 50;
     }
-
-
-    public void onClick( EventListener<SelectionEvent> l ) {
-        htmlElm.listeners.click( htmlEvent -> {
-            SelectionEvent ev = new SelectionEvent( UIComponent.this );
-            l.handle( ev );
-            EventManager.instance().publish( ev );
-        });
-    }
-
-
-//    public EventHandlerInfo subscribe( EventListener<?> l ) {
-//        return EventManager.instance().subscribe( l )
-//                .performIf( ev -> ev != null && ev.getSource() == UIComponent.this);
-//    }
 
 
     @SuppressWarnings("unchecked")

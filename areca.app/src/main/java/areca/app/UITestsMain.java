@@ -24,10 +24,9 @@ import areca.ui.App;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component.Button;
-import areca.ui.component.SelectionEvent;
 import areca.ui.component.Text;
 import areca.ui.layout.FillLayout;
-import areca.ui.layout.GridLayout;
+import areca.ui.layout.RasterLayout;
 import areca.ui.viewer.LabeledList;
 
 /**
@@ -66,7 +65,7 @@ public class UITestsMain {
             // Button1
             appWindow.add( new Button(), btn -> {
                 btn.label.set( "Button!" );
-                btn.onClick( (SelectionEvent ev) -> {
+                btn.events.onSelection( ev -> {
                     log.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
                     Position pos = btn.position.get();
                     btn.position.set( Position.of( pos.x()-10, pos.y()-10 ) );
@@ -87,7 +86,7 @@ public class UITestsMain {
     public static void createGridLayoutApp() {
         App.instance().createUI( appWindow -> {
             //appWindow.size.set( Size.of( 400, 300 ) );
-            appWindow.layout.set( new GridLayout() {{spacing.set( 10 );}} );
+            appWindow.layout.set( new RasterLayout() {{spacing.set( 10 );}} );
 
             appWindow.add( new Text(), text -> text.text.set( "Samstagabend" ) );
 
@@ -95,9 +94,9 @@ public class UITestsMain {
                 var label = "" + i;
                 appWindow.add( new Button(), btn -> {
                     btn.label.set( label );
-                    btn.onClick( ev ->  {
+                    btn.events.onSelection( ev ->  {
                         appWindow.layout.set( (appWindow.layout.get() instanceof FillLayout)
-                                ? new GridLayout() : new FillLayout() );
+                                ? new RasterLayout() : new FillLayout() );
                         appWindow.layout();
                     });
                 });

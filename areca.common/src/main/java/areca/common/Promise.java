@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import areca.common.base.Consumer;
+import areca.common.base.Consumer.RConsumer;
 
 /**
  *
@@ -34,7 +35,7 @@ public class Promise<T> {
 
     protected List<Consumer<T,?>>   onSuccess = new ArrayList<>();
 
-    protected List<Consumer.$<Exception>> onError = new ArrayList<>();
+    protected List<RConsumer<Exception>> onError = new ArrayList<>();
 
 
     public boolean cancel( boolean mayInterruptIfRunning ) {
@@ -59,13 +60,13 @@ public class Promise<T> {
     }
 
 
-    public Promise<T> catchError( Consumer.$<Exception> consumer ) {
+    public Promise<T> catchError( RConsumer<Exception> consumer ) {
         onError( consumer );
         return this;
     }
 
 
-    public Promise<T> onError( Consumer.$<Exception> consumer ) {
+    public Promise<T> onError( RConsumer<Exception> consumer ) {
         onError.add( consumer );
         return this;
     }

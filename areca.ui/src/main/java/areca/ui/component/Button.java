@@ -33,7 +33,7 @@ public class Button
 //    @SuppressWarnings("hiding")
 //    public static final Button  TYPE = new Button();
 
-    public ReadWrite<String> label = new ReadWrite<>( this, "label" ) {
+    public ReadWrite<Button,String> label = new ReadWrite<>( this, "label" ) {
         private String value;
         @Override
         protected void doSet( String newValue ) {
