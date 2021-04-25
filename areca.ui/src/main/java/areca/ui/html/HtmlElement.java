@@ -108,6 +108,10 @@ public class HtmlElement
             doAdd( new NameValue( name, value ) );
         }
 
+        public void set( String name, Number value ) {
+            set( name, value.toString() );
+        }
+
         public void set( String name, Color value ) {
             set( name, value.toHex() );
         }

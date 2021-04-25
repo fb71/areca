@@ -47,6 +47,7 @@ body {
         left $transition_duration, 
         width $transition_duration, 
         height $transition_duration, 
+        opacity $transition_duration,
         transform $transition_duration;
     box-sizing: border-box;
 }
