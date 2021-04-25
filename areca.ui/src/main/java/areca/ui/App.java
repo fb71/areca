@@ -46,16 +46,19 @@ public class App {
         return rootWindow;
     }
 
+    public RootWindow rootWindow() {
+        return Assert.notNull( rootWindow );
+    }
 
     /**
      *
      */
-    protected class RootWindow
+    public class RootWindow
             extends UIComposite {
 
         @Override
         public HtmlNode init( UIComposite newParent ) {
-            return super.init( newParent );
+            return super.init( null );
         }
     }
 

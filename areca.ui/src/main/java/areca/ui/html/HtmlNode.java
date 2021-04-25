@@ -24,13 +24,20 @@ public class HtmlNode {
 
     private static final Log log = LogFactory.getLog( HtmlNode.class );
 
-    //public HtmlElement              parent;
+    // public HtmlElement  parent;
 
-    public Object delegate;
+    public Object       delegate;
 
     @SuppressWarnings("unchecked")
     public <R> R delegate() {
         return (R)delegate;
+    }
+
+    /**
+     * Removes from hierarchy and disposes this element.
+     */
+    public void remove() {
+        HtmlElement.factory.dispose( this );
     }
 
 }

@@ -130,7 +130,7 @@ public abstract class UIComponent {
     }
 
 
-    public void dispose() {
+    protected void dispose() {
         events.dispose();
         parent = null; // remove from parent???
         htmlElm = null; // dispose???

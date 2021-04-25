@@ -17,8 +17,10 @@ package areca.ui.html;
  *
  * @author Falko Bräutigam
  */
-public interface HtmlImplFactory {
+public interface HtmlFactory {
 
     void init( HtmlNode elm );
+
+    void dispose( HtmlNode elm );
 
 }

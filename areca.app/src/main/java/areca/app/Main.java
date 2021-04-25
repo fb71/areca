@@ -17,10 +17,11 @@ import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.TeaPlatform;
-import areca.rt.teavm.html.TeaHtmlImplFactory;
+import areca.rt.teavm.html.TeaHtmlFactory;
 import areca.ui.App;
 import areca.ui.component.Button;
 import areca.ui.component.Text;
+import areca.ui.component.VisualClickFeedback;
 import areca.ui.html.HtmlElement;
 import areca.ui.layout.RasterLayout;
 import areca.ui.pageflow.AppWindow;
@@ -41,7 +42,7 @@ public class Main {
 //        return;
 
         try {
-            HtmlElement.factory = new TeaHtmlImplFactory();
+            HtmlElement.factory = new TeaHtmlFactory();
             Platform.instance = new TeaPlatform();
 
             createApp();
@@ -61,6 +62,8 @@ public class Main {
 
     protected static void createApp() {
         App.instance().createUI( rootWindow -> {
+            VisualClickFeedback.start();
+
             rootWindow.layout.set( new PageStackLayout() );
 
             var appWindow = new AppWindow( rootWindow );

@@ -59,8 +59,9 @@ public class HtmlElementImpl {
                 delegate.appendChild( child.delegate() );
             }
             @Override
-            protected void doRemove( HtmlNode value ) {
-                throw new RuntimeException( "not yet implemented." );
+            protected void doRemove( HtmlNode child ) {
+                // delegate.removeChild( child.delegate() );
+                throw new UnsupportedOperationException( "call [child].remove() instead." );
             }
             @Override
             public Sequence<HtmlNode,RuntimeException> sequence() {

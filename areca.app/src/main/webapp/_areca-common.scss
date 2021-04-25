@@ -65,5 +65,22 @@ body {
     background-color: $bg1_color;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+}
+
+.VisualClickFeedbackStart {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: $font_color;
+    border-radius: 40px;
+    opacity: 50%; 
+}
+
+.VisualClickFeedbackEnd {
+    @extend .VisualClickFeedbackStart;
+    transform: scale(5);
+    transition: all 0.4s;
+    opacity: 0%; 
 }
 

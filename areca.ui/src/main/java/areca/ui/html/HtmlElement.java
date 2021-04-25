@@ -29,7 +29,7 @@ import areca.ui.Property.ReadWrites;
 public class HtmlElement
         extends HtmlEventTarget {
 
-    public static HtmlImplFactory   factory;
+    public static HtmlFactory   factory;
 
     public enum Type {
         DIV
