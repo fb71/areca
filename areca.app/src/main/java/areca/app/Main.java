@@ -87,6 +87,7 @@ public class Main {
             }
             rootWindow.layout();
 
+            // PanGesture
             var startPos = new MutableObject<Position>();
             new PanGesture( rootWindow ).onEvent( ev -> {
                 LOG.info( "%s", ev.delta.get() );
@@ -94,21 +95,22 @@ public class Main {
                 switch (ev.status.get()) {
                     case START: {
                         startPos.setValue( top.position.get() );
+                        top.bordered.set( true );
+                        top.cssClasses.add( "Paned" );
                         break;
                     }
                     case MOVE: {
-                        top.bordered.set( true );
                         top.position.set( Position.of(
                                 startPos.getValue().x(),
                                 startPos.getValue().y() + ev.delta.get().y() ) );
                         float opacity = (200f - ev.delta.get().y()) / 200f;
-                        LOG.info( "OPACITY: %s", opacity );
                         top.htmlElm.styles.set( "opacity", opacity );
                         break;
                     }
                     case END: {
                         top.position.set( startPos.getValue() );
                         top.htmlElm.styles.remove( "opacity" );
+                        top.cssClasses.remove( "Paned" );
                         Platform.instance().schedule( 1000, () -> top.bordered.set( false ) );
                     }
                 }

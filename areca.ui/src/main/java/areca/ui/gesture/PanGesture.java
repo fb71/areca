@@ -127,7 +127,7 @@ public class PanGesture {
 
     protected void onMove( HtmlMouseEvent ev ) {
         if (isDown) {
-            if ((System.currentTimeMillis() - lastTime) < 250) {
+            if ((System.currentTimeMillis() - lastTime) < 100) {
                 LOG.info( "IGNORED" );
                 return;
             }

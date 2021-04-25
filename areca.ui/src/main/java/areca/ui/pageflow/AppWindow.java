@@ -59,14 +59,6 @@ public class AppWindow {
         });
 
         pages = container.components.add( new UIComposite() );
-
-        //
-//        new PanGesture( container ).onEvent( ev -> {
-//            container.bordered.set( true );
-//            container.position.set( Position.of(
-//                    container.position.get().x(),
-//                    container.position.get().y() + (ev.delta.get().y()*2) ) );
-//        });
     }
 
 

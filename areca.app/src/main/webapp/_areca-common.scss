@@ -1,9 +1,3 @@
-//@font-face {
-//  font-family: 'Roboto';
-//  // font-style: normal;
-//  // font-weight: 400;
-//  src: url('Roboto.woff2'), url('Roboto-Regular.woff2'), url('Roboto-Medium.woff2'), url('Roboto-Bold.woff2');
-//}
 @font-face {
   font-family: 'Roboto';
   font-weight: normal;
@@ -83,6 +77,13 @@ body {
     border-radius: 4px;
     // margin: -1px;
 }
+
+// during PanGesture
+.Paned {
+    transition: all 0.35s ease-out;
+    //transition-timing-function: ease-out;
+}
+
 .AppWindow {
     background-color: $bg1_color;    
 }
