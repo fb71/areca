@@ -13,15 +13,19 @@
  */
 package areca.app;
 
+import org.apache.commons.lang3.mutable.MutableObject;
+
 import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.html.TeaHtmlFactory;
 import areca.ui.App;
+import areca.ui.Position;
 import areca.ui.component.Button;
 import areca.ui.component.Text;
 import areca.ui.component.VisualClickFeedback;
+import areca.ui.gesture.PanGesture;
 import areca.ui.html.HtmlElement;
 import areca.ui.layout.RasterLayout;
 import areca.ui.pageflow.AppWindow;
@@ -33,7 +37,7 @@ import areca.ui.pageflow.PageStackLayout;
  */
 public class Main {
 
-    private static final Log log = LogFactory.getLog( Main.class );
+    private static final Log LOG = LogFactory.getLog( Main.class );
 
 
     public static void main( String[] args ) throws Exception {
@@ -78,14 +82,32 @@ public class Main {
                         var second = new AppWindow( rootWindow );
                         second.header.components.add( new Text(), t -> t.text.set( "Second!") );
                         rootWindow.layout();
-
-//                        second.container.events.on( MOUSEMOVE, mev -> {
-//                            log.info( "MOUSEMOVE: " + mev );
-//                        });
                     });
                 });
             }
             rootWindow.layout();
+
+            var startPos = new MutableObject<Position>();
+            new PanGesture( rootWindow ).onEvent( ev -> {
+                LOG.info( "%s" + ev.delta.get() );
+                var top = rootWindow.components.sequence().last().get();
+                switch (ev.status.get()) {
+                    case START: {
+                        startPos.setValue( top.position.get() );
+                    }
+                    case MOVE: {
+                        top.bordered.set( true );
+                        top.position.set( Position.of(
+                                startPos.getValue().x(),
+                                startPos.getValue().y() + ev.delta.get().y() ) );
+                        break;
+                    }
+                    case END: {
+                        top.position.set( startPos.getValue() );
+                        Platform.instance().schedule( 1000, () -> top.bordered.set( false ) );
+                    }
+                }
+            });
         });
     }
 }

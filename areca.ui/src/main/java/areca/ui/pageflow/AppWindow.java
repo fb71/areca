@@ -13,15 +13,12 @@
  */
 package areca.ui.pageflow;
 
-import static areca.common.base.With.with;
-
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component.Button;
 import areca.ui.component.UIComposite;
-import areca.ui.gesture.PanGesture;
 import areca.ui.layout.FillLayout;
 import areca.ui.layout.LayoutManager;
 
@@ -64,9 +61,12 @@ public class AppWindow {
         pages = container.components.add( new UIComposite() );
 
         //
-        new PanGesture( container ).onEvent( ev -> {
-            with( container.position ).apply( pos -> pos.set( pos.get().add( ev.delta.multiply( 2f ) ) ) );
-        });
+//        new PanGesture( container ).onEvent( ev -> {
+//            container.bordered.set( true );
+//            container.position.set( Position.of(
+//                    container.position.get().x(),
+//                    container.position.get().y() + (ev.delta.get().y()*2) ) );
+//        });
     }
 
 

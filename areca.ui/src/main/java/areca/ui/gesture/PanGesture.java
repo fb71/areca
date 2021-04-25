@@ -21,6 +21,8 @@ import areca.common.event.EventManager.EventHandlerInfo;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
+import areca.ui.Property;
+import areca.ui.Property.ReadOnly;
 import areca.ui.component.UIComponent;
 import areca.ui.html.HtmlEventTarget.EventType;
 import areca.ui.html.HtmlEventTarget.HtmlMouseEvent;
@@ -32,13 +34,27 @@ public class PanGesture {
 
     static final Log LOG = LogFactory.getLog( PanGesture.class );
 
-    public abstract class PanEvent
+    public enum Status {
+        START, MOVE, END;
+    }
+
+    public class PanEvent
             extends EventObject {
 
-        public Position   delta;
+        public ReadOnly<UIComponent,Status> status;
 
-        public PanEvent( UIComponent source ) {
-            super( source );
+        public ReadOnly<UIComponent,Position> delta;
+
+        public ReadOnly<UIComponent,Position> lastDelta;
+
+        public ReadOnly<UIComponent,Position> clientPos;
+
+        public PanEvent( HtmlMouseEvent ev, Status status ) {
+            super( component );
+            this.status = Property.create( component, "type", status );
+            this.delta = Property.create( component, "delta", ev.clientPosition.get().substract( startPos ) );
+            this.lastDelta = Property.create( component, "lastDelta", ev.clientPosition.get().substract( lastPos ) );
+            this.clientPos = Property.create( component, "clientPos", ev.clientPosition.get() );
         }
 
         @Override
@@ -52,6 +68,8 @@ public class PanGesture {
     private UIComponent     component;
 
     private boolean         isDown;
+
+    private Position        startPos;
 
     private long            lastTime;
 
@@ -102,7 +120,8 @@ public class PanGesture {
         LOG.info( "DOWN: " + ev );
         isDown = true;
         lastTime = System.currentTimeMillis();
-        lastPos = ev.clientPosition.get();
+        startPos = lastPos = ev.clientPosition.get();
+        EventManager.instance().publish( new PanEvent( ev, Status.START ) );
     }
 
 
@@ -112,14 +131,11 @@ public class PanGesture {
                 LOG.info( "IGNORED" );
                 return;
             }
-            var _delta = ev.clientPosition.get().substract( lastPos );
+            // fire
+            EventManager.instance().publish( new PanEvent( ev, Status.MOVE ) );
+
             lastPos = ev.clientPosition.get();
             lastTime = System.currentTimeMillis();
-            LOG.info( "delta: %s", _delta );
-
-            EventManager.instance().publish( new PanEvent( component ) {{
-                this.delta = _delta;
-            }});
         }
     }
 
@@ -127,6 +143,7 @@ public class PanGesture {
     protected void onEnd( HtmlMouseEvent ev ) {
         LOG.info( "UP: " + ev );
         isDown = false;
+        EventManager.instance().publish( new PanEvent( ev, Status.END ) );
     }
 
 }
