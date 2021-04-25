@@ -54,7 +54,7 @@ public class AppWindow {
         toolbar = container.components.add( new UIComposite(), tb -> {
             tb.layout.set( new FillLayout() );
             tb.components.add( new Button(), btn -> {
-                btn.label.set( "toolbar" );
+                btn.label.set( "Toolbar" );
                 btn.bordered.set( false );
                 btn.events.onSelection( ev -> btn.bordered.set( !btn.bordered.get() ) );
             });
@@ -77,7 +77,7 @@ public class AppWindow {
             extends LayoutManager {
 
         public static final int HEADER_HEIGHT = 30;
-        public static final int TOOLBAR_HEIGHT = 40;
+        public static final int TOOLBAR_HEIGHT = 45;
 
         @Override
         public void layout( UIComposite composite ) {

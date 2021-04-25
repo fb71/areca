@@ -1,3 +1,27 @@
+//@font-face {
+//  font-family: 'Roboto';
+//  // font-style: normal;
+//  // font-weight: 400;
+//  src: url('Roboto.woff2'), url('Roboto-Regular.woff2'), url('Roboto-Medium.woff2'), url('Roboto-Bold.woff2');
+//}
+@font-face {
+  font-family: 'Roboto';
+  font-weight: normal;
+  font-style: normal;
+  src: url('Roboto-Regular.woff2');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-weight: 500;
+  font-style: normal;
+  src: url('Roboto-Medium.woff2');
+}
+@font-face {
+  font-family: 'Roboto';
+  font-weight: bold;
+  font-style: normal;
+  src: url('Roboto-Bold.woff2');
+}
 
 /* To get root window height */
 html,body {
@@ -8,14 +32,16 @@ html,body {
 body {
     background-color: $bg1_color;
     color: $font_color;
-    font-family: ubuntu, arial, sans-serif;
+    font-family: Roboto, arial, sans-serif;
 }
 
 .UIComponent {
     position: absolute;
+    font-family: Roboto, arial, sans-serif;
+    font-size: 14px;
+    color: $font_color;
     border: 0px solid $separator_color;
     border-radius: 4px;
-    color: $font_color;
     transition: 
         top $transition_duration, 
         left $transition_duration, 
