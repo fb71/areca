@@ -30,7 +30,7 @@ class PageCloseGesture
 
     private static final Log LOG = LogFactory.getLog( PageCloseGesture.class );
 
-    private static final float PEEK_DISTANCE = 200f;
+    private static final float PEEK_DISTANCE_PX = 200f;
 
     private Position        startPos;
 
@@ -50,7 +50,7 @@ class PageCloseGesture
                     top.position.set( Position.of(
                             startPos.x(),
                             startPos.y() + ev.delta.get().y() ) );
-                    float opacity = (PEEK_DISTANCE - ev.delta.get().y()) / 200f;
+                    float opacity = (PEEK_DISTANCE_PX - ev.delta.get().y()) / PEEK_DISTANCE_PX;
                     top.htmlElm.styles.set( "opacity", opacity );
                     break;
                 }
