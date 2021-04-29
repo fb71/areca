@@ -65,6 +65,14 @@ public class Assert {
     }
 
 
+    public static <R> R notSame( Object expected, R actual, String... msgs ) throws AssertionException {
+        if (enabled && actual == expected) {
+            throw new AssertionException( expected, actual, message( msgs, "is same" ) );
+        }
+        return actual;
+    }
+
+
     public static <R> R isNull( R actual, String... msgs ) {
         if (enabled && actual != null) {
             throw new AssertionException( null, actual, message( msgs, "null expected" ) );

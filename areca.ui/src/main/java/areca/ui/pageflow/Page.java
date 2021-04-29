@@ -13,13 +13,38 @@
  */
 package areca.ui.pageflow;
 
+import areca.common.Assert;
+import areca.ui.component.UIComponent;
+import areca.ui.component.UIComposite;
+
 /**
  *
  * @author Falko Bräutigam
  */
-public class Page {
+public abstract class Page {
 
-    public static interface PageSite {
+    protected PageSite      site;
+
+    UIComponent init( UIComposite parent, @SuppressWarnings("hiding") PageSite site ) {
+        this.site = site;
+        return Assert.notSame( parent, doInit( parent ) );
+    }
+
+    void dispose() {
+        doDispose();
+        this.site = null;
+    }
+
+    protected abstract UIComponent doInit( UIComposite parent );
+
+    protected abstract void doDispose();
+
+    /**
+     *
+     */
+    public static abstract class PageSite {
+
+        // public ReadOnly<PageSite,UIComposite> parent;
     }
 
 }

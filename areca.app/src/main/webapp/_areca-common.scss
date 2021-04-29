@@ -81,10 +81,9 @@ body {
 // during PanGesture
 .Paned {
     transition: all 0.35s ease-out;
-    //transition-timing-function: ease-out;
 }
 
-.AppWindow {
+.PageUIComposite {
     background-color: $bg1_color;    
 }
 

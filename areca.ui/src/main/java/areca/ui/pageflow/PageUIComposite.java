@@ -23,32 +23,38 @@ import areca.ui.layout.FillLayout;
 import areca.ui.layout.LayoutManager;
 
 /**
+ * Provides the common user interface elements of a {@link Page}.
  *
  * @author Falko Bräutigam
  */
-public class AppWindow {
+public class PageUIComposite
+        extends UIComposite {
 
-    static final Log log = LogFactory.getLog( AppWindow.class );
-
-    public UIComposite      container;
+    static final Log log = LogFactory.getLog( PageUIComposite.class );
 
     public UIComposite      header;
 
     private UIComposite     toolbar;
 
-    public UIComposite      pages;
+    public UIComposite      body;
 
 
-    public AppWindow( UIComposite parent ) {
-        container = parent.components.add( new UIComposite() );
-        container.cssClasses.add( "AppWindow" );
-        container.layout.set( new AppWindowLayout() );
+//    @Override
+//    protected HtmlNode init( UIComposite parent ) {
+//        super.init( parent );
+//    }
 
-        header = container.components.add( new UIComposite(), h -> {
+
+    public PageUIComposite( UIComposite parent ) {
+        parent.components.add( this );
+        cssClasses.add( "PageUIComposite" );
+        layout.set( new PageUILayout() );
+
+        header = components.add( new UIComposite(), h -> {
             h.layout.set( new FillLayout() );
         });
 
-        toolbar = container.components.add( new UIComposite(), tb -> {
+        toolbar = components.add( new UIComposite(), tb -> {
             tb.layout.set( new FillLayout() );
             tb.components.add( new Button(), btn -> {
                 btn.label.set( "Toolbar" );
@@ -58,14 +64,14 @@ public class AppWindow {
             tb.bordered.set( true );
         });
 
-        pages = container.components.add( new UIComposite() );
+        body = components.add( new UIComposite() );
     }
 
 
     /**
      *
      */
-    class AppWindowLayout
+    class PageUILayout
             extends LayoutManager {
 
         public static final int HEADER_HEIGHT = 30;
@@ -73,7 +79,8 @@ public class AppWindow {
 
         @Override
         public void layout( UIComposite composite ) {
-            var size = container.clientSize.get();
+            @SuppressWarnings("hiding")
+            var size = PageUIComposite.this.clientSize.get();
 
             header.position.set( Position.of( 0, 0 ) );
             header.size.set( Size.of( size.width(), HEADER_HEIGHT ) );
@@ -82,8 +89,8 @@ public class AppWindow {
             toolbar.size.set( Size.of( size.width(), TOOLBAR_HEIGHT ) );
 
             var bodyHeight = HEADER_HEIGHT + TOOLBAR_HEIGHT;
-            pages.position.set( Position.of( 0,bodyHeight ) );
-            pages.size.set( Size.of( size.width(), size.height() - bodyHeight ) );
+            body.position.set( Position.of( 0,bodyHeight ) );
+            body.size.set( Size.of( size.width(), size.height() - bodyHeight ) );
         }
 
     }
