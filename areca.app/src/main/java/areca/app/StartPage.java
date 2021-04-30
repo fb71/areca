@@ -51,11 +51,17 @@ public class StartPage
                 });
             });
         }
+        ui.body.add( new Button(), btn -> {
+            btn.label.set( "Close" );
+            btn.events.onSelection( ev -> {
+                Pageflow.current().close( StartPage.this );
+            });
+        });
         return ui;
     }
 
     @Override
     protected void doDispose() {
-        LOG.info( "DISPOSED" );
+        LOG.info( "DISPOSING..." );
     }
 }

@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  */
 public class Assert {
 
-    public static volatile boolean enabled = true;
+    public static final boolean enabled = true;
 
 
     protected static String message( String[] msgs, String defaultMsg ) {

@@ -130,11 +130,13 @@ public abstract class UIComponent {
     }
 
 
-    protected void dispose() {
+    public void dispose() {
+        Assert.that( !isDisposed() );
         events.dispose();
-        parent = null; // remove from parent???
-        htmlElm = null; // dispose???
-        throw new RuntimeException( "not yet..." );
+        parent.components.remove( this );
+        parent = null;
+        htmlElm.remove();
+        htmlElm = null;
         //EventManager.instance().publish( new UIRenderEvent.ComponentCreatedEvent( this ) );
     }
 

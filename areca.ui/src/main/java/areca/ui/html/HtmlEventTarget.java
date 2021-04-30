@@ -49,7 +49,7 @@ public abstract class HtmlEventTarget
         }
     }
 
-    public HtmlEventListeners       listeners;
+    public HtmlEventListeners listeners;
 
 
     /**
@@ -61,6 +61,7 @@ public abstract class HtmlEventTarget
 
         public abstract void remove( ListenerHandle handle );
 
+        public abstract void clear();
     }
 
     /**

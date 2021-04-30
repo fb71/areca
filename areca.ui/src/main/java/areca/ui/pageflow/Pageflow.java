@@ -18,6 +18,7 @@ import java.util.Deque;
 import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.component.UIComponent;
 import areca.ui.component.UIComposite;
 import areca.ui.pageflow.Page.PageSite;
 
@@ -40,12 +41,17 @@ public class Pageflow {
         return Assert.notNull( instance, "Pageflow not start()ed yet." );
     }
 
+    private class PageData {
+        Page        page;
+        PageSite    site;
+        UIComponent container;
+    }
 
     // instance *******************************************
 
     private UIComposite         rootContainer;
 
-    private Deque<Page>         pages = new ArrayDeque<>();
+    private Deque<PageData>     pages = new ArrayDeque<>();
 
 
     protected Pageflow( UIComposite rootContainer ) {
@@ -55,13 +61,23 @@ public class Pageflow {
     }
 
 
-    public void open( Page page, Page parent ) {
-        Assert.isSame( parent, pages.peek() );
-        pages.push( page );
-        var pageContainer = page.init( rootContainer, new PageSite() {{
-            // parent = Property.create( this, "parent", container );
-        }});
+    public void open( Page _page, Page parent ) {
+        Assert.that( pages.isEmpty() || parent == pages.peek().page );
+        var _pageSite = new PageSite() {{
+        }};
+        var _pageContainer = _page.init( rootContainer, _pageSite );
+        pages.push( new PageData() {{page = _page; site = _pageSite; container = _pageContainer;}} );
         rootContainer.layout();
     }
 
+
+    public void close( Page page ) {
+        Assert.isSame( page, pages.peek().page );
+        var pageData = pages.pop();
+        pageData.page.dispose();
+        if (!pageData.container.isDisposed()) {
+            pageData.container.dispose();
+        }
+        rootContainer.layout();
+    }
 }

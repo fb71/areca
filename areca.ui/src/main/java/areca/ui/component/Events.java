@@ -38,7 +38,7 @@ public class Events
     }
 
     protected void dispose() {
-         throw new UnsupportedOperationException( "not yet implemented" );
+         component.htmlElm.listeners.clear();
     }
 
     public void onSelection( RConsumer<SelectionEvent> handler ) {

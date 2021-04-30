@@ -18,13 +18,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import areca.common.Assert;
+import areca.common.AssertionException;
 import areca.common.base.Consumer;
 import areca.common.base.Sequence;
 import areca.ui.Property;
 import areca.ui.Size;
 import areca.ui.Property.ReadOnly;
+import areca.ui.Property.ReadOnlys;
 import areca.ui.Property.ReadWrite;
-import areca.ui.Property.ReadWrites;
 import areca.ui.html.HtmlElement;
 import areca.ui.html.HtmlElement.Type;
 import areca.ui.html.HtmlNode;
@@ -46,7 +47,7 @@ public class UIComposite
      *
      */
     public class Children
-            extends ReadWrites<UIComposite,UIComponent>
+            extends ReadOnlys<UIComposite,UIComponent>
             implements Iterable<UIComponent> {
 
         protected List<UIComponent> list = new ArrayList<>();
@@ -70,24 +71,27 @@ public class UIComposite
          */
         @SafeVarargs
         public final <C extends UIComponent,E extends Exception> C add( C child, Consumer<C,E>... initializers ) throws E {
-            doAdd( child );
+            var childElm = Assert.notNull( child ).init( UIComposite.this );
+            htmlElm.children.add( childElm );
+            list.add( child );
+
             for (var initializer : initializers) {
                 initializer.accept( child );
             }
             return child;
         }
 
-        @Override
-        protected void doAdd( UIComponent child ) {
-            var childElm = Assert.notNull( child ).init( UIComposite.this );
-            htmlElm.children.add( childElm );
-            list.add( child );
+        void remove( UIComponent child ) {
+            if (!list.remove( child )) {
+                throw new AssertionException( "Given component is not child of this composite" );
+            }
+            // must be done by child
+            // htmlElm.children.remove( child.htmlElm );
         }
 
-        @Override
-        protected void doRemove( UIComponent child ) {
-            throw new RuntimeException( "..." );
-            //list.remove( child );
+        public void disposeAll() {
+            new ArrayList<>( list ).forEach( child -> child.dispose() );
+            Assert.that( list.isEmpty() );
         }
 
         @Override
@@ -114,6 +118,13 @@ public class UIComposite
         htmlElm = new HtmlElement( Type.DIV );
         super.init( newParent );
         return htmlElm;
+    }
+
+
+    @Override
+    public void dispose() {
+        components.disposeAll();
+        super.dispose();
     }
 
 

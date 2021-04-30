@@ -44,7 +44,7 @@ public abstract class Page {
      */
     public static abstract class PageSite {
 
-        // public ReadOnly<PageSite,UIComposite> parent;
+        // public ReadOnly<PageSite,UIComposite> container;
     }
 
 }

@@ -32,7 +32,7 @@ import areca.ui.html.HtmlEventTarget.ListenerHandle;
  */
 public class HtmlEventTargetImpl {
 
-    private static final Log log = LogFactory.getLog( HtmlEventTargetImpl.class );
+    private static final Log LOG = LogFactory.getLog( HtmlEventTargetImpl.class );
 
 
     public static void init( HtmlEventTarget elm, EventTarget delegate ) {
@@ -52,6 +52,10 @@ public class HtmlEventTargetImpl {
             @Override
             public void remove( ListenerHandle handle ) {
                 delegate.removeEventListener( ((ListenerHandleImpl)handle).type.html(), ((ListenerHandleImpl)handle).listener );
+            }
+            @Override
+            public void clear() {
+                LOG.info( "clear() ..." );
             }
         };
     }
