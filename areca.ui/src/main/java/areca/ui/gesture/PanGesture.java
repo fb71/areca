@@ -34,6 +34,8 @@ public class PanGesture {
 
     static final Log LOG = LogFactory.getLog( PanGesture.class );
 
+    public static final int EDGE_THRESHOLD = 50;
+
     public enum Status {
         START, MOVE, END;
     }
@@ -89,20 +91,13 @@ public class PanGesture {
         //                log.info( "TOUCH: " + ev );
         //                onEnd( ev );
         //            });
-
-        //            isDown = true;
-        //            lastTime = System.currentTimeMillis();
-        //            lastPos = component.position.get();
         component.htmlElm.listeners.add( EventType.MOUSEDOWN, ev -> {
-            //t.text.set( "DOWN" );
             onStart( ev );
         });
         component.htmlElm.listeners.add( EventType.MOUSEMOVE, ev -> {
-            //t.text.set( "MOVE" );
             onMove( ev );
         });
         component.htmlElm.listeners.add( EventType.MOUSEUP, ev -> {
-            //t.text.set( "UP" );
             onEnd( ev );
         });
     }
@@ -115,35 +110,47 @@ public class PanGesture {
                 .disposeIf( ev -> component.isDisposed() );
     }
 
+    //
 
     protected void onStart( HtmlMouseEvent ev ) {
         LOG.info( "DOWN: " + ev );
         isDown = true;
-        lastTime = System.currentTimeMillis();
+        lastTime = 0;
         startPos = lastPos = ev.clientPosition.get();
-        EventManager.instance().publish( new PanEvent( ev, Status.START ) );
     }
 
 
     protected void onMove( HtmlMouseEvent ev ) {
         if (isDown) {
-            if ((System.currentTimeMillis() - lastTime) < 100) {
-                LOG.info( "IGNORED" );
-                return;
+            LOG.info( "MOVE: " + ev );
+            // edge detection without throttle
+            if (ev.clientPosition.get().y > (component.size.get().height() - EDGE_THRESHOLD)) {
+                onEnd( ev );
             }
-            // fire
-            EventManager.instance().publish( new PanEvent( ev, Status.MOVE ) );
+            else if ((System.currentTimeMillis() - lastTime) < 100) {
+                LOG.info( "IGNORED" );
+            }
+            else {
+                // fire (deferred first/start event)
+                EventManager.instance().publish( new PanEvent( ev, lastTime == 0 ? Status.START : Status.MOVE ) );
 
-            lastPos = ev.clientPosition.get();
-            lastTime = System.currentTimeMillis();
+                lastPos = ev.clientPosition.get();
+                lastTime = System.currentTimeMillis();
+            }
         }
     }
 
 
     protected void onEnd( HtmlMouseEvent ev ) {
-        LOG.info( "UP: " + ev );
+        if (isDown && lastTime > 0) {
+            LOG.info( "UP: " + ev );
+            EventManager.instance().publish( new PanEvent( ev, Status.END ) );
+        }
+
         isDown = false;
-        EventManager.instance().publish( new PanEvent( ev, Status.END ) );
+        startPos = null;
+        lastTime = 0;
+        lastPos = null;
     }
 
 }

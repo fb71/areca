@@ -27,9 +27,9 @@ public class Position {
 
     // instance *******************************************
 
-    private int         x;
+    public final int    x;
 
-    private int         y;
+    public final int    y;
 
     protected Position( int x, int y ) {
         this.x = x;
