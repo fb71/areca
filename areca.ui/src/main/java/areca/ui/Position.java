@@ -53,12 +53,24 @@ public class Position {
         return new Position( x - rhs.x, y - rhs.y );
     }
 
+    public Position substract( int rhs_x, int rhs_y ) {
+        return new Position( x - rhs_x, y - rhs_y );
+    }
+
+    public Position substract( Size rhs ) {
+        return new Position( x - rhs.width(), y - rhs.height() );
+    }
+
     public Position add( Position rhs ) {
         return new Position( x + rhs.x, y + rhs.y );
     }
 
+    public Position add( int rhs_x, int rhs_y ) {
+        return new Position( x + rhs_x, y + rhs_y );
+    }
+
     public Position multiply( float factor ) {
-        return new Position( round(x * factor), Math.round(y * factor) );
+        return new Position( round(x * factor), round(y * factor) );
     }
 
 }

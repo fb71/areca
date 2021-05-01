@@ -13,6 +13,8 @@
  */
 package areca.ui;
 
+import static java.lang.Math.round;
+
 /**
  *
  * @author falko
@@ -45,6 +47,14 @@ public class Size {
     @Override
     public String toString() {
         return "Size[width=" + width + ", height=" + height + "]";
+    }
+
+    public Position toPosition() {
+        return Position.of( width, height );
+    }
+
+    public Size divide( float divisor  ) {
+        return new Size( round(width / divisor), round(height / divisor) );
     }
 
 }

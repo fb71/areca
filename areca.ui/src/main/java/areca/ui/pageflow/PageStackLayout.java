@@ -18,6 +18,8 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.component.UIComposite;
+import areca.ui.html.HtmlEventTarget.EventType;
+import areca.ui.html.HtmlEventTarget.ListenerHandle;
 import areca.ui.layout.LayoutManager;
 
 /**
@@ -29,8 +31,17 @@ public class PageStackLayout
 
     private static final Log LOG = LogFactory.getLog( PageStackLayout.class );
 
+    private Position        mousePos;
+
+    private ListenerHandle  mouseMoveHandle;
+
     @Override
     public void layout( UIComposite composite ) {
+        if (mouseMoveHandle == null) {
+            mouseMoveHandle = composite.htmlElm.listeners.add( EventType.MOUSEMOVE, ev ->
+                    mousePos = ev.clientPosition.get() );
+        }
+
         var size = composite.clientSize.get();
 
         // int zIndex = 0;
@@ -41,17 +52,23 @@ public class PageStackLayout
         }
 
         // scale last one
-        composite.components.sequence().last().ifPresent( last -> {
-            last.bordered.set( true );
-            last.htmlElm.styles.set( "transition", "none" );
-            last.htmlElm.styles.set( "transform", "scale(0.1)" );
+        composite.components.sequence().last().ifPresent( top -> {
+            top.htmlElm.styles.set( "transition", "none" );
+            top.htmlElm.styles.set( "transform", "scale(0.01)" );
+            //top.htmlElm.styles.set( "opacity", 0 );
+            top.position.set( mousePos != null
+                    ? mousePos.substract( size.divide( 2 ) )
+                    : Position.of( 0, 0 ) );
 
-            Platform.instance().schedule( 0, () -> {
-                last.htmlElm.styles.remove( "transition" );
-                last.htmlElm.styles.remove( "transform" );
+            Platform.instance().schedule( 400, () -> {
+                top.bordered.set( true );
+                top.htmlElm.styles.remove( "transition" );
+                top.htmlElm.styles.remove( "transform" );
+                top.htmlElm.styles.remove( "opacity" );
+                top.position.set( Position.of( 0, 0 ) );
 
-                Platform.instance().schedule( 750, () -> {
-                    last.bordered.set( false );
+                Platform.instance().schedule( 500, () -> {
+                    top.bordered.set( false );
                 });
             });
         });
