@@ -24,7 +24,7 @@ public interface Supplier<T,E extends Exception> {
     /**
      * A {@link Supplier} that does not throw any checked Exceptions.
      */
-    public interface $<T>
+    public interface RSupplier<T>
             extends Supplier<T,RuntimeException> {
     }
 

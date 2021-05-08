@@ -19,7 +19,7 @@ import areca.common.Assert;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
-import areca.common.base.Supplier;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -52,7 +52,7 @@ public abstract class Property<C,T> {
     /**
      *
      */
-    public static <RC,R> ReadOnly<RC,R> create( RC component, String name, Supplier.$<R> getter ) {
+    public static <RC,R> ReadOnly<RC,R> create( RC component, String name, RSupplier<R> getter ) {
         return new ReadOnly<>( component, name ) {
             @Override protected R doGet() {
                 return getter.get();
@@ -63,7 +63,7 @@ public abstract class Property<C,T> {
     /**
      *
      */
-    public static <RC,R> ReadWrite<RC,R> create( RC component, String name, Supplier.$<R> getter, RConsumer<R> setter ) {
+    public static <RC,R> ReadWrite<RC,R> create( RC component, String name, RSupplier<R> getter, RConsumer<R> setter ) {
         return new ReadWrite<>( component, name ) {
             @Override protected R doGet() {
                 return getter.get();

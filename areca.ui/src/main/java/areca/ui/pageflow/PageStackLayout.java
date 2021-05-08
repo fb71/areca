@@ -60,7 +60,7 @@ public class PageStackLayout
                     ? mousePos.substract( size.divide( 2 ) )
                     : Position.of( 0, 0 ) );
 
-            Platform.instance().schedule( 400, () -> {
+            Platform.instance().schedule( 300, () -> {
                 top.bordered.set( true );
                 top.htmlElm.styles.remove( "transition" );
                 top.htmlElm.styles.remove( "transform" );

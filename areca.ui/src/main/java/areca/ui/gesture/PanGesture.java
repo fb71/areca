@@ -79,18 +79,18 @@ public class PanGesture {
 
     public PanGesture( UIComponent component ) {
         this.component = component;
-        //            component.htmlElm.listeners.add( EventType.TOUCHSTART, ev -> {
-        //                log.info( "TOUCH: " + ev );
-        //                onStart( ev );
-        //            });
-        //            component.htmlElm.listeners.add( EventType.TOUCHMOVE, ev -> {
-        //                log.info( "TOUCH: " + ev );
-        //                onMove( ev );
-        //            });
-        //            component.htmlElm.listeners.add( EventType.TOUCHEND, ev -> {
-        //                log.info( "TOUCH: " + ev );
-        //                onEnd( ev );
-        //            });
+        component.htmlElm.listeners.add( EventType.TOUCHSTART, ev -> {
+            LOG.info( "TOUCH: START " + ev );
+            onStart( ev );
+        });
+        component.htmlElm.listeners.add( EventType.TOUCHMOVE, ev -> {
+            LOG.info( "TOUCH: MOVE " + ev.clientPosition.get() );
+            onMove( ev );
+        });
+        component.htmlElm.listeners.add( EventType.TOUCHEND, ev -> {
+            LOG.info( "TOUCH: END " + ev );
+            onEnd( ev );
+        });
         component.htmlElm.listeners.add( EventType.MOUSEDOWN, ev -> {
             onStart( ev );
         });
