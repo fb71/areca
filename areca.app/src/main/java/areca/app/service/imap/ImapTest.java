@@ -94,11 +94,11 @@ public class ImapTest {
 
         promise
                 .catchError( e -> log.info( "Error" + e ) )
-                .then( v -> {
+                .onSuccess( v -> {
                     log.info( "Async: "  + v );
                     //throw new Exception();
                 })
-                .thenWait( v -> {
+                .waitForResult( v -> {
                     log.info( "Wait: "  + v );
                 });
 
@@ -109,7 +109,7 @@ public class ImapTest {
     @Test
     public void loginTest() {
         request.commands.add( new FolderListCommand() );
-        request.submit().thenWait( commands -> {
+        request.submit().waitForResult( commands -> {
             Assert.that( ((FolderListCommand)commands[0]).folderNames.contains( "INBOX" ) );
         });
     }
@@ -119,7 +119,7 @@ public class ImapTest {
     public void fetchMessageTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new MessageFetchCommand( 3, "TEXT" ) );
-        request.submit().thenWait( commands -> {
+        request.submit().waitForResult( commands -> {
             var fetchCommand = (MessageFetchCommand)commands[1];
             var text = fetchCommand.text.toString();
             Assert.that( text.length() > 0 );
@@ -134,7 +134,7 @@ public class ImapTest {
     public void fetchMessageHeadersTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new MessageFetchHeadersCommand( between( 1, 3 ), FROM, SUBJECT, TO, DATE, MESSAGE_ID ) );
-        request.submit().thenWait( commands -> {
+        request.submit().waitForResult( commands -> {
             var fetchCommand = (MessageFetchHeadersCommand)commands[1];
             for (var entry : fetchCommand.headers.entrySet()) {
                 log.info( "%s: %s", entry.getKey(), entry.getValue() );
@@ -151,7 +151,7 @@ public class ImapTest {
         for (int i = 0; i < count; i++) {
             var r = newRequest();
             r.commands.add( new FolderSelectCommand( "INBOX" ) );
-            r.submit().then( commands -> {
+            r.submit().onSuccess( commands -> {
                 synchronized (result) {
                     result.incrementAndGet();
                     result.notifyAll();
@@ -165,4 +165,8 @@ public class ImapTest {
         }
     }
 
+
+    public void syncFolderTest() {
+        // new ImapFolderSynchronizer( self -> {
+    }
 }

@@ -13,6 +13,8 @@
  */
 package areca.rt.teavm.testapp;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.teavm.jso.browser.Window;
@@ -45,7 +47,7 @@ public class HtmlTestRunnerDecorator
 
     protected HTMLElement           testElm;
 
-    protected HTMLElement           testMethodElm;
+    protected Map<TestMethod,HTMLElement> testMethodElms = new HashMap<>();
 
     protected int                   lineWidth;
 
@@ -71,7 +73,9 @@ public class HtmlTestRunnerDecorator
 
     @Override
     public void preTestMethod( TestMethod m ) {
-        doc.getBody().appendChild( testMethodElm = doc.createElement( "p" ));
+        HTMLElement testMethodElm = doc.createElement( "p" );
+        testMethodElms.put( m, testMethodElm );
+        doc.getBody().appendChild( testMethodElm );
         testMethodElm.getStyle().setProperty( "margin", "0px 0px" );
         String l = StringUtils.rightPad( m.name() + " ", lineWidth, '.' );
         testMethodElm.appendChild( doc.createTextNode( l ) );
@@ -95,6 +99,7 @@ public class HtmlTestRunnerDecorator
             span.getStyle().setProperty( "color", "red" );
             span.appendChild( doc.createTextNode( " failed" ) );
         }
+        var testMethodElm = testMethodElms.get( m );
         testMethodElm.appendChild( span );
         testMethodElm.appendChild( doc.createTextNode( " (" + testResult.elapsedMillis() + "ms)" ) );
     }

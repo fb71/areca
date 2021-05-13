@@ -49,7 +49,7 @@ public class HierarchyWalker {
         countOpenRequests( +1 );
         client.fetchFolder( path, entries -> {
             for (FolderEntry entry : entries) {
-                // cancelled?
+                // canceled?
                 if (isCancelled()) {
                     break;
                 }

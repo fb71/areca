@@ -13,6 +13,9 @@
  */
 package areca.common.testrunner;
 
+import static org.apache.commons.lang3.StringUtils.leftPad;
+import static org.apache.commons.lang3.StringUtils.rightPad;
+
 import java.util.logging.Logger;
 
 import areca.common.reflect.ClassInfo;
@@ -32,39 +35,45 @@ public class LogDecorator
 
     private static final Logger LOG = Logger.getLogger( LogDecorator.class.getSimpleName() );
 
+    public static final int LINE_LENGHT = 70;
+
     public static final ClassInfo<LogDecorator> info = LogDecoratorClassInfo.instance();
+
+    protected void println( String s ) {
+        System.out.println( s );
+    }
 
     @Override
     public void preRun( TestRunner runner ) {
-        System.out.println( "Running tests..." );
+        println( "Running tests..." );
     }
 
     @Override
     public void postRun( TestRunner runner ) {
-        System.out.println( "done." );
+        println( "done." );
     }
 
     @Override
     public void preTest( ClassInfo<?> test ) {
-        System.out.println( ("===[" + test.name() + "]==============================").substring( 0, 40 ) );
+        println( rightPad( "===[" + test.name() + "]", LINE_LENGHT, '=' ) );
     }
 
     @Override
     public void preTestMethod( TestMethod m ) {
-        System.out.println( ("---[" + m.name() + "]------------------------------").substring( 0, 40 ) );
+        println( rightPad( "---[" + m.name() + "]", LINE_LENGHT, '-' ) );
     }
 
     @Override
     public void postTestMethod( TestMethod m, TestResult testResult ) {
         if (testResult.getStatus() == TestStatus.PASSED) {
-            System.out.println( "---------------------------------ok (" + testResult.elapsedMillis() + "ms)" );
+            println( leftPad( "--| ok (" + testResult.elapsedMillis() + "ms)", LINE_LENGHT, ' ' ) );
         }
         else if (testResult.getStatus() == TestStatus.SKIPPED) {
-            System.out.println( "---------------------------------skipped" );
+            println( leftPad( "--| skipped (" + testResult.elapsedMillis() + "ms)", LINE_LENGHT, ' ' ) );
         }
         else {
             Throwable e = testResult.getException();
-            System.out.println( "---------------------------------failed (" + e.toString() + ")" );
+            println( leftPad( "--| failed (" + e + ")", LINE_LENGHT, ' ' ) );
             Throwable cause = e;
 //            while (cause.getCause() != null) {
 //                cause = cause.getCause();

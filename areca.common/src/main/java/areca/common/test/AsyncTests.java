@@ -13,10 +13,15 @@
  */
 package areca.common.test;
 
+import areca.common.Assert;
+import areca.common.AssertionException;
 import areca.common.AsyncJob;
+import areca.common.Platform;
+import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -26,19 +31,20 @@ import areca.common.testrunner.Test;
 @RuntimeInfo
 public class AsyncTests {
 
-    private static final Log log = LogFactory.getLog( AsyncTests.class );
+    private static final Log LOG = LogFactory.getLog( AsyncTests.class );
 
     public static final AsyncTestsClassInfo info = AsyncTestsClassInfo.instance();
 
     @Test
+    @Skip
     public void asyncJobTest() throws Exception {
         var monitor = new Object();
         new AsyncJob()
                 .schedule( "work 1", site -> {
-                    log.info( "work 1" );
+                    LOG.info( "work 1" );
                 })
                 .schedule( "work 2", site -> {
-                    log.info( "work 2" );
+                    LOG.info( "work 2" );
                     synchronized (monitor) {
                         monitor.notifyAll();
                     }
@@ -50,4 +56,49 @@ public class AsyncTests {
         }
     }
 
+
+    @Test
+    @Skip
+    public Promise<Integer> cascadedPromisesTest() {
+        return Platform.instance()
+                .async( () -> {
+                    // LOG.info( "Thread: " + Thread.currentThread() );
+                    return "1";
+                })
+                .then( s -> {
+                    return Platform.instance().async( () -> Integer.valueOf( s ) );
+                })
+                .onSuccess( i -> {
+                    LOG.info( "Result: " + i );
+                    Assert.isEqual( 1, i );
+                });
+    }
+
+
+    @Test(expected = AssertionException.class)
+    public Promise<Integer> cascadedPromisesError() {
+        return Platform.instance()
+                .async( () -> {
+                    return "1";
+                })
+                .then( s -> {
+                    Assert.isEqual( "falsch", s );
+                    return Platform.instance().async( () -> Integer.valueOf( s ) );
+                })
+                .onSuccess( i -> {
+                    LOG.info( "Result: " + i );
+                    Assert.isEqual( 1, i );
+                });
+    }
+
+
+    public void multipleValuePromiseTest() {
+
+    }
+
+
+    @Test
+    @Skip
+    public void success() {
+    }
 }

@@ -13,16 +13,13 @@
  */
 package areca.common.testrunner;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
 import java.lang.reflect.InvocationTargetException;
 
 import areca.common.AssertionException;
+import areca.common.base.Sequence;
 import areca.common.reflect.AnnotationInfo;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.MethodInfo;
@@ -44,11 +41,11 @@ public class TestRunner {
 
     // instrance ******************************************
 
-    private List<ClassInfo<?>>                  testTypes = new ArrayList<>( 128 );
+    protected List<ClassInfo<?>>            testTypes = new ArrayList<>( 128 );
 
-    private List<ClassInfo<? extends TestRunnerDecorator>> decoratorTypes = new ArrayList<>( 128 );
+    protected List<ClassInfo<? extends TestRunnerDecorator>> decoratorTypes = new ArrayList<>( 128 );
 
-    private List<TestResult>                    testResults = new ArrayList<>( 128 );
+    private List<TestResult>                testResults = new ArrayList<>( 128 );
 
 
     public TestRunner addTests( ClassInfo<?>... tests ) {
@@ -65,19 +62,19 @@ public class TestRunner {
 
 
     public void run() {
-        List<TestRunnerDecorator> decorators = decoratorTypes.stream().map( cl -> instantiate( cl ) ).collect( toList() );
+        var decorators = Sequence.of( decoratorTypes ).map( cl -> instantiate( cl ) ).toList();
 
         // all test classes
         decorators.forEach( d -> d.preRun( this ) );
         for (ClassInfo<?> cl : testTypes) {
 
             // Before/After
-            List<MethodInfo> befores = cl.methods().stream()
+            List<MethodInfo> befores = Sequence.of( cl.methods() )
                     .filter( m -> m.annotation( BeforeAnnotationInfo.INFO ).isPresent() )
-                    .collect( Collectors.toList() );
-            List<MethodInfo> afters = cl.methods().stream()
+                    .toList();
+            List<MethodInfo> afters = Sequence.of( cl.methods() )
                     .filter( m -> m.annotation( AfterAnnotationInfo.INFO ).isPresent() )
-                    .collect( Collectors.toList() );
+                    .toList();
 
             // all test methods
             decorators.forEach( d -> d.preTest( cl ) );
@@ -100,7 +97,7 @@ public class TestRunner {
                         testResult.skipped = true;
                     }
                     if (!expected.equals( Test.NoException.class )) {
-                        testResult.setException( new AssertionException( "Exception expected: " + expected.getName() ) );
+                        testResult.setException( new AssertionException( expected, null, "Exception expected" ) );
                     }
                     for (MethodInfo after : afters) {
                         after.invoke( test, NOARGS );
@@ -139,13 +136,10 @@ public class TestRunner {
 
 
     protected List<TestMethod> findTestMethods( ClassInfo<?> cl ) {
-        //System.out.println( "TEST METHODS  of: " + cl.name() + " (" + cl.methods().size() + ")" );
-        return cl.methods().stream()
-                //.peek( m -> System.out.println( "    " + m ) )
+        return Sequence.of( cl.methods() )
                 .filter( m -> m.annotation( TestAnnotationInfo.INFO ).isPresent())
-                //.peek( m -> System.out.println( "    " + m ) )
                 .map( m -> new TestMethod( m ) )
-                .collect( Collectors.toList() );
+                .toList();
     }
 
 
@@ -153,8 +147,8 @@ public class TestRunner {
      *
      */
     public static class TestMethod {
-        private MethodInfo      m;
-        private AnnotationInfo  a;
+        protected MethodInfo      m;
+        protected AnnotationInfo  a;
 
         public TestMethod( MethodInfo m ) {
             this.m = m;
@@ -172,14 +166,18 @@ public class TestRunner {
      */
     public static class TestResult {
 
-        private boolean     skipped;
-        private TestMethod  m;
-        private Throwable   exception;
-        private long        start, end;
+        protected boolean       skipped;
+        protected TestMethod    m;
+        private Throwable       exception;
+        private long            start, end;
 
         TestResult( TestMethod m ) {
             this.m = m;
+        }
+
+        TestResult start() {
             this.start = System.currentTimeMillis();
+            return this;
         }
 
         void done() {

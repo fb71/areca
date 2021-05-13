@@ -28,6 +28,7 @@ public class AsyncJob {
 
     @FunctionalInterface
     public static interface UnitOfWork<E extends Exception> {
+
         void run( Site site ) throws E;
     }
 

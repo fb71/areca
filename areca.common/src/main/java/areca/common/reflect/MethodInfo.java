@@ -47,6 +47,6 @@ public abstract class MethodInfo
     }
 
 
-    public abstract void invoke( Object obj, Object... params ) throws InvocationTargetException;
+    public abstract Object invoke( Object obj, Object... params ) throws InvocationTargetException;
 
 }

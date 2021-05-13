@@ -13,9 +13,13 @@
  */
 package areca.rt.teavm;
 
+import java.util.concurrent.Callable;
+
 import org.teavm.jso.browser.Window;
 
 import areca.common.Platform;
+import areca.common.Promise;
+import areca.common.Promise.Completable;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -26,11 +30,20 @@ import areca.common.log.LogFactory.Log;
 public class TeaPlatform
         extends Platform {
 
-    private static final Log log = LogFactory.getLog( TeaPlatform.class );
+    private static final Log LOG = LogFactory.getLog( TeaPlatform.class );
 
     @Override
-    public void schedule( int delayMillis, Runnable block ) {
-        Window.setTimeout( () -> block.run(), delayMillis );
+    public <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
+        Completable<R> promise = new Completable<>();
+        Window.setTimeout( () -> {
+            try {
+                promise.complete( task.call() );
+            }
+            catch (Exception e) {
+                promise.completeWithError( e );
+            }
+        }, delayMillis );
+        return promise;
     }
 
 }

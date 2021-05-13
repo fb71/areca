@@ -44,7 +44,7 @@
         <executions>
           <!-- Annotation processor -->
           <execution>
-            <id>annoatation-processor</id>
+            <id>annotation-processor</id>
             <phase>generate-sources</phase>
             <goals>
               <goal>compile</goal>
@@ -121,7 +121,7 @@
         </configuration>
         <executions>
           <execution>
-            <id>annoatation-processor</id>
+            <id>annotation-processor</id>
             <phase>package</phase>
             <goals>
               <goal>jar</goal>

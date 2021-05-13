@@ -33,26 +33,23 @@ public class Main {
 
 
     public static void main( String[] args ) throws Exception {
-//        TestsMain.main( args );
-//        log.info( "done." );
-//        return;
+        HtmlElement.factory = new TeaHtmlFactory();
+        Platform.instance = new TeaPlatform();
 
-        try {
-            HtmlElement.factory = new TeaHtmlFactory();
-            Platform.instance = new TeaPlatform();
+        TestsMain.main( args );
+        // LOG.info( "done." );
+        return;
 
-            createApp();
-            //UITestsMain.createGridLayoutApp();
-        }
-        catch (Throwable e) {
-            //System.out.println( "Exception: " + e + " --> " );
-            Throwable rootCause = e;
-            while (rootCause.getCause() != null) {
-                rootCause = rootCause.getCause();
-            }
-            System.out.println( "Root cause: " + rootCause );
-            throw (Exception)rootCause;
-        }
+//        try {
+//            createApp();
+//            //UITestsMain.createGridLayoutApp();
+//        }
+//        catch (Throwable e) {
+//            //System.out.println( "Exception: " + e + " --> " );
+//            Throwable rootCause = Platform.instance().rootCause( e );
+//            System.out.println( "Root cause: " + rootCause );
+//            throw (Exception)rootCause;
+//        }
     }
 
 

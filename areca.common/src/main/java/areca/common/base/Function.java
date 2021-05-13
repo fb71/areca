@@ -21,6 +21,13 @@ package areca.common.base;
 @FunctionalInterface
 public interface Function<T,R,E extends Exception> {
 
+    /**
+     * A {@link Function} that does not throw checked Exceptions.
+     */
+    public interface RFunction<T,R>
+            extends Function<T,R,RuntimeException> {
+    }
+
     public R apply( T t ) throws E;
 
 }

@@ -13,6 +13,8 @@
  */
 package areca.common;
 
+import java.util.concurrent.Callable;
+
 /**
  *
  * @author Falko Bräutigam
@@ -27,9 +29,43 @@ public abstract class Platform {
 
     // API ************************************************
 
-    public abstract void schedule( int delayMillis, Runnable block );
+    public abstract <R> Promise<R> schedule( int delayMillis, Callable<R> task );
 
-    public void async( Runnable block ) {
-        schedule( 0, block );
+
+    public void schedule( int delayMillis, Runnable task ) {
+        schedule( delayMillis, () -> {
+            task.run();
+            return null;
+        });
+    }
+
+
+    public void async( Runnable task ) {
+        schedule( 0, task );
+    }
+
+
+    public <R> Promise<R> async( Callable<R> task ) {
+        return schedule( 0, task );
+    }
+
+
+    public Throwable rootCause( Throwable e ) {
+        Throwable cause = e;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        return cause;
+
+//        for (var cause = e;; cause = cause.getCause()) {
+//            if (cause.getCause() == null || cause.getCause() != cause) {
+//                return cause;
+//            }
+//        }
+//
+//        Sequence.series( e,
+//                cause -> cause.getCause(),
+//                cause -> cause.getCause() != null && cause.getCause() != cause )
+//                .last();
     }
 }

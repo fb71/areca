@@ -140,6 +140,11 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
+    public static Sequence<Integer,RuntimeException> ofInts( int start, int end ) {
+        return series( start, n -> n + 1, n -> n < end);
+    }
+
+
     // instance *******************************************
 
     protected Sequence<?,E>     parent;
@@ -274,6 +279,11 @@ public abstract class Sequence<T, E extends Exception> {
 
     public <RE extends E> Boolean anyMatches( Predicate<T,RE> condition ) throws E {
         return filter( condition ).first().ifPresentMap( v -> TRUE ).orElse( FALSE );
+    }
+
+
+    public <RE extends E> Boolean allMatch( Predicate<T,RE> condition ) throws E {
+        return filter( condition.negate() ).first().ifPresentMap( v -> FALSE ).orElse( TRUE );
     }
 
 
@@ -468,7 +478,8 @@ public abstract class Sequence<T, E extends Exception> {
      * @throws E
      */
     public ArrayList<T> toList() throws E {
-        return collect( Collectors.toCollection( ArrayList::new ) );
+        return reduce( new ArrayList<>(), (result, elm) -> { result.add( elm ); return result; } );
+        // return collect( Collectors.toCollection( ArrayList::new ) );
     }
 
 

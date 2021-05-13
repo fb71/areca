@@ -25,6 +25,10 @@ import areca.common.Assert;
 @FunctionalInterface
 public interface BiConsumer<T1,T2,E extends Exception> {
 
+    public interface RBiConsumer<T1,T2>
+            extends BiConsumer<T1,T2,RuntimeException> {
+    }
+
     /**
      * Performs this operation on the given argument.
      */

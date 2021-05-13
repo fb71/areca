@@ -257,8 +257,12 @@ public class ReflectAnnotationProcessor
                 m.addCode( "  );\n  }\n" );
 
                 // invoke
-                m.addCode( "  public void invoke( Object obj, Object... params ) throws $T{\n", InvocationTargetException.class );
+                var returnTypeName = TypeName.get( methodElm.getReturnType() );
+                m.addCode( "  public Object invoke( Object obj, Object... params ) throws $T{\n", InvocationTargetException.class );
                 m.addCode( "    try {\n" );
+                if (!returnTypeName.equals( TypeName.VOID )) {
+                    m.addCode( "      return " );
+                }
                 m.addCode( "      (($T)obj).$L(", rawTypeName, methodElm.getSimpleName() );
                 int c2 = 0;
                 for (VariableElement paramElement : methodElm.getParameters()) {
@@ -272,7 +276,10 @@ public class ReflectAnnotationProcessor
                     }
                     m.addCode( "params[$L]", c2++ );
                 }
-                m.addCode( ");\n", type, methodElm.getSimpleName() );
+                m.addCode( ");\n" );
+                if (returnTypeName.equals( TypeName.VOID )) {
+                    m.addCode( "      return null;\n" );
+                }
                 m.addCode( "    } catch (Throwable e) {\n" );
                 m.addCode( "      throw new $T( e );\n", InvocationTargetException.class );
                 m.addCode( "    }\n" );

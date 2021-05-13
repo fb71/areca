@@ -19,6 +19,8 @@ package areca.common;
  */
 public interface ProgressMonitor {
 
+    public static final int UNKNOWN = -1;
+
     boolean isCancelled();
 
     void beginTask( String name, int totalWork );

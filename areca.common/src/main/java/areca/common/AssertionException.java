@@ -13,8 +13,6 @@
  */
 package areca.common;
 
-import java.util.Optional;
-
 /**
  *
  * @author Falko Bräutigam
@@ -22,15 +20,15 @@ import java.util.Optional;
 public class AssertionException
         extends RuntimeException {
 
-    private Optional<Object> expected = Optional.empty();
+    private Object expected;
 
-    private Optional<Object> actual = Optional.empty();
+    private Object actual;
 
 
     public AssertionException( Object expected, Object actual, String msg ) {
         super( msg );
-        this.expected = Optional.ofNullable( expected );
-        this.actual = Optional.ofNullable( actual );
+        this.expected = expected;
+        this.actual = actual;
     }
 
 
@@ -41,8 +39,8 @@ public class AssertionException
 
     @Override
     public String getMessage() {
-        return super.getMessage() + (expected.isPresent() ? " (expected=" + expected.get() + ", actual=" + actual.get() : "");
+        return super.getMessage() +
+                (expected != null && actual != null ? " (expected=" + expected + ", actual=" + actual : "");
     }
-
 
 }
