@@ -93,7 +93,7 @@ public class HtmlTestRunnerDecorator
         }
         else if (testResult.getStatus() == TestStatus.SKIPPED) {
             span.getStyle().setProperty( "color", "orange" );
-            span.appendChild( doc.createTextNode( " skipped" ) );
+            span.appendChild( doc.createTextNode( " skip" ) );
         }
         else {
             span.getStyle().setProperty( "color", "red" );
@@ -101,7 +101,7 @@ public class HtmlTestRunnerDecorator
         }
         var testMethodElm = testMethodElms.get( m );
         testMethodElm.appendChild( span );
-        testMethodElm.appendChild( doc.createTextNode( " (" + testResult.elapsedMillis() + "ms)" ) );
+        testMethodElm.appendChild( doc.createTextNode( " (" + testResult.elapsedTime() + ")" ) );
     }
 
 }

@@ -13,11 +13,14 @@
  */
 package areca.common.test;
 
+import org.apache.commons.lang3.mutable.MutableInt;
+
 import areca.common.Assert;
 import areca.common.AssertionException;
 import areca.common.AsyncJob;
 import areca.common.Platform;
 import areca.common.Promise;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
@@ -107,7 +110,7 @@ public class AsyncTests {
     public Promise<Integer> cascadedPromiseError() {
         return Platform.instance()
                 .async( () -> {
-                    Assert.that( 1==2, "..." );
+                    Assert.isEqual( 1, 2, "..." );
                     return "1";
                 })
                 .then( s -> {
@@ -140,13 +143,32 @@ public class AsyncTests {
     }
 
 
-    public void multipleValuePromiseTest() {
+    @Test
+    public Promise<?> multipleValuePromiseTest() {
+        MutableInt count = new MutableInt();
+        return Sequence.ofInts( 1, 100 )
+                .map( i -> async( i ) )
+                .reduce( (p1, p2) -> p1.join( p2 ) ).get()
+                .onSuccess( (promise,i) -> {
+                    count.increment();
+                    if (promise.isComplete()) {
+                        Assert.isEqual( 100, count.getValue() );
+                    }
+                });
+    }
 
+    protected <R> Promise<R> async( R input ) {
+        return Platform.instance().async( () -> input );
     }
 
 
     @Test
-    @Skip
-    public void success() {
+    public void simpleSuccess() {
+    }
+
+
+    @Test(expected = AssertionException.class)
+    public void simpleError() {
+        Assert.isEqual( 1, 2, "..." );
     }
 }

@@ -16,6 +16,8 @@ package areca.common;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.mutable.MutableInt;
+
 import areca.common.base.BiConsumer;
 import areca.common.base.Consumer;
 import areca.common.base.Consumer.RConsumer;
@@ -85,8 +87,7 @@ public class Promise<T> {
             promise.onSuccess( (_promise,_r) -> {
                 if (_promise.isComplete()) {
                     next.complete( _r );
-                }
-                else {
+                } else {
                     next.consumeResult( _r );
                 }
             });
@@ -113,15 +114,40 @@ public class Promise<T> {
      * @param f The function that transforms the value(s).
      * @return A newly created instance of {@link Promise}.
      */
-    @SuppressWarnings("hiding")
     public <R> Promise<R> map( Function<T,R,Exception> f ) {
         var next = new Completable<R>();
-        onSuccess( result -> {
-            next.complete( f.apply( result ) );
+        onSuccess( (_promise,_r) -> {
+            if (_promise.isComplete()) {
+                next.complete( f.apply( _r ) );
+            } else {
+                next.consumeResult( f.apply( _r ) );
+            }
         });
         onError( e -> {
             next.completeWithError( e );
         });
+        return next;
+    }
+
+
+    public Promise<T> join( Promise<T> other ) {
+        var next = new Completable<T>();
+        MutableInt c = new MutableInt();
+        BiConsumer<HandlerSite,T,Exception> handler = (_promise,_result) -> {
+            if (!_promise.isComplete() || c.incrementAndGet() < 2) {
+                next.consumeResult( _result );
+            } else {
+                next.complete( _result );
+            }
+        };
+        onSuccess( handler );
+        other.onSuccess( handler );
+
+        RConsumer<Throwable> errorHandler = e -> {
+            next.completeWithError( e );
+        };
+        onError( errorHandler );
+        other.onError( errorHandler );
         return next;
     }
 
@@ -203,7 +229,7 @@ public class Promise<T> {
 
 
         public void complete( T value ) {
-            LOG.info( "complete(): %s", value );
+            //LOG.debug( "complete(): %s", value );
             complete = true;
             consumeResult( value );
             notifyComplete();
@@ -211,7 +237,7 @@ public class Promise<T> {
 
 
         public void consumeResult( T value ) {
-            LOG.info( "consumeResult(): %s", value );
+            //LOG.debug( "consumeResult(): %s", value );
             // cancelled -> do nothing
             if (isCanceled()) {
                 return;
@@ -242,7 +268,7 @@ public class Promise<T> {
 
 
         public void completeWithError( Throwable e ) {
-            LOG.info( "completeWithError(): %s", e );
+            //LOG.debug( "completeWithError(): %s", e );
             // cancelled -> do nothing
             if (isCanceled()) {
                 return;
@@ -280,7 +306,7 @@ public class Promise<T> {
 
 
         protected void notifyComplete() {
-            LOG.info( "complete()" );
+            //LOG.debug( "complete()" );
             if (!done) {
                 synchronized (this) {
                     onSuccess = null; // help GC(?)

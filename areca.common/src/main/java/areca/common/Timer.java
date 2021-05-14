@@ -58,7 +58,10 @@ public class Timer {
         }
         long seconds = elapsed( TimeUnit.SECONDS );
         if (seconds < 600) {
-            return new StringBuilder( 16 ).append( seconds ).append( "." ).append( millis ).append( "sec" ).toString();
+            return new StringBuilder( 16 )
+                    .append( seconds ).append( "." )
+                    .append( Math.round( (millis - (seconds*1000)) / 100 ) )
+                    .append( "s" ).toString();
         }
         throw new RuntimeException( "Time exceeds range: " + elapsed( TimeUnit.MINUTES ) + "+ minutes" );
     }

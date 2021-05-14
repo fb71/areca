@@ -67,10 +67,10 @@ public class LogDecorator
     @Override
     public void postTestMethod( TestMethod m, TestResult testResult ) {
         if (testResult.getStatus() == TestStatus.PASSED) {
-            println( leftPad( "--| ok (" + testResult.elapsedMillis() + "ms)", LINE_LENGHT, ' ' ) );
+            println( leftPad( "--| ok (" + testResult.elapsedTime() + ")", LINE_LENGHT, ' ' ) );
         }
         else if (testResult.getStatus() == TestStatus.SKIPPED) {
-            println( leftPad( "--| skipped (" + testResult.elapsedMillis() + "ms)", LINE_LENGHT, ' ' ) );
+            println( leftPad( "--| skipped (" + testResult.elapsedTime() + ")", LINE_LENGHT, ' ' ) );
         }
         else {
             Throwable e = testResult.getException();

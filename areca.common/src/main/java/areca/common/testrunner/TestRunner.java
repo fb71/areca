@@ -19,6 +19,7 @@ import java.util.List;
 import java.lang.reflect.InvocationTargetException;
 
 import areca.common.AssertionException;
+import areca.common.Timer;
 import areca.common.base.Sequence;
 import areca.common.reflect.AnnotationInfo;
 import areca.common.reflect.ClassInfo;
@@ -173,19 +174,20 @@ public class TestRunner {
         protected boolean       skipped;
         protected TestMethod    m;
         private Throwable       exception;
-        private long            start, end;
+        private Timer           timer;
+        private String          elapsed;
 
         TestResult( TestMethod m ) {
             this.m = m;
         }
 
         TestResult start() {
-            this.start = System.currentTimeMillis();
+            this.timer = Timer.start();
             return this;
         }
 
         void done() {
-            this.end = System.currentTimeMillis();
+            elapsed = timer.elapsedHumanReadable();
         }
 
         public TestStatus getStatus() {
@@ -212,8 +214,8 @@ public class TestRunner {
             this.exception = exception;
         }
 
-        public long elapsedMillis() {
-            return end-start;
+        public String elapsedTime() {
+            return elapsed;
         }
     }
 
