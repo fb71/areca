@@ -71,6 +71,29 @@ public class AsyncTestRunner
 
     }
 
+    protected void methodsBefore( ClassInfo<?> cl, Object test ) {
+        try {
+            Sequence.of( Exception.class, cl.methods() )
+                    .filter( m -> m.annotation( BeforeAnnotationInfo.INFO ).isPresent() )
+                    .forEach( before -> before.invoke( test, NOARGS ) );
+        }
+        catch (Exception ee) {
+            throw (RuntimeException)ee;
+        }
+    }
+
+
+    protected void methodsAfter( ClassInfo<?> cl, Object test ) {
+        try {
+            Sequence.of( Exception.class, cl.methods() )
+                    .filter( m -> m.annotation( AfterAnnotationInfo.INFO ).isPresent() )
+                    .forEach( before -> before.invoke( test, NOARGS ) );
+        }
+        catch (Exception ee) {
+            throw (RuntimeException)ee;
+        }
+    }
+
 
     @Override
     public void run() {
@@ -81,14 +104,6 @@ public class AsyncTestRunner
 
         // all test classes
         for (ClassInfo<?> cl : testTypes) {
-            // Before/After
-            var befores = Sequence.of( cl.methods() )
-                    .filter( m -> m.annotation( BeforeAnnotationInfo.INFO ).isPresent() )
-                    .toList();
-            var afters = Sequence.of( cl.methods() )
-                    .filter( m -> m.annotation( AfterAnnotationInfo.INFO ).isPresent() )
-                    .toList();
-
             // all test methods
             for (TestMethod m : findTestMethods( cl )) {
                 TestResult testResult = new TestResult( m );
@@ -101,11 +116,10 @@ public class AsyncTestRunner
                     decorators.forEach( d -> d.preTestMethod( m ) );
 
                     var promised = false;
+                    Object test = instantiate( cl );
                     try {
-                        Object test = instantiate( cl );
-                        for (var before : befores) {
-                            before.invoke( test, NOARGS );
-                        }
+                        methodsBefore( cl, test );
+
                         testResult.start();
                         if (m.m.annotation( Skip.info ).isPresent()) {
                             testResult.skipped = true;
@@ -121,22 +135,23 @@ public class AsyncTestRunner
                                         .onSuccess( (promise, returnValue) -> {
                                             if (promise.isComplete()) {
                                                 onSuccess( testResult );
+                                                methodsAfter( cl, test );
                                             }
                                         })
                                         .onError( e -> {
                                             onError( testResult, e );
+                                            methodsAfter( cl, test );
                                         });
                             }
                             else {
                                 onSuccess( testResult );
+                                methodsAfter( cl, test );
                             }
-                        }
-                        for (var after : afters) {
-                            after.invoke( test, NOARGS );
                         }
                     }
                     catch (Exception e) {
                         onError( testResult, e );
+                        methodsAfter( cl, test );
                     }
                     finally {
                         if (!promised) {
@@ -150,29 +165,26 @@ public class AsyncTestRunner
 
 
     protected void onSuccess( TestResult testResult ) {
+        testResult.done();
+
         Class<? extends Throwable> expected = testResult.m.m.annotation( Test.info ).get().expected();
         if (!expected.equals( Test.NoException.class )) {
             testResult.setException( new AssertionException( expected, null, "Exception expected" ) );
         }
-        testResult.done();
+
         decorators.forEach( d -> d.postTestMethod( testResult.m, testResult ) );
     }
 
 
     protected void onError( TestResult testResult, Throwable e ) {
-        if (e instanceof InvocationTargetException) {
-            InvocationTargetException ite = (InvocationTargetException)e;
-            System.out.println( "getCause()..." + e );
-            Class<? extends Throwable> expected = testResult.m.m.annotation( Test.info ).get().expected();
-            if (expected.equals( Test.NoException.class )
-                    || !expected.isAssignableFrom( ite.getTargetException().getClass() )) {
-                testResult.setException( ite.getTargetException() );
-            }
-        }
-        else {
-            testResult.setException( e );
-        }
         testResult.done();
+
+        var cause = e instanceof InvocationTargetException ? e.getCause() : e;
+        Class<? extends Throwable> expected = testResult.m.m.annotation( Test.info ).get().expected();
+        if (expected.equals( Test.NoException.class ) || !expected.isAssignableFrom( cause.getClass() )) {
+            testResult.setException( cause );
+        }
+
         decorators.forEach( d -> d.postTestMethod( testResult.m, testResult ) );
     }
 

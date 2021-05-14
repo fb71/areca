@@ -60,17 +60,17 @@ public abstract class Sequence<T, E extends Exception> {
 
 
     public static <R> Sequence<R,RuntimeException> of( Iterable<R> elements ) {
-        return of( elements, RuntimeException.class );
+        return of( RuntimeException.class, elements );
     }
 
 
     @SafeVarargs
     public static <R,E extends Exception> Sequence<R,E> of( Class<E> type, R... elements ) {
-        return of( Arrays.asList( elements ), type );
+        return of( type, Arrays.asList( elements ) );
     }
 
 
-    public static <R,E extends Exception> Sequence<R,E> of( Iterable<R> elements, Class<E> type ) {
+    public static <R,E extends Exception> Sequence<R,E> of( Class<E> type, Iterable<R> elements ) {
         return new Sequence<R,E>( null ) {
             @Override
             protected SequenceIterator<R,E> iterator() {
@@ -140,8 +140,15 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
+    /**
+     * Creates a series of {@link Integer} values.
+     *
+     * @param start The first value.
+     * @param end The last value.
+     * @return Newly created {@link Sequence}.
+     */
     public static Sequence<Integer,RuntimeException> ofInts( int start, int end ) {
-        return series( start, n -> n + 1, n -> n < end);
+        return series( start, n -> n + 1, n -> n <= end);
     }
 
 

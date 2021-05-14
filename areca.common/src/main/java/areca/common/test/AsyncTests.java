@@ -58,11 +58,9 @@ public class AsyncTests {
 
 
     @Test
-    @Skip
-    public Promise<Integer> cascadedPromisesTest() {
+    public Promise<Integer> cascadedPromiseTest() {
         return Platform.instance()
                 .async( () -> {
-                    // LOG.info( "Thread: " + Thread.currentThread() );
                     return "1";
                 })
                 .then( s -> {
@@ -76,18 +74,68 @@ public class AsyncTests {
 
 
     @Test(expected = AssertionException.class)
-    public Promise<Integer> cascadedPromisesError() {
+    public Promise<?> promiseError() {
+        return Platform.instance()
+                .async( () -> {
+                    Assert.that( 1==2, "..." );
+                    return "1";
+                })
+//                .onError( e -> {
+//                    LOG.info( "Error: %s", e );
+//                    Assert.isEqual( 1, e );
+//                })
+                .onSuccess( i -> {
+                    LOG.info( "Result: " + i );
+                });
+    }
+
+
+    @Test(expected = AssertionException.class)
+    public Promise<?> promiseHandlerError() {
+        return Platform.instance()
+                .async( () -> {
+                    return "1";
+                })
+                .onSuccess( i -> {
+                    LOG.info( "Result: " + i );
+                    Assert.isEqual( "falsch", i );
+                });
+    }
+
+
+    @Test(expected = AssertionException.class)
+    public Promise<Integer> cascadedPromiseError() {
+        return Platform.instance()
+                .async( () -> {
+                    Assert.that( 1==2, "..." );
+                    return "1";
+                })
+                .then( s -> {
+                    return Platform.instance().async( () -> Integer.valueOf( s ) );
+                })
+                .onSuccess( i -> {
+                    LOG.info( "Result: " + i );
+                });
+    }
+
+
+    @Test(expected = AssertionException.class)
+    public Promise<Integer> cascadedPromiseHandlerError() {
         return Platform.instance()
                 .async( () -> {
                     return "1";
                 })
                 .then( s -> {
-                    Assert.isEqual( "falsch", s );
-                    return Platform.instance().async( () -> Integer.valueOf( s ) );
+                    return Platform.instance().async( () -> {
+                        Assert.isEqual( "falsch", s );
+                        return Integer.valueOf( s );
+                    });
+                })
+                .onError( e -> {
+                    LOG.info( "Error: " + e );
                 })
                 .onSuccess( i -> {
                     LOG.info( "Result: " + i );
-                    Assert.isEqual( 1, i );
                 });
     }
 

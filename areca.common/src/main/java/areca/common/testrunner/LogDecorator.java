@@ -18,6 +18,7 @@ import static org.apache.commons.lang3.StringUtils.rightPad;
 
 import java.util.logging.Logger;
 
+import areca.common.Platform;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.common.testrunner.TestRunner.TestMethod;
@@ -73,8 +74,8 @@ public class LogDecorator
         }
         else {
             Throwable e = testResult.getException();
-            println( leftPad( "--| failed (" + e + ")", LINE_LENGHT, ' ' ) );
-            Throwable cause = e;
+            println( leftPad( "--| failed (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")", LINE_LENGHT, ' ' ) );
+            Throwable cause = Platform.instance().rootCause( e );
 //            while (cause.getCause() != null) {
 //                cause = cause.getCause();
 //            }

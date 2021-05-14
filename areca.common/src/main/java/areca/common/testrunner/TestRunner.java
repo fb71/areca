@@ -90,8 +90,12 @@ public class TestRunner {
                     for (MethodInfo before : befores) {
                         before.invoke( test, NOARGS );
                     }
+                    testResult.start();
                     if (m.m.annotation( Skip.info ).isAbsent()) {
-                        m.m.invoke( test, NOARGS );
+                        var result = m.m.invoke( test, NOARGS );
+                        if (result != null) {
+                            testResult.setException( new AssertionException( Void.TYPE, result.getClass(), "(Promise) results of test are not supported." ) );
+                        }
                     }
                     else {
                         testResult.skipped = true;

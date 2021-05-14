@@ -20,7 +20,6 @@ public class TestsMain {
         try {
             new AsyncTestRunner()
                     .addTests( areca.common.test.AsyncTests.info )
-                    //.addTests( org.polymap.model2.test2.Tests.all() )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();
 //            new TestRunner()

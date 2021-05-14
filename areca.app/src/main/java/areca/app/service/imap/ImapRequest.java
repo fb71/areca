@@ -66,7 +66,7 @@ public class ImapRequest
                 }
                 String response = request.getResponseText();
                 var in = new BufferedReader( new StringReader( response ) );
-                var parsed = Sequence.of( commands, Exception.class )
+                var parsed = Sequence.of( Exception.class, commands )
                         .map( c -> (Command)c )
                         .onEach( c -> c.parse( in ) )
                         .toArray( Command[]::new );

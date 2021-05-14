@@ -69,29 +69,33 @@ public class Promise<T> {
      * <p>
      * This method is useful if an asynchronous computation creates another
      * asynchronous computation and so on. Instead of coding inner classes in inner
-     * classes this method allows to have a chain of operations.
+     * classes this method allows to have a chain of operations. And just one
+     * error handling.
      *
      * @param <R> The type of the result value.
      * @param f A function that is called {@link #onSuccess(Consumer)}, does some
      *        computation that results in another Promise.
-     * @return A newly created instance of {@link Promise}.
+     * @return A newly created {@link Promise}.
      */
     public <R> Promise<R> then( Function<T,Promise<R>,Exception> f ) {
         var next = new Completable<R>();
         onSuccess( _result -> {
-            Completable<R> promise = (Completable<R>)f.apply( _result );
+            var promise = f.apply( _result );
             Assert.notNull( promise, "Promise.then(): returned Promise must not be null." );
-            promise.onSuccess( _r -> { next.complete( _r ); } );
+            promise.onSuccess( (_promise,_r) -> {
+                if (_promise.isComplete()) {
+                    next.complete( _r );
+                }
+                else {
+                    next.consumeResult( _r );
+                }
+            });
+            promise.onError( e -> {
+                next.completeWithError( e );
+            });
         });
         onError( e -> {
-            try {
-                Completable<R> promise = (Completable<R>)f.apply( result );
-                promise.onError( _e -> next.completeWithError( _e ) );
-            }
-            catch (Exception ee) {
-                // XXX what to do?
-                throw (RuntimeException)ee;
-            }
+            next.completeWithError( e );
         });
         return next;
     }
@@ -112,11 +116,11 @@ public class Promise<T> {
     @SuppressWarnings("hiding")
     public <R> Promise<R> map( Function<T,R,Exception> f ) {
         var next = new Completable<R>();
-        onError( e -> {
-            next.completeWithError( e );
-        });
         onSuccess( result -> {
             next.complete( f.apply( result ) );
+        });
+        onError( e -> {
+            next.completeWithError( e );
         });
         return next;
     }
@@ -198,9 +202,32 @@ public class Promise<T> {
         };
 
 
+        public void complete( T value ) {
+            LOG.info( "complete(): %s", value );
+            complete = true;
+            consumeResult( value );
+            notifyComplete();
+        }
+
+
         public void consumeResult( T value ) {
             LOG.info( "consumeResult(): %s", value );
-            if (!isCanceled() && !isDone()) {
+            // cancelled -> do nothing
+            if (isCanceled()) {
+                return;
+            }
+            // already done with error
+            else if (error != null) {
+                LOG.warn( "SKIPPING result after error: " + value );
+                return;
+            }
+            // done without error -> programming error
+            else if (isDone()) {
+                Assert.that( !isDone(), "" );
+            }
+            // not done, not cancelled -> normal
+            else {
+                this.result = value;
                 for (var consumer : onSuccess) {
                     try {
                         consumer.accept( site, value );
@@ -210,49 +237,57 @@ public class Promise<T> {
                         break;
                     }
                 }
-                this.result = value;
-            }
-        }
-
-
-        public void complete( T value ) {
-            LOG.info( "complete(): %s", value );
-            complete = true;
-            consumeResult( value );
-            complete();
-        }
-
-
-        protected void complete() {
-            LOG.info( "complete()" );
-            if (!isDone()) {
-                synchronized (this) {
-                    this.done = true;
-                    notifyAll();
-                }
             }
         }
 
 
         public void completeWithError( Throwable e ) {
             LOG.info( "completeWithError(): %s", e );
-            Assert.that( !isDone(), "Promise is done already." );
-            try {
-                complete = true;
-                error = e;
-                if (onError.isEmpty()) {
-                    LOG.warn( "Error: " + e, e );
-                    // XXX on teavm this helps to see a proper stacktrace
-                    throw (RuntimeException)Platform.instance().rootCause( e );
-                }
-                else {
-                    for (var consumer : onError) {
-                        consumer.accept( e );
+            // cancelled -> do nothing
+            if (isCanceled()) {
+                return;
+            }
+            // already done with error
+            else if (error != null) {
+                LOG.warn( "SKIPPING error after error: " + e );
+                return;
+            }
+            // done without error -> programming error
+            else if (isDone()) {
+                Assert.that( !isDone(), "" );
+            }
+            // not done, not cancelled -> normal
+            else {
+                try {
+                    complete = true;
+                    error = e;
+                    if (onError.isEmpty()) {
+                        LOG.warn( "No onError handler for: " + e, e );
+                        // XXX on teavm this helps to see a proper stacktrace
+                        throw (RuntimeException)Platform.instance().rootCause( e );
+                    }
+                    else {
+                        for (var consumer : onError) {
+                            consumer.accept( e );
+                        }
                     }
                 }
+                finally {
+                    notifyComplete();
+                }
             }
-            finally {
-                complete();
+        }
+
+
+        protected void notifyComplete() {
+            LOG.info( "complete()" );
+            if (!done) {
+                synchronized (this) {
+                    onSuccess = null; // help GC(?)
+                    onError = null;
+                    done = true;
+                    notifyAll();
+                }
             }
         }
     }
