@@ -26,7 +26,7 @@ public class Tests {
                 AnnotationTest.info,
                 SequenceTest.info,
                 SameStackEventManagerTest.info,
-                ThreadedEventManagerTest.info,
+                //ThreadedEventManagerTest.info,
                 RuntimeTest.info,
                 //AssertTest.class
                 AsyncTests.info

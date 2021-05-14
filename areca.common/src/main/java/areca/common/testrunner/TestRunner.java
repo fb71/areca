@@ -18,7 +18,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.lang.reflect.InvocationTargetException;
 
+import org.apache.commons.lang3.mutable.MutableObject;
+
 import areca.common.AssertionException;
+import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Sequence;
 import areca.common.reflect.AnnotationInfo;
@@ -94,9 +97,19 @@ public class TestRunner {
                     testResult.start();
                     if (m.m.annotation( Skip.info ).isAbsent()) {
                         var result = m.m.invoke( test, NOARGS );
-                        if (result != null) {
-                            testResult.setException( new AssertionException( Void.TYPE, result.getClass(), "(Promise) results of test are not supported." ) );
+
+                        if (result instanceof Promise) {
+                            var ee = new MutableObject<Throwable>();
+                            ((Promise<?>)result)
+                                    .onError( e -> ee.setValue( e ) )
+                                    .waitForResult();
+                            if (ee.getValue() != null) {
+                                throw new InvocationTargetException( ee.getValue() );
+                            }
                         }
+//                        if (result != null) {
+//                            testResult.setException( new AssertionException( Void.TYPE, result.getClass(), "(Promise) results of test are not supported." ) );
+//                        }
                     }
                     else {
                         testResult.skipped = true;
