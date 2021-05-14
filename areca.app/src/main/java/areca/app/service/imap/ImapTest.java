@@ -21,14 +21,15 @@ import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.TO;
 import static org.apache.commons.lang3.Range.between;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.teavm.jso.json.JSON;
+
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.Timer;
+import areca.common.base.Sequence;
 import areca.common.base.With;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -43,7 +44,7 @@ import areca.common.testrunner.Test;
 @RuntimeInfo
 public class ImapTest {
 
-    private static final Log log = LogFactory.getLog( ImapTest.class );
+    private static final Log LOG = LogFactory.getLog( ImapTest.class );
 
     public static final ImapTestClassInfo info = ImapTestClassInfo.instance();
 
@@ -73,7 +74,7 @@ public class ImapTest {
         request.commands.add( new MessageFetchCommand( 1, "1" ) );
 
         With.$( request.toJson() ).apply( json -> {
-            log.info( json );
+            LOG.info( json );
             JSON.parse( json );
             // Window.alert( parsed );
         } );
@@ -81,6 +82,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public void completablePromiseTest() {
         var promise = new Promise.Completable<String>();
 
@@ -93,13 +95,13 @@ public class ImapTest {
         }).start();
 
         promise
-                .catchError( e -> log.info( "Error" + e ) )
+                .catchError( e -> LOG.info( "Error" + e ) )
                 .onSuccess( v -> {
-                    log.info( "Async: "  + v );
+                    LOG.info( "Async: "  + v );
                     //throw new Exception();
                 })
                 .waitForResult( v -> {
-                    log.info( "Wait: "  + v );
+                    LOG.info( "Wait: "  + v );
                 });
 
         Assert.that( timer.elapsed( TimeUnit.MILLISECONDS ) > 1000 );
@@ -107,62 +109,59 @@ public class ImapTest {
 
 
     @Test
-    public void loginTest() {
+    public Promise<?> loginTest() {
         request.commands.add( new FolderListCommand() );
-        request.submit().waitForResult( commands -> {
+        return request.submit().onSuccess( commands -> {
             Assert.that( ((FolderListCommand)commands[0]).folderNames.contains( "INBOX" ) );
         });
     }
 
 
     @Test
-    public void fetchMessageTest() {
+    public Promise<?> fetchMessageTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new MessageFetchCommand( 3, "TEXT" ) );
-        request.submit().waitForResult( commands -> {
+        return request.submit().onSuccess( commands -> {
             var fetchCommand = (MessageFetchCommand)commands[1];
             var text = fetchCommand.text.toString();
             Assert.that( text.length() > 0 );
 
-            log.info( "Text: " + fetchCommand.textContent );
-            log.info( "HTML: " + fetchCommand.htmlContent );
+            LOG.info( "Text: " + fetchCommand.textContent );
+            LOG.info( "HTML: " + fetchCommand.htmlContent );
         });
     }
 
 
     @Test
-    public void fetchMessageHeadersTest() {
+    public Promise<?> fetchMessageHeadersTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new MessageFetchHeadersCommand( between( 1, 3 ), FROM, SUBJECT, TO, DATE, MESSAGE_ID ) );
-        request.submit().waitForResult( commands -> {
+        return request.submit().onSuccess( commands -> {
             var fetchCommand = (MessageFetchHeadersCommand)commands[1];
             for (var entry : fetchCommand.headers.entrySet()) {
-                log.info( "%s: %s", entry.getKey(), entry.getValue() );
+                LOG.info( "%s: %s", entry.getKey(), entry.getValue() );
             }
         });
     }
 
 
     @Test
-    @Skip
-    public void poolTest() throws InterruptedException {
-        var count = 10;
-        AtomicInteger result = new AtomicInteger( 0 );
-        for (int i = 0; i < count; i++) {
-            var r = newRequest();
-            r.commands.add( new FolderSelectCommand( "INBOX" ) );
-            r.submit().onSuccess( commands -> {
-                synchronized (result) {
-                    result.incrementAndGet();
-                    result.notifyAll();
-                }
-            });
-        }
-        while (result.get() < count) {
-            synchronized (result) {
-                result.wait();
-            }
-        }
+    public Promise<?> poolTest() {
+        var count = new MutableInt();
+        return Sequence.ofInts( 1, 10 )
+                .map( i -> {
+                    var r = newRequest();
+                    r.commands.add( new FolderSelectCommand( "INBOX" ) );
+                    return r.submit();
+
+                })
+                .reduce( (p1, p2) -> p1.join( p2 ) ).get()
+                .onSuccess( (promise,commands) -> {
+                    count.increment();
+                    if (promise.isComplete()) {
+                        Assert.isEqual( 10, count.intValue() );
+                    }
+                });
     }
 
 

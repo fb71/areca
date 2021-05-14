@@ -1,5 +1,6 @@
 package areca.app;
 
+import areca.app.service.imap.ImapTest;
 import areca.common.Platform;
 import areca.common.testrunner.AsyncTestRunner;
 import areca.common.testrunner.LogDecorator;
@@ -21,6 +22,7 @@ public class TestsMain {
             new AsyncTestRunner()
                     .addTests( areca.common.test.AsyncTests.info )
                     .addTests( org.polymap.model2.test2.Tests.all() )
+                    .addTests( ImapTest.info )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();
 //            new TestRunner()
