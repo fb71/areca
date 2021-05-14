@@ -53,9 +53,9 @@ public class VisualClickFeedback
         var div = App.instance().rootWindow().htmlElm.children.add( new HtmlElement( Type.DIV ) );
         div.attributes.set( "class", "VisualClickFeedbackStart" );
         div.styles.set( "", ev.underlying().clientPosition.get().substract( Position.of( 10, 10 ) ) );
-        Platform.instance().async( () -> {
+        Platform.async( () -> {
             div.attributes.set( "class", "VisualClickFeedbackEnd" );
-            Platform.instance().schedule( 1000, () -> {
+            Platform.schedule( 1000, () -> {
                 div.remove();
             });
         });

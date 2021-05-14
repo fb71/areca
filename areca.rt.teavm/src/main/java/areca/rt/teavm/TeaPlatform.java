@@ -28,7 +28,7 @@ import areca.common.log.LogFactory.Log;
  * @author Falko Bräutigam
  */
 public class TeaPlatform
-        extends Platform {
+        implements Platform.PlatformImpl {
 
     private static final Log LOG = LogFactory.getLog( TeaPlatform.class );
 

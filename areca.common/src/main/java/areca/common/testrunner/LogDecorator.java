@@ -75,7 +75,7 @@ public class LogDecorator
         else {
             Throwable e = testResult.getException();
             println( leftPad( "--| failed (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")", LINE_LENGHT, ' ' ) );
-            Throwable cause = Platform.instance().rootCause( e );
+            Throwable cause = Platform.rootCause( e );
 //            while (cause.getCause() != null) {
 //                cause = cause.getCause();
 //            }

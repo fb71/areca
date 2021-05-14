@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import java.io.IOException;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -93,7 +95,7 @@ public class SequenceTest {
 
     @Test(expected = IOException.class)
     public void exceptionChainTest() throws IOException {
-        Sequence.of( Arrays.asList( 1, 2, 3 ), IOException.class )
+        Sequence.of( IOException.class, Arrays.asList( 1, 2, 3 ) )
                 .transform( elm -> throwException() )
                 .forEach( elm -> LOG.info( ":: " + elm ) );
     }
@@ -184,6 +186,45 @@ public class SequenceTest {
 
     protected void iterateCollection( Collection<?> coll ) {
         coll.forEach( elm -> LOG.info( "" + elm ) );
+    }
+
+
+    @Test
+    public void sequenceSeriesPerformanceTest() {
+        for (int i=0; i<100; i++) {
+            var result = Sequence.ofInts( 0, 99 )
+                    .filter( elm -> elm < 10 )
+                    .map( elm -> String.valueOf( elm ) )
+                    .reduce( "", String::concat ) ;
+            Assert.isEqual( "0123456789", result );
+        }
+    }
+
+
+    @Test
+    public void streamSeriesPerformanceTest() {
+        for (int i=0; i<100; i++) {
+            var result = Stream.iterate( 0, elm -> elm + 1 )
+                    .limit( 100 )
+                    .filter( elm -> elm < 10 )
+                    .map( elm -> String.valueOf( elm ) )
+                    .reduce( "", String::concat );
+            Assert.isEqual( "0123456789", result );
+        }
+    }
+
+
+    @Test
+    public void loopSeriesPerformanceTest() {
+        for (int i=0; i<100; i++) {
+            var result = "";
+            for (var elm=0; elm < 100; elm++) {
+                if (elm < 10 ) {
+                    result = result.concat( String.valueOf( elm ) );
+                }
+            }
+            Assert.isEqual( "0123456789", result );
+        }
     }
 
 

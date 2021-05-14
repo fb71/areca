@@ -60,14 +60,14 @@ public class PageStackLayout
                     ? mousePos.substract( size.divide( 2 ) )
                     : Position.of( 0, 0 ) );
 
-            Platform.instance().schedule( 300, () -> {
+            Platform.schedule( 300, () -> {
                 top.bordered.set( true );
                 top.htmlElm.styles.remove( "transition" );
                 top.htmlElm.styles.remove( "transform" );
                 top.htmlElm.styles.remove( "opacity" );
                 top.position.set( Position.of( 0, 0 ) );
 
-                Platform.instance().schedule( 500, () -> {
+                Platform.schedule( 500, () -> {
                     top.bordered.set( false );
                 });
             });

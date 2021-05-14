@@ -37,7 +37,7 @@ public class TestsMain {
         }
         catch (Exception e) {
             System.out.println( "Exception: " + e + " --> " );
-            Throwable rootCause = Platform.instance().rootCause( e );
+            Throwable rootCause = Platform.rootCause( e );
             System.out.println( "Root cause: " + rootCause + " : " + rootCause.getMessage() );
             throw (Exception)rootCause;
         }

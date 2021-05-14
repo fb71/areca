@@ -109,7 +109,7 @@ public class AsyncTestRunner
                 TestResult testResult = new TestResult( m );
                 started.add( testResult );
 
-                Platform.instance().async( () -> {
+                Platform.async( () -> {
                     if (testsStarted.add( cl )) {
                         decorators.forEach( d -> d.preTest( cl ) );
                     }

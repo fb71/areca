@@ -84,7 +84,7 @@ public class Pageflow {
         with( pageData.container.position).apply( pos -> pos.set(
                 Position.of( pos.get().x, rootContainer.clientSize.get().height() - 30 ) ) );
 
-        Platform.instance().schedule( 750, () -> {
+        Platform.schedule( 750, () -> {
             pageData.page.dispose();
             if (!pageData.container.isDisposed()) {
                 pageData.container.dispose();
@@ -135,7 +135,7 @@ public class Pageflow {
                         // reset
                         else {
                             top.position.set( startPos );
-                            Platform.instance().schedule( 1000, () -> top.bordered.set( false ) );
+                            Platform.schedule( 1000, () -> top.bordered.set( false ) );
                         }
                     }
                 }

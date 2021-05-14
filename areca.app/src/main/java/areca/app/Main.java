@@ -34,7 +34,7 @@ public class Main {
 
     public static void main( String[] args ) throws Exception {
         HtmlElement.factory = new TeaHtmlFactory();
-        Platform.instance = new TeaPlatform();
+        Platform.impl = new TeaPlatform();
 
         TestsMain.main( args );
         // LOG.info( "done." );
@@ -46,7 +46,7 @@ public class Main {
 //        }
 //        catch (Throwable e) {
 //            //System.out.println( "Exception: " + e + " --> " );
-//            Throwable rootCause = Platform.instance().rootCause( e );
+//            Throwable rootCause = Platform.rootCause( e );
 //            System.out.println( "Root cause: " + rootCause );
 //            throw (Exception)rootCause;
 //        }

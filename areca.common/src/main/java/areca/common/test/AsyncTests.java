@@ -13,6 +13,8 @@
  */
 package areca.common.test;
 
+import static areca.common.Platform.async;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import areca.common.Assert;
@@ -62,12 +64,11 @@ public class AsyncTests {
 
     @Test
     public Promise<Integer> cascadedPromiseTest() {
-        return Platform.instance()
-                .async( () -> {
+        return async( () -> {
                     return "1";
                 })
                 .then( s -> {
-                    return Platform.instance().async( () -> Integer.valueOf( s ) );
+                    return Platform.async( () -> Integer.valueOf( s ) );
                 })
                 .onSuccess( i -> {
                     LOG.info( "Result: " + i );
@@ -78,8 +79,7 @@ public class AsyncTests {
 
     @Test(expected = AssertionException.class)
     public Promise<?> promiseError() {
-        return Platform.instance()
-                .async( () -> {
+        return async( () -> {
                     Assert.that( 1==2, "..." );
                     return "1";
                 })
@@ -95,7 +95,7 @@ public class AsyncTests {
 
     @Test(expected = AssertionException.class)
     public Promise<?> promiseHandlerError() {
-        return Platform.instance()
+        return Platform
                 .async( () -> {
                     return "1";
                 })
@@ -108,13 +108,12 @@ public class AsyncTests {
 
     @Test(expected = AssertionException.class)
     public Promise<Integer> cascadedPromiseError() {
-        return Platform.instance()
-                .async( () -> {
+        return async( () -> {
                     Assert.isEqual( 1, 2, "..." );
                     return "1";
                 })
                 .then( s -> {
-                    return Platform.instance().async( () -> Integer.valueOf( s ) );
+                    return Platform.async( () -> Integer.valueOf( s ) );
                 })
                 .onSuccess( i -> {
                     LOG.info( "Result: " + i );
@@ -124,12 +123,11 @@ public class AsyncTests {
 
     @Test(expected = AssertionException.class)
     public Promise<Integer> cascadedPromiseHandlerError() {
-        return Platform.instance()
-                .async( () -> {
+        return async( () -> {
                     return "1";
                 })
                 .then( s -> {
-                    return Platform.instance().async( () -> {
+                    return Platform.async( () -> {
                         Assert.isEqual( "falsch", s );
                         return Integer.valueOf( s );
                     });
@@ -147,7 +145,7 @@ public class AsyncTests {
     public Promise<?> multipleValuePromiseTest() {
         MutableInt count = new MutableInt();
         return Sequence.ofInts( 1, 100 )
-                .map( i -> async( i ) )
+                .map( i -> Platform.async( () -> i ) )
                 .reduce( (p1, p2) -> p1.join( p2 ) ).get()
                 .onSuccess( (promise,i) -> {
                     count.increment();
@@ -155,10 +153,6 @@ public class AsyncTests {
                         Assert.isEqual( 100, count.getValue() );
                     }
                 });
-    }
-
-    protected <R> Promise<R> async( R input ) {
-        return Platform.instance().async( () -> input );
     }
 
 

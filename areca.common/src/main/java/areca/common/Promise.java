@@ -48,9 +48,8 @@ public class Promise<T> {
     protected List<RConsumer<Throwable>> onError = new ArrayList<>();
 
 
-    public boolean cancel() {
+    public void cancel() {
         canceled = true;
-        return true;
     }
 
 
@@ -80,7 +79,7 @@ public class Promise<T> {
      * @return A newly created {@link Promise}.
      */
     public <R> Promise<R> then( Function<T,Promise<R>,Exception> f ) {
-        var next = new Completable<R>();
+        var next = new Completable<R>().upstream( this );
         onSuccess( _result -> {
             var promise = f.apply( _result );
             Assert.notNull( promise, "Promise.then(): returned Promise must not be null." );
@@ -115,7 +114,7 @@ public class Promise<T> {
      * @return A newly created instance of {@link Promise}.
      */
     public <R> Promise<R> map( Function<T,R,Exception> f ) {
-        var next = new Completable<R>();
+        var next = new Completable<R>().upstream( this );
         onSuccess( (_promise,_r) -> {
             if (_promise.isComplete()) {
                 next.complete( f.apply( _r ) );
@@ -131,7 +130,7 @@ public class Promise<T> {
 
 
     public Promise<T> join( Promise<T> other ) {
-        var next = new Completable<T>();
+        var next = new Completable<T>().upstream( this ).upstream( other );
         MutableInt c = new MutableInt();
         BiConsumer<HandlerSite,T,Exception> handler = (_promise,_result) -> {
             if (!_promise.isComplete() || c.incrementAndGet() < 2) {
@@ -227,6 +226,21 @@ public class Promise<T> {
             @Override public boolean isComplete() { return complete; }
         };
 
+        private List<Promise<?>> upstreams = new ArrayList<>();
+
+
+        protected Completable<T> upstream( Promise<?> upstream ) {
+            upstreams.add( upstream );
+            return this;
+        }
+
+
+        @Override
+        public void cancel() {
+            upstreams.forEach( upstream -> upstream.cancel() );
+            super.cancel();
+        }
+
 
         public void complete( T value ) {
             //LOG.debug( "complete(): %s", value );
@@ -290,7 +304,7 @@ public class Promise<T> {
                     if (onError.isEmpty()) {
                         LOG.warn( "No onError handler for: " + e, e );
                         // XXX on teavm this helps to see a proper stacktrace
-                        throw (RuntimeException)Platform.instance().rootCause( e );
+                        throw (RuntimeException)Platform.rootCause( e );
                     }
                     else {
                         for (var consumer : onError) {
@@ -311,6 +325,7 @@ public class Promise<T> {
                 synchronized (this) {
                     onSuccess = null; // help GC(?)
                     onError = null;
+                    upstreams = null;
                     done = true;
                     notifyAll();
                 }

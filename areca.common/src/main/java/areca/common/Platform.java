@@ -21,18 +21,15 @@ import java.util.concurrent.Callable;
  */
 public abstract class Platform {
 
-    public static Platform instance;
+    public static PlatformImpl impl;
 
-    public static Platform instance() {
-        return instance;
+
+    public static <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
+        return impl.schedule( delayMillis, task );
     }
 
-    // API ************************************************
 
-    public abstract <R> Promise<R> schedule( int delayMillis, Callable<R> task );
-
-
-    public void schedule( int delayMillis, Runnable task ) {
+    public static void schedule( int delayMillis, Runnable task ) {
         schedule( delayMillis, () -> {
             task.run();
             return null;
@@ -40,32 +37,41 @@ public abstract class Platform {
     }
 
 
-    public void async( Runnable task ) {
+    public static void async( Runnable task ) {
         schedule( 0, task );
     }
 
 
-    public <R> Promise<R> async( Callable<R> task ) {
+    public static <R> Promise<R> async( Callable<R> task ) {
         return schedule( 0, task );
     }
 
 
-    public Throwable rootCause( Throwable e ) {
-        Throwable cause = e;
-        while (cause.getCause() != null && cause.getCause() != cause) {
-            cause = cause.getCause();
-        }
-        return cause;
+    public static Throwable rootCause( Throwable e ) {
+            Throwable cause = e;
+            while (cause.getCause() != null && cause.getCause() != cause) {
+                cause = cause.getCause();
+            }
+            return cause;
 
-//        for (var cause = e;; cause = cause.getCause()) {
-//            if (cause.getCause() == null || cause.getCause() != cause) {
-//                return cause;
-//            }
-//        }
-//
-//        Sequence.series( e,
-//                cause -> cause.getCause(),
-//                cause -> cause.getCause() != null && cause.getCause() != cause )
-//                .last();
+    //        for (var cause = e;; cause = cause.getCause()) {
+    //            if (cause.getCause() == null || cause.getCause() != cause) {
+    //                return cause;
+    //            }
+    //        }
+    //
+    //        Sequence.series( e,
+    //                cause -> cause.getCause(),
+    //                cause -> cause.getCause() != null && cause.getCause() != cause )
+    //                .last();
+        }
+
+
+    /**
+     *
+     */
+    public interface PlatformImpl {
+        public <R> Promise<R> schedule( int delayMillis, Callable<R> task );
+
     }
 }

@@ -79,7 +79,7 @@ public class AsyncJob {
 
 
     protected void next() {
-        Platform.instance().async( () -> {
+        Platform.async( () -> {
             try {
                 if (monitor.isCancelled()) {
                     status = Status.DONE;
