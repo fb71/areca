@@ -53,4 +53,12 @@ public class With<T> {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
+    public <R,E extends Exception> With<T> instanceOf( Class<R> type, Consumer<R,E> block ) throws E {
+        if (type.isAssignableFrom( obj.getClass() )) {
+            block.accept( (R)obj );
+        }
+        return this;
+    }
+
 }

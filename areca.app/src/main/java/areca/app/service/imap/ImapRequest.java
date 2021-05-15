@@ -16,6 +16,7 @@ package areca.app.service.imap;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.leftPad;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import java.io.BufferedReader;
@@ -40,7 +41,7 @@ import areca.common.log.LogFactory.Log;
 public class ImapRequest
         extends ImapRequestData {
 
-    private static final Log log = LogFactory.getLog( ImapRequest.class );
+    private static final Log LOG = LogFactory.getLog( ImapRequest.class );
 
 
     public <E extends Exception> ImapRequest( Consumer<ImapRequest,E> initializer ) throws E {
@@ -48,37 +49,40 @@ public class ImapRequest
     }
 
 
-    public Promise<Command[]> submit() {
-        var result = new Promise.Completable<Command[]>();
+    public Promise<Command> submit() {
+        var promise = new Promise.Completable<Command>();
 
         Timer timer = Timer.start();
         XMLHttpRequest request = XMLHttpRequest.create();
         request.setOnReadyStateChange( () -> {
-            log.info( "Request ready state: " + request.getReadyState() );
+            LOG.info( "Request ready state: " + request.getReadyState() );
         });
         request.open( "POST", "imap/", true );
 
         request.onComplete( () -> {
             try {
-                log.info( "Status: " + request.getStatus() + " (" + timer.elapsedHumanReadable() + ")" );
+                LOG.info( "Status: " + request.getStatus() + " (" + timer.elapsedHumanReadable() + ")" );
                 if (request.getStatus() > 299) {
                     throw new IOException( "HTTP Status: " + request.getStatus() );
                 }
                 String response = request.getResponseText();
                 var in = new BufferedReader( new StringReader( response ) );
-                var parsed = Sequence.of( Exception.class, commands )
-                        .map( c -> (Command)c )
-                        .onEach( c -> c.parse( in ) )
-                        .toArray( Command[]::new );
-
-                result.complete( parsed );
+                Sequence.of( Exception.class, commands ).map( c -> (Command)c ).forEach( (command,i) -> {
+                    command.parse( in );
+                    if (i < commands.size() - 1) {
+                        promise.consumeResult( command );
+                    }
+                    else {
+                        promise.complete( command );
+                    }
+                });
             }
             catch (Exception e) {
-                result.completeWithError( e );
+                promise.completeWithError( e );
             }
         });
         request.send( toJson() );
-        return result;
+        return promise;
     }
 
 
@@ -90,6 +94,13 @@ public class ImapRequest
 
         /** Regex flags */
         public static final int     IGNORE_CASE = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+
+        public static <E extends Exception> void matches( Pattern p, String s, Consumer<Matcher,E> handler ) throws E {
+            var matcher = p.matcher( s );
+            if (matcher.matches()) {
+                handler.accept( matcher );
+            }
+        }
 
         private static volatile int tagCount = 0;
 

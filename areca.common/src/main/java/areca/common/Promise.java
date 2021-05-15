@@ -22,7 +22,10 @@ import areca.common.base.BiConsumer;
 import areca.common.base.Consumer;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Function;
+import areca.common.base.Function.RFunction;
 import areca.common.base.Opt;
+import areca.common.base.Predicate;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -35,7 +38,15 @@ public class Promise<T> {
 
     private static final Log LOG = LogFactory.getLog( Promise.class );
 
-    protected volatile T            result;
+    public static <R> Promise<R> joined( int num, RFunction<Integer,Promise<R>> supplier ) {
+        return Sequence.ofInts( 0, num-1 )
+                .map( i -> supplier.apply( i ) )
+                .reduce( (p1, p2) -> p1.join( p2 ) ).get();
+    }
+
+    // instance *******************************************
+
+    protected volatile T            waitForResult;
 
     protected volatile boolean      canceled;
 
@@ -80,11 +91,11 @@ public class Promise<T> {
      */
     public <R> Promise<R> then( Function<T,Promise<R>,Exception> f ) {
         var next = new Completable<R>().upstream( this );
-        onSuccess( _result -> {
-            var promise = f.apply( _result );
+        onSuccess( result -> {
+            var promise = f.apply( result );
             Assert.notNull( promise, "Promise.then(): returned Promise must not be null." );
-            promise.onSuccess( (_promise,_r) -> {
-                if (_promise.isComplete()) {
+            promise.onSuccess( (self,_r) -> {
+                if (self.isComplete()) {
                     next.complete( _r );
                 } else {
                     next.consumeResult( _r );
@@ -115,11 +126,29 @@ public class Promise<T> {
      */
     public <R> Promise<R> map( Function<T,R,Exception> f ) {
         var next = new Completable<R>().upstream( this );
-        onSuccess( (_promise,_r) -> {
-            if (_promise.isComplete()) {
-                next.complete( f.apply( _r ) );
+        onSuccess( (self,result) -> {
+            if (self.isComplete()) {
+                next.complete( f.apply( result ) );
             } else {
-                next.consumeResult( f.apply( _r ) );
+                next.consumeResult( f.apply( result ) );
+            }
+        });
+        onError( e -> {
+            next.completeWithError( e );
+        });
+        return next;
+    }
+
+
+    public Promise<T> filter( Predicate<T,Exception> p ) {
+        var next = new Completable<T>().upstream( this );
+        onSuccess( (self,result) -> {
+            if (p.test( result )) {
+                if (self.isComplete()) {
+                    next.complete( result );
+                } else {
+                    next.consumeResult( result );
+                }
             }
         });
         onError( e -> {
@@ -132,11 +161,11 @@ public class Promise<T> {
     public Promise<T> join( Promise<T> other ) {
         var next = new Completable<T>().upstream( this ).upstream( other );
         MutableInt c = new MutableInt();
-        BiConsumer<HandlerSite,T,Exception> handler = (_promise,_result) -> {
-            if (!_promise.isComplete() || c.incrementAndGet() < 2) {
-                next.consumeResult( _result );
+        BiConsumer<HandlerSite,T,Exception> handler = (self,result) -> {
+            if (!self.isComplete() || c.incrementAndGet() < 2) {
+                next.consumeResult( result );
             } else {
-                next.complete( _result );
+                next.complete( result );
             }
         };
         onSuccess( handler );
@@ -198,7 +227,7 @@ public class Promise<T> {
                 }
             }
         }
-        return Opt.of( result );
+        return Opt.of( waitForResult );
     }
 
 
@@ -267,7 +296,7 @@ public class Promise<T> {
             }
             // not done, not cancelled -> normal
             else {
-                this.result = value;
+                this.waitForResult = value;
                 for (var consumer : onSuccess) {
                     try {
                         consumer.accept( site, value );

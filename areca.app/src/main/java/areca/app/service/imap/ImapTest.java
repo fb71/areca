@@ -18,13 +18,22 @@ import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.FROM;
 import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.MESSAGE_ID;
 import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.SUBJECT;
 import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.TO;
+import static areca.common.base.With.with;
+import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.Range.between;
 
 import java.util.concurrent.TimeUnit;
+
 import org.teavm.jso.json.JSON;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.store.tidbstore.IDBStore;
+
+import areca.app.model.Anchor;
+import areca.app.model.Contact;
+import areca.app.model.Message;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Assert;
 import areca.common.Promise;
@@ -55,6 +64,15 @@ public class ImapTest {
 //                .store.set( new IDBStore( "ImapTest", 1, true ) )
 //                .create();
 //    });
+
+    private static int          dbCount = 0;
+
+    protected Promise<EntityRepository> initRepo() {
+        return EntityRepository.newConfiguration()
+                .entities.set( asList( Message.info, Contact.info, Anchor.info) )
+                .store.set( new IDBStore( "ImapTest-" + dbCount++, (int)System.currentTimeMillis(), true ) )
+                .create();
+    }
 
     protected ImapRequest   request = newRequest();
 
@@ -109,43 +127,65 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> loginTest() {
         request.commands.add( new FolderListCommand() );
-        return request.submit().onSuccess( commands -> {
-            Assert.that( ((FolderListCommand)commands[0]).folderNames.contains( "INBOX" ) );
+        return request.submit().onSuccess( command -> {
+            with( command ).instanceOf( FolderListCommand.class, flc -> {
+                Assert.that( flc.folderNames.contains( "INBOX" ) );
+            });
         });
     }
 
 
     @Test
+    @Skip
+    public Promise<?> selectFolderTest() {
+        request.commands.add( new FolderSelectCommand( "INBOX" ) );
+        return request.submit().onSuccess( command -> {
+            with( command ).instanceOf( FolderSelectCommand.class, fsc -> {
+                LOG.info( "INBOX: %s/%s", fsc.exists, fsc.recent );
+                Assert.that( fsc.exists > -1 );
+                Assert.that( fsc.recent > -1 );
+            });
+        });
+    }
+
+
+    @Test
+    @Skip
     public Promise<?> fetchMessageTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
-        request.commands.add( new MessageFetchCommand( 3, "TEXT" ) );
-        return request.submit().onSuccess( commands -> {
-            var fetchCommand = (MessageFetchCommand)commands[1];
-            var text = fetchCommand.text.toString();
-            Assert.that( text.length() > 0 );
+        request.commands.add( new MessageFetchCommand( 1, "TEXT" ) );
+        return request.submit().onSuccess( command -> {
+            with( command ).instanceOf( MessageFetchCommand.class, fetchCommand -> {
+                var text = fetchCommand.text.toString();
+                Assert.that( text.length() > 0 );
 
-            LOG.info( "Text: " + fetchCommand.textContent );
-            LOG.info( "HTML: " + fetchCommand.htmlContent );
+                LOG.info( "Text: " + fetchCommand.textContent );
+                LOG.info( "HTML: " + fetchCommand.htmlContent );
+            });
         });
     }
 
 
     @Test
+    @Skip
     public Promise<?> fetchMessageHeadersTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new MessageFetchHeadersCommand( between( 1, 3 ), FROM, SUBJECT, TO, DATE, MESSAGE_ID ) );
-        return request.submit().onSuccess( commands -> {
-            var fetchCommand = (MessageFetchHeadersCommand)commands[1];
-            for (var entry : fetchCommand.headers.entrySet()) {
-                LOG.info( "%s: %s", entry.getKey(), entry.getValue() );
-            }
+        return request.submit().onSuccess( command -> {
+            with( command ).instanceOf( MessageFetchHeadersCommand.class, fetchCommand -> {
+                for (var entry : fetchCommand.headers.entrySet()) {
+                    LOG.info( "%s: %s", entry.getKey(), entry.getValue() );
+                }
+            });
         });
     }
 
 
     @Test
+    @Skip
     public Promise<?> poolTest() {
         var count = new MutableInt();
         return Sequence.ofInts( 1, 10 )
@@ -165,7 +205,12 @@ public class ImapTest {
     }
 
 
-    public void syncFolderTest() {
-        // new ImapFolderSynchronizer( self -> {
+    @Test
+    public Promise<?> syncFolderTest() {
+        return initRepo().then( repo -> {
+            return new ImapFolderSynchronizer( "Test1", repo, () -> newRequest() )
+                    .start();
+                    //.onSuccess( (self,msg) );
+        });
     }
 }

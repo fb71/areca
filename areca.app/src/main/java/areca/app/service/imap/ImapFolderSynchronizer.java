@@ -14,31 +14,102 @@
 package areca.app.service.imap;
 
 import org.polymap.model2.runtime.EntityRepository;
-import areca.common.base.Consumer;
-import areca.common.base.Opt;
+
+import areca.app.model.Message;
+import areca.common.NullProgressMonitor;
+import areca.common.ProgressMonitor;
+import areca.common.Promise;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Property;
+import areca.ui.Property.ReadWrite;
 
 /**
+ * Synchronize an entire IMAP folder with the DB.
  *
  * @author Falko Bräutigam
  */
 public class ImapFolderSynchronizer {
 
-    private static final Log log = LogFactory.getLog( ImapFolderSynchronizer.class );
+    private static final Log LOG = LogFactory.getLog( ImapFolderSynchronizer.class );
 
 //    public Property<Boolean>            checkExisting = Property.create( this, "checkExisting", false );
 
-//    protected Supplier.$<ImapRequest>   requestFactory;
+    public ReadWrite<?,ProgressMonitor> monitor = Property.create( this, "monitor", new NullProgressMonitor() );
+
+    protected RSupplier<ImapRequest>    requestFactory;
 
     protected EntityRepository          repo;
 
-    public Opt<Exception>               exception = Opt.absent();
+    protected String                    folderName;
 
 
-    public <E extends Exception> ImapFolderSynchronizer( Consumer<ImapFolderSynchronizer,E> initializer ) throws E {
-        initializer.accept( this );
+    public ImapFolderSynchronizer( String folderName, EntityRepository repo, RSupplier<ImapRequest> requestFactory ) {
+        this.repo = repo;
+        this.requestFactory = requestFactory;
+        this.folderName = folderName;
     }
+
+
+    public Promise<Message> start() {
+        monitor.get().beginTask( "Syncing folder: " + folderName, ProgressMonitor.UNKNOWN );
+
+        var uow = repo.newUnitOfWork();
+
+        return fetchMessageCount()
+                // fetch messages
+                .then( fsc -> {
+                    monitor.get().beginTask( "Syncing folder: " + folderName, fsc.exists );
+                    return Promise.joined( fsc.exists-1, i -> fetchMessage( i + 1 ) );
+                })
+                .map( fetched -> {
+                    LOG.info( "Message: " + fetched.number );
+                    return null;
+                })
+//                // load entity
+//                .then( fetched -> {
+//                    return uow.query( Message.class )
+//                            //.where( )
+//                            .execute()
+//                            .map( entity -> new CallContext().put( entity ).put( fetched ) );
+//                })
+//                // check/create entity
+//                .then( ctx -> {
+//                    ctx.opt( Message.class ).ifPresentMap( entity -> new Promise.Completable<Message>() );
+//                    return createMessage( fetched ).map( entity -> ctx.put( entity ) );
+//                })
+//                .map( ctx -> {
+//                    monitor.worked( 1 );
+//                    return ctx.value( Message.class );
+//                });
+                ;
+    }
+
+
+    protected Promise<FolderSelectCommand> fetchMessageCount() {
+        var r = requestFactory.supply();
+        r.commands.add( new FolderSelectCommand( folderName ) );
+        return r.submit()
+                .filter( command -> command instanceof FolderSelectCommand )
+                .map( command -> (FolderSelectCommand)command );
+    }
+
+
+    protected Promise<MessageFetchCommand> fetchMessage( int msgNum ) {
+        var r = requestFactory.supply();
+        r.commands.add( new FolderSelectCommand( folderName ) );
+        r.commands.add( new MessageFetchCommand( msgNum, "TEXT" ) );
+        return r.submit()
+                .filter( command -> command instanceof MessageFetchCommand )
+                .map( command -> (MessageFetchCommand)command );
+    }
+
+
+//    protected Promise<Message> createMessage( MessageFetchCommand fetched ) {
+//
+//    }
+
 
 
 //    public void process( String folderName, ProgressMonitor monitor ) {

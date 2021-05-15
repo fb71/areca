@@ -15,6 +15,8 @@ package areca.app.service.imap;
 
 import static java.lang.String.format;
 
+import java.util.regex.Pattern;
+
 import areca.app.service.imap.ImapRequest.Command;
 
 /**
@@ -23,8 +25,33 @@ import areca.app.service.imap.ImapRequest.Command;
  */
 public class FolderSelectCommand extends Command {
 
+    public static final Pattern EXISTS = Pattern.compile( "\\* (\\d+) EXISTS", IGNORE_CASE );
+    public static final Pattern RECENT = Pattern.compile( "\\* (\\d+) RECENT", IGNORE_CASE );
+
+    public int      exists = -1;
+
+    public int      recent = -1;
+
     public FolderSelectCommand( String folderName ) {
         command = format( "%s SELECT %s", tag, folderName );
         expected = format( "%s OK", tag );
     }
+
+    @Override
+    protected boolean parseLine( String line ) {
+        if (super.parseLine( line )) {
+            matches( EXISTS, line, matcher -> {
+                exists = Integer.parseInt( matcher.group( 1 ) );
+            });
+            matches( RECENT, line, matcher -> {
+                recent = Integer.parseInt( matcher.group( 1 ) );
+            });
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+
 }

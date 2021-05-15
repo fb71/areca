@@ -171,7 +171,7 @@ public class ImapForwardServlet extends HttpServlet {
 
 
     protected void debug( String msg, Object... args ) {
-        System.out.println( String.format( msg, args ) );
+        System.out.println( args.length == 0 ? msg : String.format( msg, args ) );
     }
 
 
