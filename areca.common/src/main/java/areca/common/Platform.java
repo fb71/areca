@@ -48,23 +48,12 @@ public abstract class Platform {
 
 
     public static Throwable rootCause( Throwable e ) {
-            Throwable cause = e;
-            while (cause.getCause() != null && cause.getCause() != cause) {
-                cause = cause.getCause();
-            }
-            return cause;
-
-    //        for (var cause = e;; cause = cause.getCause()) {
-    //            if (cause.getCause() == null || cause.getCause() != cause) {
-    //                return cause;
-    //            }
-    //        }
-    //
-    //        Sequence.series( e,
-    //                cause -> cause.getCause(),
-    //                cause -> cause.getCause() != null && cause.getCause() != cause )
-    //                .last();
+        Throwable cause = e;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
         }
+        return cause;
+    }
 
 
     /**

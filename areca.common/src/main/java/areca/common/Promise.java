@@ -180,6 +180,22 @@ public class Promise<T> {
     }
 
 
+    public <R> Promise<R> reduce( R start, BiConsumer<R,T,Exception> combiner ) {
+        var next = new Completable<R>().upstream( this );
+        var accu = start;
+        onSuccess( (self,result) -> {
+            combiner.accept( accu, result );
+            if (self.isComplete()) {
+                next.complete( accu );
+            }
+        });
+        onError( e -> {
+            next.completeWithError( e );
+        });
+        return next;
+    }
+
+
     public <E extends Exception> Promise<T> onSuccess( Consumer<T,E> consumer ) {
         return onSuccess( (promise,value) -> consumer.accept( value ) );
     }

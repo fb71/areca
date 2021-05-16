@@ -435,6 +435,10 @@ public abstract class Sequence<T, E extends Exception> {
         return reduce( identity, accumulator, (result,r) -> r );
     }
 
+//    public final <R,RE extends E> R reduce( R identity, BiConsumer<R, ? super T, RE> accumulator ) throws E {
+//        return reduce( identity, accumulator, (result,r) -> r );
+//    }
+
 
     /**
      * See {@link Stream#reduce(Object, BiFunction, BinaryOperator)}
@@ -528,6 +532,19 @@ public abstract class Sequence<T, E extends Exception> {
         return result;
     }
 
+
+    public <K,V,RE extends E> HashMap<K,V> toMap(
+            Function<T,K,RE> keyMapper,
+            Function<T,V,RE> valueMapper)
+            throws E {
+        HashMap<K,V> result = new HashMap<>();
+        forEach( elm -> {
+            if (result.put( keyMapper.apply( elm ), valueMapper.apply( elm ) ) != null) {
+                throw new IllegalStateException( "Key already exists: " + keyMapper.apply( elm ) );
+            }
+        });
+        return result;
+    }
 
     /**
      * Returns a {@link Collection} view of this {@link Sequence}. In contrast to

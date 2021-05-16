@@ -22,7 +22,7 @@ public class TestsMain {
             new AsyncTestRunner()
                     //.addTests( areca.common.test.AsyncTests.info )
                     //.addTests( areca.common.test.Tests.all() )
-                    //.addTests( org.polymap.model2.test2.Tests.all() )
+                    .addTests( org.polymap.model2.test2.Tests.all() )
                     //.addTests( TeavmRuntimeTest.info )
                     //.addTests( SetTimeoutEventManagerTest.info )
                     .addTests( ImapTest.info )

@@ -14,6 +14,7 @@
 package areca.app.model;
 
 import org.polymap.model2.Entity;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 
 import areca.common.log.LogFactory;
@@ -32,8 +33,13 @@ public class Message
 
     public static final MessageClassInfo    info = MessageClassInfo.instance();
 
+    @Nullable
     public Property<String>         from;
 
+    @Nullable
     public Property<String>         text;
+
+    @Nullable
+    public Property<String>         storeRef;
 
 }

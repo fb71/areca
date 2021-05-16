@@ -38,7 +38,7 @@ import areca.common.log.LogFactory.Log;
  */
 public class MessageFetchHeadersCommand extends Command {
 
-    private static final Log log = LogFactory.getLog( MessageFetchHeadersCommand.class );
+    private static final Log LOG = LogFactory.getLog( MessageFetchHeadersCommand.class );
 
     public static final Pattern PATTERN = Pattern.compile( "\\* (\\d+) FETCH \\(BODY\\[HEADER.FIELDS \\(([^)]+)\\)\\] \\{(\\d+)\\}", IGNORE_CASE );
 
@@ -89,11 +89,14 @@ public class MessageFetchHeadersCommand extends Command {
                 return true;
             }
             // content line
-            log.info( "Content line: '%s'", line );
-            var field = FieldEnum.valueOfString( substringBefore( line, ": " ) );
-            var content = substringAfter( line, ": " );
-            content = MimeUtil.unscrambleHeaderValue( content );
-            headers.computeIfAbsent( currentMsgNum, k -> new HashMap<>() ).put( field, content );
+            if (currentMsgNum != null) {
+                LOG.debug( "Content line: '%s'", line );
+                var field = FieldEnum.valueOfString( substringBefore( line, ": " ) );
+                var content = substringAfter( line, ": " );
+                content = MimeUtil.unscrambleHeaderValue( content );
+                headers.computeIfAbsent( currentMsgNum, k -> new HashMap<>() ).put( field, content );
+                currentMsgNum = null;
+            }
             return true;
         }
         else {

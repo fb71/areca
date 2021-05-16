@@ -13,12 +13,22 @@
  */
 package areca.app.service.imap;
 
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.MESSAGE_ID;
+import static org.apache.commons.lang3.Range.between;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang3.mutable.MutableInt;
+
+import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.EntityRepository;
 
 import areca.app.model.Message;
 import areca.common.NullProgressMonitor;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
+import areca.common.base.Sequence;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -52,33 +62,57 @@ public class ImapFolderSynchronizer {
     }
 
 
-    public Promise<Message> start() {
+    public Promise<?> start() {
         monitor.get().beginTask( "Syncing folder: " + folderName, ProgressMonitor.UNKNOWN );
 
         var uow = repo.newUnitOfWork();
 
         return fetchMessageCount()
-                // fetch messages
+                // fetch messages-ids
                 .then( fsc -> {
                     monitor.get().beginTask( "Syncing folder: " + folderName, fsc.exists );
-                    return Promise.joined( fsc.exists-1, i -> fetchMessage( i + 1 ) );
+                    return fetchMessageIds( fsc.exists );
                 })
-                .map( fetched -> {
-                    LOG.info( "Message: " + fetched.number );
-                    return null;
+                // find missing Message entities
+                .then( fetched -> {
+                    Map<String,Integer> msgIds = Sequence.of( fetched.headers.entrySet() )
+                            .toMap( entry -> entry.getValue().get( MESSAGE_ID ), entry -> entry.getKey() );
+
+                    // query Messages that are already there
+                    String[] queryIds = msgIds.keySet().toArray( String[]::new );
+                    return uow.query( Message.class )
+                            .where( Expressions.eqAny( Expressions.template( Message.class, repo ).storeRef, queryIds ) )
+                            .execute()
+                            // reduce to not-found msgIds
+                            .reduce( new HashMap<String,Integer>( msgIds ), (r,entity) -> {
+                                entity.ifPresent( _entity -> {
+                                    r.remove( _entity.storeRef.get() );
+                                });
+                            });
                 })
-//                // load entity
-//                .then( fetched -> {
-//                    return uow.query( Message.class )
-//                            //.where( )
-//                            .execute()
-//                            .map( entity -> new CallContext().put( entity ).put( fetched ) );
-//                })
-//                // check/create entity
-//                .then( ctx -> {
-//                    ctx.opt( Message.class ).ifPresentMap( entity -> new Promise.Completable<Message>() );
-//                    return createMessage( fetched ).map( entity -> ctx.put( entity ) );
-//                })
+                .onSuccess( missingMsgIds -> {
+                    LOG.info( "Not-found: " + missingMsgIds );
+                })
+                // fetch IMAP messages
+                .then( notFound -> {
+                    var msgNums = notFound.values().iterator();
+                    return Promise.joined( notFound.size(), i -> fetchMessage( msgNums.next() ) );
+                })
+                // create entities
+                .map( mfc -> {
+                    return uow.createEntity( Message.class, proto -> {
+                        proto.storeRef.set( "..." );
+                        proto.text.set( mfc.textContent );
+                    });
+                })
+                // submit
+                .reduce( new MutableInt(), (r,entity) -> r.increment() )
+                .map( count -> {
+                    return uow.submit().onSuccess( submitted -> {
+                        LOG.info( "Submitted: %s / %s", count, submitted );
+                    });
+                })
+
 //                .map( ctx -> {
 //                    monitor.worked( 1 );
 //                    return ctx.value( Message.class );
@@ -93,6 +127,16 @@ public class ImapFolderSynchronizer {
         return r.submit()
                 .filter( command -> command instanceof FolderSelectCommand )
                 .map( command -> (FolderSelectCommand)command );
+    }
+
+
+    protected Promise<MessageFetchHeadersCommand> fetchMessageIds( int msgNum ) {
+        var r = requestFactory.supply();
+        r.commands.add( new FolderSelectCommand( folderName ) );
+        r.commands.add( new MessageFetchHeadersCommand( between( 1, msgNum ), MESSAGE_ID ) );
+        return r.submit()
+                .filter( command -> command instanceof MessageFetchHeadersCommand )
+                .map( command -> (MessageFetchHeadersCommand)command );
     }
 
 

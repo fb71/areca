@@ -157,6 +157,30 @@ public class AsyncTests {
 
 
     @Test
+    public Promise<?> reducePromiseTest() {
+        return Promise
+                .joined( 3, i -> Platform.async( () -> i ) )
+                .reduce( new MutableInt(), (r,i) -> r.add( i ) )
+                .onSuccess( (self,count) -> {
+                    if (self.isComplete()) {
+                        Assert.isEqual( 3, count.getValue() );
+                    }
+                });
+    }
+
+
+    @Test
+    public Promise<?> filterPromiseTest() {
+        return Promise
+                .joined( 4, i -> Platform.async( () -> i ) )
+                .filter( i -> i > 2 )
+                .onSuccess( (self,i) -> {
+                    Assert.that( i > 2 );
+                });
+    }
+
+
+    @Test
     public void simpleSuccess() {
     }
 

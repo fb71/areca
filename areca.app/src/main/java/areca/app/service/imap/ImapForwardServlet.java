@@ -147,7 +147,7 @@ public class ImapForwardServlet extends HttpServlet {
         imap.out.flush();
 
         for (String line = imap.in.readLine();; line = imap.in.readLine()) {
-            debug( "< " + line );
+            // debug( "< " + line );
             if (sink != null) {
                 sink.accept( line );
             }

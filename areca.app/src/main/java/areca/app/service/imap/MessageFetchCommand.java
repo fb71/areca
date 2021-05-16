@@ -130,6 +130,9 @@ public class MessageFetchCommand extends Command {
     }
 
 
+    /**
+     *
+     */
     public class StringBuilderInputStream extends InputStream {
 
         protected StringBuilder buffer;
