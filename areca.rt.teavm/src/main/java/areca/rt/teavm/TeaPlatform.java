@@ -46,4 +46,41 @@ public class TeaPlatform
         return promise;
     }
 
+
+//    public Promise<Command> xhr( String method, String url ) {
+//        var promise = new Promise.Completable<Command>();
+//
+//        Timer timer = Timer.start();
+//        XMLHttpRequest request = XMLHttpRequest.create();
+//        request.setOnReadyStateChange( () -> {
+//            LOG.info( "Request ready state: " + request.getReadyState() );
+//        });
+//        request.open( "POST", "imap/", true );
+//
+//        request.onComplete( () -> {
+//            try {
+//                LOG.info( "Status: " + request.getStatus() + " (" + timer.elapsedHumanReadable() + ")" );
+//                if (request.getStatus() > 299) {
+//                    throw new IOException( "HTTP Status: " + request.getStatus() );
+//                }
+//                String response = request.getResponseText();
+//                var in = new BufferedReader( new StringReader( response ) );
+//                Sequence.of( Exception.class, commands ).map( c -> (Command)c ).forEach( (command,i) -> {
+//                    command.parse( in );
+//                    if (i < commands.size() - 1) {
+//                        promise.consumeResult( command );
+//                    }
+//                    else {
+//                        promise.complete( command );
+//                    }
+//                });
+//            }
+//            catch (Exception e) {
+//                promise.completeWithError( e );
+//            }
+//        });
+//        request.send( toJson() );
+//        return promise;
+//    }
+
 }
