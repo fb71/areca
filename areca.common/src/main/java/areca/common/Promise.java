@@ -254,6 +254,7 @@ public class Promise<T> {
         public void cancel();
         public boolean isCanceled();
         public boolean isComplete();
+        public int index();
     }
 
 
@@ -265,10 +266,13 @@ public class Promise<T> {
 
         private boolean complete;
 
+        private int index;
+
         private HandlerSite site = new HandlerSite() {
             @Override public void cancel() { Completable.this.cancel(); }
             @Override public boolean isCanceled() { return Completable.this.isCanceled(); }
             @Override public boolean isComplete() { return complete; }
+            @Override public int index() { return index; }
         };
 
         private List<Promise<?>> upstreams = new ArrayList<>();
@@ -312,7 +316,7 @@ public class Promise<T> {
             }
             // not done, not cancelled -> normal
             else {
-                this.waitForResult = value;
+                waitForResult = value;
                 for (var consumer : onSuccess) {
                     try {
                         consumer.accept( site, value );
@@ -322,6 +326,7 @@ public class Promise<T> {
                         break;
                     }
                 }
+                ++index;
             }
         }
 

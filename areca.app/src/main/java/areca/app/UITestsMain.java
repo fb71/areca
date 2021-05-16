@@ -13,6 +13,8 @@
  */
 package areca.app;
 
+import java.util.Collections;
+
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
 
@@ -76,7 +78,12 @@ public class UITestsMain {
             // Messages list
             appWindow.add( new LabeledList<Message>(), l -> {
                 l.firstLineLabeler.set( data -> data.from.get() );
-                l.setData( 0, uow.supply().query( Message.class ).execute() );
+                uow.supply().query( Message.class )
+                        .execute()
+                        //.reduce( new ArrayList<Message> )
+                        .onSuccess( (self,opt) -> {
+                            opt.ifPresent( m -> l.setData( self.index(), Collections.singleton( m ) ) );
+                        });
             });
         })
         .layout();
