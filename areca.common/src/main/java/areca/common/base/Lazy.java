@@ -25,14 +25,14 @@ public class Lazy<T,E extends Exception>
     /**
      * A {@link Lazy} that does not throw any checked Exception.
      */
-    public static class $<T>
+    public static class RLazy<T>
             extends Lazy<T,RuntimeException> {
 
-        public $() {
+        public RLazy() {
             super();
         }
 
-        public $( Supplier<T,RuntimeException> delegate ) {
+        public RLazy( Supplier<T,RuntimeException> delegate ) {
             super( delegate );
         }
 

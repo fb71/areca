@@ -16,10 +16,11 @@ package areca.common.reflect;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import areca.common.Assert;
-import areca.common.base.Lazy;
+import areca.common.base.Lazy.RLazy;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 
 /**
  *
@@ -28,12 +29,12 @@ import areca.common.base.Lazy;
 public abstract class ClassInfo<T>
         implements Named, Annotated, Typed {
 
-    private static final Logger LOG = Logger.getLogger( ClassInfo.class.getName() );
+    private static final Log LOG = LogFactory.getLog( ClassInfo.class );
 
     private static Map<Class<?>,ClassInfo<?>>  classInfos = new /*Concurrent*/HashMap<>( 128 );
 
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"unchecked", "deprecation"})
     public static <R> ClassInfo<R> of( Class<R> cl ) {
         ClassInfo<R> result = (ClassInfo<R>)classInfos.get( cl );
         if (result == null) {
@@ -63,17 +64,17 @@ public abstract class ClassInfo<T>
 
     // instance *******************************************
 
-    private Lazy<List<MethodInfo>,RuntimeException> methods = new Lazy<>( () -> createMethods() );
+    private RLazy<List<MethodInfo>> methods = new RLazy<>( () -> createMethods() );
 
-    private Lazy<List<AnnotationInfo>,RuntimeException> annotations = new Lazy<>( () -> createAnnotations() );
+    private RLazy<List<AnnotationInfo>> annotations = new RLazy<>( () -> createAnnotations() );
 
-    private Lazy<List<FieldInfo>,RuntimeException> fields = new Lazy<>( () -> createFields() );
+    private RLazy<List<FieldInfo>> fields = new RLazy<>( () -> createFields() );
 
 
     protected ClassInfo() {
         // either literal access via instance variable or via of() static method.
         classInfos.put( type(), this );
-        LOG.info( "ClassInfo: " + type().getName() );
+        LOG.info( "init: %s", type().getName() );
     }
 
     @Override

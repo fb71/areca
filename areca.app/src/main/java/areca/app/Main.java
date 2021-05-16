@@ -13,6 +13,9 @@
  */
 package areca.app;
 
+import static areca.common.log.LogFactory.Level.DEBUG;
+import static areca.common.log.LogFactory.Level.INFO;
+
 import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -31,8 +34,15 @@ public class Main {
 
     private static final Log LOG = LogFactory.getLog( Main.class );
 
+    public static void initLog() {
+        LogFactory.DEFAULT_LEVEL = INFO;
+        LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
+        // LogFactory.setClassLevel( org.polymap.model2.test2.SimpleModelTest.class, DEBUG );
+    }
+
 
     public static void main( String[] args ) throws Exception {
+        initLog();
         HtmlElement.factory = new TeaHtmlFactory();
         Platform.impl = new TeaPlatform();
 
