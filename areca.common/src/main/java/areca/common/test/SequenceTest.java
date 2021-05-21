@@ -141,7 +141,10 @@ public class SequenceTest {
         Assert.isEqual( 0, s.first().get() );
         Assert.isEqual( 5, s.count() );
         Assert.isEqual( 20, s.reduce( SequenceTest::sum ).get() );
+
+        Sequence.ofInts( 0, -1 ).forEach( n -> Assert.that( false ) );
     }
+
 
     @Test
     public void firstLastTest() {

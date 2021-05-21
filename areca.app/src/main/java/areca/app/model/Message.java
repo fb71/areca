@@ -16,9 +16,8 @@ package areca.app.model;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
+import org.polymap.model2.Queryable;
 
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -29,17 +28,18 @@ import areca.common.reflect.RuntimeInfo;
 public class Message
         extends Entity {
 
-    private static final Log log = LogFactory.getLog( Message.class );
-
     public static final MessageClassInfo    info = MessageClassInfo.instance();
 
     @Nullable
+    @Queryable
     public Property<String>         from;
 
     @Nullable
+    @Queryable
     public Property<String>         text;
 
     @Nullable
+    @Queryable
     public Property<String>         storeRef;
 
 }

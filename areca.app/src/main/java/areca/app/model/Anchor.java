@@ -14,6 +14,7 @@
 package areca.app.model;
 
 import org.polymap.model2.Entity;
+import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
 import org.polymap.model2.runtime.config.Mandatory;
@@ -31,6 +32,8 @@ public class Anchor extends Entity {
 
     @Mandatory
     @Queryable
-    public Property<String>     name;
+    public Property<String>         name;
+
+    public ManyAssociation<Message> messages;
 
 }

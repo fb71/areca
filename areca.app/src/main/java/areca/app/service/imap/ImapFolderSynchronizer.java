@@ -98,7 +98,7 @@ public class ImapFolderSynchronizer {
                     var msgNums = notFound.values().iterator();
                     return Promise.joined( notFound.size(), i -> fetchMessage( msgNums.next() ) );
                 })
-                // create entities
+                // create Message entities
                 .map( mfc -> {
                     return uow.createEntity( Message.class, proto -> {
                         proto.storeRef.set( "..." );
@@ -150,38 +150,8 @@ public class ImapFolderSynchronizer {
     }
 
 
-//    protected Promise<Message> createMessage( MessageFetchCommand fetched ) {
+//    protected Anchor checkMessageContactAnchor( Message m ) {
 //
-//    }
-
-
-
-//    public void process( String folderName, ProgressMonitor monitor ) {
-//        var request = requestFactory.supply();
-//        request.commands.add( )
-//
-//        try (
-//            UnitOfWork uow = repo.newUnitOfWork();
-//        ){
-//            uow.createEntity( Message.class, null, (Message proto) -> {
-//                SimpleDocument doc = SimpleDocument.parseXml( envelope.getValue() );
-//                for (Element elm : doc.getElementsByTagName( "headers" )) {
-//                    String[] kv = StringUtils.splitByWholeSeparator( elm.getFirstChild().getNodeValue(), "::" );
-//                    // log.info( "KeyValue: " + Arrays.asList( kv ) );
-//                    if (kv[0].equalsIgnoreCase( "from" )) {
-//                        proto.from.set( kv[1] );
-//                    }
-//                }
-//                doc.elementsByTagName( "htmlBody" ).first().ifPresent( elm -> {
-//                    proto.text.set( elm.getFirstChild().getNodeValue() );
-//                } );
-//                doc.elementsByTagName( "plainBody" ).first().ifPresent( elm -> {
-//                    proto.text.set( elm.getFirstChild().getNodeValue() );
-//                } );
-//                return proto;
-//            } );
-//            uow.commit();
-//        }
 //    }
 
 }

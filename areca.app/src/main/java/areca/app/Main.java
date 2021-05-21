@@ -37,7 +37,8 @@ public class Main {
     public static void initLog() {
         LogFactory.DEFAULT_LEVEL = INFO;
         LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
-        // LogFactory.setClassLevel( org.polymap.model2.test2.SimpleModelTest.class, DEBUG );
+        //LogFactory.setClassLevel( org.polymap.model2.test2.SimpleModelTest.class, DEBUG );
+        LogFactory.setClassLevel( org.polymap.model2.test2.AssociationsModelTest.class, DEBUG );
     }
 
 
