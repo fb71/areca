@@ -14,8 +14,10 @@
 package areca.common.test;
 
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import areca.common.Assert;
+import areca.common.base.Sequence;
 import areca.common.base.SequenceOpImpl;
 import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.Test;
@@ -43,14 +45,50 @@ public class SequenceOpTest {
 //        Assert.isEqual( 3, indices.intValue() );
 //    }
 
-
     @Test
     public void sequenceSeriesPerformanceTest() {
+        for (int i=0; i<100; i++) {
+            var result = Sequence.ofInts( 0, 99 )
+                    .filter( elm -> elm < 10 )
+                    .map( elm -> String.valueOf( elm ) )
+                    .reduce( "", String::concat ) ;
+            Assert.isEqual( "0123456789", result );
+        }
+    }
+
+    @Test
+    public void sequenceOpSeriesPerformanceTest() {
         for (int i=0; i<100; i++) {
             var result = SequenceOpImpl.ofInts( 0, 99 )
                 .filter( elm -> elm < 10 )
                 .map( elm -> String.valueOf( elm ) )
                 .reduce( "", String::concat ) ;
+            Assert.isEqual( "0123456789", result );
+        }
+    }
+
+    @Test
+    public void streamSeriesPerformanceTest() {
+        for (int i=0; i<100; i++) {
+            var result = Stream.iterate( 0, elm -> elm + 1 )
+                    .limit( 100 )
+                    .filter( elm -> elm < 10 )
+                    .map( elm -> String.valueOf( elm ) )
+                    .reduce( "", String::concat );
+            Assert.isEqual( "0123456789", result );
+        }
+    }
+
+
+    @Test
+    public void loopSeriesPerformanceTest() {
+        for (int i=0; i<100; i++) {
+            var result = "";
+            for (var elm=0; elm < 100; elm++) {
+                if (elm < 10 ) {
+                    result = result.concat( String.valueOf( elm ) );
+                }
+            }
             Assert.isEqual( "0123456789", result );
         }
     }
