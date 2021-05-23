@@ -15,6 +15,9 @@ package areca.common;
 
 import java.util.concurrent.Callable;
 
+import areca.common.base.Sequence;
+import areca.common.base.Consumer.RConsumer;
+
 /**
  *
  * @author Falko Bräutigam
@@ -57,10 +60,63 @@ public abstract class Platform {
 
 
     /**
+     * Prepares a XMLHttpRequest.
+     */
+    public static HttpRequest xhr( String method, String url ) {
+        return impl.xhr( method, url );
+    }
+
+
+    /**
      *
      */
     public interface PlatformImpl {
+
         public <R> Promise<R> schedule( int delayMillis, Callable<R> task );
 
+        public HttpRequest xhr( String method, String url );
+    }
+
+
+    /**
+     * XMLHttpRequest
+     */
+    public static abstract class HttpRequest {
+
+        public enum ReadyState {
+            UNSET, OPENED, HEADERS_RECEIVED, LOADING, DONE;
+
+            public static ReadyState valueOf( int ordinal ) {
+                return Sequence.of( values() ).first( v -> v.ordinal() == ordinal ).orElseError();
+            }
+        }
+
+        public abstract HttpRequest onReadyStateChange( RConsumer<ReadyState> handler );
+
+        protected abstract HttpRequest authenticate( String username, String password );
+
+        protected abstract Promise<HttpResponse> doSubmit( Object jsonOrStringData );
+
+        public Promise<HttpResponse> submit() {
+            return doSubmit( null );
+        }
+
+        public Promise<HttpResponse> submit( String data ) {
+            return doSubmit( data );
+        }
+    }
+
+    /**
+     *
+     */
+    public static abstract class HttpResponse {
+
+        public abstract int status();
+
+        public abstract String text();
+
+        public abstract <R /*extends JSObject*/> R json();
+
+        public abstract /*Document*/ Object xml();
     }
 }

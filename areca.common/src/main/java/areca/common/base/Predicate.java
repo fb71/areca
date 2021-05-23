@@ -22,6 +22,10 @@ import areca.common.Assert;
  */
 public interface Predicate<T,E extends Exception> {
 
+    public interface RPredicate<TT>
+            extends Predicate<TT,RuntimeException> {
+    }
+
     /**
      * Evaluates this predicate on the given argument.
      */

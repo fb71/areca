@@ -21,6 +21,7 @@ import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.TO;
 import static areca.common.base.With.with;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.Range.between;
+import static org.polymap.model2.store.tidbstore.IDBStore.nextDbVersion;
 
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +31,6 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.store.tidbstore.IDBStore;
-
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
@@ -57,20 +57,12 @@ public class ImapTest {
 
     public static final ImapTestClassInfo info = ImapTestClassInfo.instance();
 
-//    protected static Lazy.$<EntityRepository> repo = new Lazy.$<>( () -> {
-//        log.info( "Creating 'ImapTest' repo..." );
-//        return EntityRepository.newConfiguration()
-//                .entities.set( Arrays.asList( Message.info, Contact.info, Anchor.info) )
-//                .store.set( new IDBStore( "ImapTest", 1, true ) )
-//                .create();
-//    });
-
     private static int          dbCount = 0;
 
     protected Promise<EntityRepository> initRepo() {
         return EntityRepository.newConfiguration()
                 .entities.set( asList( Message.info, Contact.info, Anchor.info) )
-                .store.set( new IDBStore( "ImapTest-" + dbCount++, (int)System.currentTimeMillis(), true ) )
+                .store.set( new IDBStore( "ImapTest-" + dbCount++, nextDbVersion(), true ) )
                 .create();
     }
 
@@ -139,7 +131,6 @@ public class ImapTest {
 
 
     @Test
-    @Skip
     public Promise<?> selectFolderTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         return request.submit().onSuccess( command -> {
@@ -153,7 +144,6 @@ public class ImapTest {
 
 
     @Test
-    @Skip
     public Promise<?> fetchMessageTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new MessageFetchCommand( 1, "TEXT" ) );
@@ -170,14 +160,14 @@ public class ImapTest {
 
 
     @Test
-    @Skip
     public Promise<?> fetchMessageHeadersTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new MessageFetchHeadersCommand( between( 1, 3 ), FROM, SUBJECT, TO, DATE, MESSAGE_ID ) );
         return request.submit().onSuccess( command -> {
             with( command ).instanceOf( MessageFetchHeadersCommand.class, fetchCommand -> {
                 for (var entry : fetchCommand.headers.entrySet()) {
-                    LOG.info( "%s: %s", entry.getKey(), entry.getValue() );
+                    LOG.info( "HEADER: %s: %s", entry.getKey(), entry.getValue() );
+                    Assert.isEqual( 5, entry.getValue().size() );
                 }
             });
         });

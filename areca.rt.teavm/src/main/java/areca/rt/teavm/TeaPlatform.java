@@ -15,11 +15,17 @@ package areca.rt.teavm;
 
 import java.util.concurrent.Callable;
 
+import org.teavm.jso.JSObject;
+import org.teavm.jso.ajax.XMLHttpRequest;
 import org.teavm.jso.browser.Window;
 
 import areca.common.Platform;
+import areca.common.Platform.HttpRequest;
+import areca.common.Platform.HttpResponse;
 import areca.common.Promise;
 import areca.common.Promise.Completable;
+import areca.common.Timer;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -47,40 +53,68 @@ public class TeaPlatform
     }
 
 
-//    public Promise<Command> xhr( String method, String url ) {
-//        var promise = new Promise.Completable<Command>();
-//
-//        Timer timer = Timer.start();
-//        XMLHttpRequest request = XMLHttpRequest.create();
-//        request.setOnReadyStateChange( () -> {
-//            LOG.info( "Request ready state: " + request.getReadyState() );
-//        });
-//        request.open( "POST", "imap/", true );
-//
-//        request.onComplete( () -> {
-//            try {
-//                LOG.info( "Status: " + request.getStatus() + " (" + timer.elapsedHumanReadable() + ")" );
-//                if (request.getStatus() > 299) {
-//                    throw new IOException( "HTTP Status: " + request.getStatus() );
-//                }
-//                String response = request.getResponseText();
-//                var in = new BufferedReader( new StringReader( response ) );
-//                Sequence.of( Exception.class, commands ).map( c -> (Command)c ).forEach( (command,i) -> {
-//                    command.parse( in );
-//                    if (i < commands.size() - 1) {
-//                        promise.consumeResult( command );
-//                    }
-//                    else {
-//                        promise.complete( command );
-//                    }
-//                });
-//            }
-//            catch (Exception e) {
-//                promise.completeWithError( e );
-//            }
-//        });
-//        request.send( toJson() );
-//        return promise;
-//    }
+    @Override
+    public HttpRequest xhr( String method, String url ) {
+        return new HttpRequest() {
+            private XMLHttpRequest request = XMLHttpRequest.create();
+            private String username;
+            private String password;
+            private Timer timer;
+
+            @Override
+            public HttpRequest onReadyStateChange( RConsumer<ReadyState> handler ) {
+                request.setOnReadyStateChange( () -> {
+                    handler.accept( ReadyState.valueOf( request.getReadyState() ) );
+                });
+                return this;
+            }
+
+            @Override
+            @SuppressWarnings("hiding")
+            protected HttpRequest authenticate( String username, String password ) {
+                this.username = username;
+                this.password = password;
+                return this;
+            }
+
+            @Override
+            protected Promise<HttpResponse> doSubmit( Object jsonOrStringData ) {
+                var promise = new Promise.Completable<HttpResponse>();
+                request.open( method, url, true, username, password );
+                request.onComplete( () -> {
+                    promise.complete( new HttpResponse() {
+                        @Override
+                        public int status() {
+                            return request.getStatus();
+                        }
+                        @Override
+                        public String text() {
+                            return request.getResponseText();
+                        }
+                        @Override
+                        @SuppressWarnings("unchecked")
+                        public <R> R json() {
+                            return (R)request.getResponse();
+                        }
+                        @Override
+                        public Object xml() {
+                            return request.getResponseXML();
+                        }
+                    });
+                });
+                timer = Timer.start();
+                if (jsonOrStringData == null) {
+                    request.send();
+                }
+                else if (jsonOrStringData instanceof String) {
+                    request.send( (String)jsonOrStringData );
+                }
+                else if (jsonOrStringData instanceof JSObject) {
+                    request.send( (JSObject)jsonOrStringData );
+                }
+                return promise;
+            }
+        };
+    }
 
 }

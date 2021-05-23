@@ -23,8 +23,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 
-import org.teavm.jso.ajax.XMLHttpRequest;
-
+import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Consumer;
@@ -50,39 +49,62 @@ public class ImapRequest
 
 
     public Promise<Command> submit() {
-        var promise = new Promise.Completable<Command>();
-
-        Timer timer = Timer.start();
-        XMLHttpRequest request = XMLHttpRequest.create();
-        request.setOnReadyStateChange( () -> {
-            LOG.info( "Request ready state: " + request.getReadyState() );
-        });
-        request.open( "POST", "imap/", true );
-
-        request.onComplete( () -> {
-            try {
-                LOG.info( "Status: " + request.getStatus() + " (" + timer.elapsedHumanReadable() + ")" );
-                if (request.getStatus() > 299) {
-                    throw new IOException( "HTTP Status: " + request.getStatus() );
-                }
-                String response = request.getResponseText();
-                var in = new BufferedReader( new StringReader( response ) );
-                Sequence.of( Exception.class, commands ).map( c -> (Command)c ).forEach( (command,i) -> {
-                    command.parse( in );
-                    if (i < commands.size() - 1) {
-                        promise.consumeResult( command );
+        var timer = Timer.start();
+        return Platform.xhr( "POST", "imap/" )
+                //.onReadyStateChange( state -> LOG.info( "Request ready state: " + state ) )
+                .submit( toJson() )
+                .map( (response, next) -> {
+                    LOG.info( "Status: " + response.status() + " (" + timer.elapsedHumanReadable() + ")" );
+                    if (response.status() > 299) {
+                        throw new IOException( "HTTP Status: " + response.status() );
                     }
-                    else {
-                        promise.complete( command );
-                    }
+                    String text = response.text();
+                    var in = new BufferedReader( new StringReader( text ) );
+                    Sequence.of( Exception.class, commands ).map( c -> (Command)c ).forEach( (command,i) -> {
+                        command.parse( in );
+                        if (i < commands.size() - 1) {
+                            next.consumeResult( command );
+                        }
+                        else {
+                            next.complete( command );
+                        }
+                    });
                 });
-            }
-            catch (Exception e) {
-                promise.completeWithError( e );
-            }
-        });
-        request.send( toJson() );
-        return promise;
+
+
+//        var promise = new Promise.Completable<Command>();
+//
+//        Timer timer = Timer.start();
+//        XMLHttpRequest request = XMLHttpRequest.create();
+//        request.setOnReadyStateChange( () -> {
+//            LOG.info( "Request ready state: " + request.getReadyState() );
+//        });
+//        request.open( "POST", "imap/", true );
+//
+//        request.onComplete( () -> {
+//            try {
+//                LOG.info( "Status: " + request.getStatus() + " (" + timer.elapsedHumanReadable() + ")" );
+//                if (request.getStatus() > 299) {
+//                    throw new IOException( "HTTP Status: " + request.getStatus() );
+//                }
+//                String response = request.getResponseText();
+//                var in = new BufferedReader( new StringReader( response ) );
+//                Sequence.of( Exception.class, commands ).map( c -> (Command)c ).forEach( (command,i) -> {
+//                    command.parse( in );
+//                    if (i < commands.size() - 1) {
+//                        promise.consumeResult( command );
+//                    }
+//                    else {
+//                        promise.complete( command );
+//                    }
+//                });
+//            }
+//            catch (Exception e) {
+//                promise.completeWithError( e );
+//            }
+//        });
+//        request.send( toJson() );
+//        return promise;
     }
 
 

@@ -26,18 +26,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -46,6 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import areca.app.service.http.SSLUtils;
 import areca.app.service.imap.ImapForwardServlet.SocketPool.PooledSocket;
 import areca.app.service.imap.ImapRequestData.CommandData;
 import areca.common.Timer;
@@ -79,25 +74,7 @@ public class ImapForwardServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         log( "" + getClass().getSimpleName() + " init..." );
-        try {
-            sslContext = SSLContext.getInstance( "TLS" );
-               TrustManager tm = new X509TrustManager() {
-                   @Override
-                   public void checkClientTrusted( X509Certificate[] chain, String authType ) throws CertificateException {
-                   }
-                   @Override
-                   public void checkServerTrusted( X509Certificate[] chain, String authType ) throws CertificateException {
-                   }
-                   @Override
-                   public X509Certificate[] getAcceptedIssuers() {
-                       return null;
-                   }
-               };
-               sslContext.init( null, new TrustManager[] { tm }, null );
-        }
-        catch (KeyManagementException | NoSuchAlgorithmException e) {
-            throw new ServletException("Unable to initialize SSL context: " + e.getMessage(), e );
-        }
+        sslContext = SSLUtils.relaxSSLContext();
     }
 
 

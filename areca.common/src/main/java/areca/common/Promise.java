@@ -120,7 +120,7 @@ public class Promise<T> {
      * This method does not add any asynchronous computation. It is just a way to add
      * a handler that receives a transformed value.
      *
-     * @param <R>
+     * @param <R> The type of the value that is send downstream.
      * @param f The function that transforms the value(s).
      * @return A newly created instance of {@link Promise}.
      */
@@ -132,6 +132,28 @@ public class Promise<T> {
             } else {
                 next.consumeResult( f.apply( result ) );
             }
+        });
+        onError( e -> {
+            next.completeWithError( e );
+        });
+        return next;
+    }
+
+
+    /**
+     * Map, filter and/or spread the values.
+     * <p>
+     * This method does not add any asynchronous computation. It is just a way to add
+     * a handler that receives a transformed value.
+     *
+     * @param <R>
+     * @param f The function that transforms the value(s).
+     * @return A newly created instance of {@link Promise}.
+     */
+    public <R> Promise<R> map( BiConsumer<T,Completable<R>,Exception> f ) {
+        var next = new Completable<R>().upstream( this );
+        onSuccess( (self,result) -> {
+            f.accept( result, next );
         });
         onError( e -> {
             next.completeWithError( e );
@@ -278,6 +300,9 @@ public class Promise<T> {
         private List<Promise<?>> upstreams = new ArrayList<>();
 
 
+        /**
+         * Sets the upstream (parent) instance for this promise.
+         */
         protected Completable<T> upstream( Promise<?> upstream ) {
             upstreams.add( upstream );
             return this;
@@ -340,7 +365,7 @@ public class Promise<T> {
             // already done with error
             else if (error != null) {
                 LOG.warn( "SKIPPING error after error: " + e );
-                return;
+                throw (RuntimeException)Platform.rootCause( e );
             }
             // done without error -> programming error
             else if (isDone()) {

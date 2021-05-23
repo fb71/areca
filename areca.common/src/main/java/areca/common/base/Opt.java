@@ -150,7 +150,7 @@ public class Opt<T> {
      * @return The non-{@code null} value.
      * @throws NoSuchElementException If no value is present.
      */
-    public T orElseThrow() {
+    public T orElseError() {
         if (value == null) {
             throw new NoSuchElementException( "No value present" );
         }
