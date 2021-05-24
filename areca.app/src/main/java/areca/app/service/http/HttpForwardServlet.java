@@ -50,7 +50,7 @@ public class HttpForwardServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         log( "" + getClass().getSimpleName() + " init..." );
-        sslContext = SSLUtils.relaxSSLContext();
+        sslContext = SSLUtils.trustAllSSLContext();
         HttpsURLConnection.setDefaultSSLSocketFactory( sslContext.getSocketFactory() );
         HttpsURLConnection.setDefaultHostnameVerifier( new HostnameVerifier() {
             @Override

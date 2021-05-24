@@ -13,6 +13,8 @@
  */
 package areca.rt.teavm;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.teavm.jso.JSObject;
@@ -26,6 +28,7 @@ import areca.common.Promise;
 import areca.common.Promise.Completable;
 import areca.common.Timer;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -57,8 +60,9 @@ public class TeaPlatform
     public HttpRequest xhr( String method, String url ) {
         return new HttpRequest() {
             private XMLHttpRequest request = XMLHttpRequest.create();
-            private String username;
-            private String password;
+            private Opt<String> username = Opt.absent();
+            private Opt<String> password = Opt.absent();
+            private Map<String,String> headers = new HashMap<>();
             private Timer timer;
 
             @Override
@@ -71,16 +75,27 @@ public class TeaPlatform
 
             @Override
             @SuppressWarnings("hiding")
-            protected HttpRequest authenticate( String username, String password ) {
-                this.username = username;
-                this.password = password;
+            public HttpRequest authenticate( String username, String password ) {
+                this.username = Opt.of( username );
+                this.password = Opt.of( password );
+                return this;
+            }
+
+            @Override
+            public HttpRequest addHeader( String name, String value ) {
+                if (headers.put( name, value ) != null) {
+                    throw new UnsupportedOperationException( "Multiple values for name: " + name );
+                }
                 return this;
             }
 
             @Override
             protected Promise<HttpResponse> doSubmit( Object jsonOrStringData ) {
                 var promise = new Promise.Completable<HttpResponse>();
-                request.open( method, url, true, username, password );
+                request.open( method, url, true ); //, username, password );
+                username.ifPresent( v -> request.setRequestHeader( "X_Auth_Username", v ) );
+                password.ifPresent( v -> request.setRequestHeader( "X_Auth_Password", v ) );
+                headers.forEach( (n,v) -> request.setRequestHeader( n, v ) );
                 request.onComplete( () -> {
                     promise.complete( new HttpResponse() {
                         @Override

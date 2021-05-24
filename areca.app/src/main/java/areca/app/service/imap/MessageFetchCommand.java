@@ -25,11 +25,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-
-
-//import org.teavm.apachecommons.io.Charsets;
-//import org.teavm.apachecommons.io.IOUtils;
-
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.apache.james.mime4j.stream.MimeTokenStream;

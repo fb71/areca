@@ -18,7 +18,7 @@
       <!-- HTTP -->
       <servlet>
         <servlet-name>HttpForwardServlet</servlet-name>
-        <servlet-class>areca.app.service.http.HttpForwardServlet</servlet-class>
+        <servlet-class>areca.app.service.http.HttpForwardServlet2</servlet-class>
       </servlet>
       <servlet-mapping>
          <servlet-name>HttpForwardServlet</servlet-name>

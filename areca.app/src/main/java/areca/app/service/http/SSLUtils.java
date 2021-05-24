@@ -18,7 +18,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletException;
@@ -35,9 +37,18 @@ public class SSLUtils {
     private static final Log LOG = LogFactory.getLog( SSLUtils.class );
 
     /**
+     * Always verify the host - dont check for certificate
+     */
+    final static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
+
+    /**
      *
      */
-    public static SSLContext relaxSSLContext() throws ServletException {
+    public static SSLContext trustAllSSLContext() throws ServletException {
         try {
             var sslContext = SSLContext.getInstance( "TLS" );
             TrustManager tm = new X509TrustManager() {

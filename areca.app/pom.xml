@@ -71,6 +71,17 @@
             <artifactId>apache-mime4j-core</artifactId>
             <version>0.8.3</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/net.sourceforge.cardme/cardme -->
+        <dependency>
+            <groupId>net.sourceforge.cardme</groupId>
+            <artifactId>cardme</artifactId>
+            <version>0.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.5</version>
+        </dependency>
     </dependencies>
   
     <build>

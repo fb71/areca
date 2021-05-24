@@ -74,7 +74,7 @@ public class ImapForwardServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         log( "" + getClass().getSimpleName() + " init..." );
-        sslContext = SSLUtils.relaxSSLContext();
+        sslContext = SSLUtils.trustAllSSLContext();
     }
 
 

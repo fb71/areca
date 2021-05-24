@@ -93,7 +93,9 @@ public abstract class Platform {
 
         public abstract HttpRequest onReadyStateChange( RConsumer<ReadyState> handler );
 
-        protected abstract HttpRequest authenticate( String username, String password );
+        public abstract HttpRequest authenticate( String username, String password );
+
+        public abstract HttpRequest addHeader( String name, String value );
 
         protected abstract Promise<HttpResponse> doSubmit( Object jsonOrStringData );
 
