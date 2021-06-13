@@ -24,6 +24,7 @@ import java.lang.annotation.Target;
 import java.lang.ref.WeakReference;
 
 import areca.common.Assert;
+import areca.common.base.Sequence;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.GenericType.ClassType;
 import areca.common.reflect.GenericType.ParameterizedType;
@@ -66,6 +67,13 @@ public class AnnotationTest {
         LOG.info( "INFO: " + classInfo.name() );
 //        ClassInfo<AnnotationTest> classInfo2 = ClassInfo.of( AnnotationTest.class ).get();
 //        Assert.isSame( classInfo, classInfo2 );
+    }
+
+
+    @Test
+    public void staticFieldTest() {
+        var infoField = Sequence.of( info.fields() ).filter( f -> f.name().equals( "info" ) ).single();
+        Assert.isSame( info, infoField.get( null ) );
     }
 
 

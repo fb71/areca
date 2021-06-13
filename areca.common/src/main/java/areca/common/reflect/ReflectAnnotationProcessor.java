@@ -173,8 +173,8 @@ public class ReflectAnnotationProcessor
                 .addStatement( "List<FieldInfo> result = new ArrayList<>()" );
 
         for (Element element : type.getEnclosedElements()) { // XXX all vs. declared
-            if (element instanceof VariableElement
-                    && !element.getModifiers().contains( Modifier.STATIC )) {  // XXX
+            if (element instanceof VariableElement) {
+                var modifiers = element.getModifiers();
                 VariableElement varElm = (VariableElement)element;
                 log( "    Field: ", varElm.getSimpleName(), " -> ", varElm.asType() );
 
@@ -207,11 +207,31 @@ public class ReflectAnnotationProcessor
 
                 // get
                 m.addCode( "  public Object get( Object obj ) throws $T{\n", IllegalArgumentException.class );
-                m.addCode( "    return (($T)obj).$L;\n", rawTypeName, varElm.getSimpleName() );
+                if (modifiers.contains( Modifier.PRIVATE )) {
+                    m.addCode( "    throw new RuntimeException( \"$T.$L is private!\" );\n", rawTypeName, varElm.getSimpleName() );
+                }
+                else if (modifiers.contains( Modifier.STATIC )) {
+                    m.addCode( "    return $T.$L;\n", rawTypeName, varElm.getSimpleName() );
+                }
+                else {
+                    m.addCode( "    return (($T)obj).$L;\n", rawTypeName, varElm.getSimpleName() );
+                }
                 m.addCode( "  }\n" );
+
                 // set
                 m.addCode( "  public void set( Object obj, Object value ) throws $T{\n", IllegalArgumentException.class );
-                m.addCode( "    (($T)obj).$L = ($T)value;\n", rawTypeName, varElm.getSimpleName(), varElm.asType() );
+                if (modifiers.contains( Modifier.FINAL )) {
+                    m.addCode( "    throw new RuntimeException( \"$T.$L is final!\" );\n", rawTypeName, varElm.getSimpleName() );
+                }
+                else if (modifiers.contains( Modifier.PRIVATE )) {
+                    m.addCode( "    throw new RuntimeException( \"$T.$L is private!\" );\n", rawTypeName, varElm.getSimpleName() );
+                }
+                else if (modifiers.contains( Modifier.STATIC )) {
+                    m.addCode( "    $T.$L = ($T)value;\n", rawTypeName, varElm.getSimpleName(), varElm.asType() );
+                }
+                else {
+                    m.addCode( "    (($T)obj).$L = ($T)value;\n", rawTypeName, varElm.getSimpleName(), varElm.asType() );
+                }
                 m.addCode( "  }\n" );
 
                 m.addCode( "};\n" );
