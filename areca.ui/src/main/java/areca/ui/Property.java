@@ -13,6 +13,7 @@
  */
 package areca.ui;
 
+import java.util.Collection;
 import java.util.EventObject;
 
 import areca.common.Assert;
@@ -47,6 +48,21 @@ public abstract class Property<C,T> {
      */
     public static <RC,R> ReadWrite<RC,R> create( RC component, String name, R initialValue ) {
         return new FieldBackedProperty<>( component, name, initialValue );
+    }
+
+    public static <RC,R> ReadWrites<RC,R> create( RC component, String name, Collection<R> init ) {
+        return new ReadWrites<RC,R>( component, name ) {
+            private Collection<R> delegate = init;
+            @Override protected void doAdd( R value ) {
+                delegate.add( value );
+            }
+            @Override protected void doRemove( R value ) {
+                delegate.remove( value );
+            }
+            @Override public Sequence<R,RuntimeException> sequence() {
+                return Sequence.of( delegate );
+            }
+        };
     }
 
     /**
@@ -142,6 +158,11 @@ public abstract class Property<C,T> {
         public Opt<T> opt() {
             return Opt.of( doGet() );
         }
+
+        @Override
+        public String toString() {
+            return String.format( "%s = %s", name, doGet() );
+        }
     }
 
 
@@ -163,9 +184,9 @@ public abstract class Property<C,T> {
             return this;
         }
 
-        public ReadWrite<C,T> set( T newValue ) {
+        public C set( T newValue ) {
             doSet( newValue );
-            return this;
+            return component;
         }
 
 //        @SuppressWarnings("unchecked")
@@ -221,6 +242,11 @@ public abstract class Property<C,T> {
         }
 
         public abstract Sequence<T,RuntimeException> sequence();
+
+        @Override
+        public String toString() {
+            return String.format( "%s = %s", name, sequence().asCollection() );
+        }
     }
 
 

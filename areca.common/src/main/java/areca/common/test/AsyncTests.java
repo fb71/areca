@@ -77,6 +77,22 @@ public class AsyncTests {
     }
 
 
+    @Test
+    public Promise<Integer> spreadPromiseTest() {
+        MutableInt count = new MutableInt( 0 );
+        return async( () -> {
+                    return 2;
+                })
+                .then( num -> {
+                    return Promise.joined( num, i -> Platform.async( () -> i ) );
+                })
+                .onSuccess( i -> {
+                    LOG.debug( "Result: " + i );
+                    Assert.that( count.incrementAndGet() <= 2 );
+                });
+    }
+
+
     @Test(expected = AssertionException.class)
     public Promise<?> promiseError() {
         return async( () -> {

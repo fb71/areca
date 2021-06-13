@@ -88,20 +88,22 @@ public class HtmlTestRunnerDecorator
         span.getStyle().setProperty( "font-weight", "bold" );
 
         if (testResult.getStatus() == TestStatus.PASSED) {
-            span.getStyle().setProperty( "color", "green" );
+            span.getStyle().setProperty( "color", "#32bf32" );
             span.appendChild( doc.createTextNode( " ok" ) );
         }
         else if (testResult.getStatus() == TestStatus.SKIPPED) {
-            span.getStyle().setProperty( "color", "orange" );
+            span.getStyle().setProperty( "color", "#fdc84e" );
             span.appendChild( doc.createTextNode( " skip" ) );
         }
         else {
-            span.getStyle().setProperty( "color", "red" );
+            span.getStyle().setProperty( "color", "#f73737" );
             span.appendChild( doc.createTextNode( " failed" ) );
         }
         var testMethodElm = testMethodElms.get( m );
         testMethodElm.appendChild( span );
-        testMethodElm.appendChild( doc.createTextNode( " (" + testResult.elapsedTime() + ")" ) );
+        if (testResult.getStatus() == TestStatus.PASSED) {
+            testMethodElm.appendChild( doc.createTextNode( " (" + testResult.elapsedTime() + ")" ) );
+        }
     }
 
 }

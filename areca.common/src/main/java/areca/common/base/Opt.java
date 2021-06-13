@@ -51,6 +51,13 @@ public class Opt<T> {
         this.value = value;
     }
 
+
+    @Override
+    public String toString() {
+        return String.format( "Opt[%s]", value );
+    }
+
+
     public boolean isPresent() {
         return value != null;
     }

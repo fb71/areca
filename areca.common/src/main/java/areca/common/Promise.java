@@ -38,6 +38,16 @@ public class Promise<T> {
 
     private static final Log LOG = LogFactory.getLog( Promise.class );
 
+    /**
+     * Joins a number of promises into one Promise.
+     * <p/>
+     * All generated promises <b>must</b> provide just a <b>single value</b>!
+     *
+     * @param <R>
+     * @param num The total number of promises to create/join.
+     * @param supplier
+     * @return Newly created instance.
+     */
     public static <R> Promise<R> joined( int num, RFunction<Integer,Promise<R>> supplier ) {
         return Sequence.ofInts( 0, num-1 )
                 .map( i -> supplier.apply( i ) )
@@ -91,11 +101,17 @@ public class Promise<T> {
      */
     public <R> Promise<R> then( Function<T,Promise<R>,Exception> f ) {
         var next = new Completable<R>().upstream( this );
-        onSuccess( result -> {
+        onSuccess( (self,result) -> {
             var promise = f.apply( result );
             Assert.notNull( promise, "Promise.then(): returned Promise must not be null." );
-            promise.onSuccess( (self,_r) -> {
-                if (self.isComplete()) {
+
+//            // *inside* the onSuccess handler of the newly created promise (probably) all
+//            // upstream elements are already handled; so the first element would trigger
+//            // complete (no matter if others are yet to come)
+//            var isComplete = self.isComplete();
+
+            promise.onSuccess( (_s,_r) -> {
+                if (_s.isComplete()) {
                     next.complete( _r );
                 } else {
                     next.consumeResult( _r );
@@ -180,13 +196,25 @@ public class Promise<T> {
     }
 
 
+    /**
+     * Joins <em>this</em> and <em>other</em> into one Promise.
+     * <p/>
+     * Both promises <b>must</b> provide just a <b>single value</b>!
+     *
+     * @param other
+     * @return A newly created instance.
+     */
     public Promise<T> join( Promise<T> other ) {
         var next = new Completable<T>().upstream( this ).upstream( other );
-        MutableInt c = new MutableInt();
+        MutableInt c = new MutableInt( 0 );
         BiConsumer<HandlerSite,T,Exception> handler = (self,result) -> {
+            Assert.that( c.getValue() <= 2 );
+            LOG.debug( "JOIN: c = %s, self.complete = %s", c.getValue(), self.isComplete() );
             if (!self.isComplete() || c.incrementAndGet() < 2) {
+                LOG.debug( "JOIN: consume: %s", result );
                 next.consumeResult( result );
             } else {
+                LOG.debug( "JOIN: complete: %s", result );
                 next.complete( result );
             }
         };
@@ -337,7 +365,8 @@ public class Promise<T> {
             }
             // done without error -> programming error
             else if (isDone()) {
-                Assert.that( !isDone(), "" );
+                LOG.warn( "CONSUME after COMPLETE: " + value.getClass().getName() );
+                throw new IllegalStateException();
             }
             // not done, not cancelled -> normal
             else {
@@ -369,7 +398,8 @@ public class Promise<T> {
             }
             // done without error -> programming error
             else if (isDone()) {
-                Assert.that( !isDone(), "" );
+                LOG.warn( "ERROR after COMPLETE:" + e );
+                throw (RuntimeException)Platform.rootCause( e );
             }
             // not done, not cancelled -> normal
             else {

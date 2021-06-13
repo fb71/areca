@@ -14,6 +14,7 @@
 package areca.app.model;
 
 import org.polymap.model2.Entity;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
 
@@ -33,5 +34,12 @@ public class Contact extends Entity {
 
     @Queryable
     public Property<String>         lastname;
+
+    @Queryable
+    public Property<String>         email;
+
+    @Nullable
+    @Queryable
+    public Property<String>         storeRef;
 
 }
