@@ -88,7 +88,7 @@ public class AsyncTests {
                 })
                 .onSuccess( i -> {
                     LOG.debug( "Result: " + i );
-                    Assert.that( count.incrementAndGet() <= 2 );
+                    Assert.that( count.getAndIncrement() < 2 );
                 });
     }
 

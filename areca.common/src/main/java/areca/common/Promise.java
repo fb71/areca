@@ -246,6 +246,16 @@ public class Promise<T> {
     }
 
 
+    /**
+     * Adds the given consumer to the list of consumers that are invoked when the/a
+     * value was successfully received.
+     * <p/>
+     * The is no guarantee about the order in which the consumers are invoked.
+     *
+     * @param <E>
+     * @param consumer Consumes the received value.
+     * @return this
+     */
     public <E extends Exception> Promise<T> onSuccess( Consumer<T,E> consumer ) {
         return onSuccess( (promise,value) -> consumer.accept( value ) );
     }

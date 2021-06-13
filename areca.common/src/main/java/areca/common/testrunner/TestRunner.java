@@ -107,9 +107,6 @@ public class TestRunner {
                                 throw new InvocationTargetException( ee.getValue() );
                             }
                         }
-//                        if (result != null) {
-//                            testResult.setException( new AssertionException( Void.TYPE, result.getClass(), "(Promise) results of test are not supported." ) );
-//                        }
                     }
                     else {
                         testResult.skipped = true;
@@ -121,8 +118,8 @@ public class TestRunner {
                         after.invoke( test, NOARGS );
                     }
                 }
+                // error inside test
                 catch (InvocationTargetException e ) {
-                    System.out.println( "getCause()..." + e );
                     if (expected.equals( Test.NoException.class )
                             || !expected.isAssignableFrom( e.getTargetException().getClass() )) {
                         testResult.setException( e.getTargetException() );

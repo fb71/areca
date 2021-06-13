@@ -25,7 +25,6 @@ import areca.common.testrunner.TestRunner.TestMethod;
 import areca.common.testrunner.TestRunner.TestResult;
 import areca.common.testrunner.TestRunner.TestStatus;
 
-
 /**
  *
  * @author Falko Bräutigam
@@ -36,7 +35,7 @@ public class LogDecorator
 
     private static final Logger LOG = Logger.getLogger( LogDecorator.class.getSimpleName() );
 
-    public static final int LINE_LENGHT = 70;
+    public static final int LINE_LENGHT = 80;
 
     public static final ClassInfo<LogDecorator> info = LogDecoratorClassInfo.instance();
 
@@ -76,10 +75,10 @@ public class LogDecorator
             Throwable e = testResult.getException();
             println( leftPad( "--| failed (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")", LINE_LENGHT, ' ' ) );
             Throwable cause = Platform.rootCause( e );
-//            while (cause.getCause() != null) {
-//                cause = cause.getCause();
-//            }
+            System.out.println( "Root cause: " + cause );
+
             throw (RuntimeException)cause;
+            //cause.printStackTrace( System.err );
         }
     }
 

@@ -28,7 +28,7 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 
 /**
- * Very simple test framework.
+ * Very simple test runner that runs each test in an asynchronous javascript job.
  * <p>
  * JUnit is not an option as it might not be supported by all possible runtimes.
  *
@@ -186,6 +186,8 @@ public class AsyncTestRunner
         }
 
         decorators.forEach( d -> d.postTestMethod( testResult.m, testResult ) );
+
+        // throw (RuntimeException)Platform.rootCause( e );
     }
 
 }

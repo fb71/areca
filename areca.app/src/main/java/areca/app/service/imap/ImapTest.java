@@ -92,7 +92,6 @@ public class ImapTest {
 
 
     @Test
-    @Skip
     public void completablePromiseTest() {
         var promise = new Promise.Completable<String>();
 
@@ -160,6 +159,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> fetchMessageHeadersTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new MessageFetchHeadersCommand( between( 1, 3 ), FROM, SUBJECT, TO, DATE, MESSAGE_ID ) );

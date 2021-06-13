@@ -1,8 +1,10 @@
 package areca.app;
 
 import areca.common.Platform;
-import areca.common.testrunner.AsyncTestRunner;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.common.testrunner.LogDecorator;
+import areca.common.testrunner.TestRunner;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
 
 /**
@@ -11,6 +13,8 @@ import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
  * @author Falko Bräutigam
  */
 public class TestsMain {
+
+    private static final Log LOG = LogFactory.getLog( TestsMain.class );
 
     /**
      *
@@ -23,22 +27,22 @@ public class TestsMain {
 //                    .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
 //                    .run();
 
-            new AsyncTestRunner()
+            new TestRunner()
                     //.addTests( org.polymap.model2.test2.AssociationsModelTest.info )
 
-                    .addTests( areca.common.test.Tests.all() )
-                    .addTests( org.polymap.model2.test2.Tests.all() )
+                    //.addTests( areca.common.test.Tests.all() )
+                    //.addTests( org.polymap.model2.test2.Tests.all() )
                     //.addTests( TeavmRuntimeTest.info )
                     //.addTests( SetTimeoutEventManagerTest.info )
-                    //.addTests( ImapTest.info )
-                    //.addTests( CardDavTest.info )
+                    .addTests( areca.app.service.imap.ImapTest.info )
+                    .addTests( areca.app.service.carddav.CardDavTest.info )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();
         }
         catch (Exception e) {
-            System.out.println( "Exception: " + e + " --> " );
+            LOG.debug( "Exception: %s -->", e );
             Throwable rootCause = Platform.rootCause( e );
-            System.out.println( "Root cause: " + rootCause + " : " + rootCause.getMessage() );
+            LOG.debug( "Root cause: %s : %s", rootCause, rootCause.getMessage() );
             throw (Exception)rootCause;
         }
     }
