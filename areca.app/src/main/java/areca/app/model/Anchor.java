@@ -31,6 +31,8 @@ public class Anchor extends Entity {
 
     public static final AnchorClassInfo info = AnchorClassInfo.instance();
 
+    public static Anchor TYPE;
+
     @Mandatory
     @Queryable
     public Property<String>         name;

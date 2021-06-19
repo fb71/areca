@@ -15,9 +15,12 @@ package areca.app.service.carddav;
 
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
@@ -51,6 +54,14 @@ public class CardDavTest {
     private static final String ARECA_USERNAME = "areca@polymap.de";
     private static final String ARECA_PWD = "dienstag";
     private static final DavResource ARECA_CONTACTS_ROOT = DavResource.create( ARECA_CONTACTS_BASE, ARECA_CONTACTS_RES ).auth( ARECA_USERNAME, ARECA_PWD );
+
+    protected Promise<EntityRepository> initRepo( String name ) {
+        return EntityRepository.newConfiguration()
+                .entities.set( asList( Message.info, Contact.info, Anchor.info) )
+                .store.set( new IDBStore( "CarddavTest-" + name, IDBStore.nextDbVersion(), true ) )
+                .create();
+    }
+
 
     @Test
     @Skip
@@ -86,25 +97,30 @@ public class CardDavTest {
 
 
     @Test
-    @Skip
-    public Promise<Integer> spreadPromiseTest() {
+    public Promise<?> spreadPromiseTest() {
         MutableInt count = new MutableInt( 0 );
         return Platform.async( () -> {
                     return 2;
                 })
                 .then( num -> {
-                    LOG.info( "num: " + num );
+                    LOG.info( "spread: " + num );
                     return Promise.joined( num, i -> Platform.async( () -> i ) );
+                })
+                .then( num -> {
+                    LOG.info( "num2: " + num );
+                    return Platform.async( () -> num );
+//                    return Promise
+//                            .joined( 2, i -> Platform.async( () -> num ) );
+//                            //.reduce( new ArrayList<Integer>(), (r,n) -> r.add( n ) );
                 })
                 .onSuccess( i -> {
                     LOG.info( "Result: " + i );
-                    Assert.that( count.incrementAndGet() <= 2 );
+                    Assert.that( count.getAndIncrement() < 2 );
                 });
     }
 
 
     @Test
-    @Skip
     public Promise<VCard> propfindVcfTest() {
         return new PropfindRequest( ARECA_CONTACTS_ROOT )
                 .submit()
@@ -120,12 +136,33 @@ public class CardDavTest {
     }
 
 
+    UnitOfWork uow = null;
+
     @Test
+    public Promise<?> createContactsTest() {
+        return initRepo( "createContactsTest" )
+                .then( repo -> {
+                    uow = repo.newUnitOfWork();
+                    return Promise.joined( 2, i -> Platform.async( () -> {
+                        return uow.createEntity( Contact.class, proto -> {
+                            proto.firstname.set( "f" + i );
+                            proto.lastname.set( "" );
+                            proto.storeRef.set( "irgendwas" + i );
+                        });
+                        // return uow.submit();
+                    }));
+                })
+                .reduce( new ArrayList<>(), (r,c) -> r.add( c ) )
+                .then( created -> {
+                    return uow.submit();
+                });
+    }
+
+
+    @Test
+    //@Skip
     public Promise<?> synContactsTest() {
-        return EntityRepository.newConfiguration()
-                .entities.set( asList( Message.info, Contact.info, Anchor.info) )
-                .store.set( new IDBStore( "CarddavTest", IDBStore.nextDbVersion(), true ) )
-                .create()
+        return initRepo( "synContactsTest" )
                 .then( repo -> {
                     return new CarddavSynchronizer( ARECA_CONTACTS_ROOT, repo ).start();
                 });

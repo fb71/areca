@@ -28,7 +28,9 @@ import areca.common.reflect.RuntimeInfo;
 public class Message
         extends Entity {
 
-    public static final MessageClassInfo    info = MessageClassInfo.instance();
+    public static final MessageClassInfo info = MessageClassInfo.instance();
+
+    public static Message TYPE;
 
     @Nullable
     @Queryable

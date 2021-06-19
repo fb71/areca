@@ -34,7 +34,7 @@ public class TestsMain {
                     //.addTests( org.polymap.model2.test2.Tests.all() )
                     //.addTests( TeavmRuntimeTest.info )
                     //.addTests( SetTimeoutEventManagerTest.info )
-                    .addTests( areca.app.service.imap.ImapTest.info )
+                    //.addTests( areca.app.service.imap.ImapTest.info )
                     .addTests( areca.app.service.carddav.CardDavTest.info )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();

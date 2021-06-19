@@ -27,14 +27,19 @@ import areca.common.reflect.RuntimeInfo;
 @RuntimeInfo
 public class Contact extends Entity {
 
-    public static final ContactClassInfo    info = ContactClassInfo.instance();
+    public static final ContactClassInfo info = ContactClassInfo.instance();
 
+    public static Contact TYPE;
+
+    @Nullable
     @Queryable
     public Property<String>         firstname;
 
+    @Nullable
     @Queryable
     public Property<String>         lastname;
 
+    @Nullable
     @Queryable
     public Property<String>         email;
 

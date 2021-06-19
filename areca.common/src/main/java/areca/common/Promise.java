@@ -108,10 +108,10 @@ public class Promise<T> {
 //            // *inside* the onSuccess handler of the newly created promise (probably) all
 //            // upstream elements are already handled; so the first element would trigger
 //            // complete (no matter if others are yet to come)
-//            var isComplete = self.isComplete();
+            var isComplete = self.isComplete();
 
             promise.onSuccess( (_s,_r) -> {
-                if (_s.isComplete()) {
+                if (isComplete && _s.isComplete()) {
                     next.complete( _r );
                 } else {
                     next.consumeResult( _r );
@@ -247,10 +247,10 @@ public class Promise<T> {
 
 
     /**
-     * Adds the given consumer to the list of consumers that are invoked when the/a
-     * value was successfully received.
+     * Adds the given consumer to the list of consumers that are invoked when the
+     * last value was successfully received.
      * <p/>
-     * The is no guarantee about the order in which the consumers are invoked.
+     * There is no guarantee about the order in which the consumers are invoked.
      *
      * @param <E>
      * @param consumer Consumes the received value.

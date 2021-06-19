@@ -14,8 +14,7 @@
 package areca.app.service.carddav;
 
 import static org.polymap.model2.query.Expressions.eq;
-import static org.polymap.model2.query.Expressions.template;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -67,26 +66,33 @@ public class CarddavSynchronizer {
                 // get vcf content
                 .then( res -> {
                     LOG.info( "res: %s", Arrays.asList( res ) );
-                    return Promise.joined( res.length, i -> new GetResourceRequest( res[i] ).submit() );
+                    return Promise.joined( res.length, i -> {
+                        return new GetResourceRequest( res[i] ).submit();
+                    });
                 })
                 // parse VCard -> query Contact
                 .then( vcf -> {
                     var vcard = VCard.parse( vcf.text() );
                     LOG.info( "VCard: %s", vcard.fn.get() );
                     return uow.query( Contact.class )
-                            .where( eq( template( Contact.class, repo ).storeRef, vcard.uid.get() ) )
+                            .where( eq( Contact.TYPE.storeRef, vcard.uid.get() ) )
                             .executeToList()
                             .map( contacts -> Pair.of( vcard, contacts ) );
                 })
                 // create/update Contact
-                .then( compound -> {
+                .map( compound -> {
                     List<Contact> contacts = compound.getRight();
-                    LOG.info( "Contacts found: %s - %s", compound.getLeft().fn.get(), compound.getRight() );
+                    LOG.info( "Contacts found for '%s': %s", compound.getLeft().fn.get(), compound.getRight() );
                     Assert.that( contacts.size() <= 1 );
                     var contact = contacts.isEmpty()
                             ? uow.createEntity( Contact.class)
                             : contacts.get( 0 );
                     fillContact( contact, compound.getLeft() );
+                    LOG.info( "Contact: %s", contact );
+                    return contact;
+                })
+                .reduce( new ArrayList<>(), (r,c) -> r.add( c ) )
+                .then( contacts -> {
                     return uow.submit();
                 });
     }

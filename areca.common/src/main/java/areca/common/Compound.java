@@ -46,7 +46,7 @@ public class Compound {
         }
 
         public boolean equals( String name, Object value ) {
-            !entry.name.equals( name ) || !entry.value.equals( value ) )
+            //!entry.name.equals( name ) || !entry.value.equals( value ) )
             throw new RuntimeException("...");
         }
     }
@@ -57,7 +57,8 @@ public class Compound {
 
 
     public Compound and( Object value ) {
-        return put( null, value );
+        throw new RuntimeException("...");
+        //return put( null, value );
     }
 
 
