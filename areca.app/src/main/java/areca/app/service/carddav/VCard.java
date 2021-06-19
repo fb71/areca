@@ -17,6 +17,7 @@ import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
 
 import java.util.ArrayList;
 
@@ -24,6 +25,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 
+import areca.common.Assert;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -55,6 +57,8 @@ public class VCard {
 
     public ReadWrites<VCard,String> emails = Property.create( this, "email", new ArrayList<>() );
 
+    public ReadWrite<VCard,String>  photo = Property.create( this, "photo", (String)null );
+
     public ReadOnly<VCard,String>   uid = Property.create( this, "uid", (String)null );
 
     public ReadOnly<VCard,String>   rev = Property.create( this, "rev", (String)null );
@@ -71,11 +75,20 @@ public class VCard {
 
 
     protected VCard parse( BufferedReader in ) throws IOException {
-        in.readLine().equals( "BEGIN:VCARD" );
-        in.readLine().equals( "VERSION:3.0" );
+        Assert.that( in.readLine().equals( "BEGIN:VCARD" ) );
+        Assert.that( in.readLine().equals( "VERSION:3.0" ) );
 
-        var line = in.readLine();
-        while (line != null && !line.equals( "END:VCARD" )) {
+        var readline = in.readLine();
+        while (readline != null && !readline.equals( "END:VCARD" )) {
+            // concat one logical line
+            var buf = new StringBuilder( 1024 ).append( readline );
+            readline = in.readLine();
+            while (readline.startsWith( " " ) || readline.startsWith( "\t" )) {
+                buf.append( readline.substring( 1 ) );
+                readline = in.readLine();
+            }
+            var line = buf.toString();
+
             // N:
             if (line.startsWith( "N:" )) {
                 var n = splitPreserveAllTokens( line.substring( 2 ), ';' );
@@ -101,10 +114,15 @@ public class VCard {
             else if (line.startsWith( "REV:" )) {
                 rev = Property.create( this, "rev", line.substring( 4 ) );
             }
+            // PHOTO;ENCODING=B;TYPE=JPEG:
+            else if (line.startsWith( "PHOTO" )) {
+                var parts = split( substringBefore( line, ":" ), ';' );
+                photo.set( substringAfterLast( line, ":" ) );
+                LOG.debug( "PHOTO: %s", photo.get() );
+            }
             else {
                 // LOG.warn( "Unhandled line: " + line );
             }
-            line = in.readLine();
         }
         return this;
     }

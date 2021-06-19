@@ -103,6 +103,7 @@ public class CarddavSynchronizer {
         vcard.lastname.opt().ifPresent( v -> contact.lastname.set( v ) );
         vcard.uid.opt().ifPresent( v -> contact.storeRef.set( v ) );
         vcard.emails.sequence().first().ifPresent( v -> contact.email.set( v ) );
+        vcard.photo.opt().ifPresent( v -> contact.photo.set( v ) );
     }
 
 }

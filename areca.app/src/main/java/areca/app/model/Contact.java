@@ -47,4 +47,7 @@ public class Contact extends Entity {
     @Queryable
     public Property<String>         storeRef;
 
+    @Nullable
+    public Property<String>         photo;
+
 }

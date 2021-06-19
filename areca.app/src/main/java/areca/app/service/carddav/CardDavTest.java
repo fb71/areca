@@ -129,6 +129,7 @@ public class CardDavTest {
                     return Promise.joined( res.length, i -> new GetResourceRequest( res[i] ).submit() );
                 })
                 .map( vcf -> {
+                    // LOG.info( "vzf: %s", vcf.text() );
                     var vcard = VCard.parse( vcf.text() );
                     LOG.info( "VCard: %s", vcard );
                     return vcard;
