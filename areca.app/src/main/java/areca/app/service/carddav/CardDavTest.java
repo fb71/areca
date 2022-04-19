@@ -53,7 +53,7 @@ public class CardDavTest {
     private static final String ARECA_CONTACTS = "http?uri=https://polymap.de:8443/dav/areca@polymap.de/Contacts/";
     private static final String ARECA_USERNAME = "areca@polymap.de";
     private static final String ARECA_PWD = "dienstag";
-    private static final DavResource ARECA_CONTACTS_ROOT = DavResource.create( ARECA_CONTACTS_BASE, ARECA_CONTACTS_RES ).auth( ARECA_USERNAME, ARECA_PWD );
+    public static final DavResource ARECA_CONTACTS_ROOT = DavResource.create( ARECA_CONTACTS_BASE, ARECA_CONTACTS_RES ).auth( ARECA_USERNAME, ARECA_PWD );
 
     protected Promise<EntityRepository> initRepo( String name ) {
         return EntityRepository.newConfiguration()

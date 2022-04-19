@@ -16,17 +16,18 @@ package areca.ui.component;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 import areca.common.Assert;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.ui.Color;
 import areca.ui.Position;
 import areca.ui.Property;
-import areca.ui.Size;
 import areca.ui.Property.ReadWrite;
 import areca.ui.Property.ReadWrites;
+import areca.ui.Size;
 import areca.ui.html.HtmlElement;
 import areca.ui.html.HtmlNode;
 import areca.ui.layout.LayoutConstraints;
@@ -38,7 +39,7 @@ import areca.ui.layout.LayoutManager;
  */
 public abstract class UIComponent {
 
-    private static final Logger LOG = Logger.getLogger( UIComponent.class.getSimpleName() );
+    private static final Log LOG = LogFactory.getLog( UIComponent.class );
 
     public static final UIComponent     TYPE = new UIComponent() {};
 
@@ -50,7 +51,7 @@ public abstract class UIComponent {
 
     private Map<String,Object>          data = new TreeMap<>();
 
-    public HtmlElement               htmlElm;
+    public HtmlElement                  htmlElm;
 
     /**
      * The styling classes of this component.
@@ -124,7 +125,7 @@ public abstract class UIComponent {
         for (Class<?> cl=getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
             cssClasses.add( cl.getSimpleName() );
         }
-        LOG.info( "INIT " + size.get() );
+        LOG.debug( "INIT " + size.get() );
         //EventManager.instance().publish( new UIRenderEvent.ComponentCreatedEvent( this ) );
         return null;
     }

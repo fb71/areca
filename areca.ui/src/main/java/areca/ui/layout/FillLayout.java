@@ -13,8 +13,8 @@
  */
 package areca.ui.layout;
 
-import java.util.logging.Logger;
-
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.ui.Orientation;
 import areca.ui.Position;
 import areca.ui.Size;
@@ -28,7 +28,7 @@ import areca.ui.component.UIComposite;
 public class FillLayout
         extends LayoutManager {
 
-    private static final Logger LOG = Logger.getLogger( FillLayout.class.getSimpleName() );
+    private static final Log LOG = LogFactory.getLog( FillLayout.class );
 
     private Orientation             orientation = Orientation.HORIZONTAL;
 
@@ -36,7 +36,7 @@ public class FillLayout
     @Override
     public void layout( UIComposite composite ) {
         Size size = composite.size.get();
-        LOG.info( "FillLayout: " + size );
+        LOG.debug( "FillLayout: " + size );
 
         if (orientation == Orientation.HORIZONTAL) {
             int componentsMaxWidth = composite.components.sequence()

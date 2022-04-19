@@ -15,12 +15,14 @@ package areca.ui.html;
 
 import areca.common.Assert;
 import areca.common.base.Opt;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.ui.Color;
 import areca.ui.Position;
-import areca.ui.Size;
 import areca.ui.Property.ReadOnly;
 import areca.ui.Property.ReadWrite;
 import areca.ui.Property.ReadWrites;
+import areca.ui.Size;
 
 /**
  *
@@ -28,6 +30,8 @@ import areca.ui.Property.ReadWrites;
  */
 public class HtmlElement
         extends HtmlEventTarget {
+
+    private static final Log LOG = LogFactory.getLog( HtmlElement.class );
 
     public static HtmlFactory   factory;
 
@@ -104,7 +108,7 @@ public class HtmlElement
         }
 
         public void set( String name, String value ) {
-            System.out.print( "Style: " + name + " = " + value );
+            LOG.debug( "Style: %s = %s", name, value );
             doAdd( new NameValue( name, value ) );
         }
 

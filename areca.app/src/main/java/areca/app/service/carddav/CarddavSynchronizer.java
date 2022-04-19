@@ -56,7 +56,7 @@ public class CarddavSynchronizer {
     }
 
 
-    public Promise<?> start() {
+    public Promise<List<Contact>> start() {
         monitor.get().beginTask( "Syncing contacts", ProgressMonitor.UNKNOWN );
 
         var uow = repo.newUnitOfWork();
@@ -91,9 +91,9 @@ public class CarddavSynchronizer {
                     LOG.info( "Contact: %s", contact );
                     return contact;
                 })
-                .reduce( new ArrayList<>(), (r,c) -> r.add( c ) )
+                .reduce( new ArrayList<Contact>(), (r,c) -> r.add( c ) )
                 .then( contacts -> {
-                    return uow.submit();
+                    return uow.submit().map( submitted -> contacts );
                 });
     }
 

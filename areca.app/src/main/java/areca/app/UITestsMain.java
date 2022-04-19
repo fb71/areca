@@ -112,6 +112,14 @@ public class UITestsMain {
         .layout();
     }
 
+
+//    public static void createContactPhotoApp() {
+//        var div = new HtmlElement( Type.DIV );
+//        var img = new HtmlImage().src.set(  );
+//        div.children.add( img );
+//    }
+
+
 //  var div = new HtmlElement( Type.DIV );
 //  var btn = div.children.add( new HtmlButton() );
 //  // btn.styles.set( "background-color", Color.WHITE );

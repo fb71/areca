@@ -76,7 +76,7 @@ public class HtmlEventTargetImpl {
             }
             @Override
             public void clear() {
-                LOG.info( "clear() ..." );
+                LOG.debug( "clear() ..." );
             }
         };
     }

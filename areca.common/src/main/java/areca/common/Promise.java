@@ -248,7 +248,7 @@ public class Promise<T> {
 
     /**
      * Adds the given consumer to the list of consumers that are invoked when the
-     * last value was successfully received.
+     * last (TODO ?) value was successfully received.
      * <p/>
      * There is no guarantee about the order in which the consumers are invoked.
      *

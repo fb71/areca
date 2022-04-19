@@ -16,6 +16,8 @@ package areca.app;
 import static areca.common.log.LogFactory.Level.DEBUG;
 import static areca.common.log.LogFactory.Level.INFO;
 
+import areca.app.model.ModelRepo;
+import areca.app.ui.StartPage;
 import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -50,20 +52,22 @@ public class Main {
         HtmlElement.factory = new TeaHtmlFactory();
         Platform.impl = new TeaPlatform();
 
-        TestsMain.main( args );
-        // LOG.info( "done." );
-        return;
+//        TestsMain.main( args );
+//        LOG.info( "done." );
+//        return;
 
-//        try {
-//            createApp();
-//            //UITestsMain.createGridLayoutApp();
-//        }
-//        catch (Throwable e) {
-//            //System.out.println( "Exception: " + e + " --> " );
-//            Throwable rootCause = Platform.rootCause( e );
-//            System.out.println( "Root cause: " + rootCause );
-//            throw (Exception)rootCause;
-//        }
+        try {
+            ModelRepo.init();
+            createApp();
+
+//            UITestsMain.createGridLayoutApp();
+        }
+        catch (Throwable e) {
+            //System.out.println( "Exception: " + e + " --> " );
+            Throwable rootCause = Platform.rootCause( e );
+            System.out.println( "Root cause: " + rootCause );
+            throw (Exception)rootCause;
+        }
     }
 
 

@@ -80,15 +80,15 @@ public class PanGesture {
     public PanGesture( UIComponent component ) {
         this.component = component;
         component.htmlElm.listeners.add( EventType.TOUCHSTART, ev -> {
-            LOG.info( "TOUCH: START " + ev );
+            LOG.debug( "TOUCH: START " + ev );
             onStart( ev );
         });
         component.htmlElm.listeners.add( EventType.TOUCHMOVE, ev -> {
-            LOG.info( "TOUCH: MOVE " + ev.clientPosition.get() );
+            LOG.debug( "TOUCH: MOVE " + ev.clientPosition.get() );
             onMove( ev );
         });
         component.htmlElm.listeners.add( EventType.TOUCHEND, ev -> {
-            LOG.info( "TOUCH: END " + ev );
+            LOG.debug( "TOUCH: END " + ev );
             onEnd( ev );
         });
         component.htmlElm.listeners.add( EventType.MOUSEDOWN, ev -> {
@@ -113,7 +113,7 @@ public class PanGesture {
     //
 
     protected void onStart( HtmlMouseEvent ev ) {
-        LOG.info( "DOWN: " + ev );
+        LOG.debug( "DOWN: " + ev );
         isDown = true;
         lastTime = 0;
         startPos = lastPos = ev.clientPosition.get();
@@ -122,13 +122,13 @@ public class PanGesture {
 
     protected void onMove( HtmlMouseEvent ev ) {
         if (isDown) {
-            LOG.info( "MOVE: " + ev );
+            LOG.debug( "MOVE: " + ev );
             // edge detection without throttle
             if (ev.clientPosition.get().y > (component.size.get().height() - EDGE_THRESHOLD)) {
                 onEnd( ev );
             }
             else if ((System.currentTimeMillis() - lastTime) < 100) {
-                LOG.info( "IGNORED" );
+                LOG.debug( "IGNORED" );
             }
             else {
                 // fire (deferred first/start event)
@@ -143,7 +143,7 @@ public class PanGesture {
 
     protected void onEnd( HtmlMouseEvent ev ) {
         if (isDown && lastTime > 0) {
-            LOG.info( "UP: " + ev );
+            LOG.debug( "UP: " + ev );
             EventManager.instance().publish( new PanEvent( ev, Status.END ) );
         }
 

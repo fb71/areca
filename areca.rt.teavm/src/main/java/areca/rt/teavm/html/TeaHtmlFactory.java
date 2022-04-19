@@ -20,6 +20,7 @@ import org.teavm.jso.dom.html.HTMLElement;
 import areca.ui.html.HtmlButton;
 import areca.ui.html.HtmlElement;
 import areca.ui.html.HtmlFactory;
+import areca.ui.html.HtmlImage;
 import areca.ui.html.HtmlNode;
 import areca.ui.html.HtmlTextNode;
 
@@ -35,7 +36,10 @@ public class TeaHtmlFactory
 
     @Override
     public void init( HtmlNode elm ) {
-        if (elm instanceof HtmlButton) {
+        if (elm instanceof HtmlImage) {
+            HtmlImageImpl.init( (HtmlImage)elm, doc );
+        }
+        else if (elm instanceof HtmlButton) {
             HtmlButtonImpl.init( (HtmlButton)elm, doc );
         }
         else if (elm instanceof HtmlTextNode) {

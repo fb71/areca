@@ -23,7 +23,10 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.UnitOfWork;
 
+import areca.app.model.Anchor;
+import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.common.NullProgressMonitor;
 import areca.common.ProgressMonitor;
@@ -81,7 +84,7 @@ public class ImapFolderSynchronizer {
                     // query Messages that are already there
                     String[] queryIds = msgIds.keySet().toArray( String[]::new );
                     return uow.query( Message.class )
-                            .where( Expressions.eqAny( Expressions.template( Message.class, repo ).storeRef, queryIds ) )
+                            .where( Expressions.eqAny( Message.TYPE.storeRef, queryIds ) )
                             .execute()
                             // reduce to not-found msgIds
                             .reduce( new HashMap<String,Integer>( msgIds ), (r,entity) -> {
@@ -105,6 +108,15 @@ public class ImapFolderSynchronizer {
                         proto.text.set( mfc.textContent );
                     });
                 })
+                // find Contact
+                .then( message -> {
+                    return uow.query( Contact.class )
+                            .where( Expressions.eq( Contact.TYPE.email, message.from.get() ) )
+                            .executeToList()
+                            .map( results -> {
+                                return message;
+                            });
+                })
                 // submit
                 .reduce( new MutableInt(), (r,entity) -> r.increment() )
                 .map( count -> {
@@ -119,6 +131,23 @@ public class ImapFolderSynchronizer {
 //                });
                 ;
     }
+
+
+//    protected Promise<?> checkMessageContactAnchor( UnitOfWork uow, Message message ) {
+//        return uow.query( Contact.class )
+//                .where( Expressions.eq( Contact.TYPE.email, message.from.get() ) )
+//                .executeToList()
+//                .then( results -> {
+//                    return Sequence.of( results ).first()
+//                            .ifPresentMap( contact -> {
+//                                return uow.query( Anchor.class )
+//                                        .where( Expressions.eq( Anchor.TYPE.storeRef, (String)contact.id() ) )
+//                                        .executeToList();
+//                            } )
+//                            .orElse();
+//                });
+//
+//    }
 
 
     protected Promise<FolderSelectCommand> fetchMessageCount() {
@@ -148,10 +177,5 @@ public class ImapFolderSynchronizer {
                 .filter( command -> command instanceof MessageFetchCommand )
                 .map( command -> (MessageFetchCommand)command );
     }
-
-
-//    protected Anchor checkMessageContactAnchor( Message m ) {
-//
-//    }
 
 }

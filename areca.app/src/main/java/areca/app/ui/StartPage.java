@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.app;
+package areca.app.ui;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -41,18 +41,19 @@ public class StartPage
         ui.header.add( new Text(), title -> title.text.set( "StartPage" ) );
 
         ui.body.layout.set( new RasterLayout() {{spacing.set( 10 );}} );
-        for (int i = 0; i < 20; i++) {
-            var l = "" + i;
-            ui.body.components.add( new Button(), btn -> {
-                btn.label.set( l );
-                btn.htmlElm.styles.set( "border-radius", "9px" );
-                btn.events.onSelection( ev ->  {
-                    Pageflow.current().open( new StartPage(), StartPage.this );
-                });
-            });
-        }
+
+        // Contacts
         ui.body.add( new Button(), btn -> {
-            btn.label.set( "Close" );
+            btn.label.set( "C²" );
+            btn.htmlElm.styles.set( "border-radius", "9px" );
+            btn.events.onSelection( ev ->  {
+                Pageflow.current().open( new ContactsPage(), StartPage.this );
+            });
+        });
+
+        // Close
+        ui.body.add( new Button(), btn -> {
+            btn.label.set( "X" );
             btn.events.onSelection( ev -> {
                 Pageflow.current().close( StartPage.this );
             });
