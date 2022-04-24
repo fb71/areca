@@ -29,4 +29,9 @@ import java.lang.annotation.Target;
 @Target(METHOD)
 public @interface EventHandler {
 
+    /**
+     * TODO Remove when reflection supports method types.
+     */
+    public Class<?> value();
+
 }

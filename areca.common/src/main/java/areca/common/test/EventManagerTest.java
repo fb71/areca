@@ -22,7 +22,6 @@ import areca.common.Assert;
 import areca.common.event.EventHandler;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
-import areca.common.event.ThreadedEventManager;
 import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.After;
 import areca.common.testrunner.Before;
@@ -47,13 +46,12 @@ public class EventManagerTest {
 
 
     @Before
-    public void setup() {
-        em = new ThreadedEventManager(); //kEventManager();
+    protected void setup() {
         em.defaultOnError = (ev,e) -> { throw (RuntimeException)e; };
     }
 
     @After
-    public void tearDown() {
+    protected void tearDown() {
     }
 
 
@@ -153,6 +151,7 @@ public class EventManagerTest {
     }
 
 
+    //@Skip
     @Test(expected = RuntimeException.class)
     public void test() {
         em.subscribe( ev -> {
@@ -182,7 +181,7 @@ public class EventManagerTest {
     }
 
 
-    @EventHandler
+    @EventHandler( EventObject.class )
     protected void handler( EventObject o ) {
 
     }

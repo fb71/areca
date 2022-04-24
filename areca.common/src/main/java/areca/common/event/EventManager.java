@@ -136,7 +136,7 @@ public abstract class EventManager {
      * Fires the given event. Depending on the actual EventManager implementation
      * the event processing is done asynchronously.
      */
-    public abstract void publish( EventObject ev );
+    public abstract /*Promise<Void>*/ void publish( EventObject ev );
 
 
     /**
@@ -191,16 +191,16 @@ public abstract class EventManager {
                 }
                 // perform: listener
                 if (handler instanceof EventListener) {
-                    // XXX check param type  -- Optional<ClassInfo<Object>> cli = ClassInfo.of( handler );
+                    // TODO check param type  -- Optional<ClassInfo<Object>> cli = ClassInfo.of( handler );
                     ((EventListener)handler).handle( ev );
                     return;
                 }
                 // perform: annotated
                 ClassInfo<Object> cli = ClassInfo.of( handler );
                 for (MethodInfo m : cli.methods()) {
-                    Opt<EventHandlerAnnotationInfo> a = m.annotation( EventHandlerAnnotationInfo.INFO );
-                    // FIXME check parameters
-                    if (a.isPresent()) {
+                    Opt<EventHandler> a = m.annotation( EventHandler.class );
+
+                    if (a.isPresent() && a.get().value().isInstance( ev )) {
                         m.invoke( handler, ev );
                         return;
                     }

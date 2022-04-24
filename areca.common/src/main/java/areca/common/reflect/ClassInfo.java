@@ -13,16 +13,19 @@
  */
 package areca.common.reflect;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import areca.common.Assert;
 import areca.common.base.Lazy.RLazy;
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
+ * Runtime information of a class. Similar to the Java Class object.
  *
  * @author Falko Bräutigam
  */
@@ -64,7 +67,7 @@ public abstract class ClassInfo<T>
 
     // instance *******************************************
 
-    private RLazy<List<MethodInfo>> methods = new RLazy<>( () -> createMethods() );
+    private RLazy<List<MethodInfo>> declaredMethods = new RLazy<>( () -> createDeclaredMethods() );
 
     private RLazy<List<AnnotationInfo>> annotations = new RLazy<>( () -> createAnnotations() );
 
@@ -96,6 +99,14 @@ public abstract class ClassInfo<T>
 
     public abstract Class<T> type();
 
+    /**
+     * Information of the superclass.
+     * 
+     * @return The result is absent if the superclass is {@link Object} <b>OR</b> if
+     * the superclass is not annotated and hence no runtime information are available.
+     */
+    public abstract Opt<ClassInfo<?>> superclassInfo();
+
     public abstract T newInstance() throws InstantiationException, IllegalAccessException;
 
 
@@ -107,11 +118,35 @@ public abstract class ClassInfo<T>
     protected abstract List<AnnotationInfo> createAnnotations();
 
 
-    public List<MethodInfo> methods() {
-        return methods.supply();
+    /**
+     * All methods declared by this class and {@link #superclassInfo() annotated
+     * super classes}.
+     * <p>
+     * TODO Current implementation does not properly support method signatures. There
+     * is always just one method for any given name in the result.
+     */
+    public Collection<MethodInfo> methods() {
+        Map<String,MethodInfo> result = new HashMap<>( 128 );
+        ClassInfo<?> ci = this;
+        while (ci != null) {
+            for (MethodInfo m : ci.declaredMethods()) {
+                result.putIfAbsent( m.name(), m ); // TODO check complete signature
+            }
+            ci = ci.superclassInfo().orElse( null );
+        }
+        return result.values();
     }
 
-    protected abstract List<MethodInfo> createMethods();
+
+    /**
+     * The methods declared by this class.
+     */
+    public Collection<MethodInfo> declaredMethods() {
+        return declaredMethods.supply();
+    }
+
+
+    protected abstract List<MethodInfo> createDeclaredMethods();
 
 
     public List<FieldInfo> fields() {

@@ -15,8 +15,8 @@ package areca.common.test;
 
 import areca.common.event.ThreadedEventManager;
 import areca.common.reflect.ClassInfo;
-import areca.common.testrunner.After;
 import areca.common.testrunner.Before;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -24,62 +24,22 @@ import areca.common.testrunner.Test;
  * @author Falko Bräutigam
  */
 @Test
-public class ThreadedEventManagerTest {
+public class ThreadedEventManagerTest
+        extends EventManagerTest {
 
+    @SuppressWarnings("hiding")
     public static final ClassInfo<ThreadedEventManagerTest> info = ThreadedEventManagerTestClassInfo.instance();
-
-    protected EventManagerTest      delegate;
 
     @Before
     protected void setup() {
-        delegate = new EventManagerTest();
-        delegate.setup();
-        delegate.em = new ThreadedEventManager();
+        this.em = new ThreadedEventManager();
     }
 
-    @After
-    protected void tearDown() {
-        delegate.tearDown();
-    }
-
-    @Test
-    public void simpleTest() {
-        delegate.simpleTest();
-    }
-
-    @Test
-    public void performIfTest() {
-        delegate.performIfTest();
-    }
-
-    @Test
-    public void performIfFalseTest() {
-        delegate.performIfFalseTest();
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void multiSubscribeTest() {
-        delegate.multiSubscribeTest();
-    }
-
-    @Test
-    public void disposeTest() {
-        delegate.disposeTest();
-    }
-
-    @Test
-    public void performanceTest() {
-        delegate.performanceTest();
-    }
-
-    @Test
-    public void eventCascadeTest() {
-        delegate.eventCascadeTest();
-    }
-
-    @Test
-    public void newHandlerInHandlerTest() {
-        delegate.newHandlerInHandlerTest();
+    @Test @Skip
+    @Override
+    public void test() {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
     }
 
 }

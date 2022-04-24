@@ -14,7 +14,6 @@
 package areca.common.event;
 
 import java.util.EventObject;
-import java.util.logging.Logger;
 
 /**
  * Simple {@link EventManager} implementation that executes event handlers right in
@@ -25,11 +24,12 @@ import java.util.logging.Logger;
 public class SameStackEventManager
         extends EventManager {
 
-    private static final Logger LOG = Logger.getLogger( SameStackEventManager.class.getName() );
-
     @Override
-    public void publish( EventObject ev ) {
+    public /*Promise<Void>*/ void publish( EventObject ev ) {
         fireEvent( ev );
+//        return new Promise.Completable<>() {{
+//            complete( null );
+//        }};
     }
 
 

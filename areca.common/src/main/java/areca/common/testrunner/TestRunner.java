@@ -184,7 +184,7 @@ public class TestRunner {
         protected boolean       skipped;
         protected TestMethod    m;
         private Throwable       exception;
-        private Timer           timer;
+        private Timer           timer = Timer.start();
         private String          elapsed;
 
         TestResult( TestMethod m ) {

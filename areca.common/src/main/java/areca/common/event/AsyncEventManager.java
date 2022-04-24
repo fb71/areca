@@ -33,21 +33,21 @@ public class AsyncEventManager
 
     private static final int        INIT_QUEUE_CAPACITY = 64;
 
-    private List<EventObject>       eventQueue = new ArrayList<>( INIT_QUEUE_CAPACITY );
+    private List<EventObject>       eventQueue = null;
 
 
     @Override
     public void publish( EventObject ev ) {
-        eventQueue.add( ev );
-
         if (eventQueue == null) {
             eventQueue = new ArrayList<>( INIT_QUEUE_CAPACITY );
+
             Platform.async( () -> {
-                LOG.debug( "Queue: %s", eventQueue.size() );
+                LOG.warn( "Queue: " + eventQueue.size() );
                 for (EventObject cursor : eventQueue) {
                     fireEvent( cursor );
                 }
                 eventQueue = null;
+
                 synchronized (this) {
                     notifyAll();
                 }

@@ -20,8 +20,13 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import areca.common.Promise;
+
 /**
- * Marks a method as test.
+ * Flags a method as a test.
+ * <p>
+ * A test method can return <code>null</code> or, if the methods runs any
+ * asynchronous computations, a {@link Promise}.
  *
  * @author Falko Bräutigam
  */

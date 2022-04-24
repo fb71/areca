@@ -13,9 +13,10 @@
  */
 package areca.common.test;
 
-import areca.common.event.SameStackEventManager;
+import areca.common.event.AsyncEventManager;
 import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.Before;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -23,21 +24,23 @@ import areca.common.testrunner.Test;
  * @author Falko Bräutigam
  */
 @Test
-public class SameStackEventManagerTest
+public class AsyncEventManagerTest
         extends EventManagerTest {
 
     @SuppressWarnings("hiding")
-    public static final ClassInfo<SameStackEventManagerTest> info = SameStackEventManagerTestClassInfo.instance();
+    public static final ClassInfo<AsyncEventManagerTest> info = AsyncEventManagerTestClassInfo.instance();
 
     @Before
     protected void setup() {
-        em = null;
-        em = new SameStackEventManager();
+        em = new AsyncEventManager();
         super.setup();
     }
 
-//    @After
-//    protected void tearDown() {
-//    }
+    @Test @Skip
+    @Override
+    public void test() {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
 
 }

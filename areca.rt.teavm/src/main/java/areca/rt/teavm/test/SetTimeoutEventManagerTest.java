@@ -15,8 +15,8 @@ package areca.rt.teavm.test;
 
 import areca.common.reflect.ClassInfo;
 import areca.common.test.EventManagerTest;
-import areca.common.testrunner.After;
 import areca.common.testrunner.Before;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 import areca.rt.teavm.SetTimeoutEventManager;
 
@@ -25,81 +25,23 @@ import areca.rt.teavm.SetTimeoutEventManager;
  * @author Falko Bräutigam
  */
 @Test
-public class SetTimeoutEventManagerTest {
+public class SetTimeoutEventManagerTest
+        extends EventManagerTest{
 
+    @SuppressWarnings("hiding")
     public static final ClassInfo<SetTimeoutEventManagerTest> info = SetTimeoutEventManagerTestClassInfo.instance();
-
-    protected EventManagerTest      delegate;
 
     @Before
     protected void setup() {
-        delegate = new EventManagerTest();
-        delegate.setup();
-        delegate.em = new SetTimeoutEventManager();
+        this.em = new SetTimeoutEventManager();
+        super.setup();
     }
 
-    @After
-    protected void tearDown() {
-        delegate.tearDown();
-    }
-
-    @Test
-    public void simpleTest() {
-        delegate.simpleTest();
-    }
-
-    @Test
-    public void performIfTest() {
-        delegate.performIfTest();
-    }
-
-    @Test
-    public void performIfFalseTest() {
-        delegate.performIfFalseTest();
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void multiSubscribeTest() {
-        delegate.multiSubscribeTest();
-    }
-
-    @Test
-    public void disposeTest() {
-        delegate.disposeTest();
-    }
-
-    int count = 0;
-
-    @Test
-    public void performanceTest() {
-        delegate.performanceTest();
-
-//        for (int i=0; i<10; i++) {
-//            delegate.em.subscribe( (EventObject ev) -> count++ )
-//                    .performIf( ev -> ev instanceof EventObject )
-//                    .disposeIf( ev -> false );
-//        }
-//        for (int i=0; i<10000; i++) {
-//            delegate.em.publish( new EventObject( null ) );
-//        }
-//
-//        Thread.yield();
-//        try {
-//            Thread.sleep( 1000 );
-//        }
-//        catch (InterruptedException e) {
-//            // XXX Auto-generated catch block
-//        }
-    }
-
-    @Test
-    public void eventCascadeTest() {
-        delegate.eventCascadeTest();
-    }
-
-    @Test
-    public void newHandlerInHandlerTest() {
-        delegate.newHandlerInHandlerTest();
+    @Test @Skip
+    @Override
+    public void test() {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
     }
 
 }

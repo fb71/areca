@@ -129,6 +129,12 @@
             <configuration>
               <classifier>processor</classifier>
               <classesDirectory>${project.build.directory}/processor.jar</classesDirectory>
+              <!-- avoid generated info classes in the processor jar -->
+              <excludes>
+                <exclude>areca/common/testrunner/**.class</exclude>
+                <exclude>areca/common/event/**.class</exclude>
+                <exclude>areca/common/reflect/RuntimeInfoAnnotationInfo.class</exclude>
+              </excludes>
 <!--               <includes> -->
 <!--                 <include>**/ReflectAnnotationProcessor.class</include> -->
 <!--                 <include>**/javax.annotation.processing.Processor</include> -->

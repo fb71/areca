@@ -30,12 +30,28 @@ public class TestsMain {
             new TestRunner()
                     //.addTests( org.polymap.model2.test2.AssociationsModelTest.info )
 
-                    //.addTests( areca.common.test.Tests.all() )
-                    //.addTests( org.polymap.model2.test2.Tests.all() )
-                    //.addTests( TeavmRuntimeTest.info )
-                    //.addTests( SetTimeoutEventManagerTest.info )
+                    .addTests(
+                            areca.common.test.AnnotationTest.info,
+                            areca.common.test.SequenceTest.info,
+                            areca.common.test.SequenceOpTest.info,
+                            areca.common.test.SameStackEventManagerTest.info,
+                            areca.common.test.AsyncEventManagerTest.info
+//                            areca.common.test.ThreadedEventManagerTest.info,
+//                            areca.common.test.RuntimeTest.info,
+//                            areca.common.test.AsyncTests.info
+                            )
+//                    .addTests(
+//                            areca.rt.teavm.test.TeavmRuntimeTest.info,
+//                            areca.rt.teavm.test.SetTimeoutEventManagerTest.info
+//                            )
+
+                    .addTests(
+                            org.polymap.model2.test2.SimpleModelTest.info,
+                            org.polymap.model2.test2.AssociationsModelTest.info
+                            )
+
                     //.addTests( areca.app.service.imap.ImapTest.info )
-                    .addTests( areca.app.service.carddav.CardDavTest.info )
+                    //.addTests( areca.app.service.carddav.CardDavTest.info )
                     .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                     .run();
         }
