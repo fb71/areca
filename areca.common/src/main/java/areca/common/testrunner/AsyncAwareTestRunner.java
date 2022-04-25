@@ -14,13 +14,11 @@
 package areca.common.testrunner;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import java.lang.reflect.InvocationTargetException;
 
 import areca.common.AssertionException;
-import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -28,20 +26,20 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 
 /**
- * Runs each test in an asynchronous javascript job.
+ * Handles {@link Promise} test results properly without waiting.
  *
  * @author <a href="http://polymap.de">Falko Bräutigam</a>
  */
-public class AsyncTestRunner
+public class AsyncAwareTestRunner
         extends TestRunner {
 
-    private static final Log LOG = LogFactory.getLog( AsyncTestRunner.class );
+    private static final Log LOG = LogFactory.getLog( AsyncAwareTestRunner.class );
 
     private static final Object[] NOARGS = new Object[] {};
 
-    public enum TestStatus {
-        PASSED, SKIPPED, FAILED
-    }
+//    public enum TestStatus {
+//        PASSED, SKIPPED, FAILED
+//    }
 
     // instrance ******************************************
 
@@ -69,7 +67,7 @@ public class AsyncTestRunner
 
     }
 
-    protected void methodsBefore( ClassInfo<?> cl, Object test ) {
+    protected void setupTest( ClassInfo<?> cl, Object test ) {
         try {
             Sequence.of( Exception.class, cl.methods() )
                     .filter( m -> m.annotation( BeforeAnnotationInfo.INFO ).isPresent() )
@@ -81,7 +79,7 @@ public class AsyncTestRunner
     }
 
 
-    protected void methodsAfter( ClassInfo<?> cl, Object test ) {
+    protected void teardownTest( ClassInfo<?> cl, Object test ) {
         try {
             Sequence.of( Exception.class, cl.methods() )
                     .filter( m -> m.annotation( AfterAnnotationInfo.INFO ).isPresent() )
@@ -98,65 +96,59 @@ public class AsyncTestRunner
         decorators = Sequence.of( decoratorTypes ).map( cl -> instantiate( cl ) ).toList();
         decorators.forEach( d -> d.preRun( this ) );
 
-        var testsStarted = new HashSet<ClassInfo<?>>();
-
         // all test classes
         for (ClassInfo<?> cl : testTypes) {
+            decorators.forEach( d -> d.preTest( cl ) );
+
             // all test methods
             for (TestMethod m : findTestMethods( cl )) {
                 TestResult testResult = new TestResult( m );
                 started.add( testResult );
 
-                Platform.async( () -> {
-                    if (testsStarted.add( cl )) {
-                        decorators.forEach( d -> d.preTest( cl ) );
+                decorators.forEach( d -> d.preTestMethod( m ) );
+
+                Object test = instantiate( cl );
+                try {
+                    setupTest( cl, test );
+
+                    testResult.start();
+                    if (m.m.annotation( Skip.info ).isPresent()) {
+                        testResult.skipped = true;
+                        testResult.done();
+                        decorators.forEach( d -> d.postTestMethod( testResult.m, testResult ) );
                     }
-                    decorators.forEach( d -> d.preTestMethod( m ) );
+                    else {
+                        var result = m.m.invoke( test, NOARGS );
 
-                    var promised = false;
-                    Object test = instantiate( cl );
-                    try {
-                        methodsBefore( cl, test );
-
-                        testResult.start();
-                        if (m.m.annotation( Skip.info ).isPresent()) {
-                            testResult.skipped = true;
-                            testResult.done();
-                            decorators.forEach( d -> d.postTestMethod( testResult.m, testResult ) );
+                        if (result instanceof Promise) {
+                            testResult.promised = true;
+                            ((Promise<?>)result)
+                                    .onSuccess( (promise, returnValue) -> {
+                                        if (promise.isComplete()) {
+                                            onSuccess( testResult );
+                                            teardownTest( cl, test );
+                                        }
+                                    })
+                                    .onError( e -> {
+                                        onError( testResult, e );
+                                        teardownTest( cl, test );
+                                    });
                         }
                         else {
-                            var result = m.m.invoke( test, NOARGS );
-
-                            if (result instanceof Promise) {
-                                promised = true;
-                                ((Promise<?>)result)
-                                        .onSuccess( (promise, returnValue) -> {
-                                            if (promise.isComplete()) {
-                                                onSuccess( testResult );
-                                                methodsAfter( cl, test );
-                                            }
-                                        })
-                                        .onError( e -> {
-                                            onError( testResult, e );
-                                            methodsAfter( cl, test );
-                                        });
-                            }
-                            else {
-                                onSuccess( testResult );
-                                methodsAfter( cl, test );
-                            }
+                            onSuccess( testResult );
+                            teardownTest( cl, test );
                         }
                     }
-                    catch (Exception e) {
-                        onError( testResult, e );
-                        methodsAfter( cl, test );
+                }
+                catch (Exception e) {
+                    onError( testResult, e );
+                    teardownTest( cl, test );
+                }
+                finally {
+                    if (!testResult.promised) {
+                        decoratorsAfter();
                     }
-                    finally {
-                        if (!promised) {
-                            decoratorsAfter();
-                        }
-                    }
-                });
+                }
             }
         }
     }

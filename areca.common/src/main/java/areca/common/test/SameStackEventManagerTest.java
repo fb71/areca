@@ -13,9 +13,11 @@
  */
 package areca.common.test;
 
+import areca.common.Promise;
 import areca.common.event.SameStackEventManager;
 import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.Before;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -31,13 +33,14 @@ public class SameStackEventManagerTest
 
     @Before
     protected void setup() {
-        em = null;
         em = new SameStackEventManager();
         super.setup();
     }
 
-//    @After
-//    protected void tearDown() {
-//    }
+    @Test @Skip
+    @Override
+    public Promise<Void> newHandlerInHandlerTest() {
+        throw new RuntimeException( "skipped" );
+    }
 
 }

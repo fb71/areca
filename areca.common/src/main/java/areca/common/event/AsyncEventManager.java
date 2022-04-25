@@ -18,6 +18,7 @@ import java.util.EventObject;
 import java.util.List;
 
 import areca.common.Platform;
+import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -31,45 +32,40 @@ public class AsyncEventManager
 
     private static final Log LOG = LogFactory.getLog( AsyncEventManager.class );
 
-    private static final int        INIT_QUEUE_CAPACITY = 64;
+    private static final int        INIT_QUEUE_CAPACITY = 128;
 
     private List<EventObject>       eventQueue = null;
+
+    private Promise<Void>           async;
 
 
     @Override
     public void publish( EventObject ev ) {
-        if (eventQueue == null) {
-            eventQueue = new ArrayList<>( INIT_QUEUE_CAPACITY );
-
-            Platform.async( () -> {
-                LOG.warn( "Queue: " + eventQueue.size() );
-                for (EventObject cursor : eventQueue) {
-                    fireEvent( cursor );
-                }
-                eventQueue = null;
-
-                synchronized (this) {
-                    notifyAll();
-                }
-            });
-        }
-        eventQueue.add( ev );
+        publish2( ev );
     }
 
 
     @Override
-    public void publishAndWait( EventObject ev ) {
-        if (eventQueue != null) {
-            synchronized (this) {
-                try {
-                    wait();
+    public Promise<Void> publish2( EventObject ev ) {
+        if (eventQueue == null) {
+            eventQueue = new ArrayList<>( INIT_QUEUE_CAPACITY );
+
+            async = Platform.async( () -> {
+                // handlers itself can publish events
+                var stable = eventQueue;
+                eventQueue = null;
+                async = null;
+
+                // TODO check if queue is to big or computation takes to long
+                LOG.info( "Queue: " + stable.size() );
+                for (EventObject queued : stable) {
+                    fireEvent( queued );
                 }
-                catch (InterruptedException e) {
-                    LOG.warn( "wait() interrupted!", e );
-                }
-            }
+                return null;
+            });
         }
-        fireEvent( ev );
+        eventQueue.add( ev );
+        return async;
     }
 
 }

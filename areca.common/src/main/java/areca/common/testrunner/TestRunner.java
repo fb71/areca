@@ -181,8 +181,10 @@ public class TestRunner {
      */
     public static class TestResult {
 
-        protected boolean       skipped;
-        protected TestMethod    m;
+        public boolean          promised;
+        public boolean          skipped;
+        public TestMethod       m;
+
         private Throwable       exception;
         private Timer           timer = Timer.start();
         private String          elapsed;

@@ -16,12 +16,14 @@ package areca.common.test;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
-import java.util.logging.Logger;
 
 import areca.common.Assert;
+import areca.common.Promise;
 import areca.common.event.EventHandler;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.After;
 import areca.common.testrunner.Before;
@@ -34,7 +36,7 @@ import areca.common.testrunner.Test;
 @Test
 public class EventManagerTest {
 
-    private static final Logger LOG = Logger.getLogger( EventManagerTest.class.getName() );
+    private static final Log LOG = LogFactory.getLog( EventManagerTest.class );
 
     public static final ClassInfo<EventManagerTest> info = EventManagerTestClassInfo.instance();
 
@@ -56,32 +58,45 @@ public class EventManagerTest {
 
 
     @Test
-    public void simpleTest() {
+    public Promise<Void> simpleTest() {
+        handled = null;
+        em.subscribe( ev -> handled = ev );
+        Event1 ev = new Event1();
+        return em.publish2( ev ).onSuccess( __ -> {
+            Assert.isSame( ev, handled, "not same" );
+        });
+    }
+
+
+    @Test
+    public void simpleSyncTest() {
         handled = null;
         em.subscribe( (Event1 ev) -> handled = ev );
-        Event1 ev = new Event1( null );
-        em.publishAndWait( ev );
-
+        Event1 ev = new Event1();
+        em.publish2( ev ).waitForResult();
         Assert.isSame( ev, handled, "not same" );
     }
 
 
     @Test
-    public void performIfTest() {
+    public Promise<Void> performIfTest() {
         handled = null;
         em.subscribe( (Event1 ev) -> handled = ev ).performIf( ev -> ev instanceof Event1 );
-        Event1 ev = new Event1( null );
-        em.publishAndWait( ev );
-        Assert.isSame( ev, handled, "not same" );
+        Event1 ev = new Event1();
+        return em.publish2( ev ).onSuccess( __ -> {
+            Assert.isSame( ev, handled, "not same" );
+        });
     }
 
 
     @Test
-    public void performIfFalseTest() {
+    public Promise<Void> performIfFalseTest() {
         handled = null;
-        em.subscribe( (Event1 ev) -> handled = ev ).performIf( ev -> false );
-        em.publishAndWait( new Event1( null ) );
-        Assert.isNull( handled );
+        em.subscribe( (Event1 ev) -> handled = ev ).performIf( ev -> ev instanceof Event1 );
+        return em.publish2( new Event2() ).onSuccess( __ -> {
+            LOG.info( em.getClass().getSimpleName() + ": performIfFalseTest: OK" );
+            Assert.isNull( handled );
+        });
     }
 
 
@@ -94,60 +109,85 @@ public class EventManagerTest {
 
 
     @Test
-    public void disposeTest() {
+    public Promise<Void> disposeTest() {
         EventListener<Event1> l = (Event1 ev) -> handled = ev;
         em.subscribe( l ).disposeIf( ev -> true );
-        em.publishAndWait( new Event1( null ) );
-        em.subscribe( l ).disposeIf( ev -> true );
-        Assert.isNull( handled );
+        return em.publish2( new Event1() ).onSuccess( __ -> {
+            em.subscribe( l ).disposeIf( ev -> true );
+            Assert.isNull( handled );
+        });
     }
 
 
     @Test
-    public void performanceTest() {
+    public Promise<Void> performanceTest() {
         count = 0;
-        for (int i=0; i<10; i++) {
+        for (int i=0; i<100; i++) {
             em.subscribe( (Event1 ev) -> count++ )
                     .performIf( ev -> ev instanceof Event1 )
                     .disposeIf( ev -> false );
         }
-        for (int i=0; i<10000; i++) {
-            em.publish( new Event1( null ) );
+        for (int i=0; i<1000; i++) {
+            em.publish( new Event1() );
         }
-        em.publishAndWait( new Event1( null ) );
-        LOG.info( "count: " + count );
-        Assert.isEqual( 100010, count, "" );
+        return em.publish2( new Event1() ).onSuccess( __ -> {
+            LOG.info( "count: " + count );
+            Assert.isEqual( 100100, count, "" );
+        });
     }
 
 
     @Test
-    public void eventCascadeTest() {
+    public Promise<Void> eventCascadeTest() {
         List<EventObject> caught = new ArrayList<>();
+
+        // catch Event1
         em.subscribe( ev -> {
             caught.add( ev );
-            em.publishAndWait( new Event2( null ) );
+            em.publish2( new Event2( null ) ).onSuccess( __ -> {
+                // check outside test result Promise
+                Assert.that( caught.get( 0 ) instanceof Event1 );
+                Assert.that( caught.get( 1 ) instanceof Event2 );
+                Assert.isEqual( 2, caught.size() );
+                LOG.info( em.getClass().getSimpleName() + ": eventCascadeTest: OK" );
+            });
         })
         .performIf( ev -> ev instanceof Event1 );
 
+        // catch Event2
         em.subscribe( ev -> {
             caught.add( ev );
         })
         .performIf( ev -> ev instanceof Event2 );
 
-        em.publishAndWait( new Event1( null ) );
-
-        Assert.that( caught.get( 0 ) instanceof Event1 );
-        Assert.that( caught.get( 1 ) instanceof Event2 );
+        return em.publish2( new Event1() ).onSuccess( __ -> {
+            Assert.that( caught.get( 0 ) instanceof Event1 );
+            // for SameStack this would fail
+            // Assert.isEqual( 1, caught.size() );
+        });
     }
 
 
     @Test
-    public void newHandlerInHandlerTest() {
+    public Promise<Void> newHandlerInHandlerTest() {
         List<EventObject> caught = new ArrayList<>();
+
         em.subscribe( ev -> {
-            em.subscribe( ev2 -> caught.add( ev ) );
-        });
-        em.publishAndWait( new Event1( null ) );
+            LOG.info( "Handler1: " + ev.getClass().getSimpleName() );
+            em.subscribe( _ev -> {
+                LOG.info( "Handler2: " + _ev.getClass().getSimpleName() );
+                caught.add( _ev );
+            });
+        }).performIf( ev -> ev instanceof Event1 );
+
+        return em.publish2( new Event1() )
+                .then( __ -> {
+                    Assert.that( caught.isEmpty() );
+                    return em.publish2( new Event2() );
+                })
+                .onSuccess( __ -> {
+                    Assert.that( caught.get( 0 ) instanceof Event2, "Event2: " + caught.get( 0 ) + " (" + caught );
+                });
     }
 
 
@@ -169,14 +209,14 @@ public class EventManagerTest {
     }
 
 
-    static class Event1
-            extends EventObject {
+    static class Event1 extends EventObject {
+        public Event1() { super( null ); }
         public Event1( Object source ) { super( source ); }
     }
 
 
-    static class Event2
-            extends EventObject {
+    static class Event2 extends EventObject {
+        public Event2() { super( null ); }
         public Event2( Object source ) { super( source ); }
     }
 

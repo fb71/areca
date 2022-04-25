@@ -262,6 +262,7 @@ public class Promise<T> {
 
 
     public <E extends Exception> Promise<T> onSuccess( BiConsumer<HandlerSite,T,E> consumer ) {
+        Assert.that( !isDone(), "Promise is already completed." );
         onSuccess.add( consumer );
         return this;
     }
@@ -274,6 +275,7 @@ public class Promise<T> {
 
 
     public Promise<T> onError( RConsumer<Throwable> consumer ) {
+        Assert.that( !isDone(), "Promise is already completed." );
         onError.add( consumer );
         return this;
     }

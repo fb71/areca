@@ -15,27 +15,63 @@ package areca.common.event;
 
 import java.util.EventObject;
 
+import areca.common.Promise;
+import areca.common.base.BiConsumer;
+import areca.common.base.Consumer;
+import areca.common.base.Consumer.RConsumer;
+
 /**
- * Simple {@link EventManager} implementation that executes event handlers right in
- * the same thread/stack of the {@link #publish(java.util.EventObject)} call.
+ * Simple {@link EventManager} implementation that executes event handlers
+ * synchronously right in the same thread/stack of the
+ * {@link #publish(java.util.EventObject)} call.
  *
  * @author Falko Bräutigam
  */
 public class SameStackEventManager
         extends EventManager {
 
+
     @Override
-    public /*Promise<Void>*/ void publish( EventObject ev ) {
+    public void publish( EventObject ev ) {
         fireEvent( ev );
-//        return new Promise.Completable<>() {{
-//            complete( null );
-//        }};
     }
 
 
     @Override
-    public void publishAndWait( EventObject ev ) {
+    public Promise<Void> publish2( EventObject ev ) {
         publish( ev );
+
+        return new Promise.Completable<>() {
+            { complete( null ); }
+
+            @Override
+            public <E extends Exception> Promise<Void> onSuccess( Consumer<Void,E> consumer ) {
+                return onSuccess( (promise,value) -> consumer.accept( value ) );
+            }
+
+            @Override
+            public <E extends Exception> Promise<Void> onSuccess( BiConsumer<HandlerSite,Void,E> consumer ) {
+                var site = new HandlerSite() {
+                    @Override public void cancel() { throw new RuntimeException( "not yet implemented." ); }
+                    @Override public boolean isCanceled() { throw new RuntimeException( "not yet implemented." ); }
+                    @Override public boolean isComplete() { return true; }
+                    @Override public int index() { throw new RuntimeException( "not yet implemented." ); }
+                };
+                try {
+                    consumer.accept( site, null );
+                }
+                catch (Exception e) {
+                    throw (RuntimeException)e; // XXX
+                }
+                return this;
+            }
+
+            @Override
+            public Promise<Void> onError( RConsumer<Throwable> consumer ) {
+                //throw new UnsupportedOperationException( "Event errors are catched by the handlers." );
+                return this;
+            }
+        };
     }
 
 }

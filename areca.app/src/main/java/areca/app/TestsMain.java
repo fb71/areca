@@ -3,8 +3,8 @@ package areca.app;
 import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.common.testrunner.AsyncAwareTestRunner;
 import areca.common.testrunner.LogDecorator;
-import areca.common.testrunner.TestRunner;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
 
 /**
@@ -22,33 +22,32 @@ public class TestsMain {
     @SuppressWarnings("unchecked")
     public static void main( String[] args ) throws Exception {
         try {
-//            new TestRunner()
-//                    .addTests( areca.common.test.SequenceOpTest.info )
+//            new AsyncAwareTestRunner()
+//                    .addTests(
+//                            areca.common.test.SameStackEventManagerTest.info,
+//                            areca.common.test.AsyncEventManagerTest.info
+//                    )
 //                    .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
 //                    .run();
 
-            new TestRunner()
-                    //.addTests( org.polymap.model2.test2.AssociationsModelTest.info )
-
+            new AsyncAwareTestRunner()
                     .addTests(
                             areca.common.test.AnnotationTest.info,
                             areca.common.test.SequenceTest.info,
                             areca.common.test.SequenceOpTest.info,
                             areca.common.test.SameStackEventManagerTest.info,
-                            areca.common.test.AsyncEventManagerTest.info
+                            areca.common.test.AsyncEventManagerTest.info,
 //                            areca.common.test.ThreadedEventManagerTest.info,
-//                            areca.common.test.RuntimeTest.info,
-//                            areca.common.test.AsyncTests.info
-                            )
-//                    .addTests(
-//                            areca.rt.teavm.test.TeavmRuntimeTest.info,
-//                            areca.rt.teavm.test.SetTimeoutEventManagerTest.info
-//                            )
-
+                            areca.common.test.RuntimeTest.info,
+                            areca.common.test.AsyncTests.info
+                    )
+                    .addTests(
+                            areca.rt.teavm.test.TeavmRuntimeTest.info
+                    )
                     .addTests(
                             org.polymap.model2.test2.SimpleModelTest.info,
                             org.polymap.model2.test2.AssociationsModelTest.info
-                            )
+                    )
 
                     //.addTests( areca.app.service.imap.ImapTest.info )
                     //.addTests( areca.app.service.carddav.CardDavTest.info )

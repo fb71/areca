@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import areca.common.Assert;
+import areca.common.Promise;
 import areca.common.base.Opt;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.MethodInfo;
@@ -135,14 +136,20 @@ public abstract class EventManager {
     /**
      * Fires the given event. Depending on the actual EventManager implementation
      * the event processing is done asynchronously.
+     *
+     * @see #publish2(EventObject)
      */
-    public abstract /*Promise<Void>*/ void publish( EventObject ev );
+    public abstract void publish( EventObject ev );
 
 
     /**
-     * Fires the given event and waits until the event is processed by all handlers.
+     * Fires the given event. Depending on the actual EventManager implementation the
+     * event processing is done asynchronously.
+     *
+     * @return {@link Promise} can be used to do things after the event was actually
+     *         fired and processed by all the current handlers.
      */
-    public abstract void publishAndWait( EventObject ev );
+    public abstract Promise<Void> publish2( EventObject ev );
 
 
     /**

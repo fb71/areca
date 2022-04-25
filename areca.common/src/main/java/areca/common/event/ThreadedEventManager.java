@@ -20,6 +20,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Logger;
 
+import areca.common.Promise;
 
 /**
  *
@@ -39,31 +40,36 @@ public class ThreadedEventManager
         eventThread.start();
     }
 
-
     @Override
     public void publish( EventObject ev ) {
-        try {
-            //System.out.println( "QUEUE: " + eventQueue.size() );
-            eventQueue.put( ev );
-        }
-        catch (InterruptedException e) {
-            throw new RuntimeException( e );
-        }
+        throw new RuntimeException( "using Thread is not a good idea anyway" );
     }
-
 
     @Override
-    public void publishAndWait( EventObject ev ) {
-        synchronized (ev) {
-            publish( ev );
-            try {
-                ev.wait();
-            }
-            catch (InterruptedException e) {
-                throw new RuntimeException( e );
-            }
-        }
+    public Promise<Void> publish2( EventObject ev ) {
+        throw new RuntimeException( "using Thread is not a good idea anyway" );
+//        try {
+//            //System.out.println( "QUEUE: " + eventQueue.size() );
+//            eventQueue.put( ev );
+//        }
+//        catch (InterruptedException e) {
+//            throw new RuntimeException( e );
+//        }
     }
+
+
+//    @Override
+//    public void publishAndWait( EventObject ev ) {
+//        synchronized (ev) {
+//            publish( ev );
+//            try {
+//                ev.wait();
+//            }
+//            catch (InterruptedException e) {
+//                throw new RuntimeException( e );
+//            }
+//        }
+//    }
 
 
     /**
