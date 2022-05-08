@@ -25,6 +25,7 @@ import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComposite;
+import areca.ui.component2.VisualActionFeedback;
 import areca.ui.layout.FillLayout;
 import areca.ui.layout.RowLayout;
 
@@ -48,6 +49,7 @@ public class UIComponentGalleryMain {
     public static void createApp() {
         initLog();
         UIComponentRenderer.start();
+        VisualActionFeedback.start();
 
         createUI( appWindow -> {
             appWindow.size.set( Size.of( 400, 400 ) );

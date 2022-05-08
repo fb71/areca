@@ -19,6 +19,7 @@ import areca.common.event.AsyncEventManager;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.component2.Property.PropertyChangedEvent;
 
 /**
  *
@@ -29,6 +30,10 @@ public abstract class UIComponentEvent
 
     private static final Log LOG = LogFactory.getLog( UIComponentEvent.class );
 
+    /**
+     * Component lifecycle and {@link PropertyChangedEvent}s. Mostly for internal use
+     * when rendering.
+     */
     public static final EventManager manager = new AsyncEventManager() {
         @Override
         protected void fireEvent( EventObject ev ) {

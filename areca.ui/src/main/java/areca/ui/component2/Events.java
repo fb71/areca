@@ -17,11 +17,14 @@ import java.util.ArrayList;
 import java.util.EventObject;
 
 import areca.common.base.Consumer.RConsumer;
+import areca.common.event.AsyncEventManager;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.ReadWrites;
 
 /**
+ * A property of {@link UIComponent} for managing {@link Events.EventType UI events}.
  *
  * @author Falko Bräutigam
  */
@@ -29,6 +32,11 @@ public class Events
         extends ReadWrites<UIComponent,Events.EventHandler> {
 
     private static final Log LOG = LogFactory.getLog( Events.class );
+
+    /**
+     * Publishes all UI events.
+     */
+    public static EventManager manager = new AsyncEventManager();
 
     public enum EventType {
         SELECT, ACTION, POINTER_ENTER, POINTER_LEAVE, POINTER_MOVE
@@ -68,7 +76,13 @@ public class Events
 
 
     public void on( EventType _type, RConsumer<UIEvent> _handler ) {
-        add( new EventHandler() {{this.type = _type; this.consumer = _handler;}} );
+        add( new EventHandler() {{
+            this.type = _type;
+            this.consumer = ev -> {
+                _handler.accept( ev );
+                manager.publish( ev );
+            };
+        }});
     }
 
 
