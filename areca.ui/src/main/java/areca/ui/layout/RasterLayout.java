@@ -18,8 +18,8 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Property;
 import areca.ui.Size;
+import areca.ui.component2.UIComposite;
 import areca.ui.Property.ReadWrite;
-import areca.ui.component.UIComposite;
 
 /**
  *
@@ -28,14 +28,14 @@ import areca.ui.component.UIComposite;
 public class RasterLayout
          extends LayoutManager {
 
-    private static final Log log = LogFactory.getLog( RasterLayout.class );
+    private static final Log LOG = LogFactory.getLog( RasterLayout.class );
 
     public ReadWrite<RasterLayout,Integer> spacing = Property.create( this, "spacing", 5 );
 
 
     @Override
     public void layout( UIComposite composite ) {
-        Size size = composite.clientSize.get();
+        Size size = composite.clientSize.value();
 
 //        composite.components().sequence().forEach( c -> {
 //            c.position.set( Position.of( 1, 1 ) );

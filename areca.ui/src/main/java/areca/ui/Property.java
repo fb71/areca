@@ -130,12 +130,16 @@ public abstract class Property<C,T> {
         return false;
     }
 
+    public C component() {
+        return component;
+    }
+
     public String name() {
         return name;
     }
 
     protected void fireEvent( Object oldValue, Object newValue ) {
-        EventManager.instance().publish( new PropertyChangedEvent( this, oldValue, newValue ) );
+        EventManager.instance().publish( new PropertyChangedEvent<>( this, oldValue, newValue ) );
     }
 
 
@@ -278,7 +282,7 @@ public abstract class Property<C,T> {
     /**
      *
      */
-    public static class PropertyChangedEvent extends EventObject {
+    public static class PropertyChangedEvent<V> extends EventObject {
 
         private Object oldValue;
 

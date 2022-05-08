@@ -71,6 +71,7 @@ public abstract class Sequence<T, E extends Exception> {
 
 
     public static <R,E extends Exception> Sequence<R,E> of( Class<E> type, Iterable<R> elements ) {
+        Assert.notNull( elements );
         return new Sequence<R,E>( null ) {
             @Override
             protected SequenceIterator<R,E> iterator() {
@@ -89,6 +90,7 @@ public abstract class Sequence<T, E extends Exception> {
 
 
     public static <R,E extends Exception> Sequence<R,E> of( Class<E> type, Iterator<R> iterator ) {
+        Assert.notNull( iterator );
         return new Sequence<R,E>( null ) {
             int callCount = 0;
             @Override

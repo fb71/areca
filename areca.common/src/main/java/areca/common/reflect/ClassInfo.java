@@ -101,7 +101,7 @@ public abstract class ClassInfo<T>
 
     /**
      * Information of the superclass.
-     * 
+     *
      * @return The result is absent if the superclass is {@link Object} <b>OR</b> if
      * the superclass is not annotated and hence no runtime information are available.
      */
@@ -130,7 +130,9 @@ public abstract class ClassInfo<T>
         ClassInfo<?> ci = this;
         while (ci != null) {
             for (MethodInfo m : ci.declaredMethods()) {
-                result.putIfAbsent( m.name(), m ); // TODO check complete signature
+                if (result.putIfAbsent( m.name(), m ) != null) { // TODO check complete signature
+                    LOG.info( "Method overridden: %s::%s", ci.name(), m.name() );
+                }
             }
             ci = ci.superclassInfo().orElse( null );
         }

@@ -41,8 +41,9 @@ body {
         left $transition_duration, 
         width $transition_duration, 
         height $transition_duration, 
+        transform $transition_duration,
         opacity $transition_duration,
-        transform $transition_duration;
+        background-color $transition_duration;
     box-sizing: border-box;
 }
 
@@ -60,12 +61,12 @@ body {
 .Button {
     // @extend .Bordered;
     padding: 7px 12px;
-    background-color: $bg3_color;
+    background-color: darken(desaturate($accent_color, 14%), 12%);
     box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
 }
 
 .Button:hover {
-    background-color: $bg2_color;
+    background-color: lighten(saturate($accent_color, 0%), 0%);
 }
 
 .ListCell {

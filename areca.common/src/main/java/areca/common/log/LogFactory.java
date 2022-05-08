@@ -89,7 +89,7 @@ public class LogFactory {
         protected void log ( Level msgLevel, String msg, Object[] args, Throwable e ) {
             if (msgLevel.ordinal() >= level.ordinal()) {
                 var formatted = args != null ? String.format( msg, args ) : msg;
-                var record = String.format( "[%s] %s: %s", msgLevel, prefix, formatted );
+                var record = String.format( "[%-5s] %s: %s", msgLevel, prefix, formatted );
                 if (msgLevel.ordinal() >= Level.WARN.ordinal()) {
                     System.err.println( record );
                 }

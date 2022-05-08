@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019, the @authors. All rights reserved.
+ * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,21 +11,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.layout;
+package areca.ui.component2;
 
-import java.util.logging.Logger;
-
-import areca.ui.component2.UIComposite;
+import areca.ui.component2.Property.ReadWrite;
 
 /**
  *
  * @author falko
  */
-public abstract class LayoutManager {
+public class Text
+        extends UIComponent {
 
-    private static final Logger LOG = Logger.getLogger( LayoutManager.class.getSimpleName() );
-
-
-    public abstract void layout( UIComposite composite );
+    public ReadWrite<Text,String> content = Property.create( this, "content" );
 
 }

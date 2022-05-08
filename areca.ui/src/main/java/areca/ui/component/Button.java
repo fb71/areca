@@ -13,8 +13,6 @@
  */
 package areca.ui.component;
 
-import java.util.logging.Logger;
-
 import areca.ui.Property.ReadWrite;
 import areca.ui.html.HtmlButton;
 import areca.ui.html.HtmlNode;
@@ -28,19 +26,20 @@ import areca.ui.html.HtmlTextNode;
 public class Button
         extends UIComponent {
 
-    private static final Logger LOG = Logger.getLogger( Button.class.getSimpleName() );
-
 //    @SuppressWarnings("hiding")
 //    public static final Button  TYPE = new Button();
 
     public ReadWrite<Button,String> label = new ReadWrite<>( this, "label" ) {
+
         private String value;
+
         @Override
         protected void doSet( String newValue ) {
             value = newValue;
             HtmlTextNode text = new HtmlTextNode( newValue );
             htmlElm.children.add( text );
         }
+
         @Override
         protected String doGet() {
             return value;

@@ -18,8 +18,8 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.Orientation;
 import areca.ui.Position;
 import areca.ui.Size;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -35,12 +35,12 @@ public class FillLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        Size size = composite.size.get();
+        Size size = composite.size.value();
         LOG.debug( "FillLayout: " + size );
 
         if (orientation == Orientation.HORIZONTAL) {
-            int componentsMaxWidth = composite.components.sequence()
-                    .map( c -> c.computeMinimumWidth( size.height() ) )
+            int componentsMaxWidth = composite.components.values()
+                    .map( c -> c.computeMinWidth( size.height() ) )
                     .reduce( Math::max ).orElse( 0 );
 
             int componentWidth = Math.max( size.width() / composite.components.size(), componentsMaxWidth );

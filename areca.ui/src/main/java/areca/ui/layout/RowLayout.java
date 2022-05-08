@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2020-2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,14 +13,19 @@
  */
 package areca.ui.layout;
 
-import java.util.logging.Logger;
+import static areca.ui.Orientation.HORIZONTAL;
+import static areca.ui.Orientation.VERTICAL;
 
+import areca.common.Assert;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
+import areca.ui.Orientation;
 import areca.ui.Position;
-import areca.ui.Property;
 import areca.ui.Size;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
-
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrite;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -29,25 +34,82 @@ import areca.ui.component.UIComposite;
 public class RowLayout
         extends LayoutManager {
 
-    private static final Logger LOG = Logger.getLogger( RowLayout.class.getName() );
+    private static final Log LOG = LogFactory.getLog( RowLayout.class );
 
-    public Property<RowLayout,Integer> margins = Property.create( this, "margins" );
+    public ReadWrite<RowLayout,Size>        margins = Property.create( this, "margins", Size.of( 0, 0 ) );
 
-    public Property<RowLayout,Integer> spacing = Property.create( this, "spacing" );
+    public ReadWrite<RowLayout,Integer>     spacing = Property.create( this, "spacing", 0 );
+
+    public ReadWrite<RowLayout,Orientation> orientation = Property.create( this, "orientation", HORIZONTAL );
+
+    /**
+     * {@link Orientation#HORIZONTAL}: all components have the same height so that the
+     * entiry client size of the composite is filled. Default: {@link Boolean#FALSE}
+     */
+    public ReadWrite<RowLayout,Boolean>     fillHeight = Property.create( this, "fillHeight", false );
+
+    /**
+     * {@link Orientation#HORIZONTAL}: all components have the same width so that the
+     * entiry client size is filled. Individual settings via
+     * {@link RowConstraints#width} are ignored. Default: {@link Boolean#FALSE}
+     */
+    public ReadWrite<RowLayout,Boolean>     fillWidth = Property.create( this, "fillWidth", false );
 
 
     @Override
     public void layout( UIComposite composite ) {
-        Size size = composite.size.get();
+        Size size = composite.size.value();
         LOG.info( "RowLayout: " + size );
 
-        int componentTop = 0;
-        for (UIComponent component : composite.components) {
-            RowConstraints constraints = component.layoutConstraints();
-            component.size.set( Size.of( size.width(), constraints.height.get() ) );
-            component.position.set( Position.of( 0, componentTop ) );
+        Size clientSize = Size.of(
+                size.width() - (margins.value().width() * 2),
+                size.height() - (margins.value().height() * 2) );
 
-            componentTop += constraints.height.get();
+        // VERTICAL
+        if (orientation.value() == VERTICAL) {
+            int cTop = margins.value().height();
+            for (UIComponent c : composite.components) {
+                var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
+
+                // height
+                Assert.that( !(fillHeight.value() && constraints.height.opt().isPresent()) );
+                int cHeight = fillHeight.value()
+                        ? ((clientSize.height() + spacing.value()) / composite.components.size()) - spacing.value()
+                        : constraints.height.opt().orElse( c.computeMinHeight( clientSize.width() ) );
+
+                // width
+                int cWidth = fillWidth.value()
+                        ? clientSize.width()
+                        : constraints.width.opt().orElse( c.computeMinWidth( clientSize.height() ) );
+
+                c.size.set( Size.of( cWidth, cHeight ) );
+                c.position.set( Position.of( margins.value().width(), cTop ) );
+
+                cTop += cHeight + spacing.value();
+            }
+        }
+        // HORIZONTAL
+        else {
+            int cLeft = margins.value().width();
+            for (UIComponent c : composite.components) {
+                var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
+
+                // width
+                Assert.that( !(fillWidth.value() && constraints.width.opt().isPresent()) );
+                int cWidth = fillWidth.value()
+                        ? ((clientSize.width() + spacing.value()) / composite.components.size()) - spacing.value()
+                        : constraints.width.opt().orElse( c.computeMinWidth( clientSize.height() ) );
+
+                // height
+                int cHeight = fillHeight.value()
+                        ? clientSize.height()
+                        : constraints.height.opt().orElse( c.computeMinHeight( clientSize.width() ) );
+
+                c.size.set( Size.of( cWidth, cHeight ) );
+                c.position.set( Position.of( cLeft, margins.value().height() ) );
+
+                cLeft += cWidth + spacing.value();
+            }
         }
     }
 

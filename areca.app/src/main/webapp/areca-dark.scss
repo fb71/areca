@@ -6,7 +6,8 @@ $bg3_color: darken($bg1_color, 12%);
 $font_color: #d8d8d8;
 $separator_color: darken($font_color, 50%);
 
-$accent_color: rgb(198, 98, 11);
+// s$accent_color: rgb(198, 98, 11);
+$accent_color: #996634;
 $primary_color: darken($accent_color, 30%);
 
 $transition_duration: 0.75s;

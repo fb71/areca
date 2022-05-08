@@ -15,9 +15,9 @@ package areca.common.base;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import areca.common.Assert;
+import areca.common.base.Supplier.RSupplier;
 
 /**
  * Similar to {@link Optional} but allows checked Exceptions.
@@ -72,14 +72,16 @@ public class Opt<T> {
      * does nothing.
      *
      * @param action The action to be performed, if a value is present.
+     * @return this
      * @throws NullPointerException if value is present and the given action is {@code null}.
      * @throws E If the action was throwing this exception.
      */
-    public <E extends Exception> void ifPresent( Consumer<? super T,E> action ) throws E {
+    public <E extends Exception> Opt<T> ifPresent( Consumer<? super T,E> action ) throws E {
         Assert.notNull( action );
         if (isPresent()) {
             action.accept( value );
         }
+        return this;
     }
 
 
@@ -88,14 +90,16 @@ public class Opt<T> {
      * does nothing.
      *
      * @param action The action to be performed, if a value is absent.
+     * @return this
      * @throws NullPointerException If value is present and the given action is {@code null}.
      * @throws E If the action was throwing this exception.
      */
-    public <E extends Exception> void ifAbsent( Consumer<? super T,E> action ) throws E {
+    public <E extends Exception> Opt<T> ifAbsent( Consumer<? super T,E> action ) throws E {
         Assert.notNull( action );
         if (!isPresent()) {
             action.accept( value );
         }
+        return this;
     }
 
 
@@ -150,6 +154,10 @@ public class Opt<T> {
         return isPresent() ? value : elseValue;
     }
 
+    public <E extends Exception> T orElseCompute( Supplier<T,E> elseSupplier ) throws E {
+        return isPresent() ? value : elseSupplier.supply();
+    }
+
 
     /**
      * If a value is present, returns the value, otherwise throws {@link NoSuchElementException}.
@@ -172,7 +180,7 @@ public class Opt<T> {
      * @throws NullPointerException if no value is present and the exception
      *         supplying function is {@code null}
      */
-    public <E extends Throwable> T orElseThrow( Supplier<E> supplier ) throws E {
+    public <E extends Throwable> T orElseThrow( RSupplier<E> supplier ) throws E {
         if (value != null) {
             return value;
         } else {

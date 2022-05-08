@@ -23,6 +23,8 @@ import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.lang.reflect.InvocationTargetException;
+
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.base.Opt;
@@ -187,13 +189,13 @@ public abstract class EventManager {
 
         protected void perform( EventObject ev ) {
             try {
+                // filter
+                if (performIf != null && !performIf.test( ev )) {
+                    return;
+                }
                 // dispose
                 if (disposeIf != null && disposeIf.test( ev )) {
                     EventManager.this.unsubscribe( EventHandlerInfo.this );
-                    return;
-                }
-                // filter
-                if (performIf != null && !performIf.test( ev )) {
                     return;
                 }
                 // perform: listener
@@ -208,11 +210,17 @@ public abstract class EventManager {
                     Opt<EventHandler> a = m.annotation( EventHandler.class );
 
                     if (a.isPresent() && a.get().value().isInstance( ev )) {
-                        m.invoke( handler, ev );
-                        return;
+                        try {
+                            m.invoke( handler, ev );
+                            return;
+                        }
+                        catch (InvocationTargetException e) {
+                            throw (RuntimeException)e.getTargetException();
+                        }
                     }
                 }
-                throw new IllegalStateException( "handler is neither an EventListener nor annotated! " );
+                throw new IllegalStateException( "Handler is neither an EventListener nor annotated: "
+                            + cli.simpleName() + " (" + ev.getClass().getSimpleName() + ")" );
             }
             catch (Throwable e) {
                 onError.accept( ev, e );
