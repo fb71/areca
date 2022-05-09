@@ -20,9 +20,11 @@ import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.TeaPlatform;
+import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.App;
 import areca.ui.component2.VisualActionFeedback;
 import areca.ui.pageflow.Pageflow;
+import areca.ui.test.GalleryMain;
 
 /**
  *
@@ -54,10 +56,12 @@ public class Main {
 //        return;
 
         try {
+            UIComponentRenderer.start();
+
 //            ModelRepo.init();
 //            createApp();
 
-            UIComponentGalleryMain.createApp();
+            GalleryMain.createApp();
         }
         catch (Throwable e) {
             //System.out.println( "Exception: " + e + " --> " );
