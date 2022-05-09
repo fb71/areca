@@ -17,7 +17,7 @@ import java.util.EventObject;
 
 import areca.common.event.EventListener;
 import areca.common.event.EventManager.EventHandlerInfo;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.UIComposite;
 import areca.ui.controller.Context.Mode;
 import areca.ui.viewer.ModelAdapter;
 

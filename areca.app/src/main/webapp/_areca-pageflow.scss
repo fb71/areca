@@ -1,0 +1,15 @@
+.PageStackLayout-Top {
+    transition: none;
+    transform: scale(0.01);
+}
+
+// during Page close
+.Closing {
+    transition: all 0.5s ease-in;
+    opacity: 0;
+    transform: scale(0.5);
+}
+
+.PageUIComposite {
+    background-color: $bg1_color;    
+}

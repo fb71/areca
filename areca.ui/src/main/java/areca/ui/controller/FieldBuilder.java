@@ -16,8 +16,8 @@ package areca.ui.controller;
 import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 import areca.ui.viewer.ViewerBuilder;
 
 /**

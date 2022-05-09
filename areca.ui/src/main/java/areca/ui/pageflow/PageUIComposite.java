@@ -13,12 +13,14 @@
  */
 package areca.ui.pageflow;
 
+import static areca.ui.component2.Events.EventType.SELECT;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
-import areca.ui.component.Button;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.Button;
+import areca.ui.component2.UIComposite;
 import areca.ui.layout.FillLayout;
 import areca.ui.layout.LayoutManager;
 
@@ -50,21 +52,21 @@ public class PageUIComposite
         cssClasses.add( "PageUIComposite" );
         layout.set( new PageUILayout() );
 
-        header = components.add( new UIComposite(), h -> {
-            h.layout.set( new FillLayout() );
-        });
+        header = add( new UIComposite() {{
+            layout.set( new FillLayout() );
+        }});
 
-        toolbar = components.add( new UIComposite(), tb -> {
-            tb.layout.set( new FillLayout() );
-            tb.components.add( new Button(), btn -> {
-                btn.label.set( "Toolbar" );
-                btn.bordered.set( false );
-                btn.events.onSelection( ev -> btn.bordered.set( !btn.bordered.get() ) );
-            });
-            tb.bordered.set( true );
-        });
+        toolbar = add( new UIComposite() {{
+            layout.set( new FillLayout() );
+            components.add( new Button() {{
+                label.set( "Toolbar" );
+                bordered.set( false );
+                events.on( SELECT, ev -> bordered.set( !bordered.value() ) );
+            }});
+            bordered.set( true );
+        }});
 
-        body = components.add( new UIComposite() );
+        body = add( new UIComposite() );
     }
 
 
@@ -80,7 +82,7 @@ public class PageUIComposite
         @Override
         public void layout( UIComposite composite ) {
             @SuppressWarnings("hiding")
-            var size = PageUIComposite.this.clientSize.get();
+            var size = PageUIComposite.this.clientSize.value();
 
             header.position.set( Position.of( 0, 0 ) );
             header.size.set( Size.of( size.width(), HEADER_HEIGHT ) );

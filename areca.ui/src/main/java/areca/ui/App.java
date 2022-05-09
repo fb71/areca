@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019, the @authors. All rights reserved.
+ * Copyright (C) 2019-2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,8 +15,7 @@ package areca.ui;
 
 import areca.common.Assert;
 import areca.common.base.Consumer;
-import areca.ui.component.UIComposite;
-import areca.ui.html.HtmlNode;
+import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -40,7 +39,6 @@ public class App {
 
         Assert.isNull( rootWindow );
         rootWindow = new RootWindow();
-        rootWindow.init( null );
 
         initializer.accept( rootWindow );
         return rootWindow;
@@ -55,11 +53,6 @@ public class App {
      */
     public class RootWindow
             extends UIComposite {
-
-        @Override
-        public HtmlNode init( UIComposite newParent ) {
-            return super.init( null );
-        }
     }
 
 }

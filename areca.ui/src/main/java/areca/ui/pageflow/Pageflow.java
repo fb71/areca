@@ -23,8 +23,8 @@ import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 import areca.ui.gesture.PanGesture;
 import areca.ui.pageflow.Page.PageSite;
 
@@ -67,13 +67,14 @@ public class Pageflow {
     }
 
 
-    public void open( Page _page, Page parent ) {
+    public void open( Page _page, Page parent, Position origin ) {
         Assert.that( pages.isEmpty() || parent == pages.peek().page, "Adding other than top page is not supported yet." );
         var _pageSite = new PageSite() {{
         }};
         var _pageContainer = _page.init( rootContainer, _pageSite );
         pages.push( new PageData() {{page = _page; site = _pageSite; container = _pageContainer;}} );
         rootContainer.layout();
+        ((PageStackLayout)rootContainer.layout.value()).openLast( origin );
     }
 
 
@@ -81,8 +82,8 @@ public class Pageflow {
         Assert.isSame( page, pages.peek().page, "Removing other than top page is not supported yet." );
         var pageData = pages.pop();
         pageData.container.cssClasses.add( "Closing" );
-        with( pageData.container.position).apply( pos -> pos.set(
-                Position.of( pos.get().x, rootContainer.clientSize.get().height() - 30 ) ) );
+        with( pageData.container.position ).apply( pos -> pos.set(
+                Position.of( pos.value().x, rootContainer.clientSize.value().height() - 30 ) ) );
 
         Platform.schedule( 750, () -> {
             pageData.page.dispose();
@@ -106,30 +107,27 @@ public class Pageflow {
 
         public PageCloseGesture( UIComposite component ) {
             super( component );
-            onEvent( ev -> {
-                LOG.info( "Gesture: %s", ev.delta.get() );
-                var top = component.components.sequence().last().get();
-                switch (ev.status.get()) {
+            on( ev -> {
+                LOG.info( "Gesture: %s", ev.delta() );
+                var top = component.components.values().last().get();
+                switch (ev.status()) {
                     case START: {
-                        startPos = top.position.get();
+                        startPos = top.position.value();
                         top.cssClasses.add( "Paning" );
                         break;
                     }
                     case MOVE: {
                         top.bordered.set( true );
-                        top.position.set( Position.of(
-                                startPos.x,
-                                startPos.y + ev.delta.get().y ) );
-                        float opacity = Math.max( 0.2f, (PEEK_DISTANCE_PX - ev.delta.get().y) / PEEK_DISTANCE_PX );
-                        top.htmlElm.styles.set( "opacity", opacity );
+                        top.position.set( Position.of( startPos.x, startPos.y + ev.delta().y ) );
+                        top.opacity.set( Math.max( 0.2f, (PEEK_DISTANCE_PX - ev.delta().y) / PEEK_DISTANCE_PX ) );
                         break;
                     }
                     case END: {
-                        top.htmlElm.styles.remove( "opacity" );
+                        top.opacity.set( null );
                         top.cssClasses.remove( "Paned" );
 
                         // close
-                        if (ev.clientPos.get().y > (component.clientSize.get().height() - EDGE_THRESHOLD)) {
+                        if (ev.clientPos().y > (component.clientSize.value().height() - EDGE_THRESHOLD)) {
                             Pageflow.current().close( pages.peek().page );
                         }
                         // reset

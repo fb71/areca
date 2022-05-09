@@ -17,12 +17,8 @@ import areca.common.Assert;
 import areca.common.base.Function;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
-import areca.ui.viewer.ModelAdapter;
-import areca.ui.viewer.ModelValueTransformer;
-import areca.ui.viewer.ModelValueValidator;
-import areca.ui.viewer.SingleValueAdapter;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 
 /**
  *

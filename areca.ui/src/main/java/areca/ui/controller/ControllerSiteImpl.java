@@ -20,7 +20,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.FieldInfo;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.UIComposite;
 import areca.ui.controller.Context.Mode;
 import areca.ui.viewer.ModelAdapter;
 

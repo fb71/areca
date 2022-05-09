@@ -15,9 +15,10 @@ package areca.ui.viewer;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.Text;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.Events.EventType;
+import areca.ui.component2.Text;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -30,14 +31,14 @@ public class TextViewer
 
     @Override
     public UIComponent create( UIComposite container ) {
-        return container.add( new Text(), t -> {
-            t.text.set( model.getValue() );
+        return container.add( new Text() {{
+            content.set( model.getValue() );
 
-            t.events.onSelection( ev -> {
+            events.on( EventType.SELECT, ev -> {
                 throw new RuntimeException( "Modifying text is not supported yet." );
                 //model.setValue();
             });
-        });
+        }});
     }
 
 }

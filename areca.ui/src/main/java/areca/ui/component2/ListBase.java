@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.component;
+package areca.ui.component2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,9 +20,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import areca.common.Assert;
 import areca.common.base.Sequence;
-import areca.ui.html.HtmlNode;
 import areca.ui.layout.RowConstraints;
-import areca.ui.layout.RowLayout;
 
 /**
  *
@@ -39,11 +37,11 @@ public abstract class ListBase<T>
     protected Map<Integer,UIComposite>  rows = new HashMap<>();
 
 
-    @Override
-    protected HtmlNode init( UIComposite newParent ) {
-        layout.set( new RowLayout() );
-        return super.init( newParent );
-    }
+//    @Override
+//    protected HtmlNode init( UIComposite newParent ) {
+//        layout.set( new RowLayout() );
+//        return super.init( newParent );
+//    }
 
 
     public ListBase<T> setData( int start, Iterable<T> data ) {

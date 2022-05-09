@@ -23,6 +23,7 @@ import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
+import areca.ui.Position;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
@@ -82,6 +83,16 @@ public abstract class UIComponentRenderer {
                 //    return Color.ofHex( htmlElm.getStyle().getPropertyValue( "background-color" ) );
                 //});
 
+        // opacity
+        c.opacity
+                .onInitAndChange( (newValue, oldValue) -> {
+                    if (newValue == null) {
+                        htmlElm.getStyle().removeProperty( "opacity" );
+                    } else {
+                        htmlElm.getStyle().setProperty( "opacity", newValue.toString() );
+                    }
+                });
+
         // size
         c.size
                 .onInitAndChange( (newValue, oldValue) -> {
@@ -115,14 +126,21 @@ public abstract class UIComponentRenderer {
                 String type = null;
                 switch (handler.type) {
                     case SELECT: type = "click"; break;
-                    default: throw new RuntimeException( "Unhandled: " + handler.type );
+                    case ACTION: type = "dblclick"; break;
+                    case CONTEXT: type = "contextmenu"; break;
+                    default: type = handler.type.toString().toLowerCase();
                 }
                 htmlElm( c ).addEventListener( type, _htmlEv -> {
-                    LOG.info( "HTML CLICK: " + ((MouseEvent)_htmlEv).getType() );
-                    handler.consumer.accept( new UIEvent( c ) {{
-                        this.htmlEv = _htmlEv;
-                        this.type = handler.type;
-                    }});
+                    LOG.debug( "HTML: " + _htmlEv.getType() );
+                    handler.consumer.accept( new UIEvent( c ) {
+                        {
+                            this.htmlEv = _htmlEv;
+                            this.type = handler.type;
+                        }
+                        @Override
+                        public Position clientPos() {
+                            return Position.of( ((MouseEvent)_htmlEv).getClientX(), ((MouseEvent)_htmlEv).getClientX() );
+                        }});
                 });
             }
         });

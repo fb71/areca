@@ -72,6 +72,9 @@ public abstract class UIComponent {
     /** Implemented via CSS class "Bordered". */
     public ReadWrite<UIComponent,Boolean>   bordered = Property.create( this, "bordered" );
 
+    /**  */
+    public ReadWrite<UIComponent,Float>     opacity = Property.create( this, "opacity" );
+
     /** */
     public ReadWrite<UIComponent,LayoutConstraints> layoutConstraints = Property.create( this, "lc" );
 

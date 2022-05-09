@@ -17,9 +17,7 @@ import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
-import areca.ui.component.UIComposite;
-import areca.ui.html.HtmlEventTarget.EventType;
-import areca.ui.html.HtmlEventTarget.ListenerHandle;
+import areca.ui.component2.UIComposite;
 import areca.ui.layout.LayoutManager;
 
 /**
@@ -31,40 +29,38 @@ public class PageStackLayout
 
     private static final Log LOG = LogFactory.getLog( PageStackLayout.class );
 
-    private Position        mousePos;
-
-    private ListenerHandle  mouseMoveHandle;
+    private UIComposite     composite;
 
     @Override
-    public void layout( UIComposite composite ) {
-        if (mouseMoveHandle == null) {
-            mouseMoveHandle = composite.htmlElm.listeners.add( EventType.MOUSEMOVE, ev ->
-                    mousePos = ev.clientPosition.get() );
-        }
-
-        var size = composite.clientSize.get();
+    public void layout( @SuppressWarnings("hiding") UIComposite composite ) {
+        this.composite = composite;
 
         // int zIndex = 0;
         for (var component : composite.components) {
             component.position.set( Position.of( 0, 0 ) );
-            component.size.set( size );
+            component.size.set( composite.clientSize.value() );
             // component.zIndex.set( zIndex++ );
         }
+    }
 
+
+    /**
+     * Show an open animation.
+     *
+     * @param origin The position where the action has its origin.
+     */
+    public void openLast( Position origin ) {
         // scale last one
-        composite.components.sequence().last().ifPresent( top -> {
-            top.htmlElm.styles.set( "transition", "none" );
-            top.htmlElm.styles.set( "transform", "scale(0.01)" );
-            //top.htmlElm.styles.set( "opacity", 0 );
-            top.position.set( mousePos != null
-                    ? mousePos.substract( size.divide( 2 ) )
+        composite.components.values().last().ifPresent( top -> {
+            top.cssClasses.add( "PageStackLayout-Top" );
+
+            top.position.set( origin != null
+                    ? origin.substract( composite.clientSize.value().divide( 2 ) )
                     : Position.of( 0, 0 ) );
 
             Platform.schedule( 300, () -> {
                 top.bordered.set( true );
-                top.htmlElm.styles.remove( "transition" );
-                top.htmlElm.styles.remove( "transform" );
-                top.htmlElm.styles.remove( "opacity" );
+                top.cssClasses.remove( "PageStackLayout-Top" );
                 top.position.set( Position.of( 0, 0 ) );
 
                 Platform.schedule( 500, () -> {

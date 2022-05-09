@@ -19,8 +19,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 import areca.ui.viewer.ModelAdapter;
 import areca.ui.viewer.ModelValueTransformer;
 import areca.ui.viewer.Viewer;

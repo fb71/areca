@@ -21,6 +21,7 @@ import areca.common.event.AsyncEventManager;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Position;
 import areca.ui.component2.Property.ReadWrites;
 
 /**
@@ -39,21 +40,27 @@ public class Events
     public static EventManager manager = new AsyncEventManager();
 
     public enum EventType {
-        SELECT, ACTION, POINTER_ENTER, POINTER_LEAVE, POINTER_MOVE
-//        CLICK,
-//        CONTEXTMENU,
-//        DBLCLICK,
-//        MOUSEDOWN,
-//        MOUSEENTER,
-//        MOUSELEAVE,
-//        MOUSEMOVE,
-//        MOUSEOUT,
-//        MOUSEOVER,
-//        MOUSEUP,
-//        TOUCHSTART,
-//        TOUCHEND,
-//        TOUCHMOVE,
-//        TOUCHCANCEL;
+        /** Pseudo event: click or tap an element */
+        SELECT,
+        /** Pseudo event: immediate action (double-click or double-tap) */
+        ACTION,
+        /** Pseudo event: show context sensitive actions (right click or long tap) */
+        CONTEXT,
+
+        CLICK,
+        CONTEXTMENU,
+        DBLCLICK,
+        MOUSEDOWN,
+        MOUSEENTER,
+        MOUSELEAVE,
+        MOUSEMOVE,
+        MOUSEOUT,
+        MOUSEOVER,
+        MOUSEUP,
+        TOUCHSTART,
+        TOUCHEND,
+        TOUCHMOVE,
+        TOUCHCANCEL;
     }
 
     public static class EventHandler {
@@ -89,7 +96,7 @@ public class Events
     /**
      *
      */
-    public static class UIEvent
+    public static abstract class UIEvent
             extends EventObject {
 
         public Object           htmlEv;
@@ -104,5 +111,7 @@ public class Events
         public UIComponent getSource() {
             return (UIComponent)super.getSource();
         }
+
+        public abstract Position clientPos();
     }
 }

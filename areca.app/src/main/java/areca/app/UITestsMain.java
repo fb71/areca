@@ -13,6 +13,8 @@
  */
 package areca.app;
 
+import static areca.ui.component2.Events.EventType.SELECT;
+
 import java.util.Collections;
 
 import org.polymap.model2.runtime.EntityRepository;
@@ -25,8 +27,9 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.App;
 import areca.ui.Position;
 import areca.ui.Size;
-import areca.ui.component.Button;
-import areca.ui.component.Text;
+import areca.ui.component2.Button;
+import areca.ui.component2.Events.EventType;
+import areca.ui.component2.Text;
 import areca.ui.layout.FillLayout;
 import areca.ui.layout.RasterLayout;
 import areca.ui.viewer.LabeledList;
@@ -67,9 +70,9 @@ public class UITestsMain {
             // Button1
             appWindow.add( new Button(), btn -> {
                 btn.label.set( "Button!" );
-                btn.events.onSelection( ev -> {
+                btn.events.on( EventType.SELECT, ev -> {
                     log.info( "clicked: " + ev ); // ev.getType() + ", ctrl=" + ev.getCtrlKey() + ", pos=" + ev.getClientX() + "/" + ev.getClientY() );
-                    Position pos = btn.position.get();
+                    Position pos = btn.position.value();
                     btn.position.set( Position.of( pos.x()-10, pos.y()-10 ) );
                 });
                 btn.position.set( Position.of( 100, 100 ) );
@@ -95,14 +98,14 @@ public class UITestsMain {
             //appWindow.size.set( Size.of( 400, 300 ) );
             appWindow.layout.set( new RasterLayout() {{spacing.set( 10 );}} );
 
-            appWindow.add( new Text(), text -> text.text.set( "Samstagabend" ) );
+            appWindow.add( new Text(), text -> text.content.set( "Samstagabend" ) );
 
             for (int i = 0; i < 2; i++) {
                 var label = "" + i;
                 appWindow.add( new Button(), btn -> {
                     btn.label.set( label );
-                    btn.events.onSelection( ev ->  {
-                        appWindow.layout.set( (appWindow.layout.get() instanceof FillLayout)
+                    btn.events.on( SELECT, ev ->  {
+                        appWindow.layout.set( (appWindow.layout.value() instanceof FillLayout)
                                 ? new RasterLayout() : new FillLayout() );
                         appWindow.layout();
                     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021, the @authors. All rights reserved.
+ * Copyright (C) 2021-2, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -14,8 +14,8 @@
 package areca.ui.pageflow;
 
 import areca.common.Assert;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 
 /**
  *

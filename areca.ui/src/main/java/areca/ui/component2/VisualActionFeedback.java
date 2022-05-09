@@ -67,17 +67,6 @@ public class VisualActionFeedback
                 });
             });
         }});
-
-
-//        var div = App.instance().rootWindow().htmlElm.children.add( new HtmlElement( Type.DIV ) );
-//        div.attributes.set( "class", "VisualClickFeedbackStart" );
-//        div.styles.set( "", ev.underlying().clientPosition.get().substract( Position.of( 10, 10 ) ) );
-//        Platform.async( () -> {
-//            div.attributes.set( "class", "VisualClickFeedbackEnd" );
-//            Platform.schedule( 1000, () -> {
-//                div.remove();
-//            });
-//        });
     }
 
 }
