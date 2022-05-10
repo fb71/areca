@@ -34,13 +34,7 @@ public abstract class UIComponentEvent
      * Component lifecycle and {@link PropertyChangedEvent}s. Mostly for internal use
      * when rendering.
      */
-    public static final EventManager manager = new AsyncEventManager() {
-        @Override
-        protected void fireEvent( EventObject ev ) {
-            // LOG.debug( "PROCESS: " + ev );
-            super.fireEvent( ev );
-        }
-    };
+    public static final EventManager manager = new AsyncEventManager();
 
     /** */
     public static class ComponentConstructedEvent

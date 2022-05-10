@@ -137,7 +137,8 @@ public abstract class Property<C,T> {
         if (Objects.equals( oldValue, newValue )) {
             LOG.warn( toString() + ": values are EQUAL: " + newValue + " -- " + oldValue );
         }
-        UIComponentEvent.manager.publish( new PropertyChangedEvent<>( this, oldValue, newValue ) );
+        var ev = new PropertyChangedEvent<>( this, oldValue, newValue );
+        UIComponentEvent.manager.publish( ev );
     }
 
 

@@ -23,7 +23,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
- * Not yet tested.
+ * Async delivering events via {@link Platform#async(Runnable)}.
  *
  * @author Falko Bräutigam
  */
@@ -34,7 +34,7 @@ public class AsyncEventManager
 
     private static final int        INIT_QUEUE_CAPACITY = 128;
 
-    private List<EventObject>       eventQueue = null;
+    private List<Event>             eventQueue = null;
 
     private Promise<Void>           async;
 
@@ -57,15 +57,33 @@ public class AsyncEventManager
                 async = null;
 
                 // TODO check if queue is to big or computation takes to long
-                LOG.info( "Queue: " + stable.size() );
-                for (EventObject queued : stable) {
-                    fireEvent( queued );
+                LOG.info( "Queued: " + stable.size() + " - Handlers: " + handlers.size() );
+                for (Event queued : stable) {
+                    for (EventHandlerInfo handler : queued.handlers) {
+                        handler.perform( queued.ev );
+                    }
                 }
                 return null;
             });
         }
-        eventQueue.add( ev );
+        eventQueue.add( new Event( ev, handlers ) );
         return async;
+    }
+
+
+    /**
+     *
+     */
+    private static class Event {
+
+        public EventObject              ev;
+
+        public List<EventHandlerInfo>   handlers;
+
+        protected Event( EventObject ev, List<EventHandlerInfo> handlers ) {
+            this.ev = ev;
+            this.handlers = handlers;
+        }
     }
 
 }

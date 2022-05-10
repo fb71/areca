@@ -92,7 +92,8 @@ public class ThreadedEventManager
                     new Thread( () -> {
                         LOG.info( "CHUNK: " + chunk.size() );
                         for (EventObject ev : chunk) {
-                            fireEvent( ev );
+                            // FIXME copy-on-write!
+                            handlers.forEach( handler -> handler.perform( ev ) );
                             synchronized (ev) {
                                 ev.notifyAll();
                             }

@@ -17,12 +17,10 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
-import areca.ui.Color;
 import areca.ui.Orientation;
 import areca.ui.Size;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
-import areca.ui.component2.Text;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.RowLayout;
 
@@ -40,30 +38,49 @@ public class RowLayoutTest {
 
     @Test( "Row" )
     public void createRowLayout( UIComposite parent ) {
-        var layout = new RowLayout() {{margins.set( Size.of( 10, 10 ) ); spacing.set( 10 ); fillWidth.set( true );}};
+        var layout = new RowLayout() {{margins.set( Size.of( 5, 5 ) ); spacing.set( 5 ); fillWidth.set( true );}};
         parent.layout.set( layout );
 
-        parent.add( new Text() {{
-            content.set( "UI2 :) -- " + bordered );
-            bordered.set( true );
+//        parent.add( new Text() {{
+//            content.set( "UI2 :) -- " + bordered );
+//            bordered.set( true );
+//            events.on( EventType.SELECT, ev -> {
+//                LOG.warn( "CLICK: " + ev );
+//                var current = size.value();
+//                size.set( Size.of( current.width() - 20, current.height() - 20 ) );
+//                bgColor.set( Color.rgb( 0x30, 0x40, 0x50 ) );
+//                layout.orientation.set( Orientation.VERTICAL );
+//               // parent.layout.set( layout );
+//                parent.layout();
+//            });
+//        }});
+
+        parent.add( new Button() {{
+            label.set( "horiz" );
             events.on( EventType.SELECT, ev -> {
-                LOG.warn( "CLICK: " + ev );
-                var current = size.value();
-                size.set( Size.of( current.width() - 20, current.height() - 20 ) );
-                bgColor.set( Color.rgb( 0x30, 0x40, 0x50 ) );
-                layout.orientation.set( Orientation.VERTICAL );
-               // parent.layout.set( layout );
+                layout.orientation.set( Orientation.HORIZONTAL );
                 parent.layout();
             });
         }});
-
         parent.add( new Button() {{
-            LOG.warn( "CSS: " + cssClasses );
-            label.set( "+++" );
+            label.set( "vert" );
             events.on( EventType.SELECT, ev -> {
-                this.label.set( "Hola!" );
-                // Platform.schedule( 1000, () -> this.dispose() );
-                layout.orientation.set( Orientation.HORIZONTAL );
+                layout.orientation.set( Orientation.VERTICAL );
+                parent.layout();
+            });
+        }});
+        parent.add( new Button() {{
+            label.set( "fill w (" + layout.fillWidth.value() + ")" );
+            events.on( EventType.SELECT, ev -> {
+                layout.fillWidth.set( !layout.fillWidth.value() );
+                parent.layout();
+            });
+        }});
+        parent.add( new Button() {{
+            label.set( "fill h (" + layout.fillHeight.value() + ")" );
+            events.on( EventType.SELECT, ev -> {
+                layout.fillHeight.set( !layout.fillHeight.value() );
+                label.set( "fill h (" + layout.fillHeight.value() + ") " );
                 parent.layout();
             });
         }});

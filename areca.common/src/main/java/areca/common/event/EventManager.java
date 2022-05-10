@@ -20,14 +20,13 @@ import java.util.Collections;
 import java.util.EventObject;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import java.lang.reflect.InvocationTargetException;
 
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.base.Opt;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.MethodInfo;
 
@@ -37,7 +36,7 @@ import areca.common.reflect.MethodInfo;
  */
 public abstract class EventManager {
 
-    private static final Logger LOG = Logger.getLogger( EventManager.class.getSimpleName() );
+    private static final Log LOG = LogFactory.getLog( EventManager.class );
 
     private static EventManager     INSTANCE = new SameStackEventManager();
 
@@ -55,12 +54,12 @@ public abstract class EventManager {
     public BiConsumer<EventObject,Throwable>    defaultOnError;
 
     /** Copy-on-Write */
-    private List<EventHandlerInfo>              handlers = Collections.emptyList();
+    protected List<EventHandlerInfo>            handlers = Collections.emptyList();
 
 
     protected EventManager() {
         defaultOnError = (ev, e) -> {
-            LOG.log( Level.WARNING, "Error during handling of event: " + ev, e );
+            LOG.warn( "Error during handling of event: " + ev, e );
 
             // FIXME no (correct) StackTrace in TeaVM; just throwing shows something useful :(
 //            System.out.println( "STACK: " + e.getStackTrace().length );
@@ -83,10 +82,16 @@ public abstract class EventManager {
     }
 
 
+    public EventHandlerInfo subscribe( EventListener<?> l ) {
+        return subscribe( (Object)l );
+    }
+
+
     public EventHandlerInfo subscribe( Object annotatedOrListener ) {
         EventHandlerInfo newHandler = new EventHandlerInfo( annotatedOrListener );
 
         List<EventHandlerInfo> newHandlers = new ArrayList<>( handlers.size() + 1 );
+        // XXX arraycopy?
         for (EventHandlerInfo cursor : handlers) {
             if (cursor.handler == annotatedOrListener) {
                 throw new IllegalStateException( "Event handler already subscribed!" );
@@ -94,6 +99,7 @@ public abstract class EventManager {
             newHandlers.add( cursor );
         }
         newHandlers.add( newHandler );
+        Assert.isEqual( handlers.size()+1, newHandlers.size() );
         handlers = newHandlers;
         return newHandler;
     }
@@ -106,12 +112,8 @@ public abstract class EventManager {
                 newHandlers.add( cursor );
             }
         }
+        Assert.isEqual( handlers.size()-1, newHandlers.size() );
         handlers = newHandlers;
-    }
-
-
-    public EventHandlerInfo subscribe( EventListener<?> l ) {
-        return subscribe( (Object)l );
     }
 
 
@@ -120,19 +122,19 @@ public abstract class EventManager {
     }
 
 
-    /**
-     * Fire the given events.
-     * <p>
-     * The triggered event handlers may publish new events. The caller has to make
-     * sure that any event queue can handle insert during iteration.
-     *
-     * @param events
-     */
-    protected void fireEvent( EventObject ev ) {
-        for (EventHandlerInfo handler : handlers) {
-            handler.perform( ev );
-        }
-    }
+//    /**
+//     * Fire the given events.
+//     * <p>
+//     * The triggered event handlers may publish new events. The caller has to make
+//     * sure that any event queue can handle insert during iteration.
+//     *
+//     * @param events
+//     */
+//    protected void fireEvent( EventObject ev ) {
+//        for (EventHandlerInfo handler : handlers) {
+//            handler.perform( ev );
+//        }
+//    }
 
 
     /**
@@ -195,6 +197,7 @@ public abstract class EventManager {
                 }
                 // dispose
                 if (disposeIf != null && disposeIf.test( ev )) {
+                    LOG.warn( "DISPOSE: " + EventHandlerInfo.this.handler );
                     EventManager.this.unsubscribe( EventHandlerInfo.this );
                     return;
                 }

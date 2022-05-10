@@ -15,8 +15,12 @@ package areca.app;
 
 import static areca.common.log.LogFactory.Level.INFO;
 
+import org.teavm.jso.browser.Window;
+
+import areca.app.model.ModelRepo;
 import areca.app.ui.StartPage;
 import areca.common.Platform;
+import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.TeaPlatform;
@@ -51,31 +55,49 @@ public class Main {
         initLog();
         Platform.impl = new TeaPlatform();
 
-//        TestsMain.main( args );
-//        LOG.info( "done." );
-//        return;
+        String hash = Window.current().getLocation().getHash();
+        LOG.info( "URL hash: " + hash );
 
+        // TestsMain
+        if (hash.equals( "#tests" )) {
+            TestsMain.main( args );
+            LOG.info( "done." );
+        }
+        // Gallery
+        else if (hash.equals( "#gallery" )) {
+            catchAll( __ -> {
+                UIComponentRenderer.start();
+                GalleryMain.createApp();
+            } );
+        }
+        // no #hash
+        else if (!hash.isBlank()) {
+            throw new RuntimeException( "Unknown hash: " + hash );
+        }
+        // app
+        else {
+            catchAll( __ -> {
+                ModelRepo.init();
+                UIComponentRenderer.start();
+                App.instance().createUI( rootWindow -> {
+                    VisualActionFeedback.start();
+                    Pageflow.start( rootWindow ).open( new StartPage(), null, null );
+                });
+            });
+        }
+    }
+
+
+    protected static void catchAll( Consumer<Void,?> code ) throws Exception {
         try {
-            UIComponentRenderer.start();
-
-//            ModelRepo.init();
-//            createApp();
-
-            GalleryMain.createApp();
+            code.accept( null );
         }
         catch (Throwable e) {
-            //System.out.println( "Exception: " + e + " --> " );
+            LOG.debug( "Exception: %s -->", e );
             Throwable rootCause = Platform.rootCause( e );
-            System.out.println( "Root cause: " + rootCause );
+            LOG.debug( "Root cause: %s : %s", rootCause, rootCause.getMessage() );
             throw (Exception)rootCause;
         }
     }
 
-
-    protected static void createApp() {
-        App.instance().createUI( rootWindow -> {
-            VisualActionFeedback.start();
-            Pageflow.start( rootWindow ).open( new StartPage(), null, null );
-        });
-    }
 }

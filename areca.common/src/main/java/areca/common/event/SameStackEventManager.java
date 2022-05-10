@@ -22,8 +22,8 @@ import areca.common.base.Consumer.RConsumer;
 
 /**
  * Simple {@link EventManager} implementation that executes event handlers
- * synchronously right in the same thread/stack of the
- * {@link #publish(java.util.EventObject)} call.
+ * synchronously on the stack of the {@link #publish(java.util.EventObject)}
+ * call.
  *
  * @author Falko Bräutigam
  */
@@ -33,7 +33,9 @@ public class SameStackEventManager
 
     @Override
     public void publish( EventObject ev ) {
-        fireEvent( ev );
+        for (EventHandlerInfo handler : handlers) {
+            handler.perform( ev );
+        }
     }
 
 

@@ -49,13 +49,13 @@ public class VisualActionFeedback
 
     @Override
     public void handle( UIEvent ev ) {
-        LOG.info( "ev: " + ev.getSource() );
+        //LOG.info( "ev: " + ev.getSource() );
 
         var root = ev.getSource().parent();
         while (root.parent() != null) {
             root = root.parent();
         }
-        LOG.info( "root: " + root );
+        //LOG.info( "root: " + root );
 
         root.add( new UIComposite() {{
             cssClasses.set( Arrays.asList( "VisualClickFeedbackStart" ) );

@@ -49,6 +49,8 @@ public abstract class UIComponent {
 
     private int                         id = ID_COUNT++;
 
+    private boolean                     disposed;
+
     private UIComposite                 parent;
 
     private Map<String,Object>          data = new TreeMap<>();
@@ -144,6 +146,8 @@ public abstract class UIComponent {
      */
     public void dispose() {
         Assert.that( !isDisposed() );
+        disposed = true;
+        //htmlElm = null;
         events.dispose();
         if (parent != null) {
             parent.components.remove( this );
@@ -153,7 +157,7 @@ public abstract class UIComponent {
 
 
     public boolean isDisposed() {
-        return htmlElm == null;
+        return disposed;
     }
 
 

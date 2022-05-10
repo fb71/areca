@@ -131,7 +131,7 @@ public abstract class ClassInfo<T>
         while (ci != null) {
             for (MethodInfo m : ci.declaredMethods()) {
                 if (result.putIfAbsent( m.name(), m ) != null) { // TODO check complete signature
-                    LOG.info( "Method overridden: %s::%s", ci.name(), m.name() );
+                    LOG.debug( "Method overridden: %s::%s", ci.name(), m.name() );
                 }
             }
             ci = ci.superclassInfo().orElse( null );
