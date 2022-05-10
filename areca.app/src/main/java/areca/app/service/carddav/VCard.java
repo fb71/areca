@@ -49,19 +49,19 @@ public class VCard {
 
     // instance *******************************************
 
-    public ReadWrite<VCard,String>  fn = Property.create( this, "fn", (String)null );
+    public ReadWrite<VCard,String>  fn = Property.rw( this, "fn", (String)null );
 
-    public ReadWrite<VCard,String>  lastname = Property.create( this, "lastname", (String)null );
+    public ReadWrite<VCard,String>  lastname = Property.rw( this, "lastname", (String)null );
 
-    public ReadWrite<VCard,String>  firstname = Property.create( this, "firstname", (String)null );
+    public ReadWrite<VCard,String>  firstname = Property.rw( this, "firstname", (String)null );
 
-    public ReadWrites<VCard,String> emails = Property.create( this, "email", new ArrayList<>() );
+    public ReadWrites<VCard,String> emails = Property.rws( this, "email", new ArrayList<>() );
 
-    public ReadWrite<VCard,String>  photo = Property.create( this, "photo", (String)null );
+    public ReadWrite<VCard,String>  photo = Property.rw( this, "photo", (String)null );
 
-    public ReadOnly<VCard,String>   uid = Property.create( this, "uid", (String)null );
+    public ReadOnly<VCard,String>   uid = Property.rw( this, "uid", (String)null );
 
-    public ReadOnly<VCard,String>   rev = Property.create( this, "rev", (String)null );
+    public ReadOnly<VCard,String>   rev = Property.rw( this, "rev", (String)null );
 
 
     protected VCard() {
@@ -99,7 +99,7 @@ public class VCard {
             // FN:
             else if (line.startsWith( "FN:" )) {
                 fn.set( line.substring( 3 ) );
-                LOG.debug( "FN: " + fn.get() );
+                LOG.debug( "FN: " + fn.value() );
             }
             // EMAIL:
             else if (line.startsWith( "EMAIL" )) {
@@ -108,17 +108,17 @@ public class VCard {
             }
             // UID:
             else if (line.startsWith( "UID:" )) {
-                uid = Property.create( this, "uid", line.substring( 4 ) );
+                uid = Property.rw( this, "uid", line.substring( 4 ) );
             }
             // REV:
             else if (line.startsWith( "REV:" )) {
-                rev = Property.create( this, "rev", line.substring( 4 ) );
+                rev = Property.rw( this, "rev", line.substring( 4 ) );
             }
             // PHOTO;ENCODING=B;TYPE=JPEG:
             else if (line.startsWith( "PHOTO" )) {
                 var parts = split( substringBefore( line, ":" ), ';' );
                 photo.set( substringAfterLast( line, ":" ) );
-                LOG.debug( "PHOTO: %s", photo.get() );
+                LOG.debug( "PHOTO: %s", photo.value() );
             }
             else {
                 // LOG.warn( "Unhandled line: " + line );

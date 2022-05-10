@@ -17,12 +17,12 @@ import java.util.logging.Logger;
 
 import areca.app.model.Message;
 import areca.common.reflect.RuntimeInfo;
-import areca.ui.controller.UI;
-import areca.ui.component.Button;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.Button;
+import areca.ui.component2.UIComposite;
 import areca.ui.controller.Context;
 import areca.ui.controller.Controller;
 import areca.ui.controller.State;
+import areca.ui.controller.UI;
 import areca.ui.layout.FillLayout;
 import areca.ui.viewer.ListModelAdapter;
 import areca.ui.viewer.ListViewer;
@@ -64,7 +64,7 @@ public class MessagesController
 
 
     @Override
-    protected void init( Site site ) {
+    protected void init( @SuppressWarnings("hiding") Site site ) {
         super.init( site );
         subscribeUIEvent( ev -> LOG.info( "Event: " + ev ) )
                 .performIf( ev -> isSource( ev, messages ) );

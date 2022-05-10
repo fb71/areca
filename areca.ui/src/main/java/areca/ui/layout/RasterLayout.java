@@ -30,7 +30,7 @@ public class RasterLayout
 
     private static final Log LOG = LogFactory.getLog( RasterLayout.class );
 
-    public ReadWrite<RasterLayout,Integer> spacing = Property.create( this, "spacing", 5 );
+    public ReadWrite<RasterLayout,Integer> spacing = Property.rw( this, "spacing", 5 );
 
 
     @Override

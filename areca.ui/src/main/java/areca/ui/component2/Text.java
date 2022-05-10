@@ -22,6 +22,6 @@ import areca.ui.component2.Property.ReadWrite;
 public class Text
         extends UIComponent {
 
-    public ReadWrite<Text,String> content = Property.create( this, "content" );
+    public ReadWrite<Text,String> content = Property.rw( this, "content" );
 
 }

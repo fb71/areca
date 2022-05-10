@@ -41,7 +41,7 @@ public class CarddavSynchronizer {
 
     private static final Log LOG = LogFactory.getLog( CarddavSynchronizer.class );
 
-    public ReadWrite<?,ProgressMonitor> monitor = Property.create( this, "monitor", new NullProgressMonitor() );
+    public ReadWrite<?,ProgressMonitor> monitor = Property.rw( this, "monitor", new NullProgressMonitor() );
 
     protected static final Contact      END = new Contact();
 

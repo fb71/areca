@@ -47,7 +47,7 @@ public class ImapFolderSynchronizer {
 
 //    public Property<Boolean>            checkExisting = Property.create( this, "checkExisting", false );
 
-    public ReadWrite<?,ProgressMonitor> monitor = Property.create( this, "monitor", new NullProgressMonitor() );
+    public ReadWrite<?,ProgressMonitor> monitor = Property.rw( this, "monitor", new NullProgressMonitor() );
 
     protected RSupplier<ImapRequest>    requestFactory;
 

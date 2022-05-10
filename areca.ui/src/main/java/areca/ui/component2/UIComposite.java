@@ -28,7 +28,7 @@ import areca.ui.layout.LayoutManager;
 public class UIComposite
         extends UIComponent {
 
-    public ReadWrite<UIComposite,LayoutManager> layout = Property.create( this, "layout" );
+    public ReadWrite<UIComposite,LayoutManager> layout = Property.rw( this, "layout" );
 
     public Children             components = new Children();
 

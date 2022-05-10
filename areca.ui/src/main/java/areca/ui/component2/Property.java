@@ -37,25 +37,24 @@ public abstract class Property<C,T> {
 
     private static final Log LOG = LogFactory.getLog( Property.class );
 
-    /**
-     * Creates a field backed read-write property.
-     */
-    public static <RC,R> ReadWrite<RC,R> create( RC component, String name ) {
+    /** Creates a field backed read-write property. */
+    public static <RC,R> ReadWrite<RC,R> rw( RC component, String name ) {
         return new ReadWrite<>( component, name );
     }
 
-    /**
-     * Creates a read-write property with the given initial value.
-     */
-    public static <RC,R> ReadWrite<RC,R> create( RC component, String name, R initValue ) {
+    /** Creates a read-write property with the given initial value. */
+    public static <RC,R> ReadWrite<RC,R> rw( RC component, String name, R initValue ) {
         return new ReadWrite<>( component, name, initValue );
     }
 
-    /**
-     * Creates ...
-     */
-    public static <RC,R> ReadWrites<RC,R> mutables( RC component, String name ) {
+    /** Creates ... */
+    public static <RC,R> ReadWrites<RC,R> rws( RC component, String name ) {
         return new ReadWrites<>( component, name );
+    }
+
+    /** Creates ... */
+    public static <RC,R> ReadWrites<RC,R> rws( RC component, String name, Collection<R> initValue ) {
+        return new ReadWrites<>( component, name, initValue );
     }
 
 
@@ -227,6 +226,10 @@ public abstract class Property<C,T> {
 
         protected ReadWrites( C component, String name ) {
             super( component, name );
+        }
+
+        protected ReadWrites( C component, String name, Collection<T> initValue ) {
+            super( component, name, initValue );
         }
 
         public Sequence<T,RuntimeException> values() {

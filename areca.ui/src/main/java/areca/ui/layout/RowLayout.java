@@ -36,24 +36,24 @@ public class RowLayout
 
     private static final Log LOG = LogFactory.getLog( RowLayout.class );
 
-    public ReadWrite<RowLayout,Size>        margins = Property.create( this, "margins", Size.of( 0, 0 ) );
+    public ReadWrite<RowLayout,Size>        margins = Property.rw( this, "margins", Size.of( 0, 0 ) );
 
-    public ReadWrite<RowLayout,Integer>     spacing = Property.create( this, "spacing", 0 );
+    public ReadWrite<RowLayout,Integer>     spacing = Property.rw( this, "spacing", 0 );
 
-    public ReadWrite<RowLayout,Orientation> orientation = Property.create( this, "orientation", HORIZONTAL );
+    public ReadWrite<RowLayout,Orientation> orientation = Property.rw( this, "orientation", HORIZONTAL );
 
     /**
      * {@link Orientation#HORIZONTAL}: all components have the same height so that the
      * entiry client size of the composite is filled. Default: {@link Boolean#FALSE}
      */
-    public ReadWrite<RowLayout,Boolean>     fillHeight = Property.create( this, "fillHeight", false );
+    public ReadWrite<RowLayout,Boolean>     fillHeight = Property.rw( this, "fillHeight", false );
 
     /**
      * {@link Orientation#HORIZONTAL}: all components have the same width so that the
      * entiry client size is filled. Individual settings via
      * {@link RowConstraints#width} are ignored. Default: {@link Boolean#FALSE}
      */
-    public ReadWrite<RowLayout,Boolean>     fillWidth = Property.create( this, "fillWidth", false );
+    public ReadWrite<RowLayout,Boolean>     fillWidth = Property.rw( this, "fillWidth", false );
 
 
     @Override

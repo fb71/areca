@@ -58,27 +58,27 @@ public abstract class UIComponent {
     public Object                       htmlElm;
 
     /** The styling classes of this component. */
-    public ReadWrites<UIComponent,String>   cssClasses = Property.mutables( this, PROP_CSS_CLASSES );
+    public ReadWrites<UIComponent,String>   cssClasses = Property.rws( this, PROP_CSS_CLASSES );
 
     /** Background color. */
-    public ReadWrite<UIComponent,Color>     bgColor = Property.create( this, PROP_BG_COLOR );
+    public ReadWrite<UIComponent,Color>     bgColor = Property.rw( this, PROP_BG_COLOR );
 
     /** The size of the component. Usually this is set by a {@link LayoutManager} only. */
-    public ReadWrite<UIComponent,Size>      size = Property.create( this, PROP_SIZE );
+    public ReadWrite<UIComponent,Size>      size = Property.rw( this, PROP_SIZE );
 
-    public ReadOnly<UIComponent,Size>       clientSize = Property.create( this, "clientSize" );
+    public ReadOnly<UIComponent,Size>       clientSize = Property.rw( this, "clientSize" );
 
     /** The position of the component. Usually this is set by a {@link LayoutManager} only. */
-    public ReadWrite<UIComponent,Position>  position = Property.create( this, PROP_POSITION );
+    public ReadWrite<UIComponent,Position>  position = Property.rw( this, PROP_POSITION );
 
     /** Implemented via CSS class "Bordered". */
-    public ReadWrite<UIComponent,Boolean>   bordered = Property.create( this, "bordered" );
+    public ReadWrite<UIComponent,Boolean>   bordered = Property.rw( this, "bordered" );
 
     /**  */
-    public ReadWrite<UIComponent,Float>     opacity = Property.create( this, "opacity" );
+    public ReadWrite<UIComponent,Float>     opacity = Property.rw( this, "opacity" );
 
     /** */
-    public ReadWrite<UIComponent,LayoutConstraints> layoutConstraints = Property.create( this, "lc" );
+    public ReadWrite<UIComponent,LayoutConstraints> layoutConstraints = Property.rw( this, "lc" );
 
     /** */
     public Events events = new Events( this );
