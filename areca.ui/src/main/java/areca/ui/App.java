@@ -35,8 +35,6 @@ public class App {
 
 
     public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E {
-        // MainRenderEventHandler.start();
-
         Assert.isNull( rootWindow );
         rootWindow = new RootWindow();
 

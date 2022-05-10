@@ -15,9 +15,9 @@ package areca.ui.viewer;
 
 import java.util.logging.Logger;
 
-import areca.ui.Property;
-import areca.ui.Property.ReadWrite;
 import areca.ui.component2.ListBase;
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.FillLayout;
@@ -39,7 +39,7 @@ public class LabeledList<T>
     protected void initRow( T data, UIComposite composite ) {
         composite.add( new Text(), text -> {
             composite.layout.set( new FillLayout() );
-            text.content.set( firstLineLabeler.get().label( data ) );
+            text.content.set( firstLineLabeler.value().label( data ) );
         });
     }
 

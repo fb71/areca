@@ -15,14 +15,14 @@ package areca.ui.controller;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.Property;
+import areca.ui.component2.Property;
 
 /**
  *
  * @author Falko Bräutigam
  */
 public class State<T>
-        extends Property.FieldBackedProperty<Controller,T> {
+        extends Property.ReadWrite<Controller,T> {
 
     private static final Log log = LogFactory.getLog( State.class );
 

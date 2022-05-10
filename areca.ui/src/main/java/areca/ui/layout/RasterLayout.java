@@ -16,10 +16,10 @@ package areca.ui.layout;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
-import areca.ui.Property;
 import areca.ui.Size;
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.UIComposite;
-import areca.ui.Property.ReadWrite;
 
 /**
  *
@@ -35,7 +35,7 @@ public class RasterLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        Size size = composite.clientSize.value();
+        Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
 
 //        composite.components().sequence().forEach( c -> {
 //            c.position.set( Position.of( 1, 1 ) );

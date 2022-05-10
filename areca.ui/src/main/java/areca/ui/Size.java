@@ -57,4 +57,12 @@ public class Size {
         return new Size( round(width / divisor), round(height / divisor) );
     }
 
+    public Size substract( int w, int h ) {
+        return substract( Size.of( w, h ) );
+    }
+
+    public Size substract( Size s ) {
+        return Size.of( width - s.width, height - s.height );
+    }
+
 }

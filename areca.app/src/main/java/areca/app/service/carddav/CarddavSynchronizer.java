@@ -14,6 +14,7 @@
 package areca.app.service.carddav;
 
 import static org.polymap.model2.query.Expressions.eq;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,8 +30,8 @@ import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.Property;
-import areca.ui.Property.ReadWrite;
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrite;
 
 /**
  *
@@ -57,7 +58,7 @@ public class CarddavSynchronizer {
 
 
     public Promise<List<Contact>> start() {
-        monitor.get().beginTask( "Syncing contacts", ProgressMonitor.UNKNOWN );
+        monitor.value().beginTask( "Syncing contacts", ProgressMonitor.UNKNOWN );
 
         var uow = repo.newUnitOfWork();
         return new PropfindRequest( contactsRoot )
@@ -73,16 +74,16 @@ public class CarddavSynchronizer {
                 // parse VCard -> query Contact
                 .then( vcf -> {
                     var vcard = VCard.parse( vcf.text() );
-                    LOG.info( "VCard: %s", vcard.fn.get() );
+                    LOG.info( "VCard: %s", vcard.fn.value() );
                     return uow.query( Contact.class )
-                            .where( eq( Contact.TYPE.storeRef, vcard.uid.get() ) )
+                            .where( eq( Contact.TYPE.storeRef, vcard.uid.value() ) )
                             .executeToList()
                             .map( contacts -> Pair.of( vcard, contacts ) );
                 })
                 // create/update Contact
                 .map( compound -> {
                     List<Contact> contacts = compound.getRight();
-                    LOG.info( "Contacts found for '%s': %s", compound.getLeft().fn.get(), compound.getRight() );
+                    LOG.info( "Contacts found for '%s': %s", compound.getLeft().fn.value(), compound.getRight() );
                     Assert.that( contacts.size() <= 1 );
                     var contact = contacts.isEmpty()
                             ? uow.createEntity( Contact.class)
@@ -102,7 +103,7 @@ public class CarddavSynchronizer {
         vcard.firstname.opt().ifPresent( v -> contact.firstname.set( v ) );
         vcard.lastname.opt().ifPresent( v -> contact.lastname.set( v ) );
         vcard.uid.opt().ifPresent( v -> contact.storeRef.set( v ) );
-        vcard.emails.sequence().first().ifPresent( v -> contact.email.set( v ) );
+        vcard.emails.values().first().ifPresent( v -> contact.email.set( v ) );
         vcard.photo.opt().ifPresent( v -> contact.photo.set( v ) );
     }
 

@@ -23,9 +23,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.EntityRepository;
-import org.polymap.model2.runtime.UnitOfWork;
 
-import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.common.NullProgressMonitor;
@@ -35,8 +33,8 @@ import areca.common.base.Sequence;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.Property;
-import areca.ui.Property.ReadWrite;
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrite;
 
 /**
  * Synchronize an entire IMAP folder with the DB.
@@ -66,14 +64,14 @@ public class ImapFolderSynchronizer {
 
 
     public Promise<?> start() {
-        monitor.get().beginTask( "Syncing folder: " + folderName, ProgressMonitor.UNKNOWN );
+        monitor.value().beginTask( "Syncing folder: " + folderName, ProgressMonitor.UNKNOWN );
 
         var uow = repo.newUnitOfWork();
 
         return fetchMessageCount()
                 // fetch messages-ids
                 .then( fsc -> {
-                    monitor.get().beginTask( "Syncing folder: " + folderName, fsc.exists );
+                    monitor.value().beginTask( "Syncing folder: " + folderName, fsc.exists );
                     return fetchMessageIds( fsc.exists );
                 })
                 // find missing Message entities

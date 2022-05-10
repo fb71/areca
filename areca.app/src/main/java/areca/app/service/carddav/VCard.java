@@ -29,10 +29,10 @@ import areca.common.Assert;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.Property;
-import areca.ui.Property.ReadOnly;
-import areca.ui.Property.ReadWrite;
-import areca.ui.Property.ReadWrites;
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadOnly;
+import areca.ui.component2.Property.ReadWrite;
+import areca.ui.component2.Property.ReadWrites;
 
 /**
  * https://www.evenx.com/vcard-3-0-format-specification

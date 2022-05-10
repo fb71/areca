@@ -13,6 +13,8 @@
  */
 package areca.app.ui;
 
+import static areca.ui.component2.Events.EventType.SELECT;
+
 import areca.app.model.Contact;
 import areca.app.model.ModelRepo;
 import areca.app.service.carddav.CardDavTest;
@@ -20,10 +22,10 @@ import areca.app.service.carddav.CarddavSynchronizer;
 import areca.common.NullProgressMonitor;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.Button;
-import areca.ui.component.Text;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.Button;
+import areca.ui.component2.Text;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 import areca.ui.layout.RasterLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageUIComposite;
@@ -43,7 +45,7 @@ public class ContactsPage extends Page {
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageUIComposite( parent );
-        ui.header.add( new Text(), title -> title.text.set( "Contacts" ) );
+        ui.header.add( new Text(), title -> title.content.set( "Contacts" ) );
 
         ui.body.layout.set( new RasterLayout() {{spacing.set( 10 );}} );
 
@@ -51,12 +53,12 @@ public class ContactsPage extends Page {
 
         ui.body.add( new Button(), btn -> {
             btn.label.set( "^" );
-            btn.events.onSelection( ev -> syncContacts() );
+            btn.events.on( SELECT, ev -> syncContacts() );
         });
 
         ui.body.add( new Button(), btn -> {
             btn.label.set( "XX" );
-            btn.events.onSelection( ev -> Pageflow.current().close( ContactsPage.this ) );
+            btn.events.on( SELECT, ev -> Pageflow.current().close( ContactsPage.this ) );
         });
         ui.body.layout();
         return ui;
@@ -86,8 +88,8 @@ public class ContactsPage extends Page {
 
     protected void makeContactButton( Button btn, Contact contact ) {
         btn.label.set( contact.firstname.get() );
-        btn.events.onSelection( ev -> {
-            Pageflow.current().open( new ContactPage(), ContactsPage.this );
+        btn.events.on( SELECT, ev -> {
+            Pageflow.current().open( new ContactPage(), ContactsPage.this, ev.clientPos() );
         });
     }
 

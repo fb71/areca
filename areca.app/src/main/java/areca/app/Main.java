@@ -17,15 +17,20 @@ import static areca.common.log.LogFactory.Level.INFO;
 
 import org.teavm.jso.browser.Window;
 
+import org.polymap.model2.engine.UnitOfWorkImpl;
+import org.polymap.model2.store.tidbstore.IDBUnitOfWork;
+
 import areca.app.model.ModelRepo;
 import areca.app.ui.StartPage;
 import areca.common.Platform;
 import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.App;
+import areca.ui.Size;
 import areca.ui.component2.VisualActionFeedback;
 import areca.ui.pageflow.Pageflow;
 import areca.ui.test.GalleryMain;
@@ -77,9 +82,13 @@ public class Main {
         // app
         else {
             catchAll( __ -> {
+                LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
+                LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
+
                 ModelRepo.init();
                 UIComponentRenderer.start();
                 App.instance().createUI( rootWindow -> {
+                    rootWindow.size.set( Size.of( 400, 600 ) );
                     VisualActionFeedback.start();
                     Pageflow.start( rootWindow ).open( new StartPage(), null, null );
                 });

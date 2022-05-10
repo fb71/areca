@@ -16,6 +16,7 @@ package areca.ui.component2;
 import java.util.Collection;
 import java.util.EventObject;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import areca.common.Assert;
@@ -57,34 +58,6 @@ public abstract class Property<C,T> {
         return new ReadWrites<>( component, name );
     }
 
-//    /**
-//     *
-//     */
-//    public static <RC,R> ReadOnly<RC,R> create( RC component, String name, RSupplier<R> getter ) {
-//        return new ReadOnly<>( component, name ) {
-//
-//            @Override protected R doGet() {
-//                return getter.get();
-//            }
-//        };
-//    }
-//
-//    /**
-//     *
-//     */
-//    public static <RC,R> ReadWrite<RC,R> create( RC component, String name, RSupplier<R> getter, RConsumer<R> setter ) {
-//        return new ReadWrite<>( component, name ) {
-//
-//            @Override protected R doGet() {
-//                return getter.get();
-//            }
-//
-//            @Override protected void doSet( R newValue ) {
-//                // LOG.debug( "%s.%s = %s", component.getClass().getSimpleName(), name, newValue );
-//                setter.accept( newValue );
-//            }
-//        };
-//    }
 
     // instance *******************************************
 
@@ -135,7 +108,7 @@ public abstract class Property<C,T> {
 
     protected void fireEvent( T oldValue, T newValue ) {
         if (Objects.equals( oldValue, newValue )) {
-            LOG.warn( toString() + ": values are EQUAL: " + newValue + " -- " + oldValue );
+            LOG.debug( "FIRE:" + name() + ": values are EQUAL: " + newValue + " -- " + oldValue );
         }
         var ev = new PropertyChangedEvent<>( this, oldValue, newValue );
         UIComponentEvent.manager.publish( ev );
@@ -175,7 +148,7 @@ public abstract class Property<C,T> {
         }
 
         public T value() {
-            return opt().orElseError();
+            return opt().orElseThrow( () -> new NoSuchElementException( name() ) );
         }
 
         public Opt<T> opt() {

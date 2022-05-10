@@ -96,11 +96,18 @@ public abstract class UIComponent {
         }
         cssClasses.set( classes );
 
-        clientSize.defaultsTo( () -> {
-            clientSize.valuePresent = false;
-            var currentSize = size.value();
-            return Size.of( currentSize.width()-10, currentSize.height()-10 );
-        });
+        clientSize = new ReadOnly<UIComponent,Size>( this, "clientSize" ) {
+            @Override
+            public Opt<Size> opt() {
+                return size.opt().ifPresentMap( s -> s.substract( 5, 5 ) );
+            }
+        };
+
+//        .defaultsTo( () -> {
+//            clientSize.valuePresent = false;
+//            var currentSize = size.value();
+//            return Size.of( currentSize.width()-10, currentSize.height()-10 );
+//        });
 
         bordered.defaultsTo( () -> {
             return cssClasses.values().anyMatches( v -> v.equals( "Bordered" ) );

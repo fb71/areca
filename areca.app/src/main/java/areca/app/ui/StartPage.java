@@ -13,12 +13,14 @@
  */
 package areca.app.ui;
 
+import static areca.ui.component2.Events.EventType.SELECT;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.Button;
-import areca.ui.component.Text;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.Button;
+import areca.ui.component2.Text;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 import areca.ui.layout.RasterLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageUIComposite;
@@ -38,23 +40,23 @@ public class StartPage
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageUIComposite( parent );
-        ui.header.add( new Text(), title -> title.text.set( "StartPage" ) );
+        ui.header.add( new Text(), title -> title.content.set( "StartPage" ) );
 
         ui.body.layout.set( new RasterLayout() {{spacing.set( 10 );}} );
 
         // Contacts
         ui.body.add( new Button(), btn -> {
             btn.label.set( "C²" );
-            btn.htmlElm.styles.set( "border-radius", "9px" );
-            btn.events.onSelection( ev ->  {
-                Pageflow.current().open( new ContactsPage(), StartPage.this );
+            //btn.htmlElm.styles.set( "border-radius", "9px" );
+            btn.events.on( SELECT, ev ->  {
+                Pageflow.current().open( new ContactsPage(), StartPage.this, ev.clientPos() );
             });
         });
 
         // Close
         ui.body.add( new Button(), btn -> {
             btn.label.set( "X" );
-            btn.events.onSelection( ev -> {
+            btn.events.on( SELECT, ev -> {
                 Pageflow.current().close( StartPage.this );
             });
         });

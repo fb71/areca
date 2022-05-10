@@ -122,6 +122,7 @@ public abstract class UIComponentRenderer {
                 if (oldValue != null && oldValue.contains( handler )) {
                     continue;
                 }
+                LOG.debug( "ADDING: " + newValue + " / " + oldValue );
 
                 String type = null;
                 switch (handler.type) {
@@ -131,7 +132,8 @@ public abstract class UIComponentRenderer {
                     default: type = handler.type.toString().toLowerCase();
                 }
                 htmlElm( c ).addEventListener( type, _htmlEv -> {
-                    LOG.debug( "HTML: " + _htmlEv.getType() );
+                    LOG.debug( "HTML event: " + handler + " " + ((MouseEvent)_htmlEv).getButton() );
+                    //((MouseEvent)_htmlEv).stopPropagation();
                     handler.consumer.accept( new UIEvent( c ) {
                         {
                             this.htmlEv = _htmlEv;

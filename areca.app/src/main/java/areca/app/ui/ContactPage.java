@@ -15,9 +15,9 @@ package areca.app.ui;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component.Text;
-import areca.ui.component.UIComponent;
-import areca.ui.component.UIComposite;
+import areca.ui.component2.Text;
+import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageUIComposite;
 
@@ -34,9 +34,9 @@ public class ContactPage extends Page {
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageUIComposite( parent );
-        ui.header.add( new Text(), title -> title.text.set( "Contacts" ) );
+        ui.header.add( new Text(), title -> title.content.set( "Contacts" ) );
 
-        ui.body.add( new Text(), t -> t.text.set( "Contact" ) );
+        ui.body.add( new Text(), t -> t.content.set( "Contact" ) );
 
         ui.body.layout();
         return ui;
