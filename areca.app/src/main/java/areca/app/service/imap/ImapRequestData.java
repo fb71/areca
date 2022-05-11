@@ -17,16 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import areca.common.base.Sequence;
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
 
 /**
  *
  * @author Falko Bräutigam
  */
 public class ImapRequestData {
-
-    private static final Log log = LogFactory.getLog( ImapRequestData.class );
 
     // public static final String RESPONSE_COMMAND_DELIMITER = "### command-end ########################################\n";
 

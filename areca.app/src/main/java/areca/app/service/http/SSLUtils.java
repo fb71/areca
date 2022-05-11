@@ -25,16 +25,11 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletException;
 
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
-
 /**
  *
  * @author Falko Bräutigam
  */
 public class SSLUtils {
-
-    private static final Log LOG = LogFactory.getLog( SSLUtils.class );
 
     /**
      * Always verify the host - dont check for certificate
