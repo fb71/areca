@@ -99,7 +99,7 @@ public abstract class UIComponent {
         clientSize = new ReadOnly<UIComponent,Size>( this, "clientSize" ) {
             @Override
             public Opt<Size> opt() {
-                return size.opt().ifPresentMap( s -> s.substract( 5, 5 ) );
+                return size.opt().ifPresentMap( s -> s.substract( 0, 0 ) );  // FIXME border + scrollbar
             }
         };
 

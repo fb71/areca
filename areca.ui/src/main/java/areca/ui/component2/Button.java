@@ -24,6 +24,9 @@ public class Button
 
     public ReadWrite<Button,String> label = new ReadWrite<>( this, "label" );
 
+    /** A ligature or numeric character reference of a Material Icon. */
+    public ReadWrite<Button,String> icon = new ReadWrite<>( this, "icon" );
+
     // initializer
     {
         bordered.set( true );

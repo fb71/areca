@@ -15,11 +15,13 @@ package areca.app.ui;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Size;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
+import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Page;
-import areca.ui.pageflow.PageUIComposite;
+import areca.ui.pageflow.PageContainer;
 
 /**
  *
@@ -29,12 +31,13 @@ public class ContactPage extends Page {
 
     private static final Log LOG = LogFactory.getLog( ContactPage.class );
 
-    private PageUIComposite ui;
+    private PageContainer ui;
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
-        ui = new PageUIComposite( parent );
-        ui.header.add( new Text(), title -> title.content.set( "Contacts" ) );
+        ui = new PageContainer( parent );
+        ui.title.set( "Contact ???" );
+        ui.body.layout.set( new RowLayout() {{spacing.set( 5 ); margins.set( Size.of( 10, 10 ) );}} );
 
         ui.body.add( new Text(), t -> t.content.set( "Contact" ) );
 

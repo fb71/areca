@@ -53,9 +53,19 @@ public class ButtonRenderer
         var htmlButton = (HTMLButtonElement)doc().createElement( "button" );
         c.htmlElm = htmlButton;
 
+        // icon
+        htmlButton.appendChild( doc().createElement( "span", (HTMLElement span) -> {
+            span.setAttribute( "class", "material-icons" );
+            var textNode = doc().createTextNode( c.icon.opt().orElse( "" ) );
+            span.appendChild( textNode );
+            c.icon.onInitAndChange( (newValue,__) -> {
+                textNode.setNodeValue( newValue );
+            });
+        }));
+
+        // label
         var textNode = (HTMLElement)doc().createTextNode( c.label.opt().orElse( "" ) );
         htmlButton.appendChild( textNode );
-
         c.label.onChange( (newValue, oldValue) -> {
             textNode.setNodeValue( newValue );
         });

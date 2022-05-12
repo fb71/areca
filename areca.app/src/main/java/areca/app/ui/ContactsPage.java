@@ -22,13 +22,13 @@ import areca.app.service.carddav.CarddavSynchronizer;
 import areca.common.NullProgressMonitor;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Size;
 import areca.ui.component2.Button;
-import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
-import areca.ui.layout.RasterLayout;
+import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Page;
-import areca.ui.pageflow.PageUIComposite;
+import areca.ui.pageflow.PageContainer;
 import areca.ui.pageflow.Pageflow;
 
 /**
@@ -39,15 +39,14 @@ public class ContactsPage extends Page {
 
     private static final Log LOG = LogFactory.getLog( ContactsPage.class );
 
-    private PageUIComposite ui;
+    private PageContainer ui;
 
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
-        ui = new PageUIComposite( parent );
-        ui.header.add( new Text(), title -> title.content.set( "Contacts" ) );
-
-        ui.body.layout.set( new RasterLayout() {{spacing.set( 10 );}} );
+        ui = new PageContainer( parent );
+        ui.title.set( "Contacts" );
+        ui.body.layout.set( new RowLayout() {{spacing.set( 5 ); margins.set( Size.of( 10, 10 ) );}} );
 
         fetchContacts();
 

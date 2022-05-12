@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2, the @authors. All rights reserved.
+ * Copyright (C) 2021-2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -25,10 +25,13 @@ public abstract class Page {
 
     protected PageSite      site;
 
-    UIComponent init( UIComposite parent, @SuppressWarnings("hiding") PageSite site ) {
+
+    @SuppressWarnings("hiding")
+    UIComponent init( UIComposite parent, PageSite site ) {
         this.site = site;
         return Assert.notSame( parent, doInit( parent ) );
     }
+
 
     void dispose() {
         doDispose();

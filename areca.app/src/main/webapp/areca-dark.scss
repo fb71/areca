@@ -8,10 +8,11 @@ $separator_color: darken($font_color, 50%);
 
 // s$accent_color: rgb(198, 98, 11);
 $accent_color: #996634;
-$accent_color2: #304050;
+$accent2_color: #304050;
 $primary_color: darken($accent_color, 30%);
 
 $transition_duration: 0.75s;
 
+@import 'areca-material-icons';
 @import 'areca-common';
 @import 'areca-pageflow';
