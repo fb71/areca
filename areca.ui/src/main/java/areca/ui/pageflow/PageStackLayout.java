@@ -45,7 +45,7 @@ public class PageStackLayout
 
 
     /**
-     * Show an open animation.
+     * Show the page open animation.
      *
      * @param origin The position where the action has its origin.
      */
@@ -58,7 +58,7 @@ public class PageStackLayout
                     ? origin.substract( composite.clientSize.value().divide( 2 ) )
                     : Position.of( 0, 0 ) );
 
-            Platform.schedule( 300, () -> {
+            Platform.schedule( 100, () -> {
                 top.bordered.set( true );
                 top.cssClasses.remove( "PageStackLayout-Top" );
                 top.position.set( Position.of( 0, 0 ) );

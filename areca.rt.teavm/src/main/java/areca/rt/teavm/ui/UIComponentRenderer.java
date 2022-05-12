@@ -141,7 +141,7 @@ public abstract class UIComponentRenderer {
                         }
                         @Override
                         public Position clientPos() {
-                            return Position.of( ((MouseEvent)_htmlEv).getClientX(), ((MouseEvent)_htmlEv).getClientX() );
+                            return Position.of( ((MouseEvent)_htmlEv).getClientX(), ((MouseEvent)_htmlEv).getClientY() );
                         }});
                 });
             }

@@ -15,8 +15,12 @@ package areca.ui.pageflow;
 
 import static areca.ui.component2.Events.EventType.SELECT;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Action;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Button;
@@ -52,6 +56,8 @@ public class PageContainer
 
     protected Button            closeBtn;
 
+    protected Map<Action,Button> actionsBtns = new HashMap<>();
+
 
     public PageContainer( Page page, UIComposite parent ) {
         parent.components.add( this );
@@ -61,6 +67,7 @@ public class PageContainer
         headerComposite = add( new UIComposite() {{
             cssClasses.add( CSS_HEADER );
 
+            // closeBtn
             closeBtn = add( new Button() {{
                 cssClasses.add( CSS_HEADER_ITEM );
                 icon.set( "arrow_back" );
@@ -69,21 +76,33 @@ public class PageContainer
                 });
             }});
 
+            // title
             titleText = add( new Text() {{
                 cssClasses.add( CSS_TITLE );
                 title.onChange( (newValue, __) -> content.set( newValue ) );
             }});
-        }});
 
-//        toolbar = add( new UIComposite() {{
-//            layout.set( new FillLayout() );
-//            components.add( new Button() {{
-//                label.set( "Toolbar" );
-//                bordered.set( false );
-//                events.on( SELECT, ev -> bordered.set( !bordered.value() ) );
-//            }});
-//            bordered.set( true );
-//        }});
+            // actions
+            page.site.actions.onChange( (actions, __) -> {
+                for (var action : actions) {
+                    var btn = add( new Button() {{
+                        bordered.set( false );
+                        cssClasses.add( CSS_HEADER_ITEM );
+                        icon.set( action.icon.value() );
+                        events.on( SELECT, ev -> {
+                            try {
+                                action.handler.value().accept( ev );
+                            }
+                            catch (Exception e) {
+                                throw (RuntimeException)e;
+                            }
+                        });
+                    }});
+                    actionsBtns.put( action, btn );
+                }
+                PageContainer.this.layout();
+            });
+        }});
 
         body = add( new UIComposite() );
     }
@@ -100,6 +119,7 @@ public class PageContainer
 
         @Override
         public void layout( UIComposite composite ) {
+            @SuppressWarnings("hiding")
             var clientSize = PageContainer.this.clientSize.opt().orElse( Size.of( 50, 50 ) );
 
             var top = 0;
@@ -107,16 +127,20 @@ public class PageContainer
             headerComposite.size.set( Size.of( clientSize.width(), HEADER_HEIGHT ) );
             top += HEADER_HEIGHT;
 
-            var closeSize = HEADER_HEIGHT - 10;
-            var closeMargin = (HEADER_HEIGHT - closeSize) / 2;
-            closeBtn.position.set( Position.of( closeMargin, closeMargin ) );
-            closeBtn.size.set( Size.of( closeSize, closeSize ) );
+            var btnSize = HEADER_HEIGHT - 10;
+            var btnMargin = (HEADER_HEIGHT - btnSize) / 2;
+            closeBtn.position.set( Position.of( btnMargin, btnMargin ) );
+            closeBtn.size.set( Size.of( btnSize, btnSize ) );
 
             var titleMargin = (HEADER_HEIGHT - 18) / 2;
-            titleText.position.set( Position.of( closeMargin + closeSize + titleMargin, titleMargin-1 ) );
+            titleText.position.set( Position.of( btnMargin + btnSize + titleMargin, titleMargin-1 ) );
 
-//            toolbar.position.set( Position.of( 0, HEADER_HEIGHT ) );
-//            toolbar.size.set( Size.of( clientSize.width(), TOOLBAR_HEIGHT ) );
+            var actionLeft = clientSize.width() - btnSize - btnMargin;
+            for (Button actionBtn : actionsBtns.values()) {
+                actionBtn.position.set( Position.of( actionLeft, btnMargin ) );
+                actionBtn.size.set( Size.of( btnSize, btnSize ) );
+                actionLeft -= btnSize + btnMargin;
+            }
 
             body.position.set( Position.of( 0, top ) );
             body.size.set( Size.of( clientSize.width(), clientSize.height() - top ) );

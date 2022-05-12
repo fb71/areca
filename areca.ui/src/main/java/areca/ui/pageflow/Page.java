@@ -13,7 +13,12 @@
  */
 package areca.ui.pageflow;
 
+import java.util.ArrayList;
+
 import areca.common.Assert;
+import areca.ui.Action;
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrites;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 
@@ -47,7 +52,11 @@ public abstract class Page {
      */
     public static abstract class PageSite {
 
-        // public ReadOnly<PageSite,UIComposite> container;
+        public ReadWrites<?,Action> actions = Property.rws( this, "actions", new ArrayList<>() );
+
+        public Pageflow pageflow() {
+            return Pageflow.current();
+        }
     }
 
 }

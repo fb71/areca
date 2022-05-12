@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021, the @authors. All rights reserved.
+ * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,14 +13,9 @@
  */
 package areca.app.ui;
 
-import static areca.ui.component2.Events.EventType.SELECT;
-
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.Action;
 import areca.ui.Size;
-import areca.ui.component2.Button;
-import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.RowLayout;
@@ -31,47 +26,25 @@ import areca.ui.pageflow.PageContainer;
  *
  * @author Falko Bräutigam
  */
-public class StartPage
+public class SettingsPage
         extends Page {
 
-    private static final Log LOG = LogFactory.getLog( StartPage.class );
+    private static final Log LOG = LogFactory.getLog( SettingsPage.class );
 
     private PageContainer     ui;
+
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
-        ui.title.set( "Start" );
-
-        site.actions.add( new Action() {{
-            icon.set( "settings" );
-            handler.set( (UIEvent ev) -> {
-                site.pageflow().open( new SettingsPage(), StartPage.this, ev.clientPos() );
-            });
-        }});
+        ui.title.set( "Settings" );
 
         ui.body.layout.set( new RowLayout() {{spacing.set( 5 ); margins.set( Size.of( 10, 10 ) );}} );
 
-        // Contacts
-        ui.body.add( new Button(), btn -> {
-            btn.icon.set( "face" );
-            //btn.htmlElm.styles.set( "border-radius", "9px" );
-            btn.events.on( SELECT, ev ->  {
-                site.pageflow().open( new ContactsPage(), StartPage.this, ev.clientPos() );
-            });
-        });
-
-        // Close
-        ui.body.add( new Button(), btn -> {
-            btn.label.set( "X" );
-            btn.events.on( SELECT, ev -> {
-                site.pageflow().close( StartPage.this );
-            });
-        });
         return ui;
     }
 
-    @Override
+
     protected void doDispose() {
         LOG.info( "DISPOSING..." );
     }
