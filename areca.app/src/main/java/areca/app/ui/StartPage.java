@@ -39,7 +39,7 @@ public class StartPage
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
-        ui = new PageContainer( parent );
+        ui = new PageContainer( this, parent );
         ui.title.set( "Start" );
 
         ui.body.layout.set( new RowLayout() {{spacing.set( 5 ); margins.set( Size.of( 10, 10 ) );}} );

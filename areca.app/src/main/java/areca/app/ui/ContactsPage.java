@@ -44,7 +44,7 @@ public class ContactsPage extends Page {
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
-        ui = new PageContainer( parent );
+        ui = new PageContainer( this, parent );
         ui.title.set( "Contacts" );
         ui.body.layout.set( new RowLayout() {{spacing.set( 5 ); margins.set( Size.of( 10, 10 ) );}} );
 

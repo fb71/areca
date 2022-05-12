@@ -13,6 +13,8 @@
  */
 package areca.ui.pageflow;
 
+import static areca.ui.component2.Events.EventType.SELECT;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
@@ -51,7 +53,7 @@ public class PageContainer
     protected Button            closeBtn;
 
 
-    public PageContainer( UIComposite parent ) {
+    public PageContainer( Page page, UIComposite parent ) {
         parent.components.add( this );
         layout.set( new PageContainerLayout() );
 
@@ -62,7 +64,11 @@ public class PageContainer
             closeBtn = add( new Button() {{
                 cssClasses.add( CSS_HEADER_ITEM );
                 icon.set( "arrow_back" );
+                events.on( SELECT, ev -> {
+                    Pageflow.current().close( page );
+                });
             }});
+
             titleText = add( new Text() {{
                 cssClasses.add( CSS_TITLE );
                 title.onChange( (newValue, __) -> content.set( newValue ) );
