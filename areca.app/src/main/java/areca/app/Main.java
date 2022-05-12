@@ -76,7 +76,10 @@ public class Main {
         else if (hash.equals( "#gallery" )) {
             catchAll( __ -> {
                 UIComponentRenderer.start();
-                GalleryMain.createApp();
+                var doc = Window.current().getDocument();
+                var appSize = Size.of( doc.getBody().getClientWidth(), doc.getBody().getClientHeight() );
+                LOG.info( "BODY: " + appSize );
+                GalleryMain.createApp( appSize );
             });
         }
         // #imap
@@ -84,7 +87,7 @@ public class Main {
             catchAll( __ -> {
                 LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
                 new AsyncAwareTestRunner()
-                        .addTests( areca.app.service.imap.ImapTest.info )
+                        //.addTests( areca.app.service.imap.ImapTest.info )
                         //.addTests( areca.app.service.carddav.CardDavTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                         .run();
@@ -103,7 +106,13 @@ public class Main {
                 ModelRepo.init();
                 UIComponentRenderer.start();
                 App.instance().createUI( rootWindow -> {
-                    rootWindow.size.set( Size.of( 400, 600 ) );
+                    // XXX
+                    rootWindow.size.defaultsTo( () -> {
+                        var doc = Window.current().getDocument();
+                        var size = Size.of( doc.getBody().getClientWidth(), doc.getBody().getClientHeight() );
+                        LOG.info( "BODY: " + size );
+                        return size;
+                    });
                     VisualActionFeedback.start();
                     Pageflow.start( rootWindow ).open( new StartPage(), null, null );
                 });

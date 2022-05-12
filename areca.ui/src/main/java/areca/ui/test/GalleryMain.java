@@ -59,13 +59,13 @@ public class GalleryMain {
     protected static UIComposite    contentArea;
 
 
-    public static void createApp() {
+    public static UIComposite createApp( Size appSize ) {
         initLog();
         VisualActionFeedback.start();
 
-        createUI( appWindow -> {
-            appWindow.size.set( Size.of( 400, 600 ) );
-            appWindow.layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true );}} );
+        return createUI( appWindow -> {
+            appWindow.size.set( appSize );
+            appWindow.layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true ); margins.set( Size.of( 3, 3 ) );}} );
             //appWindow.bordered.set( true );
 
             // buttons
