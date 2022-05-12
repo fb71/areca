@@ -85,7 +85,7 @@ public class PageContainer
             // actions
             page.site.actions.onChange( (actions, __) -> {
                 for (var action : actions) {
-                    var btn = add( new Button() {{
+                    actionsBtns.put( action, add( new Button() {{
                         bordered.set( false );
                         cssClasses.add( CSS_HEADER_ITEM );
                         icon.set( action.icon.value() );
@@ -97,8 +97,7 @@ public class PageContainer
                                 throw (RuntimeException)e;
                             }
                         });
-                    }});
-                    actionsBtns.put( action, btn );
+                    }}));
                 }
                 PageContainer.this.layout();
             });

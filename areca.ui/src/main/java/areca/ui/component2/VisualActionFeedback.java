@@ -19,7 +19,6 @@ import areca.common.Platform;
 import areca.common.event.EventListener;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.Position;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 
@@ -59,7 +58,7 @@ public class VisualActionFeedback
 
         root.add( new UIComposite() {{
             cssClasses.set( Arrays.asList( "VisualClickFeedbackStart" ) );
-            position.set( Position.of( 100, 100 ) );
+            position.set( ev.clientPos() );
             Platform.async( () -> {
                 cssClasses.set( Arrays.asList( "VisualClickFeedbackEnd" ) );
                 Platform.schedule( 1000, () -> {
