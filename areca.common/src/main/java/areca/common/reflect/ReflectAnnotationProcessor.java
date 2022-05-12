@@ -53,7 +53,6 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 
 import areca.common.base.Opt;
-import areca.common.base.Sequence;
 
 /**
  *
@@ -63,6 +62,7 @@ import areca.common.base.Sequence;
 @SupportedSourceVersion(javax.lang.model.SourceVersion.RELEASE_8)
 public class ReflectAnnotationProcessor
         extends AbstractProcessor {
+
 
     @Override
     public boolean process( Set<? extends TypeElement> annotations, RoundEnvironment roundEnv ) {
@@ -120,7 +120,7 @@ public class ReflectAnnotationProcessor
             // I don't see a way to figure what is "interesting"; so I stopped this and have infos
             // for superclasses only if they are annotated by themselves; and those infos are
             // handled by the processor anyway
-            
+
 //            var interesting = Sequence.of( superClass.getAnnotationMirrors() )
 //                    .filter( a -> isInteresting( (TypeElement)a.getAnnotationType().asElement() ) )
 //                    .first();
@@ -184,14 +184,14 @@ public class ReflectAnnotationProcessor
             var classInfoTypeName = ParameterizedTypeName.get( ClassName.get( ClassInfo.class ), WildcardTypeName.subtypeOf( Object.class ) );
             String superPackageName = StringUtils.substringBeforeLast( superType.getQualifiedName().toString(), "." );
             String superInfoTypeName = superType.getSimpleName() + "ClassInfo";
-            var superclassExists = false;
-            try {
-                Class.forName( superPackageName + "." + superInfoTypeName );
-                superclassExists = true;
-            }
-            catch (ClassNotFoundException e) {
-                log( "SUPER: " + e );
-            }
+            var superclassExists = processingEnv.getElementUtils().getTypeElement( superPackageName + "." + superInfoTypeName ) != null;
+//            try {
+//                Class.forName( superPackageName + "." + superInfoTypeName );
+//                superclassExists = true;
+//            }
+//            catch (ClassNotFoundException e) {
+//                log( "SUPER: " + e );
+//            }
             classBuilder.addMethod( MethodSpec.methodBuilder( "superclassInfo" )
                     .addModifiers( Modifier.PUBLIC )
                     .returns( ParameterizedTypeName.get( ClassName.get( Opt.class ), classInfoTypeName ) )
