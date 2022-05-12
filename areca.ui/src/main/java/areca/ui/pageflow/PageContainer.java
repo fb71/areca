@@ -13,58 +13,71 @@
  */
 package areca.ui.pageflow;
 
-import static areca.ui.component2.Events.EventType.SELECT;
-
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Button;
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrite;
+import areca.ui.component2.Text;
 import areca.ui.component2.UIComposite;
-import areca.ui.layout.FillLayout;
 import areca.ui.layout.LayoutManager;
 
 /**
- * Provides the common user interface elements of a {@link Page}.
+ * Provides the standard common user interface elements for a {@link Page}.
  *
  * @author Falko Bräutigam
  */
-public class PageUIComposite
+public class PageContainer
         extends UIComposite {
 
-    static final Log log = LogFactory.getLog( PageUIComposite.class );
+    static final Log LOG = LogFactory.getLog( PageContainer.class );
 
-    public UIComposite      header;
+    private static final String CSS_HEADER = "PageHeader";
+    private static final String CSS_HEADER_ITEM = "PageHeaderItem";
+    private static final String CSS_TITLE = "PageTitle";
 
-    private UIComposite     toolbar;
+    public ReadWrite<?,String>  title = Property.rw( this, "title" );
 
-    public UIComposite      body;
+    public UIComposite          body;
+
+    protected UIComposite       headerComposite;
+
+    protected Text              titleText;
+
+    protected UIComposite       toolbar;
+
+    protected Button            closeBtn;
 
 
-//    @Override
-//    protected HtmlNode init( UIComposite parent ) {
-//        super.init( parent );
-//    }
-
-
-    public PageUIComposite( UIComposite parent ) {
+    public PageContainer( UIComposite parent ) {
         parent.components.add( this );
-        cssClasses.add( "PageUIComposite" );
-        layout.set( new PageUILayout() );
+        layout.set( new PageContainerLayout() );
 
-        header = add( new UIComposite() {{
-            layout.set( new FillLayout() );
-        }});
+        // header
+        headerComposite = add( new UIComposite() {{
+            cssClasses.add( CSS_HEADER );
 
-        toolbar = add( new UIComposite() {{
-            layout.set( new FillLayout() );
-            components.add( new Button() {{
-                label.set( "Toolbar" );
-                bordered.set( false );
-                events.on( SELECT, ev -> bordered.set( !bordered.value() ) );
+            closeBtn = add( new Button() {{
+                cssClasses.add( CSS_HEADER_ITEM );
+                icon.set( "arrow_back" );
             }});
-            bordered.set( true );
+            titleText = add( new Text() {{
+                cssClasses.add( CSS_TITLE );
+                title.onChange( (newValue, __) -> content.set( newValue ) );
+            }});
         }});
+
+//        toolbar = add( new UIComposite() {{
+//            layout.set( new FillLayout() );
+//            components.add( new Button() {{
+//                label.set( "Toolbar" );
+//                bordered.set( false );
+//                events.on( SELECT, ev -> bordered.set( !bordered.value() ) );
+//            }});
+//            bordered.set( true );
+//        }});
 
         body = add( new UIComposite() );
     }
@@ -73,28 +86,35 @@ public class PageUIComposite
     /**
      *
      */
-    class PageUILayout
+    class PageContainerLayout
             extends LayoutManager {
 
-        public static final int HEADER_HEIGHT = 30;
+        public static final int HEADER_HEIGHT = 60;
         public static final int TOOLBAR_HEIGHT = 45;
 
         @Override
         public void layout( UIComposite composite ) {
-            @SuppressWarnings("hiding")
-            var size = PageUIComposite.this.clientSize.value();
+            var clientSize = PageContainer.this.clientSize.opt().orElse( Size.of( 50, 50 ) );
 
-            header.position.set( Position.of( 0, 0 ) );
-            header.size.set( Size.of( size.width(), HEADER_HEIGHT ) );
+            var top = 0;
+            headerComposite.position.set( Position.of( 0, top ) );
+            headerComposite.size.set( Size.of( clientSize.width(), HEADER_HEIGHT ) );
+            top += HEADER_HEIGHT;
 
-            toolbar.position.set( Position.of( 0, HEADER_HEIGHT ) );
-            toolbar.size.set( Size.of( size.width(), TOOLBAR_HEIGHT ) );
+            var closeSize = HEADER_HEIGHT - 10;
+            var closeMargin = (HEADER_HEIGHT - closeSize) / 2;
+            closeBtn.position.set( Position.of( closeMargin, closeMargin ) );
+            closeBtn.size.set( Size.of( closeSize, closeSize ) );
 
-            var bodyHeight = HEADER_HEIGHT + TOOLBAR_HEIGHT;
-            body.position.set( Position.of( 0,bodyHeight ) );
-            body.size.set( Size.of( size.width(), size.height() - bodyHeight ) );
+            var titleMargin = (HEADER_HEIGHT - 18) / 2;
+            titleText.position.set( Position.of( closeMargin + closeSize + titleMargin, titleMargin-1 ) );
+
+//            toolbar.position.set( Position.of( 0, HEADER_HEIGHT ) );
+//            toolbar.size.set( Size.of( clientSize.width(), TOOLBAR_HEIGHT ) );
+
+            body.position.set( Position.of( 0, top ) );
+            body.size.set( Size.of( clientSize.width(), clientSize.height() - top ) );
         }
-
     }
 
 }
