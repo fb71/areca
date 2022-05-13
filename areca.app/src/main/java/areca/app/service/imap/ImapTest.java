@@ -59,10 +59,10 @@ public class ImapTest {
 
     private static int          dbCount = 0;
 
-    protected Promise<EntityRepository> initRepo() {
+    protected Promise<EntityRepository> initRepo( String name ) {
         return EntityRepository.newConfiguration()
                 .entities.set( asList( Message.info, Contact.info, Anchor.info) )
-                .store.set( new IDBStore( "ImapTest-" + dbCount++, nextDbVersion(), true ) )
+                .store.set( new IDBStore( "ImapTest-" + name, nextDbVersion(), true ) )
                 .create();
     }
 
@@ -197,7 +197,7 @@ public class ImapTest {
 
     @Test
     public Promise<?> syncFolderTest() {
-        return initRepo().then( repo -> {
+        return initRepo( "syncFolder" ).then( repo -> {
             return new ImapFolderSynchronizer( "Test1", repo, () -> newRequest() )
                     .start();
                     //.onSuccess( (self,msg) );

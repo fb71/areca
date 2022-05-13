@@ -64,7 +64,6 @@ public class CardDavTest {
 
 
     @Test
-    @Skip
     public Promise<HttpResponse> xhrTest() {
         return Platform.xhr( "GET", ARECA_CONTACTS )
                 .authenticate( ARECA_USERNAME, ARECA_PWD )
@@ -80,7 +79,6 @@ public class CardDavTest {
 
 
     @Test
-    @Skip
     public Promise<HttpResponse> propfindTest() {
         return Platform.xhr( "PROPFIND", ARECA_CONTACTS )
                 .authenticate( ARECA_USERNAME, ARECA_PWD )
@@ -141,7 +139,7 @@ public class CardDavTest {
 
     @Test
     public Promise<?> createContactsTest() {
-        return initRepo( "createContactsTest" )
+        return initRepo( "createContacts" )
                 .then( repo -> {
                     uow = repo.newUnitOfWork();
                     return Promise.joined( 2, i -> Platform.async( () -> {
@@ -163,7 +161,7 @@ public class CardDavTest {
     @Test
     //@Skip
     public Promise<?> synContactsTest() {
-        return initRepo( "synContactsTest" )
+        return initRepo( "synContacts" )
                 .then( repo -> {
                     return new CarddavSynchronizer( ARECA_CONTACTS_ROOT, repo ).start();
                 });

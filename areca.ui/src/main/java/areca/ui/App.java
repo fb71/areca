@@ -23,7 +23,7 @@ import areca.ui.component2.UIComposite;
  */
 public class App {
 
-    private static App      instance;
+    protected static App        instance;
 
     public static App instance() {
         return instance != null ? instance : (instance = new App());

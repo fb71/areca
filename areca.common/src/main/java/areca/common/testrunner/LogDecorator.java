@@ -73,12 +73,15 @@ public class LogDecorator
         }
         else {
             Throwable e = testResult.getException();
-            println( leftPad( "--| failed (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")", LINE_LENGHT, ' ' ) );
-            Throwable cause = Platform.rootCause( e );
-            System.out.println( "Root cause: " + cause );
-
-            throw (RuntimeException)cause;
-            //cause.printStackTrace( System.err );
+            if (e != null) {
+                println( leftPad( "--| failed (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")", LINE_LENGHT, ' ' ) );
+                Throwable cause = Platform.rootCause( e );
+                System.out.println( "Root cause: " + cause );
+                throw (RuntimeException)cause;
+                //cause.printStackTrace( System.err );
+            } else {
+                println( leftPad( "--| failed (no exception)", LINE_LENGHT, ' ' ) );
+            }
         }
     }
 

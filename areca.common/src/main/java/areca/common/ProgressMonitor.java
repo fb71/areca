@@ -17,17 +17,25 @@ package areca.common;
  *
  * @author Falko Bräutigam
  */
-public interface ProgressMonitor {
+public abstract class ProgressMonitor {
 
     public static final int UNKNOWN = -1;
 
-    boolean isCancelled();
+    protected boolean       cancelled;
 
-    void beginTask( String name, int totalWork );
+    public void cancel() {
+        this.cancelled = true;
+    }
 
-    void subTask( String name );
+    public boolean isCancelled() {
+        return cancelled;
+    }
 
-    void worked( int work );
+    public abstract void beginTask( String name, int totalWork );
 
-    void done();
+    public abstract void subTask( String name );
+
+    public abstract void worked( int work );
+
+    public abstract void done();
 }

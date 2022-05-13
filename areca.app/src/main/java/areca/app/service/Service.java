@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,31 +11,19 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common;
+package areca.app.service;
+
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 
 /**
+ * Common base for all services.
  *
  * @author Falko Bräutigam
  */
-public class NullProgressMonitor
-        extends ProgressMonitor {
+public abstract class Service {
 
-    public static final NullProgressMonitor INSTANCE = new NullProgressMonitor();
+    private static final Log LOG = LogFactory.getLog( Service.class );
 
-    @Override
-    public void beginTask( String name, int totalWork ) {
-    }
-
-    @Override
-    public void subTask( String name ) {
-    }
-
-    @Override
-    public void worked( int work ) {
-    }
-
-    @Override
-    public void done() {
-    }
-
+    public abstract String label();
 }

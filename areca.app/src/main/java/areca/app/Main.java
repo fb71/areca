@@ -21,8 +21,6 @@ import org.teavm.jso.browser.Window;
 import org.polymap.model2.engine.UnitOfWorkImpl;
 import org.polymap.model2.store.tidbstore.IDBUnitOfWork;
 
-import areca.app.model.ModelRepo;
-import areca.app.ui.StartPage;
 import areca.common.Platform;
 import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
@@ -33,10 +31,7 @@ import areca.common.testrunner.LogDecorator;
 import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
 import areca.rt.teavm.ui.UIComponentRenderer;
-import areca.ui.App;
 import areca.ui.Size;
-import areca.ui.component2.VisualActionFeedback;
-import areca.ui.pageflow.Pageflow;
 import areca.ui.test.GalleryMain;
 
 /**
@@ -86,9 +81,10 @@ public class Main {
         else if (hash.equals( "#imap" )) {
             catchAll( __ -> {
                 LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
+                LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
                 new AsyncAwareTestRunner()
                         //.addTests( areca.app.service.imap.ImapTest.info )
-                        //.addTests( areca.app.service.carddav.CardDavTest.info )
+                        .addTests( areca.app.service.carddav.CardDavTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                         .run();
             });
@@ -103,19 +99,7 @@ public class Main {
                 LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
                 LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
 
-                ModelRepo.init();
-                UIComponentRenderer.start();
-                App.instance().createUI( rootWindow -> {
-                    // XXX
-                    rootWindow.size.defaultsTo( () -> {
-                        var doc = Window.current().getDocument();
-                        var size = Size.of( doc.getBody().getClientWidth(), doc.getBody().getClientHeight() );
-                        LOG.info( "BODY: " + size );
-                        return size;
-                    });
-                    VisualActionFeedback.start();
-                    Pageflow.start( rootWindow ).open( new StartPage(), null, null );
-                });
+                ArecaApp.instance().createUI();
             });
         }
     }

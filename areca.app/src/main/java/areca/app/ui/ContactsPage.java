@@ -15,8 +15,8 @@ package areca.app.ui;
 
 import static areca.ui.component2.Events.EventType.SELECT;
 
+import areca.app.ArecaApp;
 import areca.app.model.Contact;
-import areca.app.model.ModelRepo;
 import areca.app.service.carddav.CardDavTest;
 import areca.app.service.carddav.CarddavSynchronizer;
 import areca.common.NullProgressMonitor;
@@ -65,7 +65,8 @@ public class ContactsPage extends Page {
 
 
     protected void fetchContacts() {
-        ModelRepo.unitOfWork()
+        ui.body.components.disposeAll();
+        ArecaApp.instance().unitOfWork()
                 .query( Contact.class )
                 .execute()
                 .onSuccess( opt -> opt.ifPresent( contact -> {
@@ -76,7 +77,7 @@ public class ContactsPage extends Page {
 
 
     protected void syncContacts() {
-        var s = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, ModelRepo.instance() );
+        var s = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, ArecaApp.instance().repo() );
         s.monitor.set( new NullProgressMonitor() );
         s.start().onSuccess( contacts -> {
             LOG.info( "Contacts: %s", contacts.size() );
