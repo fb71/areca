@@ -43,9 +43,9 @@ public class CarddavService
 
             @Override
             public void start() {
-                var s = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, ArecaApp.instance().repo() );
-                s.monitor.set( monitor );
-                s.start().onSuccess( contacts -> {
+                var synchronizer = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, ArecaApp.instance().repo() );
+                synchronizer.monitor.set( monitor );
+                synchronizer.start().onSuccess( contacts -> {
                     LOG.info( "Contacts: %s", contacts.size() );
                 });
             }

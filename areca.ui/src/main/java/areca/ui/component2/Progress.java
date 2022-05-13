@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,31 +11,19 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common;
+package areca.ui.component2;
+
+import areca.ui.component2.Property.ReadWrite;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class ProgressMonitor {
+public class Progress
+        extends UIComponent {
 
-    public static final int UNKNOWN = 0;
+    public ReadWrite<Progress,Float>    max = Property.rw( this, "max", 1f );
 
-    protected boolean       cancelled;
+    public ReadWrite<Progress,Float>    value = Property.rw( this, "max", 0f );
 
-    public void cancel() {
-        this.cancelled = true;
-    }
-
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    public abstract void beginTask( String name, int totalWork );
-
-    public abstract void subTask( String name );
-
-    public abstract void worked( int work );
-
-    public abstract void done();
 }

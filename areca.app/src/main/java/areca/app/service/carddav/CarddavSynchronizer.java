@@ -58,7 +58,7 @@ public class CarddavSynchronizer {
 
 
     public Promise<List<Contact>> start() {
-        monitor.value().beginTask( "Syncing contacts", ProgressMonitor.UNKNOWN );
+        monitor.value().beginTask( "CardDav ...", ProgressMonitor.UNKNOWN );
 
         var uow = repo.newUnitOfWork();
         return new PropfindRequest( contactsRoot )
@@ -66,7 +66,8 @@ public class CarddavSynchronizer {
                 .submit()
                 // get vcf content
                 .then( res -> {
-                    LOG.info( "res: %s", Arrays.asList( res ) );
+                    LOG.debug( "PROPFIND: %s", Arrays.asList( res ) );
+                    monitor.value().beginTask( "CardDav", res.length );
                     return Promise.joined( res.length, i -> {
                         return new GetResourceRequest( res[i] ).submit();
                     });
@@ -74,7 +75,7 @@ public class CarddavSynchronizer {
                 // parse VCard -> query Contact
                 .then( vcf -> {
                     var vcard = VCard.parse( vcf.text() );
-                    LOG.info( "VCard: %s", vcard.fn.value() );
+                    LOG.info( "VCard fetched: %s", vcard.fn.value() );
                     return uow.query( Contact.class )
                             .where( eq( Contact.TYPE.storeRef, vcard.uid.value() ) )
                             .executeToList()
@@ -90,11 +91,15 @@ public class CarddavSynchronizer {
                             : contacts.get( 0 );
                     fillContact( contact, compound.getLeft() );
                     LOG.info( "Contact: %s", contact );
+                    monitor.value().worked( 1 );
                     return contact;
                 })
                 .reduce( new ArrayList<Contact>(), (r,c) -> r.add( c ) )
                 .then( contacts -> {
-                    return uow.submit().map( submitted -> contacts );
+                    return uow.submit().map( submitted -> {
+                        monitor.value().done();
+                        return contacts;
+                    });
                 });
     }
 

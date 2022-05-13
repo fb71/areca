@@ -85,7 +85,7 @@ public class PageContainer
             // actions
             page.site.actions.onChange( (actions, __) -> {
                 for (var action : actions) {
-                    actionsBtns.put( action, add( new Button() {{
+                    actionsBtns.computeIfAbsent( action, ___ -> add( new Button() {{
                         bordered.set( false );
                         cssClasses.add( CSS_HEADER_ITEM );
                         icon.set( action.icon.value() );

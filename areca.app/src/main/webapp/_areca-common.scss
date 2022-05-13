@@ -85,6 +85,26 @@ body {
     // margin: -1px;
 }
 
+.Progress {
+    color: $progress_color; // IE    
+    background: rgba(255,255,255,0.05);    
+    border-radius: 4px;
+}
+.Progress::-moz-progress-bar {
+    background: $progress_color;        
+}
+.Progress::-webkit-progress-value {
+    background: $progress_color;
+    border-radius: 4px;
+}
+.Progress::-webkit-progress-bar {
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+}
+//.Progress[value] {
+//    border-radius: 4px;    
+//}
+
 // during PanGesture
 .Paning {
     transition: all 0.35s ease-out;

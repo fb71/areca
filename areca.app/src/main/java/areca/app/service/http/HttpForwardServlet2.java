@@ -16,6 +16,7 @@ package areca.app.service.http;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Base64;
+import java.util.Objects;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,8 +30,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import areca.common.Assert;
 
 /**
  *
@@ -133,8 +132,8 @@ public class HttpForwardServlet2 extends HttpServlet {
             f.setAccessible( true );
             f.set( conn, method );
 
-            Assert.isEqual( method, f.get( conn ), "reflection" );
-            Assert.isEqual( method, conn.getRequestMethod(), "getRequestMethod()" );
+            assert Objects.equals( method, f.get( conn ) ); //, "reflection" );
+            assert Objects.equals( method, conn.getRequestMethod() ); //, "getRequestMethod()" );
 
 //            final Class<?> connClass = conn.getClass();
 //            final Class<?> parentClass = connClass.getSuperclass();

@@ -15,6 +15,7 @@ package areca.app.service.imap;
 
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
+import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -37,11 +38,22 @@ public class ImapService
     @Override
     public Sync newSync( ProgressMonitor monitor ) {
         return new Sync() {
+            int work = 10;
 
             @Override
             public void start() {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
+                monitor.beginTask( "EMail", 10 );
+                work();
+            }
+
+            protected void work() {
+                monitor.worked( 1 );
+                if ((work -= 1) > 0) {
+                    Platform.schedule( 1000, () -> work() );
+                }
+                else {
+                    monitor.done();
+                }
             }
         };
     }

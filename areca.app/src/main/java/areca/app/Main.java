@@ -98,6 +98,7 @@ public class Main {
             catchAll( __ -> {
                 LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
                 LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
+                LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
 
                 ArecaApp.instance().createUI();
             });

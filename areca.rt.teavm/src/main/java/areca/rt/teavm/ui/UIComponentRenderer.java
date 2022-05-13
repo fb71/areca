@@ -46,6 +46,7 @@ public abstract class UIComponentRenderer {
         UICompositeRenderer._start();
         TextRenderer._start();
         ButtonRenderer._start();
+        ProgressRenderer._start();
     }
 
     // instance *******************************************

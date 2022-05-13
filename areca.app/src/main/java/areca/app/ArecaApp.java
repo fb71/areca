@@ -29,6 +29,7 @@ import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.app.service.Service;
+import areca.app.service.SyncableService;
 import areca.app.service.carddav.CarddavService;
 import areca.app.service.imap.ImapService;
 import areca.app.ui.StartPage;
@@ -40,6 +41,8 @@ import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.App;
 import areca.ui.Color;
 import areca.ui.Size;
+import areca.ui.component2.Progress;
+import areca.ui.component2.Text;
 import areca.ui.component2.UIComposite;
 import areca.ui.component2.VisualActionFeedback;
 import areca.ui.layout.RowConstraints;
@@ -70,7 +73,11 @@ public class ArecaApp extends App {
 
     private UIComposite             mainBody;
 
-    private UIComposite             monitorBody;
+    private UIComposite             progressBody;
+
+//    private Progress                progress;
+//
+//    private Text                    progressText;
 
 
     protected ArecaApp() {
@@ -102,9 +109,17 @@ public class ArecaApp extends App {
             mainBody = rootWindow.add( new UIComposite() {{
                 layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 25 );}} );
             }});
-            monitorBody = rootWindow.add( new UIComposite() {{
+
+            // monitorBody
+            progressBody = rootWindow.add( new UIComposite() {{
                 layoutConstraints.set( new RowConstraints() {{height.set( 25 );}} );
                 bgColor.set( Color.rgb( 0x17, 0x15, 0x14 ) );
+                layout.set( new RowLayout() {{margins.set( Size.of( 6, 6 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
+
+//                add( new Progress() {{
+//                    value.set( 0.8f );
+//                }});
+//                add( new Text() {{ content.set( "80%" ); }} );
             }});
             rootWindow.layout();
 
@@ -114,16 +129,66 @@ public class ArecaApp extends App {
 
 
     public ProgressMonitor newAsyncOperation() {
-        throw new RuntimeException( "not yet..." );
+        return new ProgressMonitor() {
+            private Progress progress = progressBody.add( new Progress() );
+            private Text progressText = progressBody.add( new Text() {{ content.set( "..." ); }} );
+            private long lastUpdate = System.currentTimeMillis();
+            private int workTotal, workDone;
+            private String taskName = "";
+            private String subTaskName = "";
 
+            @Override
+            public void beginTask( String name, int totalWork ) {
+                taskName = name;
+                progress.max.set( (float)(workTotal = totalWork) );
+                progressText.content.set( name );
+                progressBody.layout();
+            }
+
+            @Override
+            public void subTask( String name ) {
+                subTaskName = name;
+            }
+
+            @Override
+            public void worked( int work ) {
+                long now = System.currentTimeMillis();
+                if (now > lastUpdate + 1000) {
+                    lastUpdate = now;
+                    progress.value.set( (float)(workDone += work) );
+
+                    StringBuilder label = new StringBuilder( 64 ).append( taskName );
+                    if (!subTaskName.isEmpty()) {
+                        label.append( " - " ).append( subTaskName );
+                    }
+                    label.append( " " ).append( (100/workTotal)*workDone ).append( "%" );
+                    progressText.content.set( label.toString() );
+                }
+            }
+
+            @Override
+            public void done() {
+                progress.dispose();
+                progressText.dispose();
+                progressBody.layout();
+            }
+        };
     }
 
 
     @SuppressWarnings("unchecked")
-    public <R extends Service> Sequence<R,RuntimeException> services( Class<R> type ) {
+    public <R> Sequence<R,RuntimeException> services( Class<R> type ) {
         return Sequence.of( services )
                 .filter( s -> type.isInstance( s ) )
                 .map( s -> (R)s );
+    }
+
+
+    public void startGlobalServicesSync() {
+        for (var service : services( SyncableService.class ).asIterable()) {
+            var monitor = newAsyncOperation();
+            service.newSync( monitor ).start();
+        }
     }
 
 

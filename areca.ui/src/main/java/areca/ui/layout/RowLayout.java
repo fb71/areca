@@ -59,7 +59,7 @@ public class RowLayout
     @Override
     public void layout( UIComposite composite ) {
         Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
-        LOG.info( "RowLayout: " + size );
+        LOG.debug( "RowLayout: " + size );
 
         Size clientSize = Size.of(
                 size.width() - (margins.value().width() * 2),

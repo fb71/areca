@@ -15,6 +15,7 @@ package areca.app.ui;
 
 import static areca.ui.component2.Events.EventType.SELECT;
 
+import areca.app.ArecaApp;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Action;
@@ -43,6 +44,14 @@ public class StartPage
         ui = new PageContainer( this, parent );
         ui.title.set( "Start" );
 
+        // Sync
+        site.actions.add( new Action() {{
+            icon.set( "sync" );
+            handler.set( (UIEvent ev) -> {
+                ArecaApp.instance().startGlobalServicesSync();
+            });
+        }});
+        // Settings
         site.actions.add( new Action() {{
             icon.set( "settings" );
             handler.set( (UIEvent ev) -> {
