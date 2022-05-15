@@ -64,18 +64,22 @@ public class ImapFolderSynchronizer {
 
 
     public Promise<?> start() {
-        monitor.value().beginTask( "Syncing folder: " + folderName, ProgressMonitor.UNKNOWN );
+        monitor.value().beginTask( "EMail", ProgressMonitor.UNKNOWN );
+        monitor.value().subTask( folderName );
 
         var uow = repo.newUnitOfWork();
 
         return fetchMessageCount()
                 // fetch messages-ids
                 .then( fsc -> {
-                    monitor.value().beginTask( "Syncing folder: " + folderName, fsc.exists );
+                    LOG.info( "Exists: " + fsc.exists );
+                    monitor.value().beginTask( "EMail", (fsc.exists*2)+2 );
+                    monitor.value().worked( 1 );
                     return fetchMessageIds( fsc.exists );
                 })
                 // find missing Message entities
                 .then( fetched -> {
+                    monitor.value().worked( 1 );
                     Map<String,Integer> msgIds = Sequence.of( fetched.headers.entrySet() )
                             .toMap( entry -> entry.getValue().get( MESSAGE_ID ), entry -> entry.getKey() );
 
@@ -92,7 +96,7 @@ public class ImapFolderSynchronizer {
                             });
                 })
                 .onSuccess( missingMsgIds -> {
-                    LOG.info( "Not-found: " + missingMsgIds );
+                    LOG.info( "Not found: " + missingMsgIds );
                 })
                 // fetch IMAP messages
                 .then( notFound -> {
@@ -101,6 +105,7 @@ public class ImapFolderSynchronizer {
                 })
                 // create Message entities
                 .map( mfc -> {
+                    monitor.value().worked( 1 );
                     return uow.createEntity( Message.class, proto -> {
                         proto.storeRef.set( "..." );
                         proto.text.set( mfc.textContent );
@@ -112,21 +117,21 @@ public class ImapFolderSynchronizer {
                             .where( Expressions.eq( Contact.TYPE.email, message.from.get() ) )
                             .executeToList()
                             .map( results -> {
+                                LOG.info( "Contact found for: %s", message.from.get() );
                                 return message;
                             });
                 })
                 // submit
-                .reduce( new MutableInt(), (r,entity) -> r.increment() )
+                .reduce( new MutableInt(), (r,entity) -> {
+                    r.increment();
+                    monitor.value().worked( 1 );
+                })
                 .map( count -> {
                     return uow.submit().onSuccess( submitted -> {
-                        LOG.info( "Submitted: %s / %s", count, submitted );
+                        monitor.value().done();
+                        LOG.info( "Submitted: %s", count );
                     });
                 })
-
-//                .map( ctx -> {
-//                    monitor.worked( 1 );
-//                    return ctx.value( Message.class );
-//                });
                 ;
     }
 

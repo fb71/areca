@@ -50,15 +50,15 @@ public class ContactsPage extends Page {
 
         fetchContacts();
 
-        ui.body.add( new Button(), btn -> {
-            btn.label.set( "^" );
-            btn.events.on( SELECT, ev -> syncContacts() );
-        });
-
-        ui.body.add( new Button(), btn -> {
-            btn.label.set( "XX" );
-            btn.events.on( SELECT, ev -> Pageflow.current().close( ContactsPage.this ) );
-        });
+//        ui.body.add( new Button(), btn -> {
+//            btn.label.set( "^" );
+//            btn.events.on( SELECT, ev -> syncContacts() );
+//        });
+//
+//        ui.body.add( new Button(), btn -> {
+//            btn.label.set( "XX" );
+//            btn.events.on( SELECT, ev -> Pageflow.current().close( ContactsPage.this ) );
+//        });
         ui.body.layout();
         return ui;
     }

@@ -33,6 +33,7 @@ import areca.app.service.SyncableService;
 import areca.app.service.carddav.CarddavService;
 import areca.app.service.imap.ImapService;
 import areca.app.ui.StartPage;
+import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -132,7 +133,7 @@ public class ArecaApp extends App {
         return new ProgressMonitor() {
             private Progress progress = progressBody.add( new Progress() );
             private Text progressText = progressBody.add( new Text() {{ content.set( "..." ); }} );
-            private long lastUpdate = System.currentTimeMillis();
+            private long lastUpdate;
             private int workTotal, workDone;
             private String taskName = "";
             private String subTaskName = "";
@@ -153,7 +154,7 @@ public class ArecaApp extends App {
             @Override
             public void worked( int work ) {
                 long now = System.currentTimeMillis();
-                if (now > lastUpdate + 1000) {
+                if (true || now > lastUpdate + 100) {
                     lastUpdate = now;
                     progress.value.set( (float)(workDone += work) );
 
@@ -168,9 +169,13 @@ public class ArecaApp extends App {
 
             @Override
             public void done() {
-                progress.dispose();
-                progressText.dispose();
-                progressBody.layout();
+                progress.value.set( (float)workTotal );
+                progressText.content.set( taskName + " 100%" );
+                Platform.schedule( 3000, () -> {
+                    progress.dispose();
+                    progressText.dispose();
+                    progressBody.layout();
+                });
             }
         };
     }

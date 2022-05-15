@@ -13,8 +13,10 @@
  */
 package areca.app.service.imap;
 
+import areca.app.ArecaApp;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
+import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.log.LogFactory;
@@ -42,14 +44,26 @@ public class ImapService
 
             @Override
             public void start() {
-                monitor.beginTask( "EMail", 10 );
-                work();
+                var synchronizer = new ImapFolderSynchronizer( "Test1", ArecaApp.instance().repo(), () -> newRequest() );
+                synchronizer.monitor.set( monitor );
+                synchronizer.start();
+
+                //monitor.beginTask( "EMail", 10 );
+                //pseudoWork();
             }
 
-            protected void work() {
+            protected ImapRequest newRequest() {
+                return new ImapRequest( self -> {
+                    self.host = "mail.polymap.de";
+                    self.port = 993;
+                    self.loginCommand = new LoginCommand( "areca@polymap.de", "dienstag" );
+                });
+            }
+
+            protected void pseudoWork() {
                 monitor.worked( 1 );
                 if ((work -= 1) > 0) {
-                    Platform.schedule( 1000, () -> work() );
+                    Platform.schedule( 1000, () -> pseudoWork() );
                 }
                 else {
                     monitor.done();
