@@ -54,5 +54,8 @@ public class Contact extends Entity {
     @Nullable
     public Association<Anchor>      anchor;
 
+    public String label() {
+        return String.format( "%s %s", firstname.opt().orElse( "" ), lastname.opt().orElse( "" ) );
+    }
 
 }

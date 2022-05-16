@@ -1,0 +1,13 @@
+
+.ProgressContainer {
+    background-color: $bg3_color;    
+    border-radius: 0px;
+    font-size: 12px !important;
+    color: darken($font_color, 30%);
+}
+
+.ContactButton {
+    font-size: 12px;
+    border-radius: 12px;
+    padding: 3px 3px;
+}

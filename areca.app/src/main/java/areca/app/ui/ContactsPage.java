@@ -15,18 +15,18 @@ package areca.app.ui;
 
 import static areca.ui.component2.Events.EventType.SELECT;
 
+import org.apache.commons.lang3.StringUtils;
+
 import areca.app.ArecaApp;
 import areca.app.model.Contact;
-import areca.app.service.carddav.CardDavTest;
-import areca.app.service.carddav.CarddavSynchronizer;
-import areca.common.NullProgressMonitor;
+import areca.common.Timer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Size;
 import areca.ui.component2.Button;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
-import areca.ui.layout.RowLayout;
+import areca.ui.layout.RasterLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageContainer;
 import areca.ui.pageflow.Pageflow;
@@ -39,55 +39,60 @@ public class ContactsPage extends Page {
 
     private static final Log LOG = LogFactory.getLog( ContactsPage.class );
 
-    private PageContainer ui;
+    private PageContainer       ui;
 
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Contacts" );
-        ui.body.layout.set( new RowLayout() {{spacing.set( 5 ); margins.set( Size.of( 10, 10 ) );}} );
+        ui.body.layout.set( new RasterLayout() {{itemSize.set( Size.of( 65, 65 ) ); spacing.set( 5 ); margins.set( Size.of( 5, 5 ) );}} );
 
         fetchContacts();
 
-//        ui.body.add( new Button(), btn -> {
-//            btn.label.set( "^" );
-//            btn.events.on( SELECT, ev -> syncContacts() );
-//        });
-//
-//        ui.body.add( new Button(), btn -> {
-//            btn.label.set( "XX" );
-//            btn.events.on( SELECT, ev -> Pageflow.current().close( ContactsPage.this ) );
-//        });
         ui.body.layout();
         return ui;
     }
 
 
+    protected long lastLayout;
+
     protected void fetchContacts() {
         ui.body.components.disposeAll();
+        lastLayout = System.currentTimeMillis();
+        var timer = Timer.start();
+
         ArecaApp.instance().unitOfWork()
                 .query( Contact.class )
                 .execute()
-                .onSuccess( opt -> opt.ifPresent( contact -> {
-                    ui.body.add( new Button(), btn -> makeContactButton( btn, contact ) );
-                    ui.body.layout();
-                }));
+                .onSuccess( (ctx,result) -> {
+                    result.ifPresent( contact -> {
+                        ui.body.add( new Button(), btn -> makeContactButton( btn, contact ) );
+                    });
+                    var now = System.currentTimeMillis();
+                    if (now > lastLayout + 1000 || ctx.isComplete()) {
+                        LOG.info( "" + timer.elapsedHumanReadable() );
+                        lastLayout = now;
+                        ui.body.layout();
+                    }
+                });
     }
 
 
-    protected void syncContacts() {
-        var s = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, ArecaApp.instance().repo() );
-        s.monitor.set( new NullProgressMonitor() );
-        s.start().onSuccess( contacts -> {
-            LOG.info( "Contacts: %s", contacts.size() );
-            fetchContacts();
-        });
-    }
+//    protected void syncContacts() {
+//        var s = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, ArecaApp.instance().repo() );
+//        s.monitor.set( new NullProgressMonitor() );
+//        s.start().onSuccess( contacts -> {
+//            LOG.info( "Contacts: %s", contacts.size() );
+//            fetchContacts();
+//        });
+//    }
 
 
     protected void makeContactButton( Button btn, Contact contact ) {
-        btn.label.set( contact.firstname.get() );
+        btn.cssClasses.add( "ContactButton" );
+        btn.label.set( StringUtils.left( contact.firstname.get(), 6 ) );
+        btn.tooltip.set( contact.label() );
         btn.events.on( SELECT, ev -> {
             Pageflow.current().open( new ContactPage(), ContactsPage.this, ev.clientPos() );
         });

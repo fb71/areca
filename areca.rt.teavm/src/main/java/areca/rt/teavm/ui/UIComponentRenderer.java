@@ -70,6 +70,11 @@ public abstract class UIComponentRenderer {
         LOG.debug( "CONSTRUCTED: " + c.getClass().getName() );
         HTMLElement htmlElm = htmlElm( c );
 
+        c.tooltip
+                .onInitAndChange( (newValue, __) -> {
+                    htmlElm.setAttribute( "title", newValue );
+                });
+
         // cssClasses
         c.cssClasses
                 .onInitAndChange( (newValue, oldValue) -> {

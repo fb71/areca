@@ -30,25 +30,32 @@ public class RasterLayout
 
     private static final Log LOG = LogFactory.getLog( RasterLayout.class );
 
-    public ReadWrite<RasterLayout,Integer> spacing = Property.rw( this, "spacing", 5 );
+    public ReadWrite<RasterLayout,Integer>  spacing = Property.rw( this, "spacing", 0 );
+
+    public ReadWrite<RasterLayout,Size>     margins = Property.rw( this, "margins", Size.of( 0, 0 ) );
+
+    public ReadWrite<RasterLayout,Integer>  columns = Property.rw( this, "columns" );
+
+    public ReadWrite<RasterLayout,Size>     itemSize = Property.rw( this, "itemSize" );
 
 
     @Override
     public void layout( UIComposite composite ) {
-        Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
+        LOG.debug( "Components: %s, %s", composite.components.size(), composite.clientSize.opt().orElse( Size.of( -1, -1 ) ) );
+        Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) ).substract( margins.value() );
 
-//        composite.components().sequence().forEach( c -> {
-//            c.position.set( Position.of( 1, 1 ) );
-//            c.size.set( Size.of( 0, 0 ) );
-//        } );
+        var cWidth = itemSize.value().width();
+        var cHeight = itemSize.value().height();
+        var cols = size.width() / (cWidth + spacing.value());
 
-        var cols = size.width() / 50;
-        var i = 0;
-        for (var component : composite.components) {
-            component.size.set( Size.of( 48, 48 ) );
-            component.position.set( Position.of( 53 * (i % cols), 53 * (i / cols) ) );
-            i++;
-        }
+        composite.components.values().forEach( (child,i) -> {
+            var col = i % cols;
+            var line = i /cols;
+            child.size.set( Size.of( cWidth, cHeight ) );
+            child.position.set( Position.of(
+                    margins.value().width() + ((cWidth + spacing.value()) * col),
+                    margins.value().height() + ((cHeight + spacing.value()) * line) ) );
+        });
     }
 
 }

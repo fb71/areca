@@ -14,17 +14,22 @@
 package areca.common.event;
 
 import static areca.common.Assert.notNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
+
 import java.lang.reflect.InvocationTargetException;
 
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.base.Opt;
+import areca.common.base.Predicate;
+import areca.common.base.Predicate.RPredicate;
+import areca.common.base.Supplier;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
@@ -105,14 +110,15 @@ public abstract class EventManager {
     }
 
 
-    protected void unsubscribe( EventHandlerInfo eventHandlerInfo ) {
-        List<EventHandlerInfo> newHandlers = new ArrayList<>( handlers.size() - 1 );
-        for (EventHandlerInfo cursor : handlers) {
-            if (cursor != eventHandlerInfo) {
-                newHandlers.add( cursor );
+    protected void unsubscribe( Set<EventHandlerInfo> remove ) {
+        List<EventHandlerInfo> newHandlers = new ArrayList<>( handlers.size() - remove.size() );
+        for (EventHandlerInfo handler : handlers) {
+            if (!remove.contains( handler )) {
+                newHandlers.add( handler );
             }
         }
-        Assert.isEqual( handlers.size()-1, newHandlers.size() );
+        Assert.isEqual( handlers.size()-remove.size(), newHandlers.size() );
+        LOG.info( "Expunged: %s, now: %s (%s)", remove.size(), newHandlers.size(), getClass().getSimpleName() );
         handlers = newHandlers;
     }
 
@@ -163,11 +169,11 @@ public abstract class EventManager {
 
         protected Object                    handler;
 
-        protected EventPredicate            performIf;
+        protected BiConsumer<EventObject,Throwable>         onError = defaultOnError;
 
-        protected EventPredicate            disposeIf;
+        protected Predicate<EventObject,RuntimeException>   performIf;
 
-        protected BiConsumer<EventObject,Throwable> onError = defaultOnError;
+        protected Supplier<Boolean,RuntimeException>        unsubscribeIf;
 
 
         public EventHandlerInfo( Object handler ) {
@@ -175,16 +181,18 @@ public abstract class EventManager {
         }
 
 
-        public EventHandlerInfo performIf( @SuppressWarnings("hiding") EventPredicate performIf ) {
+        @SuppressWarnings("hiding")
+        public EventHandlerInfo performIf( RPredicate<EventObject> performIf ) {
             Assert.notNull( performIf );
             this.performIf = this.performIf != null ? this.performIf.and( performIf ) : performIf;
             return this;
         }
 
 
-        public EventHandlerInfo disposeIf( @SuppressWarnings("hiding") EventPredicate disposeIf ) {
-            Assert.isNull( this.disposeIf );
-            this.disposeIf = notNull( disposeIf );
+        @SuppressWarnings("hiding")
+        public EventHandlerInfo unsubscribeIf( RSupplier<Boolean> unsubscribeIf ) {
+            Assert.isNull( this.unsubscribeIf );
+            this.unsubscribeIf = notNull( unsubscribeIf );
             return this;
         }
 
@@ -196,9 +204,8 @@ public abstract class EventManager {
                     return;
                 }
                 // dispose
-                if (disposeIf != null && disposeIf.test( ev )) {
-                    LOG.warn( "DISPOSE: " + EventHandlerInfo.this.handler );
-                    EventManager.this.unsubscribe( EventHandlerInfo.this );
+                if (unsubscribeIf != null && unsubscribeIf.supply()) {
+                    EventManager.this.unsubscribe( Collections.singleton( EventHandlerInfo.this ) );
                     return;
                 }
                 // perform: listener

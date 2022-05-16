@@ -119,7 +119,7 @@ public class PanGesture {
         return Events.manager
                 .subscribe( l )
                 .performIf( ev -> ev instanceof PanEvent && ev.getSource() == component)
-                .disposeIf( ev -> component.isDisposed() );
+                .unsubscribeIf( () -> component.isDisposed() );
     }
 
     //

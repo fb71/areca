@@ -19,6 +19,8 @@ import java.util.List;
 
 import areca.common.Platform;
 import areca.common.Promise;
+import areca.common.Timer;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -39,6 +41,11 @@ public class AsyncEventManager
     private Promise<Void>           async;
 
 
+    public AsyncEventManager() {
+        new ExpungeThread().run();
+    }
+
+
     @Override
     public void publish( EventObject ev ) {
         publish2( ev );
@@ -57,12 +64,14 @@ public class AsyncEventManager
                 async = null;
 
                 // TODO check if queue is to big or computation takes to long
-                LOG.info( "Queued: " + stable.size() + " - Handlers: " + handlers.size() );
+                var handlersBefore = handlers.size();
+                Timer timer = Timer.start();
                 for (Event queued : stable) {
                     for (EventHandlerInfo handler : queued.handlers) {
                         handler.perform( queued.ev );
                     }
                 }
+                LOG.debug( "Queued: %s - Handlers: %s (%s) - %s", stable.size(), handlers.size(), handlersBefore, timer.elapsedHumanReadable() );
                 return null;
             });
         }
@@ -83,6 +92,26 @@ public class AsyncEventManager
         protected Event( EventObject ev, List<EventHandlerInfo> handlers ) {
             this.ev = ev;
             this.handlers = handlers;
+        }
+    }
+
+
+    /**
+     *
+     */
+    private class ExpungeThread
+            implements Runnable {
+
+        @Override
+        public void run() {
+            var expunged = Sequence.of( handlers )
+                    .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.supply() )
+                    .toSet();
+
+            if (!expunged.isEmpty()) {
+                unsubscribe( expunged );
+            }
+            Platform.schedule( 3000, this );
         }
     }
 

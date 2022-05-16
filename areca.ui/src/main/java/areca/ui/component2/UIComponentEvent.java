@@ -36,6 +36,7 @@ public abstract class UIComponentEvent
      */
     public static final EventManager manager = new AsyncEventManager();
 
+
     /** */
     public static class ComponentConstructedEvent
             extends UIComponentEvent {

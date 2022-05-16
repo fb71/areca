@@ -204,7 +204,7 @@ public abstract class Property<C,T> {
                     consumer.accept( ev.getNewValue(), ev.getOldValue() );
                 })
                 .performIf( ev -> ev.getSource() == ReadWrite.this )
-                .disposeIf( ev -> ((UIComponent)component()).isDisposed() );  // TODO
+                .unsubscribeIf( () -> ((UIComponent)component()).isDisposed() );  // TODO
             return this;
         }
 

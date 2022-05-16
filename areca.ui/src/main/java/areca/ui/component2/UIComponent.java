@@ -57,6 +57,9 @@ public abstract class UIComponent {
 
     public Object                       htmlElm;
 
+    /** The tooltip of this component. */
+    public ReadWrite<UIComponent,String>    tooltip = Property.rw( this, "tooltip" );
+
     /** The styling classes of this component. */
     public ReadWrites<UIComponent,String>   cssClasses = Property.rws( this, PROP_CSS_CLASSES );
 

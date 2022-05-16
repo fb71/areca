@@ -111,9 +111,9 @@ public class EventManagerTest {
     @Test
     public Promise<Void> disposeTest() {
         EventListener<Event1> l = (Event1 ev) -> handled = ev;
-        em.subscribe( l ).disposeIf( ev -> true );
+        em.subscribe( l ).unsubscribeIf( () -> true );
         return em.publish2( new Event1() ).onSuccess( __ -> {
-            em.subscribe( l ).disposeIf( ev -> true );
+            em.subscribe( l ).unsubscribeIf( () -> true );
             Assert.isNull( handled );
         });
     }
@@ -125,7 +125,7 @@ public class EventManagerTest {
         for (int i=0; i<100; i++) {
             em.subscribe( (Event1 ev) -> count++ )
                     .performIf( ev -> ev instanceof Event1 )
-                    .disposeIf( ev -> false );
+                    .unsubscribeIf( () -> false );
         }
         for (int i=0; i<1000; i++) {
             em.publish( new Event1() );

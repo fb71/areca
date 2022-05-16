@@ -19,6 +19,7 @@ import areca.common.Promise;
 import areca.common.base.BiConsumer;
 import areca.common.base.Consumer;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Sequence;
 
 /**
  * Simple {@link EventManager} implementation that executes event handlers
@@ -30,11 +31,14 @@ import areca.common.base.Consumer.RConsumer;
 public class SameStackEventManager
         extends EventManager {
 
+    private long        lastExpungeCheck;
+
 
     @Override
     public void publish( EventObject ev ) {
         for (EventHandlerInfo handler : handlers) {
             handler.perform( ev );
+            checkExpunge();
         }
     }
 
@@ -74,6 +78,21 @@ public class SameStackEventManager
                 return this;
             }
         };
+    }
+
+
+    public void checkExpunge() {
+        var now = System.currentTimeMillis();
+        if (now > lastExpungeCheck + 3000) {
+            lastExpungeCheck = now;
+            var expunge = Sequence.of( handlers )
+                    .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.supply() )
+                    .toSet();
+
+            if (!expunge.isEmpty()) {
+                unsubscribe( expunge );
+            }
+        }
     }
 
 }

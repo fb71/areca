@@ -24,6 +24,10 @@ public interface Predicate<T,E extends Exception> {
 
     public interface RPredicate<TT>
             extends Predicate<TT,RuntimeException> {
+
+//        public default RPredicate<TT> and( RPredicate<? super TT> other ) {
+//            return t -> Predicate.super.and( other ).test( t );
+//        }
     }
 
     /**
