@@ -10,6 +10,11 @@
     transform: scale(0.5);
 }
 
+// during PanGesture
+.Paning {
+    transition: all 0.35s ease-out;
+}
+
 .PageContainer {
     background-color: $bg1_color;    
 }

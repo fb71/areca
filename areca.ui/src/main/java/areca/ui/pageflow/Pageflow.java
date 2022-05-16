@@ -108,8 +108,8 @@ public class Pageflow {
         public PageCloseGesture( UIComposite component ) {
             super( component );
             on( ev -> {
-                LOG.info( "Gesture: %s", ev.delta() );
-                var top = component.components.values().last().get();
+                var top = pages.peek().container;
+                LOG.debug( "PageCloseGesture: top = %s, status = %s, delta = %s", top, ev.status(), "???"); //ev.delta() != null ? ev.delta() : "???" );
                 switch (ev.status()) {
                     case START: {
                         startPos = top.position.value();
@@ -124,7 +124,7 @@ public class Pageflow {
                     }
                     case END: {
                         top.opacity.set( null );
-                        top.cssClasses.remove( "Paned" );
+                        top.cssClasses.remove( "Paning" );
 
                         // close
                         if (ev.clientPos().y > (component.clientSize.value().height() - EDGE_THRESHOLD)) {
@@ -133,7 +133,7 @@ public class Pageflow {
                         // reset
                         else {
                             top.position.set( startPos );
-                            Platform.schedule( 1000, () -> top.bordered.set( false ) );
+                            Platform.schedule( 750, () -> top.bordered.set( false ) );
                         }
                     }
                 }

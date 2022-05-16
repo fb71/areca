@@ -61,11 +61,11 @@ public class PanGesture {
         }
 
         public Status status() {
-            return Status.END;
+            return status;
         }
 
         public Position delta() {
-            return ev.clientPos().substract( startPos );
+            return ev.clientPos() != null ? ev.clientPos().substract( startPos ) : null;
         }
 
         public Position lastDelta() {
@@ -104,12 +104,15 @@ public class PanGesture {
             onEnd( ev );
         });
         component.events.on( EventType.MOUSEDOWN, ev -> {
+            //LOG.info( "MOUSE: START " + ev );
             onStart( ev );
         });
         component.events.on( EventType.MOUSEMOVE, ev -> {
+            //LOG.info( "MOUSE: Move " + ev );
             onMove( ev );
         });
         component.events.on( EventType.MOUSEUP, ev -> {
+            //LOG.info( "MOUSE: Up " + ev );
             onEnd( ev );
         });
     }

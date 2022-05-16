@@ -13,9 +13,6 @@
  */
 package areca.rt.teavm.ui;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.events.MouseEvent;
 import org.teavm.jso.dom.html.HTMLDocument;
@@ -79,7 +76,6 @@ public abstract class UIComponentRenderer {
         c.cssClasses
                 .onInitAndChange( (newValue, oldValue) -> {
                     Assert.notNull( newValue, "Setting null value means remove() ???" );
-                    Collections.reverse( (List<?>)newValue );
                     htmlElm.setAttribute( "class", String.join( " ", newValue ) );
                 });
 
@@ -117,9 +113,14 @@ public abstract class UIComponentRenderer {
         // position
         c.position
                 .onInitAndChange( (newValue, oldValue) -> {
-                    Assert.notNull( newValue, "Setting null value means remove() ???" );
-                    htmlElm.getStyle().setProperty( "left", String.format( "%spx", newValue.x() ) );
-                    htmlElm.getStyle().setProperty( "top", String.format( "%spx", newValue.y() ) );
+                    if (newValue == null) {
+                        htmlElm.getStyle().removeProperty( "left" );
+                        htmlElm.getStyle().removeProperty( "top" );
+                    }
+                    else {
+                        htmlElm.getStyle().setProperty( "left", String.format( "%spx", newValue.x() ) );
+                        htmlElm.getStyle().setProperty( "top", String.format( "%spx", newValue.y() ) );
+                    }
                 });
                 //.initWith( () -> {
                 //    return Position.of( htmlElm.getOffsetLeft(), htmlElm.getOffsetTop() );
@@ -143,7 +144,8 @@ public abstract class UIComponentRenderer {
                 }
                 htmlElm( c ).addEventListener( type, _htmlEv -> {
                     LOG.debug( "HTML event: " + handler + " " + ((MouseEvent)_htmlEv).getButton() );
-                    //((MouseEvent)_htmlEv).stopPropagation();
+                    ((MouseEvent)_htmlEv).stopPropagation();
+                    ((MouseEvent)_htmlEv).preventDefault();
                     handler.consumer.accept( new UIEvent( c ) {
                         {
                             this.htmlEv = _htmlEv;
