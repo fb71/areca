@@ -112,7 +112,7 @@ public class ArecaApp extends App {
 
             // monitorBody
             progressBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( 21 );}} );
+                layoutConstraints.set( new RowConstraints() {{height.set( 23 );}} );
                 cssClasses.add( "ProgressContainer" );
                 layout.set( new RowLayout() {{margins.set( Size.of( 5, 5 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
 

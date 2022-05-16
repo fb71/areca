@@ -91,18 +91,18 @@ public class PanGesture {
 
     public PanGesture( UIComponent component ) {
         this.component = component;
-        component.events.on( EventType.TOUCHSTART, ev -> {
-            LOG.debug( "TOUCH: START " + ev );
-            onStart( ev );
-        });
-        component.events.on( EventType.TOUCHMOVE, ev -> {
-            LOG.debug( "TOUCH: MOVE " + ev.clientPos() );
-            onMove( ev );
-        });
-        component.events.on( EventType.TOUCHEND, ev -> {
-            LOG.debug( "TOUCH: END " + ev );
-            onEnd( ev );
-        });
+//        component.events.on( EventType.TOUCHSTART, ev -> {
+//            LOG.debug( "TOUCH: START " + ev );
+//            onStart( ev );
+//        });
+//        component.events.on( EventType.TOUCHMOVE, ev -> {
+//            LOG.debug( "TOUCH: MOVE " + ev.clientPos() );
+//            onMove( ev );
+//        });
+//        component.events.on( EventType.TOUCHEND, ev -> {
+//            LOG.debug( "TOUCH: END " + ev );
+//            onEnd( ev );
+//        });
         component.events.on( EventType.MOUSEDOWN, ev -> {
             //LOG.info( "MOUSE: START " + ev );
             onStart( ev );

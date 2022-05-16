@@ -15,6 +15,8 @@ package areca.app.ui;
 
 import static areca.ui.component2.Events.EventType.SELECT;
 
+import java.util.ArrayList;
+
 import org.apache.commons.lang3.StringUtils;
 
 import areca.app.ArecaApp;
@@ -57,45 +59,45 @@ public class ContactsPage extends Page {
 
     protected long lastLayout;
 
+    protected long timeout = 280;
+
     protected void fetchContacts() {
         ui.body.components.disposeAll();
         lastLayout = System.currentTimeMillis();
         var timer = Timer.start();
+        var chunk = new ArrayList<Button>();
 
         ArecaApp.instance().unitOfWork()
                 .query( Contact.class )
                 .execute()
                 .onSuccess( (ctx,result) -> {
                     result.ifPresent( contact -> {
-                        ui.body.add( new Button(), btn -> makeContactButton( btn, contact ) );
+                        chunk.add( makeContactButton( contact ) );
                     });
                     var now = System.currentTimeMillis();
-                    if (now > lastLayout + 1000 || ctx.isComplete()) {
+                    if (now > lastLayout + timeout || ctx.isComplete()) {
                         LOG.info( "" + timer.elapsedHumanReadable() );
+                        timer.restart();
                         lastLayout = now;
+                        timeout = 750;
+
+                        chunk.forEach( btn -> ui.body.add( btn ) );
+                        chunk.clear();
                         ui.body.layout();
                     }
                 });
     }
 
 
-//    protected void syncContacts() {
-//        var s = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, ArecaApp.instance().repo() );
-//        s.monitor.set( new NullProgressMonitor() );
-//        s.start().onSuccess( contacts -> {
-//            LOG.info( "Contacts: %s", contacts.size() );
-//            fetchContacts();
-//        });
-//    }
-
-
-    protected void makeContactButton( Button btn, Contact contact ) {
+    protected Button makeContactButton( Contact contact ) {
+        var btn = new Button();
         btn.cssClasses.add( "ContactButton" );
         btn.label.set( StringUtils.left( contact.firstname.get(), 6 ) );
         btn.tooltip.set( contact.label() );
         btn.events.on( SELECT, ev -> {
             Pageflow.current().open( new ContactPage(), ContactsPage.this, ev.clientPos() );
         });
+        return btn;
     }
 
 

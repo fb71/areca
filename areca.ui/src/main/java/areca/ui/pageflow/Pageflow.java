@@ -117,7 +117,7 @@ public class Pageflow {
                         break;
                     }
                     case MOVE: {
-                        top.bordered.set( true );
+                        //top.bordered.set( true );
                         top.position.set( Position.of( startPos.x, startPos.y + ev.delta().y ) );
                         top.opacity.set( Math.max( 0.2f, (PEEK_DISTANCE_PX - ev.delta().y) / PEEK_DISTANCE_PX ) );
                         break;
@@ -133,7 +133,7 @@ public class Pageflow {
                         // reset
                         else {
                             top.position.set( startPos );
-                            Platform.schedule( 750, () -> top.bordered.set( false ) );
+                            //Platform.schedule( 750, () -> top.bordered.set( false ) );
                         }
                     }
                 }
