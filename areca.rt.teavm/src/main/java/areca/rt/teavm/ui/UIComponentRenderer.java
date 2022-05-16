@@ -13,6 +13,9 @@
  */
 package areca.rt.teavm.ui;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.events.MouseEvent;
 import org.teavm.jso.dom.html.HTMLDocument;
@@ -71,6 +74,7 @@ public abstract class UIComponentRenderer {
         c.cssClasses
                 .onInitAndChange( (newValue, oldValue) -> {
                     Assert.notNull( newValue, "Setting null value means remove() ???" );
+                    Collections.reverse( (List<?>)newValue );
                     htmlElm.setAttribute( "class", String.join( " ", newValue ) );
                 });
 

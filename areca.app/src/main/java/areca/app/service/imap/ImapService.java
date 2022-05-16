@@ -44,12 +44,12 @@ public class ImapService
 
             @Override
             public void start() {
-                var synchronizer = new ImapFolderSynchronizer( "Test1", ArecaApp.instance().repo(), () -> newRequest() );
-                synchronizer.monitor.set( monitor );
+                var synchronizer = new ImapFolderSynchronizer( "Test1",
+                        ArecaApp.instance().repo(), () -> newRequest(), monitor);
                 synchronizer.start();
 
-                //monitor.beginTask( "EMail", 10 );
-                //pseudoWork();
+//                monitor.beginTask( "EMail", 10 );
+//                pseudoWork();
             }
 
             protected ImapRequest newRequest() {

@@ -449,4 +449,20 @@ public class Promise<T> {
             }
         }
     }
+
+
+    /**
+     * Returns a Promise that never emmits a result.
+     */
+    public static <R> Promise<R> stop() {
+        return new Promise<>();
+    }
+
+
+    /**
+     * Returns a {@link Promise} that (immediatelly) delivers the given value.
+     */
+    public static <R> Promise<R> completed( R value ) {
+        return Platform.async( () -> value );
+    }
 }

@@ -27,13 +27,11 @@ body {
     background-color: $bg1_color;
     color: $font_color;
     font-family: Roboto, arial, sans-serif;
+    font-size: 14px;
 }
 
 .UIComponent {
     position: absolute;
-    font-family: Roboto, arial, sans-serif;
-    font-size: 14px;
-    color: $font_color;
     border: 0px solid $separator_color;
     border-radius: 4px;
     transition: 
@@ -43,11 +41,16 @@ body {
         height $transition_duration, 
         transform $transition_duration,
         opacity $transition_duration,
-        background-color $transition_duration;
+        background-color $transition_duration,
+        color $transition_duration;
     box-sizing: border-box;
 }
 
 .UIComposite {
+    font-family: Roboto, arial, sans-serif;
+    font-size: 14px;
+    color: $font_color;
+    
     // @extend .Bordered;
     ::-webkit-scrollbar { 
          display: none;         /* Chrome Safari */
@@ -59,7 +62,9 @@ body {
 }
 
 .Button {
-    // @extend .Bordered;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
     padding: 7px 12px;
     //background-color: darken(desaturate($accent_color2, 7%), 3%);
     background-color: $bg3_color;
@@ -69,10 +74,12 @@ body {
 .Button:hover {
     //background-color: lighten(saturate($accent_color2, 0%), 0%);
     background-color: lighten($bg3_color, 5%);
+    color: lighten($font_color, 10%);
 }
 .Button:active {
     margin-top: 2px;
     box-shadow: 0px 0px 3px rgba(0,0,0,0.5);
+    color: lighten($font_color, 10%);
 }
 
 .ListCell {

@@ -13,6 +13,8 @@
  */
 package areca.common.log;
 
+import static org.apache.commons.lang3.StringUtils.abbreviate;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -89,7 +91,7 @@ public class LogFactory {
         protected void log ( Level msgLevel, String msg, Object[] args, Throwable e ) {
             if (msgLevel.ordinal() >= level.ordinal()) {
                 var formatted = args != null ? String.format( msg, args ) : msg;
-                var record = String.format( "[%-5s] %s: %s", msgLevel, prefix, formatted );
+                var record = String.format( "[%-5s] %-20s: %s", msgLevel, abbreviate(prefix,20), formatted );
                 if (msgLevel.ordinal() >= Level.WARN.ordinal()) {
                     System.err.println( record );
                 }

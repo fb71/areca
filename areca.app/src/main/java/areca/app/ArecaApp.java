@@ -40,7 +40,6 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.App;
-import areca.ui.Color;
 import areca.ui.Size;
 import areca.ui.component2.Progress;
 import areca.ui.component2.Text;
@@ -108,14 +107,14 @@ public class ArecaApp extends App {
 
             rootWindow.layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true );}} );
             mainBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 25 );}} );
+                layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 23 );}} );
             }});
 
             // monitorBody
             progressBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( 25 );}} );
-                bgColor.set( Color.rgb( 0x17, 0x15, 0x14 ) );
-                layout.set( new RowLayout() {{margins.set( Size.of( 6, 6 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
+                layoutConstraints.set( new RowConstraints() {{height.set( 21 );}} );
+                cssClasses.add( "ProgressContainer" );
+                layout.set( new RowLayout() {{margins.set( Size.of( 5, 5 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
 
 //                add( new Progress() {{
 //                    value.set( 0.8f );

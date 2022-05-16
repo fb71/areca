@@ -33,3 +33,10 @@
     background-color: saturate(lighten($accent2_color, 25%), 25%);
     background-color: transparent;
 }
+
+.ProgressContainer {
+    background-color: $bg3_color;    
+    border-radius: 0px;
+    font-size: 12px !important;
+    color: darken($font_color, 30%);
+}

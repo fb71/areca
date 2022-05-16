@@ -36,6 +36,7 @@ import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Assert;
+import areca.common.NullProgressMonitor;
 import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Sequence;
@@ -130,6 +131,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> selectFolderTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         return request.submit().onSuccess( command -> {
@@ -159,10 +161,9 @@ public class ImapTest {
 
 
     @Test
-    @Skip
     public Promise<?> fetchMessageHeadersTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
-        request.commands.add( new MessageFetchHeadersCommand( between( 1, 3 ), FROM, SUBJECT, TO, DATE, MESSAGE_ID ) );
+        request.commands.add( new MessageFetchHeadersCommand( between( 1, 2 ), SUBJECT, FROM, TO, DATE, MESSAGE_ID ) );
         return request.submit().onSuccess( command -> {
             with( command ).instanceOf( MessageFetchHeadersCommand.class, fetchCommand -> {
                 for (var entry : fetchCommand.headers.entrySet()) {
@@ -198,7 +199,7 @@ public class ImapTest {
     @Test
     public Promise<?> syncFolderTest() {
         return initRepo( "syncFolder" ).then( repo -> {
-            return new ImapFolderSynchronizer( "Test1", repo, () -> newRequest() )
+            return new ImapFolderSynchronizer( "Test1", repo, () -> newRequest(), new NullProgressMonitor() )
                     .start();
                     //.onSuccess( (self,msg) );
         });

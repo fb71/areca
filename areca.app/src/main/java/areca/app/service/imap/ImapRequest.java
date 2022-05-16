@@ -54,7 +54,7 @@ public class ImapRequest
                 //.onReadyStateChange( state -> LOG.info( "Request ready state: " + state ) )
                 .submit( toJson() )
                 .map( (response, next) -> {
-                    LOG.info( "Status: " + response.status() + " (" + timer.elapsedHumanReadable() + ")" );
+                    LOG.debug( "Status: " + response.status() + " (" + timer.elapsedHumanReadable() + ")" );
                     if (response.status() > 299) {
                         throw new IOException( "HTTP Status: " + response.status() );
                     }

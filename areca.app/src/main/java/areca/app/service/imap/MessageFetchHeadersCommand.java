@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.james.mime4j.util.MimeUtil;
 
 import areca.app.service.imap.ImapRequest.Command;
+import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -54,8 +55,8 @@ public class MessageFetchHeadersCommand extends Command {
             return toString().equalsIgnoreCase( s );
         }
 
-        public static FieldEnum valueOfString( String s ) {
-            return Sequence.of( FieldEnum.values() ).filter( e -> e.equalsString( s ) ).single();
+        public static Opt<FieldEnum> valueOfString( String s ) {
+            return Sequence.of( FieldEnum.values() ).filter( e -> e.equalsString( s ) ).first();
         }
     }
 
@@ -65,6 +66,8 @@ public class MessageFetchHeadersCommand extends Command {
     public Map<Integer,Map<FieldEnum,String>>   headers = new TreeMap<>();
 
     private Integer                             currentMsgNum;
+
+    private FieldEnum                           currentField;
 
 
     public MessageFetchHeadersCommand( Range<Integer> msgNum, FieldEnum field, FieldEnum... more ) {
@@ -86,16 +89,21 @@ public class MessageFetchHeadersCommand extends Command {
             var matcher = PATTERN.matcher( line );
             if (matcher.matches()) {
                 currentMsgNum = Integer.valueOf( matcher.group( 1 ) );
-                return true;
             }
-            // content line
-            if (currentMsgNum != null) {
-                LOG.debug( "Content line: '%s'", line );
-                var field = FieldEnum.valueOfString( substringBefore( line, ": " ) );
+            // content line continue
+            else if (Character.isWhitespace( line.charAt( 0 ) )) {
+                LOG.debug( "Content cont: '%s'", line );
+                headers.get( currentMsgNum ).computeIfPresent( currentField, (__,content) ->
+                       content + line.substring( 1 ) );
+            }
+            // content line start
+            else if (currentMsgNum != null) {
+                LOG.debug( "Content start: '%s'", line );
+                currentField = FieldEnum.valueOfString( substringBefore( line, ": " ) )
+                        .orElseThrow( () -> new RuntimeException( "Unknown header field: " + line ) );
                 var content = substringAfter( line, ": " );
                 content = MimeUtil.unscrambleHeaderValue( content );
-                headers.computeIfAbsent( currentMsgNum, k -> new HashMap<>() ).put( field, content );
-                currentMsgNum = null;
+                headers.computeIfAbsent( currentMsgNum, k -> new HashMap<>() ).put( currentField, content );
             }
             return true;
         }

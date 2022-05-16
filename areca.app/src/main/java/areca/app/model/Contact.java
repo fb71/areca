@@ -13,6 +13,7 @@
  */
 package areca.app.model;
 
+import org.polymap.model2.Association;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
@@ -49,5 +50,9 @@ public class Contact extends Entity {
 
     @Nullable
     public Property<String>         photo;
+
+    @Nullable
+    public Association<Anchor>      anchor;
+
 
 }

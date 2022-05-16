@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2020-2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -13,9 +13,12 @@
  */
 package areca.app.service.imap;
 
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.DATE;
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.FROM;
 import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.MESSAGE_ID;
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.SUBJECT;
+import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.TO;
 import static org.apache.commons.lang3.Range.between;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,21 +26,20 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.UnitOfWork;
 
-import areca.app.model.Contact;
 import areca.app.model.Message;
-import areca.common.NullProgressMonitor;
+import areca.app.service.Messages2ContactAnchorSynchronizer;
+import areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Sequence;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component2.Property;
-import areca.ui.component2.Property.ReadWrite;
 
 /**
- * Synchronize an entire IMAP folder with the DB.
+ * Synchronizes an entire IMAP folder with the DB.
  *
  * @author Falko Bräutigam
  */
@@ -47,7 +49,7 @@ public class ImapFolderSynchronizer {
 
 //    public Property<Boolean>            checkExisting = Property.create( this, "checkExisting", false );
 
-    public ReadWrite<?,ProgressMonitor> monitor = Property.rw( this, "monitor", new NullProgressMonitor() );
+    protected ProgressMonitor           monitor;
 
     protected RSupplier<ImapRequest>    requestFactory;
 
@@ -56,34 +58,33 @@ public class ImapFolderSynchronizer {
     protected String                    folderName;
 
 
-    public ImapFolderSynchronizer( String folderName, EntityRepository repo, RSupplier<ImapRequest> requestFactory ) {
+    public ImapFolderSynchronizer( String folderName, EntityRepository repo, RSupplier<ImapRequest> requestFactory, ProgressMonitor monitor ) {
         this.repo = repo;
         this.requestFactory = requestFactory;
         this.folderName = folderName;
+        this.monitor = monitor;
     }
 
 
     public Promise<?> start() {
-        monitor.value().beginTask( "EMail", ProgressMonitor.UNKNOWN );
-        monitor.value().subTask( folderName );
+        monitor.beginTask( "EMail", ProgressMonitor.UNKNOWN );
+        monitor.subTask( folderName );
 
         var uow = repo.newUnitOfWork();
 
         return fetchMessageCount()
                 // fetch messages-ids
-                .then( fsc -> {
-                    LOG.info( "Exists: " + fsc.exists );
-                    monitor.value().beginTask( "EMail", (fsc.exists*2)+2 );
-                    monitor.value().worked( 1 );
-                    return fetchMessageIds( fsc.exists );
+                .then( msgCount -> {
+                    LOG.info( "Exists: " + msgCount );
+                    monitor.beginTask( "EMail", (msgCount*2)+2 );
+                    monitor.worked( 1 );
+                    return fetchMessageIds( msgCount );
                 })
                 // find missing Message entities
-                .then( fetched -> {
-                    monitor.value().worked( 1 );
-                    Map<String,Integer> msgIds = Sequence.of( fetched.headers.entrySet() )
-                            .toMap( entry -> entry.getValue().get( MESSAGE_ID ), entry -> entry.getKey() );
+                .then( (Map<String,Integer> msgIds) -> {
+                    monitor.worked( 1 );
 
-                    // query Messages that are already there
+                    // query Messages that are in the store
                     String[] queryIds = msgIds.keySet().toArray( String[]::new );
                     return uow.query( Message.class )
                             .where( Expressions.eqAny( Message.TYPE.storeRef, queryIds ) )
@@ -95,90 +96,78 @@ public class ImapFolderSynchronizer {
                                 });
                             });
                 })
-                .onSuccess( missingMsgIds -> {
+                // MESSAGE_ID -> message num
+                .onSuccess( (HashMap<String,Integer> missingMsgIds) -> {
                     LOG.info( "Not found: " + missingMsgIds );
                 })
                 // fetch IMAP messages
                 .then( notFound -> {
-                    var msgNums = notFound.values().iterator();
-                    return Promise.joined( notFound.size(), i -> fetchMessage( msgNums.next() ) );
+                    if (notFound.isEmpty()) {
+                        monitor.done();
+                        return Promise.stop();
+                    } else {
+                        var msgNums = notFound.values().iterator();
+                        return Promise.joined( notFound.size(), i -> fetchMessage( msgNums.next(), uow ) );
+                    }
                 })
-                // create Message entities
-                .map( mfc -> {
-                    monitor.value().worked( 1 );
-                    return uow.createEntity( Message.class, proto -> {
-                        proto.storeRef.set( "..." );
-                        proto.text.set( mfc.textContent );
-                    });
+                .onSuccess( msg -> {
+                    monitor.worked( 1 );
                 })
-                // find Contact
-                .then( message -> {
-                    return uow.query( Contact.class )
-                            .where( Expressions.eq( Contact.TYPE.email, message.from.get() ) )
-                            .executeToList()
-                            .map( results -> {
-                                LOG.info( "Contact found for: %s", message.from.get() );
-                                return message;
-                            });
-                })
+                .then( (Message msg) -> new Messages2ContactAnchorSynchronizer( uow, monitor ).perform( msg ) )
                 // submit
                 .reduce( new MutableInt(), (r,entity) -> {
                     r.increment();
-                    monitor.value().worked( 1 );
+                    monitor.worked( 1 );
                 })
                 .map( count -> {
                     return uow.submit().onSuccess( submitted -> {
-                        monitor.value().done();
+                        monitor.done();
                         LOG.info( "Submitted: %s", count );
                     });
-                })
-                ;
+                });
     }
 
 
-//    protected Promise<?> checkMessageContactAnchor( UnitOfWork uow, Message message ) {
-//        return uow.query( Contact.class )
-//                .where( Expressions.eq( Contact.TYPE.email, message.from.get() ) )
-//                .executeToList()
-//                .then( results -> {
-//                    return Sequence.of( results ).first()
-//                            .ifPresentMap( contact -> {
-//                                return uow.query( Anchor.class )
-//                                        .where( Expressions.eq( Anchor.TYPE.storeRef, (String)contact.id() ) )
-//                                        .executeToList();
-//                            } )
-//                            .orElse();
-//                });
-//
-//    }
-
-
-    protected Promise<FolderSelectCommand> fetchMessageCount() {
+    protected Promise<Integer> fetchMessageCount() {
         var r = requestFactory.supply();
         r.commands.add( new FolderSelectCommand( folderName ) );
         return r.submit()
                 .filter( command -> command instanceof FolderSelectCommand )
-                .map( command -> (FolderSelectCommand)command );
+                .map( command -> ((FolderSelectCommand)command).exists );
     }
 
 
-    protected Promise<MessageFetchHeadersCommand> fetchMessageIds( int msgNum ) {
+    /** MESSAGE_ID -> message num */
+    protected Promise<Map<String,Integer>> fetchMessageIds( int msgNum ) {
         var r = requestFactory.supply();
         r.commands.add( new FolderSelectCommand( folderName ) );
         r.commands.add( new MessageFetchHeadersCommand( between( 1, msgNum ), MESSAGE_ID ) );
         return r.submit()
                 .filter( command -> command instanceof MessageFetchHeadersCommand )
-                .map( command -> (MessageFetchHeadersCommand)command );
+                .map( command -> {
+                    return Sequence.of( ((MessageFetchHeadersCommand)command).headers.entrySet() )
+                            .toMap( entry -> entry.getValue().get( MESSAGE_ID ), entry -> entry.getKey() );
+                });
     }
 
 
-    protected Promise<MessageFetchCommand> fetchMessage( int msgNum ) {
+    protected Promise<Message> fetchMessage( int msgNum, UnitOfWork uow ) {
         var r = requestFactory.supply();
         r.commands.add( new FolderSelectCommand( folderName ) );
         r.commands.add( new MessageFetchCommand( msgNum, "TEXT" ) );
+        r.commands.add( new MessageFetchHeadersCommand( between( msgNum, msgNum ), SUBJECT, FROM, TO, DATE, MESSAGE_ID ) );
         return r.submit()
-                .filter( command -> command instanceof MessageFetchCommand )
-                .map( command -> (MessageFetchCommand)command );
+                .reduce( uow.createEntity( Message.class ), (entity,command) -> {
+                    if (command instanceof MessageFetchCommand) {
+                        entity.text.set( ((MessageFetchCommand)command).textContent );
+                    }
+                    else if (command instanceof MessageFetchHeadersCommand) {
+                        Map<FieldEnum,String> headers = ((MessageFetchHeadersCommand)command).headers.get( msgNum );
+                        entity.storeRef.set( headers.get( MESSAGE_ID ) );
+                        entity.from.set( headers.get( FROM ) );
+                    }
+                });
+
     }
 
 }

@@ -13,9 +13,9 @@
  */
 package areca.ui.component2;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 
@@ -88,7 +88,7 @@ public abstract class UIComponent {
 
     {
         // init CSS classes
-        Set<String> classes = new HashSet<>();
+        List<String> classes = new ArrayList<>();
         for (Class<?> cl=getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
             if (!cl.getSimpleName().isEmpty()) {
                 classes.add( cl.getSimpleName() );
