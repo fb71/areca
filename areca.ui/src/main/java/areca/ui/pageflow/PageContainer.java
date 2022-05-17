@@ -88,7 +88,9 @@ public class PageContainer
                     actionsBtns.computeIfAbsent( action, ___ -> add( new Button() {{
                         bordered.set( false );
                         cssClasses.add( CSS_HEADER_ITEM );
-                        icon.set( action.icon.value() );
+                        action.label.opt().ifPresent( v -> label.set( v ) );
+                        action.icon.opt().ifPresent( v -> icon.set( v ) );
+                        action.description.opt().ifPresent( v -> tooltip.set( v ) );
                         events.on( SELECT, ev -> {
                             try {
                                 action.handler.value().accept( ev );

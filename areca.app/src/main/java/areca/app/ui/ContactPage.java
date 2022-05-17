@@ -13,6 +13,7 @@
  */
 package areca.app.ui;
 
+import areca.app.model.Contact;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Size;
@@ -33,13 +34,14 @@ public class ContactPage extends Page {
 
     private PageContainer ui;
 
+
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
-        ui.title.set( "Contact ???" );
+        ui.title.set( "Contact" );
         ui.body.layout.set( new RowLayout() {{spacing.set( 5 ); margins.set( Size.of( 10, 10 ) );}} );
 
-        ui.body.add( new Text(), t -> t.content.set( "Contact" ) );
+        ui.body.add( new Text(), t -> t.content.set( "Contact: " + site.data( Contact.class ).label() ) );
 
         ui.body.layout();
         return ui;

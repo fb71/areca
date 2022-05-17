@@ -37,7 +37,6 @@ public abstract class Page {
         return Assert.notSame( parent, doInit( parent ) );
     }
 
-
     void dispose() {
         doDispose();
         this.site = null;
@@ -47,16 +46,30 @@ public abstract class Page {
 
     protected abstract void doDispose();
 
+
     /**
-     *
+     * The interface for the Page to communicate with the system.
      */
     public static abstract class PageSite {
 
+        /** Allows the Page to add actions to be shown in its context. */
         public ReadWrites<?,Action> actions = Property.rws( this, "actions", new ArrayList<>() );
 
         public Pageflow pageflow() {
             return Pageflow.current();
         }
+
+        public <R> R data( Class<R> type ) {
+            return data( type, "__default__" );
+        }
+
+        public abstract <R> R data( Class<R> type, String scope );
+
+        public PageSite put( Object data ) {
+            return put( data, "__default__" );
+
+        }
+        public abstract PageSite put( Object data, String scope );
     }
 
 }

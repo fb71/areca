@@ -17,9 +17,12 @@ import static areca.common.base.With.with;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 
 import areca.common.Assert;
 import areca.common.Platform;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
@@ -47,10 +50,15 @@ public class Pageflow {
         return Assert.notNull( instance, "Pageflow not start()ed yet." );
     }
 
-    private class PageData {
+    private static class PageData {
         Page        page;
         PageSite    site;
         UIComponent container;
+    }
+
+    private static class ScopedData {
+        String      scope;
+        Object      data;
     }
 
     // instance *******************************************
@@ -58,6 +66,9 @@ public class Pageflow {
     private UIComposite         rootContainer;
 
     private Deque<PageData>     pages = new ArrayDeque<>();
+
+    /* XXX this probably to simple; data should life for its page only!? */
+    protected Set<ScopedData>   data = new HashSet<>();
 
 
     protected Pageflow( UIComposite rootContainer ) {
@@ -69,8 +80,27 @@ public class Pageflow {
 
     public void open( Page _page, Page parent, Position origin ) {
         Assert.that( pages.isEmpty() || parent == pages.peek().page, "Adding other than top page is not supported yet." );
-        var _pageSite = new PageSite() {{
-        }};
+        var _pageSite = new PageSite() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public <R> R data( Class<R> type, String scope ) {
+                return (R)Sequence.of( data )
+                        .first( sd -> type.isInstance( sd.data ) && scope.equals( sd.scope ) )
+                        .orElseThrow( () -> new IllegalStateException( "No data for type: " + type.getSimpleName() + ", scope: " + scope ) )
+                        .data;
+            }
+            @Override
+            public PageSite put( Object _data, String _scope ) {
+                var scopedData = new ScopedData() {{
+                    data = Assert.notNull( _data );
+                    scope = Assert.notNull( _scope );
+                }};
+                if (!data.add( scopedData )) {
+                    throw new IllegalArgumentException( "Data is already there: " + _data.getClass().getSimpleName() + ", scope: " + _scope );
+                }
+                return this;
+            }
+        };
         var _pageContainer = _page.init( rootContainer, _pageSite );
         pages.push( new PageData() {{page = _page; site = _pageSite; container = _pageContainer;}} );
         rootContainer.layout();

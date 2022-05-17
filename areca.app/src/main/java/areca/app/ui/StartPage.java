@@ -47,6 +47,7 @@ public class StartPage
         // Sync
         site.actions.add( new Action() {{
             icon.set( "sync" );
+            description.set( "Start synchronization" );
             handler.set( (UIEvent ev) -> {
                 ArecaApp.instance().startGlobalServicesSync();
             });
@@ -70,13 +71,13 @@ public class StartPage
             });
         });
 
-        // Close
-        ui.body.add( new Button(), btn -> {
-            btn.label.set( "X" );
-            btn.events.on( SELECT, ev -> {
-                site.pageflow().close( StartPage.this );
-            });
-        });
+//        // Close
+//        ui.body.add( new Button(), btn -> {
+//            btn.label.set( "X" );
+//            btn.events.on( SELECT, ev -> {
+//                site.pageflow().close( StartPage.this );
+//            });
+//        });
         return ui;
     }
 

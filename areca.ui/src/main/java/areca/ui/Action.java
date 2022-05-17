@@ -26,6 +26,9 @@ public class Action {
 
     public ReadWrite<?,String>      label = Property.rw( this, "label" );
 
+    /** Often displayed as the tooltip of a button. */
+    public ReadWrite<?,String>      description = Property.rw( this, "description" );
+
     /** A ligature or numeric character reference of a Material Icon. */
     public ReadWrite<?,String>      icon = Property.rw( this, "icon" );
 
