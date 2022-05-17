@@ -16,7 +16,8 @@ package areca.app.ui;
 import static areca.ui.component2.Events.EventType.SELECT;
 
 import java.util.ArrayList;
-
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import areca.app.ArecaApp;
@@ -31,7 +32,6 @@ import areca.ui.component2.UIComposite;
 import areca.ui.layout.RasterLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageContainer;
-import areca.ui.pageflow.Pageflow;
 
 /**
  *
@@ -48,7 +48,7 @@ public class ContactsPage extends Page {
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Contacts" );
-        ui.body.layout.set( new RasterLayout() {{itemSize.set( Size.of( 65, 65 ) ); spacing.set( 5 ); margins.set( Size.of( 5, 5 ) );}} );
+        ui.body.layout.set( new PrioRasterLayout() );
 
         fetchContacts();
 
@@ -59,7 +59,7 @@ public class ContactsPage extends Page {
 
     protected long lastLayout;
 
-    protected long timeout = 280;
+    protected long timeout = 280;  // 300ms timeout before page animation starts
 
     protected void fetchContacts() {
         ui.body.components.disposeAll();
@@ -79,7 +79,7 @@ public class ContactsPage extends Page {
                         LOG.info( "" + timer.elapsedHumanReadable() );
                         timer.restart();
                         lastLayout = now;
-                        timeout = 750;
+                        timeout = 1000;
 
                         chunk.forEach( btn -> ui.body.add( btn ) );
                         chunk.clear();
@@ -92,10 +92,13 @@ public class ContactsPage extends Page {
     protected Button makeContactButton( Contact contact ) {
         var btn = new Button();
         btn.cssClasses.add( "ContactButton" );
-        btn.label.set( StringUtils.left( contact.firstname.get(), 6 ) );
+        btn.label.set( String.format( "%.7s %.7s",
+                contact.firstname.opt().orElse( "" ),
+                contact.lastname.opt().orElse( "" )) );
         btn.tooltip.set( contact.label() );
         btn.events.on( SELECT, ev -> {
-            Pageflow.current().open( new ContactPage(), ContactsPage.this, ev.clientPos() );
+            site.put( contact );
+            site.pageflow().open( new ContactPage(), ContactsPage.this, ev.clientPos() );
         });
         return btn;
     }
@@ -103,6 +106,28 @@ public class ContactsPage extends Page {
 
     @Override
     protected void doDispose() {
+    }
+
+
+    /**
+     *
+     */
+    class PrioRasterLayout
+            extends RasterLayout {
+
+        protected PrioRasterLayout() {
+            itemSize.set( Size.of( 74, 68 ) );
+            spacing.set( 5 );
+            margins.set( Size.of( 5, 5 ) );
+        }
+
+
+        @Override
+        public void layout( UIComposite composite ) {
+            List<Button> sorted = composite.components.values().map( c -> (Button)c ).toList();
+            Collections.sort( sorted, (b1,b2) -> StringUtils.compare( b1.label.value(), b2.label.value() ) );
+            doLayout( composite, sorted );
+        }
     }
 
 }
