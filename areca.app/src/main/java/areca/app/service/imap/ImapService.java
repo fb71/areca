@@ -44,9 +44,9 @@ public class ImapService
 
             @Override
             public void start() {
-                var synchronizer = new ImapFolderSynchronizer( "Test1",
-                        ArecaApp.instance().repo(), () -> newRequest(), monitor);
-                synchronizer.start();
+                new ImapFolderSynchronizer( "Test1", ArecaApp.instance().repo(), () -> newRequest(), monitor)
+                        .start()
+                        .onError( ArecaApp.instance().defaultErrorHandler() );
 
 //                monitor.beginTask( "EMail", 10 );
 //                pseudoWork();

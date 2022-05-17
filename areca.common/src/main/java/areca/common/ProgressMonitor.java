@@ -21,7 +21,7 @@ public abstract class ProgressMonitor {
 
     public static final int UNKNOWN = 0;
 
-    protected boolean       cancelled;
+    protected volatile boolean  cancelled;
 
     public void cancel() {
         this.cancelled = true;
@@ -31,6 +31,12 @@ public abstract class ProgressMonitor {
         return cancelled;
     }
 
+    public void checkCancelled() {
+        if (isCancelled()) {
+            throw new CancelledException( "Operation was cancelled.", null );
+        }
+    }
+
     public abstract void beginTask( String name, int totalWork );
 
     public abstract void subTask( String name );
@@ -38,4 +44,17 @@ public abstract class ProgressMonitor {
     public abstract void worked( int work );
 
     public abstract void done();
+
+
+    /**
+     *
+     */
+    public static class CancelledException
+            extends RuntimeException {
+
+        protected CancelledException( String message, Throwable cause ) {
+            super( message, cause );
+        }
+
+    }
 }

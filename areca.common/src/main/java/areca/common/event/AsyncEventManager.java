@@ -65,13 +65,13 @@ public class AsyncEventManager
 
                 // TODO check if queue is to big or computation takes to long
                 var handlersBefore = handlers.size();
-                Timer timer = Timer.start();
+                Timer t = Timer.start();
                 for (Event queued : stable) {
                     for (EventHandlerInfo handler : queued.handlers) {
                         handler.perform( queued.ev );
                     }
                 }
-                LOG.debug( "Queued: %s - Handlers: %s (%s) - %s", stable.size(), handlers.size(), handlersBefore, timer.elapsedHumanReadable() );
+                LOG.debug( "Queued: %s - Handlers: %s (%s) - %s", stable.size(), handlers.size(), handlersBefore, t.elapsedHumanReadable() );
                 return null;
             });
         }

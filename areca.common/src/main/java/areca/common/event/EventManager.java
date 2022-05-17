@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import areca.common.Assert;
 import areca.common.Promise;
+import areca.common.Timer;
 import areca.common.base.Opt;
 import areca.common.base.Predicate;
 import areca.common.base.Predicate.RPredicate;
@@ -111,6 +112,7 @@ public abstract class EventManager {
 
 
     protected void unsubscribe( Set<EventHandlerInfo> remove ) {
+        var t = Timer.start();
         List<EventHandlerInfo> newHandlers = new ArrayList<>( handlers.size() - remove.size() );
         for (EventHandlerInfo handler : handlers) {
             if (!remove.contains( handler )) {
@@ -118,7 +120,8 @@ public abstract class EventManager {
             }
         }
         Assert.isEqual( handlers.size()-remove.size(), newHandlers.size() );
-        LOG.info( "Expunged: %s, now: %s (%s)", remove.size(), newHandlers.size(), getClass().getSimpleName() );
+        LOG.info( "Expunged: %s, now: %s (%s) (%s)", remove.size(), newHandlers.size(),
+                t.elapsedHumanReadable(), getClass().getSimpleName() );
         handlers = newHandlers;
     }
 

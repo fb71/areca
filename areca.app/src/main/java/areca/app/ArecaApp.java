@@ -35,6 +35,7 @@ import areca.app.service.imap.ImapService;
 import areca.app.ui.StartPage;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -128,6 +129,19 @@ public class ArecaApp extends App {
     }
 
 
+    public RConsumer<Throwable> defaultErrorHandler() {
+        return (Throwable e) -> {
+            if (e instanceof ProgressMonitor.CancelledException) {
+                LOG.info( "Operation cancelled." );
+            }
+            else {
+                // get a meaningfull stracktrace in TeaVM
+                throw (RuntimeException)e;
+            }
+        };
+    }
+
+
     public ProgressMonitor newAsyncOperation() {
         return new ProgressMonitor() {
             private Progress progress = progressBody.add( new Progress() );
@@ -152,6 +166,8 @@ public class ArecaApp extends App {
 
             @Override
             public void worked( int work ) {
+                checkCancelled();
+
                 long now = System.currentTimeMillis();
                 if (true || now > lastUpdate + 100) {
                     lastUpdate = now;

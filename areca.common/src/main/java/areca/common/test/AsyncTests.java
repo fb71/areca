@@ -19,7 +19,6 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import areca.common.Assert;
 import areca.common.AssertionException;
-import areca.common.AsyncJob;
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.base.Sequence;
@@ -39,27 +38,6 @@ public class AsyncTests {
     private static final Log LOG = LogFactory.getLog( AsyncTests.class );
 
     public static final AsyncTestsClassInfo info = AsyncTestsClassInfo.instance();
-
-    @Test
-    @Skip
-    public void asyncJobTest() throws Exception {
-        var monitor = new Object();
-        new AsyncJob()
-                .schedule( "work 1", site -> {
-                    LOG.info( "work 1" );
-                })
-                .schedule( "work 2", site -> {
-                    LOG.info( "work 2" );
-                    synchronized (monitor) {
-                        monitor.notifyAll();
-                    }
-                })
-                .start();
-
-        synchronized (monitor) {
-            monitor.wait( 1000 );
-        }
-    }
 
 
     @Test
