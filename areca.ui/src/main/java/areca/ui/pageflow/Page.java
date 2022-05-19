@@ -44,7 +44,7 @@ public abstract class Page {
 
     protected abstract UIComponent doInit( UIComposite parent );
 
-    protected abstract void doDispose();
+    protected void doDispose() {};
 
 
     /**

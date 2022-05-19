@@ -68,7 +68,7 @@ public class RowLayout
         // VERTICAL
         if (orientation.value() == VERTICAL) {
             int cTop = margins.value().height();
-            for (UIComponent c : composite.components) {
+            for (UIComponent c : orderedComponents( composite )) {
                 var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
 
                 // height
@@ -91,7 +91,7 @@ public class RowLayout
         // HORIZONTAL
         else {
             int cLeft = margins.value().width();
-            for (UIComponent c : composite.components) {
+            for (UIComponent c : orderedComponents( composite )) {
                 var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
 
                 // width

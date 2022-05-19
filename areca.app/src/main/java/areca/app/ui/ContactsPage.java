@@ -16,8 +16,6 @@ package areca.app.ui;
 import static areca.ui.component2.Events.EventType.SELECT;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import areca.app.ArecaApp;
@@ -48,7 +46,12 @@ public class ContactsPage extends Page {
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Contacts" );
-        ui.body.layout.set( new PrioRasterLayout() );
+        ui.body.layout.set( new RasterLayout() {{
+            spacing.set( 5 );
+            margins.set( Size.of( 5, 5 ) );
+            itemSize.set( Size.of( 74, 68 ) );
+            componentOrder.set( (b1, b2) -> StringUtils.compare( ((Button)b1).label.value(), ((Button)b2).label.value() ) );
+        }});
 
         fetchContacts();
 
@@ -101,33 +104,6 @@ public class ContactsPage extends Page {
             site.pageflow().open( new ContactPage(), ContactsPage.this, ev.clientPos() );
         });
         return btn;
-    }
-
-
-    @Override
-    protected void doDispose() {
-    }
-
-
-    /**
-     *
-     */
-    class PrioRasterLayout
-            extends RasterLayout {
-
-        protected PrioRasterLayout() {
-            itemSize.set( Size.of( 74, 68 ) );
-            spacing.set( 5 );
-            margins.set( Size.of( 5, 5 ) );
-        }
-
-
-        @Override
-        public void layout( UIComposite composite ) {
-            List<Button> sorted = composite.components.values().map( c -> (Button)c ).toList();
-            Collections.sort( sorted, (b1,b2) -> StringUtils.compare( b1.label.value(), b2.label.value() ) );
-            doLayout( composite, sorted );
-        }
     }
 
 }

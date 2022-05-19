@@ -13,8 +13,15 @@
  */
 package areca.ui.layout;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.logging.Logger;
 
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrite;
+import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 
 /**
@@ -25,7 +32,24 @@ public abstract class LayoutManager {
 
     private static final Logger LOG = Logger.getLogger( LayoutManager.class.getSimpleName() );
 
+    public ReadWrite<?,Comparator<UIComponent>>   componentOrder = Property.rw( this, "componentOrder" );
+
 
     public abstract void layout( UIComposite composite );
+
+
+    /**
+     * The components of the given {@link UIComposite} ordered as specified via
+     * {@link #componentOrder}.
+     */
+    protected Collection<UIComponent> orderedComponents( UIComposite composite) {
+        return componentOrder.opt()
+                .ifPresentMap( order -> {
+                    var result = new ArrayList<>( composite.components.value() );
+                    Collections.sort( result, order );
+                    return (Collection<UIComponent>)result;
+                })
+                .orElse( composite.components.value() );
+    }
 
 }

@@ -13,8 +13,6 @@
  */
 package areca.ui.layout;
 
-import java.util.Collection;
-
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -22,7 +20,6 @@ import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Property;
 import areca.ui.component2.Property.ReadWrite;
-import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 
 /**
@@ -45,19 +42,14 @@ public class RasterLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        doLayout( composite, composite.components.value() );
-    }
-
-
-    public void doLayout( UIComposite composite, Collection<? extends UIComponent> components ) {
-        LOG.debug( "Components: %s, %s", components.size(), composite.clientSize.opt().orElse( Size.of( -1, -1 ) ) );
+        //LOG.debug( "Components: %s, %s", components.size(), composite.clientSize.opt().orElse( Size.of( -1, -1 ) ) );
         Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) ).substract( margins.value() );
 
         var cWidth = itemSize.value().width();
         var cHeight = itemSize.value().height();
         var cols = size.width() / (cWidth + spacing.value());
 
-        Sequence.of( components ).forEach( (child,i) -> {
+        Sequence.of( orderedComponents( composite ) ).forEach( (child,i) -> {
             var col = i % cols;
             var line = i /cols;
             child.size.set( Size.of( cWidth, cHeight ) );
