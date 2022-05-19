@@ -76,10 +76,6 @@ public class ArecaApp extends App {
 
     private UIComposite             progressBody;
 
-//    private Progress                progress;
-//
-//    private Text                    progressText;
-
 
     protected ArecaApp() {
         EntityRepository.newConfiguration()

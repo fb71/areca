@@ -7,8 +7,8 @@
     color: darken($font_color, 30%);
 }
 
-.ContactButton {
+.ContactButton, .AnchorButton {
     font-size: 12px;
-    border-radius: 12px;
+    border-radius: 20px;
     padding: 5px 5px;
 }

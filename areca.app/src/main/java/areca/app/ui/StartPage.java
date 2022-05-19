@@ -17,11 +17,9 @@ import areca.app.ArecaApp;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Action;
-import areca.ui.Size;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
-import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageContainer;
 
@@ -67,7 +65,7 @@ public class StartPage
             });
         }});
 
-        ui.body.layout.set( new RowLayout() {{spacing.set( 5 ); margins.set( Size.of( 10, 10 ) );}} );
+        new AnchorsCloudPage( ui.body, site );
 
         return ui;
     }

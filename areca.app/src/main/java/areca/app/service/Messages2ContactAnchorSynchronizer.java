@@ -88,8 +88,9 @@ public class Messages2ContactAnchorSynchronizer {
 
     }
 
+
     protected String anchorName( Message msg, Contact contact ) {
-        return "???";
+        return contact.label();
     }
 
 

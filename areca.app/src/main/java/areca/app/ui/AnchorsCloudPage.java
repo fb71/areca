@@ -13,12 +13,20 @@
  */
 package areca.app.ui;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.ArrayList;
 
+import areca.app.ArecaApp;
+import areca.app.model.Anchor;
+import areca.app.model.EntityLifecycleEvent;
+import areca.common.Platform;
+import areca.common.Timer;
+import areca.common.event.EventCollector;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Size;
 import areca.ui.component2.Button;
+import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.RasterLayout;
@@ -34,22 +42,112 @@ public class AnchorsCloudPage
 
     private static final Log LOG = LogFactory.getLog( AnchorsCloudPage.class );
 
-    private PageContainer       ui;
+    private UIComposite     body;
+
+
+    /** Work from within StartPage */
+    public AnchorsCloudPage( UIComposite body, PageSite site ) {
+        this.site = site;
+        this.body = body;
+        createBody();
+    }
 
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
-        ui = new PageContainer( this, parent );
-        ui.title.set( "Contacts" );
-        ui.body.layout.set( new RasterLayout() {{
+        var ui = new PageContainer( this, parent );
+        ui.title.set( "Anchors" );
+
+        body = ui.body;
+        createBody();
+        return ui;
+    }
+
+
+    protected void createBody() {
+        body.layout.set( new RasterLayout() {{
             spacing.set( 5 );
             margins.set( Size.of( 5, 5 ) );
             itemSize.set( Size.of( 74, 68 ) );
-            componentOrder.set( (b1, b2) -> StringUtils.compare( ((Button)b1).label.value(), ((Button)b2).label.value() ) );
+            componentOrder.set( (b1, b2) -> order( b1, b2 ) );
         }});
+        body.add( new Text().content.set( "Loading..." ) );
+        fetchAnchors();
 
-        ui.body.layout();
-        return ui;
+        var _100ms = new EventCollector<EntityLifecycleEvent>( 100 );
+        EventManager.instance()
+                .subscribe( (EntityLifecycleEvent ev) -> {
+                    _100ms.collect( ev, collected -> {
+                        fetchAnchors();
+                    });
+                })
+                .performIf( EntityLifecycleEvent.class::isInstance )
+                .unsubscribeIf( () -> body.isDisposed() );
     }
+
+
+    protected int order( UIComponent c1, UIComponent c2 ) {
+        var prio1 = c1.<String>optData( "prio" ).get();
+        var prio2 = c2.<String>optData( "prio" ).get();
+        return prio1.compareToIgnoreCase( prio2 );
+    }
+
+
+    protected long lastLayout;
+
+    protected long timeout = 280;  // 300ms timeout before page animation starts
+
+    protected void fetchAnchors() {
+        // XXX wait for repo to show up
+        if (ArecaApp.instance().repo() == null) {
+            LOG.info( "waiting for repo..." );
+            Platform.schedule( 100, () -> fetchAnchors() );
+            return;
+        }
+        body.components.disposeAll();
+        lastLayout = System.currentTimeMillis();
+        var timer = Timer.start();
+        var chunk = new ArrayList<Button>();
+
+        ArecaApp.instance().unitOfWork()
+                .query( Anchor.class )
+                .execute()
+                .onSuccess( (ctx,result) -> {
+                    result.ifPresent( contact -> {
+                        chunk.add( makeAnchorButton( contact ) );
+                    });
+                    var now = System.currentTimeMillis();
+                    if (now > lastLayout + timeout || ctx.isComplete()) {
+                        LOG.info( "" + timer.elapsedHumanReadable() );
+                        timer.restart();
+                        lastLayout = now;
+                        timeout = 1000;
+
+                        chunk.forEach( btn -> body.add( btn ) );
+                        chunk.clear();
+                        body.layout();
+                    }
+                });
+    }
+
+
+    protected Button makeAnchorButton( Anchor anchor ) {
+        var btn = new Button();
+        btn.cssClasses.add( "AnchorButton" );
+//        btn.label.set( String.format( "%.7s %.7s",
+//                contact.firstname.opt().orElse( "" ),
+//                contact.lastname.opt().orElse( "" )) );
+        btn.label.set( anchor.name.opt().orElse( "..." ) );
+        btn.tooltip.set( anchor.name.opt().orElse( "" ) );
+
+        btn.data( "prio", () -> anchor.name.get() );
+
+//        btn.events.on( SELECT, ev -> {
+//            site.put( contact );
+//            site.pageflow().open( new ContactPage(), Page.this, ev.clientPos() );
+//        });
+        return btn;
+    }
+
 
 }

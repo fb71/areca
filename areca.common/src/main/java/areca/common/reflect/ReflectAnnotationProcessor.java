@@ -469,7 +469,7 @@ public class ReflectAnnotationProcessor
 
 
         protected void checkCreateAnnotationInfo( TypeElement annotation ) throws IOException {
-            log( ("=== " + annotation + " ==============================================").substring( 0, 68 ) );
+            log( ("=== " + annotation + " ===============================================================").substring( 0, 68 ) );
             //log( "Enclosing: " + annotation.getEnclosedElements() );
 
             String packageName = StringUtils.substringBeforeLast( annotation.getQualifiedName().toString(), "." );

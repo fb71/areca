@@ -18,8 +18,10 @@ import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
+import org.polymap.model2.runtime.Lifecycle;
 import org.polymap.model2.runtime.config.Mandatory;
 
+import areca.common.event.EventManager;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -27,7 +29,9 @@ import areca.common.reflect.RuntimeInfo;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class Anchor extends Entity {
+public class Anchor
+        extends Entity
+        implements Lifecycle {
 
     public static final AnchorClassInfo info = AnchorClassInfo.instance();
 
@@ -42,5 +46,12 @@ public class Anchor extends Entity {
     @Nullable
     @Queryable
     public Property<String>         storeRef;
+
+    @Override
+    public void onLifecycleChange( State state ) {
+        if (state == State.AFTER_COMMIT) {
+            EventManager.instance().publish( new EntityLifecycleEvent( this ) );
+        }
+    }
 
 }

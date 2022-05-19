@@ -55,7 +55,7 @@ public class ContactsPage extends Page {
 
         fetchContacts();
 
-        ui.body.layout();
+//        ui.body.layout();
         return ui;
     }
 

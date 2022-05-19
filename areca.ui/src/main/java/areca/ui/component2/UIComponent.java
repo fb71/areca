@@ -53,7 +53,7 @@ public abstract class UIComponent {
 
     private UIComposite                 parent;
 
-    private Map<String,Object>          data = new TreeMap<>();
+    private Map<String,Object>          data;
 
     public Object                       htmlElm;
 
@@ -197,16 +197,19 @@ public abstract class UIComponent {
     }
 
 
+    /**
+     * Retrieve/associate additional data.
+     */
     @SuppressWarnings("unchecked")
     public <R> R data( String name, Supplier<R> initializer ) {
+        data = data != null ? data : new TreeMap<>();
         return (R)data.computeIfAbsent( name, key -> {
             return initializer.get();
         });
     }
 
-    @SuppressWarnings("unchecked")
     public <R> Opt<R> optData( String name ) {
-        return Opt.of( (R)data.get( name ) );
+        return Opt.of( data( name, () -> null ) );
     }
 
 }
