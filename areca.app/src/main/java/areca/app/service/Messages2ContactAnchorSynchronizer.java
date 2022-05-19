@@ -28,7 +28,6 @@ import areca.app.model.Message;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Opt;
-import areca.common.base.TriConsumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -52,23 +51,22 @@ public class Messages2ContactAnchorSynchronizer {
 
 
     public Promise<Triple<Message,Contact,Anchor>> perform( Message message ) {
+        var address = addressParts( message.from.get() );
         return uow.query( Contact.class )
                 // query Contact
-                .where( Expressions.eq( Contact.TYPE.email, message.from.get() ) )
+                .where( Expressions.eq( Contact.TYPE.email, address.pure ) )
                 .executeToList()
                 .map( results -> {
                     if (!results.isEmpty()) {
-                        LOG.info( "Contact found for: %s", message.from.get() );
+                        LOG.info( "Contact found for: %s", address.pure );
                         return results.get( 0 );
                     }
                     else {
                         return uow.createEntity( Contact.class, proto -> {
-                            addressParts( message.from.get(), (first, last, pure) -> {
-                                LOG.info( "MATCH: %s -> '%s' '%s' '%s'", message.from.get(), first, last, pure );
-                                proto.firstname.set( first );
-                                proto.lastname.set( last );
-                                proto.email.set( pure );
-                            });
+                            LOG.info( "MATCH: %s -> '%s' '%s' '%s'", message.from.get(), address.first, address.last, address.pure );
+                            proto.firstname.set( address.first );
+                            proto.lastname.set( address.last );
+                            proto.email.set( address.pure );
                         });
                     }
                 })
@@ -105,7 +103,8 @@ public class Messages2ContactAnchorSynchronizer {
 
     public static Pattern       EMAIL = Pattern.compile( "([^@]+)@(.*)" );
 
-    protected static <E extends Exception> void addressParts( String email, TriConsumer<String,String,String,E> firstLastPure ) throws E {
+
+    protected static Address addressParts( String email ) {
         // extended
         var extMatch = EMAIL_EXT.matcher( email );
         if (extMatch.matches()) {
@@ -113,14 +112,12 @@ public class Messages2ContactAnchorSynchronizer {
             // comma separated name
             var commaMatch = NAME_COMMA.matcher( name );
             if (commaMatch.matches()) {
-                firstLastPure.accept( commaMatch.group( 2 ), commaMatch.group( 1 ), extMatch.group( 2 ) );
-                return;
+                return new Address() {{first = commaMatch.group( 2 ); last = commaMatch.group( 1 ); pure = extMatch.group( 2 );}};
             }
             // normal name
             var normalMatch = NAME_SIMPLE.matcher( name );
             if (normalMatch.matches()) {
-                firstLastPure.accept( normalMatch.group( 1 ), normalMatch.group( 2 ), extMatch.group( 2 ) );
-                return;
+                return new Address() {{first = normalMatch.group( 1 ); last = normalMatch.group( 2 ); pure = extMatch.group( 2 );}};
             }
             throw new RuntimeException( "No name match: " + name );
         }
@@ -130,14 +127,20 @@ public class Messages2ContactAnchorSynchronizer {
             var name = emailMatch.group( 1 );
             var dorMatch = NAME_DOT.matcher( name );
             if (dorMatch.matches()) {
-                firstLastPure.accept( dorMatch.group( 1 ), dorMatch.group( 2 ), email );
+                return new Address() {{first = dorMatch.group( 1 ); last = dorMatch.group( 2 ); pure = email;}};
             }
             else {
-                firstLastPure.accept( name, "", email );
+                return new Address() {{first = name; last = ""; pure = email;}};
             }
-            return;
         }
         throw new RuntimeException( "No email match: " + email );
+    }
+
+
+    private static class Address {
+        String first;
+        String last;
+        String pure;
     }
 
 
