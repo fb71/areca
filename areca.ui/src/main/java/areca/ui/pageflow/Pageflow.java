@@ -74,7 +74,7 @@ public class Pageflow {
     protected Pageflow( UIComposite rootContainer ) {
         this.rootContainer = rootContainer;
         this.rootContainer.layout.set( new PageStackLayout() );
-        new PageCloseGesture( rootContainer );
+        //new PageCloseGesture( rootContainer );
     }
 
 

@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.controller;
+package areca.ui.form;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -22,11 +22,11 @@ import areca.ui.component2.Property;
  * @author Falko Bräutigam
  */
 public class State<T>
-        extends Property.ReadWrite<Controller,T> {
+        extends Property.ReadWrite<Form,T> {
 
     private static final Log log = LogFactory.getLog( State.class );
 
-    protected State( Controller component, String name, T value ) {
+    protected State( Form component, String name, T value ) {
         super( component, name, value );
     }
 

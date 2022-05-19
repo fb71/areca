@@ -19,6 +19,7 @@ import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.common.Assert;
+import areca.common.Platform;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -45,6 +46,7 @@ public abstract class UIComponentRenderer {
     public static void start() {
         UICompositeRenderer._start();
         TextRenderer._start();
+        TextFieldRenderer._start();
         ButtonRenderer._start();
         ProgressRenderer._start();
     }
@@ -146,6 +148,7 @@ public abstract class UIComponentRenderer {
                     LOG.debug( "HTML event: " + handler + " " + ((MouseEvent)_htmlEv).getButton() );
                     //((MouseEvent)_htmlEv).stopPropagation();
                     ((MouseEvent)_htmlEv).preventDefault();
+                    try {
                     handler.consumer.accept( new UIEvent( c ) {
                         {
                             this.htmlEv = _htmlEv;
@@ -155,6 +158,12 @@ public abstract class UIComponentRenderer {
                         public Position clientPos() {
                             return Position.of( ((MouseEvent)_htmlEv).getClientX(), ((MouseEvent)_htmlEv).getClientY() );
                         }});
+                    }
+                    catch (Exception e) {
+                        Throwable rootCause = Platform.rootCause( e );
+                        LOG.info( "Root cause: %s : %s", rootCause, rootCause.getMessage() );
+                        throw (RuntimeException)e; // help TeaVM to print proper stack
+                    }
                 });
             }
         });

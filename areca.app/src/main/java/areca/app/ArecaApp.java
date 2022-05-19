@@ -98,7 +98,7 @@ public class ArecaApp extends App {
 
         super.createUI( rootWindow -> {
             VisualActionFeedback.start();
-            // XXX
+
             rootWindow.size.defaultsTo( () -> {
                 var doc = Window.current().getDocument();
                 var size = Size.of( doc.getBody().getClientWidth(), doc.getBody().getClientHeight() );

@@ -16,7 +16,6 @@ package areca.ui.viewer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
-import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -36,5 +35,5 @@ public abstract class Viewer<A extends ModelAdapter> {
     }
 
 
-    public abstract UIComponent create( UIComposite container );
+    public abstract UIComponent create();
 }

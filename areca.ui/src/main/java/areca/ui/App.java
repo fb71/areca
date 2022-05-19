@@ -42,9 +42,11 @@ public class App {
         return rootWindow;
     }
 
+
     public RootWindow rootWindow() {
         return Assert.notNull( rootWindow );
     }
+
 
     /**
      *

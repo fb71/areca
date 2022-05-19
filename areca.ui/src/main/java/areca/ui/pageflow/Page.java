@@ -34,7 +34,7 @@ public abstract class Page {
     @SuppressWarnings("hiding")
     UIComponent init( UIComposite parent, PageSite site ) {
         this.site = site;
-        return Assert.notSame( parent, doInit( parent ) );
+        return Assert.notSame( parent, doInit( parent ), "A Page must create a UIComposite." );
     }
 
     void dispose() {

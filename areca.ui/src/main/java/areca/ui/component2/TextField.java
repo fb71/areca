@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,19 +11,29 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.panel;
+package areca.ui.component2;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.controller.Controller;
+import areca.ui.component2.Property.ReadWrite;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class Panel
-        extends Controller {
+public class TextField
+        extends UIComponent {
 
-    private static final Log log = LogFactory.getLog( Panel.class );
+    private static final Log LOG = LogFactory.getLog( TextField.class );
+
+    public ReadWrite<TextField,String> content = Property.rw( this, "content" );
+
+    public ReadWrite<TextField,String> label = Property.rw( this, "label" );
+
+    @Override
+    public int computeMinHeight( int width ) {
+        return 35;
+    }
+
 
 }

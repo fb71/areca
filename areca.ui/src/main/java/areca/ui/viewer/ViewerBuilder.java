@@ -18,7 +18,6 @@ import areca.common.base.Function;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
-import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -76,27 +75,27 @@ public class ViewerBuilder {
     }
 
 
-    public UIComponent create( UIComposite parent ) {
-        viewer = viewer != null ? viewer : guessViewer();
-
+    public UIComponent create() {
         Assert.notNull( adapter, "Adapter is mandatory for building a viewer!" );
         if (adapter instanceof SingleValueAdapter) {
-            viewer.init( createSingleValueAdapter( (SingleValueAdapter)adapter ) );
+            viewer.init( transformingSingleValueAdapter( (SingleValueAdapter<?>)adapter ) );
         }
         else {
             throw new RuntimeException( "Unknown adapter type: " + adapter );
         }
-        return viewer.create( parent );
+
+        viewer = viewer != null ? viewer : guessViewer();
+
+        return viewer.create();
     }
 
 
     protected Viewer guessViewer() {
-        // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 
 
-    protected SingleValueAdapter createSingleValueAdapter( SingleValueAdapter delegate ) {
+    protected SingleValueAdapter transformingSingleValueAdapter( SingleValueAdapter delegate ) {
         return new SingleValueAdapter() {
             @Override
             public Object getValue() {

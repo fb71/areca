@@ -16,7 +16,6 @@ package areca.ui.viewer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
-import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -28,7 +27,7 @@ public class ListViewer
     private static final Log log = LogFactory.getLog( ListViewer.class );
 
     @Override
-    public UIComponent create( UIComposite container ) {
+    public UIComponent create() {
         throw new RuntimeException( "not implemented yet." );
     }
 

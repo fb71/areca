@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.controller;
+package areca.ui.form;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -20,9 +20,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import areca.ui.component2.UIComponent;
-import areca.ui.component2.UIComposite;
-import areca.ui.viewer.ModelAdapter;
 import areca.ui.viewer.ModelValueTransformer;
+import areca.ui.viewer.ModelValueValidator;
 import areca.ui.viewer.Viewer;
 
 /**
@@ -36,26 +35,34 @@ public @interface UI {
     public static final String  NO_LABEL = "__no_label__";
 
     @SuppressWarnings("rawtypes")
-    public class DEFAULT_VIEWER extends Viewer {
-        @Override public UIComponent create( UIComposite container ) { throw new UnsupportedOperationException(); }
+    public class NO_VIEWER extends Viewer {
+        @Override public UIComponent create() { throw new UnsupportedOperationException(); }
     }
 
     @SuppressWarnings("rawtypes")
-    public class DEFAULT_TRANSFORMER implements ModelValueTransformer {
+    public class NO_TRANSFORMER implements ModelValueTransformer {
         @Override public Object transform2UI( Object value ) { throw new UnsupportedOperationException(); }
+    }
+
+    @SuppressWarnings("rawtypes")
+    public class NO_VALIDATOR implements ModelValueValidator {
+        @Override public ValidationResult validate( Object value ) { throw new UnsupportedOperationException(); }
     }
 
     // interface ******************************************
 
     public String label() default NO_LABEL;
 
-    public Class<?> type();
+    //public Class<?> type();
 
     @SuppressWarnings("rawtypes")
-    public Class<? extends Viewer> viewer() default DEFAULT_VIEWER.class;
+    public Class<? extends Viewer> viewer() default NO_VIEWER.class;
 
-    public Class<? extends ModelAdapter> adapter() default ModelAdapter.class;
+    //public Class<? extends ModelAdapter> adapter(); // default ModelAdapter.class;
 
     @SuppressWarnings("rawtypes")
-    public Class<? extends ModelValueTransformer> transformer() default DEFAULT_TRANSFORMER.class;
+    public Class<? extends ModelValueTransformer> transformer() default NO_TRANSFORMER.class;
+
+    @SuppressWarnings("rawtypes")
+    public Class<? extends ModelValueValidator> validator() default NO_VALIDATOR.class;
 }

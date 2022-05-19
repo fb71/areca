@@ -111,9 +111,9 @@ public class Main {
             code.accept( null );
         }
         catch (Throwable e) {
-            LOG.debug( "Exception: %s -->", e );
+            LOG.info( "Exception: %s -->", e );
             Throwable rootCause = Platform.rootCause( e );
-            LOG.debug( "Root cause: %s : %s", rootCause, rootCause.getMessage() );
+            LOG.info( "Root cause: %s : %s", rootCause, rootCause.getMessage() );
             throw (Exception)rootCause;
         }
     }

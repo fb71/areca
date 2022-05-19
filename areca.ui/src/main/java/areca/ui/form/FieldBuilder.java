@@ -11,11 +11,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.controller;
+package areca.ui.form;
 
 import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.viewer.ViewerBuilder;
@@ -27,7 +28,7 @@ import areca.ui.viewer.ViewerBuilder;
 public class FieldBuilder
         extends ViewerBuilder {
 
-    private static final Log log = LogFactory.getLog( FieldBuilder.class );
+    private static final Log LOG = LogFactory.getLog( FieldBuilder.class );
 
     private String                      label;
 
@@ -39,9 +40,18 @@ public class FieldBuilder
 
 
     @Override
+    public UIComponent create() {
+        var result = super.create();
+        if (label != null && result instanceof TextField) {
+            ((TextField)result).label.set( label );
+        }
+        return result;
+    }
+
+
     public UIComponent create( UIComposite parent ) {
         Assert.isNull( label, "Label is not supported yet." );
-        return super.create( parent );
+        return parent.add( create() );
     }
 
 }
