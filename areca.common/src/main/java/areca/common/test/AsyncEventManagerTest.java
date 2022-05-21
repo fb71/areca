@@ -39,8 +39,7 @@ public class AsyncEventManagerTest
     @Test @Skip
     @Override
     public void test() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        throw new RuntimeException( "just skip this test" );
     }
 
 }

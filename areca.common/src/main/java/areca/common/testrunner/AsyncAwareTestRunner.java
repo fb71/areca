@@ -92,7 +92,7 @@ public class AsyncAwareTestRunner
 
 
     @Override
-    public void run() {
+    public AsyncAwareTestRunner run() {
         decorators = Sequence.of( decoratorTypes ).map( cl -> instantiate( cl ) ).toList();
         decorators.forEach( d -> d.preRun( this ) );
 
@@ -151,6 +151,7 @@ public class AsyncAwareTestRunner
                 }
             }
         }
+        return this;
     }
 
 

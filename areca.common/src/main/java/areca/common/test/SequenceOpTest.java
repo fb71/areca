@@ -33,6 +33,7 @@ public class SequenceOpTest {
 
     public static final ClassInfo<SequenceOpTest> info = SequenceOpTestClassInfo.instance();
 
+    public static final int LOOPS = 100;
 
 //    @Test
 //    public void forEachTest() {
@@ -47,7 +48,7 @@ public class SequenceOpTest {
 
     @Test
     public void sequenceSeriesPerformanceTest() {
-        for (int i=0; i<100; i++) {
+        for (int i=0; i<LOOPS; i++) {
             var result = Sequence.ofInts( 0, 99 )
                     .filter( elm -> elm < 10 )
                     .map( elm -> String.valueOf( elm ) )
@@ -58,7 +59,7 @@ public class SequenceOpTest {
 
     @Test
     public void sequenceOpSeriesPerformanceTest() {
-        for (int i=0; i<100; i++) {
+        for (int i=0; i<LOOPS; i++) {
             var result = SequenceOpImpl.ofInts( 0, 99 )
                 .filter( elm -> elm < 10 )
                 .map( elm -> String.valueOf( elm ) )
@@ -69,7 +70,7 @@ public class SequenceOpTest {
 
     @Test
     public void streamSeriesPerformanceTest() {
-        for (int i=0; i<100; i++) {
+        for (int i=0; i<LOOPS; i++) {
             var result = Stream.iterate( 0, elm -> elm + 1 )
                     .limit( 100 )
                     .filter( elm -> elm < 10 )
@@ -82,7 +83,7 @@ public class SequenceOpTest {
 
     @Test
     public void loopSeriesPerformanceTest() {
-        for (int i=0; i<100; i++) {
+        for (int i=0; i<LOOPS; i++) {
             var result = "";
             for (var elm=0; elm < 100; elm++) {
                 if (elm < 10 ) {

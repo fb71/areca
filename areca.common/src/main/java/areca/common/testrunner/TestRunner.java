@@ -65,7 +65,7 @@ public class TestRunner {
     }
 
 
-    public void run() {
+    public TestRunner run() {
         var decorators = Sequence.of( decoratorTypes ).map( cl -> instantiate( cl ) ).toList();
 
         // all test classes
@@ -136,6 +136,7 @@ public class TestRunner {
             decorators.forEach( d -> d.postTest( cl ) );
         }
         decorators.forEach( d -> d.postRun( this ) );
+        return this;
     }
 
 

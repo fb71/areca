@@ -13,9 +13,11 @@
  */
 package areca.common.event;
 
-import java.util.EventObject;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.util.EventObject;
 import areca.common.Promise;
+import areca.common.Timer;
 import areca.common.base.BiConsumer;
 import areca.common.base.Consumer;
 import areca.common.base.Consumer.RConsumer;
@@ -31,15 +33,15 @@ import areca.common.base.Sequence;
 public class SameStackEventManager
         extends EventManager {
 
-    private long        lastExpungeCheck;
+    private Timer       lastExpungeCheck = Timer.start();
 
 
     @Override
     public void publish( EventObject ev ) {
         for (EventHandlerInfo handler : handlers) {
             handler.perform( ev );
-            checkExpunge();
         }
+        checkExpunge();
     }
 
 
@@ -82,11 +84,10 @@ public class SameStackEventManager
 
 
     public void checkExpunge() {
-        var now = System.currentTimeMillis();
-        if (now > lastExpungeCheck + 3000) {
-            lastExpungeCheck = now;
+        if (lastExpungeCheck.elapsed( MILLISECONDS ) > 3000) {
+            lastExpungeCheck.restart();
             var expunge = Sequence.of( handlers )
-                    .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.supply() )
+                    .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.get() )
                     .toSet();
 
             if (!expunge.isEmpty()) {

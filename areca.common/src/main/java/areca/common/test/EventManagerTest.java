@@ -121,6 +121,7 @@ public class EventManagerTest {
 
     @Test
     public Promise<Void> performanceTest() {
+        LOG.info( "Handlers: 100, events: 1001" );
         count = 0;
         for (int i=0; i<100; i++) {
             em.subscribe( (Event1 ev) -> count++ )

@@ -105,7 +105,7 @@ public class AsyncEventManager
         @Override
         public void run() {
             var expunged = Sequence.of( handlers )
-                    .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.supply() )
+                    .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.get() )
                     .toSet();
 
             if (!expunged.isEmpty()) {

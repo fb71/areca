@@ -26,8 +26,10 @@ import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
+import areca.common.test.SequenceOpTest;
 import areca.common.testrunner.AsyncAwareTestRunner;
 import areca.common.testrunner.LogDecorator;
+import areca.common.testrunner.TestRunner;
 import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
 import areca.rt.teavm.ui.UIComponentRenderer;
@@ -89,7 +91,18 @@ public class Main {
                         .run();
             });
         }
-        // no #hash
+        // #bench
+        else if (hash.equals( "#bench" )) {
+            catchAll( __ -> {
+                LogFactory.setPackageLevel( areca.common.event.AsyncEventManager.class, DEBUG );
+                new TestRunner()
+                        .addTests( BenchTest.info, SequenceOpTest.info )
+                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
+                        .run()
+                        .run();
+            });
+        }
+        // unknown #hash
         else if (!hash.isBlank()) {
             throw new RuntimeException( "Unknown hash:  " + hash );
         }

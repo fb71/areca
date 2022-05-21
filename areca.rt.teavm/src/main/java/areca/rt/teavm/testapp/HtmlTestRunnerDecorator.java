@@ -20,7 +20,6 @@ import java.util.logging.Logger;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
-
 import org.apache.commons.lang3.StringUtils;
 
 import areca.common.reflect.ClassInfo;
@@ -51,11 +50,21 @@ public class HtmlTestRunnerDecorator
 
     protected int                   lineWidth;
 
+    protected static int            runCount; // un poco sucio :)
+
 
     @Override
     public void preRun( TestRunner runner ) {
         doc = Window.current().getDocument();
         doc.getBody().getStyle().setProperty( "font", "12px monospace" );
+
+        if (runCount++ > 0) {
+            var hr = (HTMLElement)doc.getBody().appendChild( doc.createElement( "hr" ) );
+            hr.getStyle().setProperty( "border-style", "dotted none none none" );
+            hr.getStyle().setProperty( "margin-top", "8px" );
+            hr.getStyle().setProperty( "width", "60%" );
+        }
+
         doc.getBody().appendChild( doc.createTextNode( "Running tests..." ) );
 
         lineWidth = (doc.getBody().getClientWidth() / 9) - 2;
