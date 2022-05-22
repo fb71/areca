@@ -52,6 +52,7 @@ public class GalleryMain {
     public static final List<Class<?>> TESTS = new ArrayList<>() {{
         add( RowLayoutTest.class );
         add( RasterLayoutTest.class );
+        add( BadgeTest.class );
     }};
 
     protected static UIComposite    btnArea;

@@ -13,11 +13,11 @@
  */
 package areca.app.model;
 
+import org.polymap.model2.Defaults;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
-
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -30,7 +30,7 @@ public class Message
 
     public static final MessageClassInfo info = MessageClassInfo.instance();
 
-    public static Message TYPE;
+    public static Message           TYPE;
 
     @Nullable
     @Queryable
@@ -39,6 +39,10 @@ public class Message
     @Nullable
     @Queryable
     public Property<String>         text;
+
+    @Defaults
+    @Queryable
+    public Property<Boolean>        unread;
 
     @Nullable
     @Queryable

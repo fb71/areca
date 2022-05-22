@@ -19,8 +19,6 @@ import static areca.common.log.LogFactory.Level.INFO;
 import org.teavm.jso.browser.Window;
 
 import org.polymap.model2.engine.UnitOfWorkImpl;
-import org.polymap.model2.store.tidbstore.IDBUnitOfWork;
-
 import areca.common.Platform;
 import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
@@ -110,7 +108,7 @@ public class Main {
         // app
         else {
             catchAll( __ -> {
-                LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
+                //LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
                 LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
                 LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
 

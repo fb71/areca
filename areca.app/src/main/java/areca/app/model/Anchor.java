@@ -13,6 +13,8 @@
  */
 package areca.app.model;
 
+import org.apache.commons.lang3.mutable.MutableInt;
+
 import org.polymap.model2.Entity;
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Nullable;
@@ -21,6 +23,7 @@ import org.polymap.model2.Queryable;
 import org.polymap.model2.runtime.Lifecycle;
 import org.polymap.model2.runtime.config.Mandatory;
 
+import areca.common.Promise;
 import areca.common.event.EventManager;
 import areca.common.reflect.RuntimeInfo;
 
@@ -46,6 +49,15 @@ public class Anchor
     @Nullable
     @Queryable
     public Property<String>         storeRef;
+
+
+    public Promise<Integer> unreadMessagesCount() {
+        // XXX a ComputedProperty would be cached?!
+        return messages.fetch()
+                .reduce( new MutableInt(), (count,msg) -> count.add( msg.unread.get() ? 1 : 0 ) )
+                .map( count -> count.getValue() );
+    }
+
 
     @Override
     public void onLifecycleChange( State state ) {

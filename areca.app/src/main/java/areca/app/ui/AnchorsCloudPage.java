@@ -14,7 +14,6 @@
 package areca.app.ui;
 
 import java.util.ArrayList;
-
 import areca.app.ArecaApp;
 import areca.app.model.Anchor;
 import areca.app.model.EntityLifecycleEvent;
@@ -25,6 +24,7 @@ import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Size;
+import areca.ui.component2.Badge;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Text;
@@ -78,6 +78,7 @@ public class AnchorsCloudPage
         body.add( new Text().content.set( "Loading..." ) );
         fetchAnchors();
 
+        // listen to model updates
         var _100ms = new EventCollector<EntityLifecycleEvent>( 100 );
         EventManager.instance()
                 .subscribe( (EntityLifecycleEvent ev) -> {
@@ -145,6 +146,17 @@ public class AnchorsCloudPage
         btn.tooltip.set( anchor.name.opt().orElse( "" ) );
 
         btn.data( "prio", () -> anchor.name.get() );
+
+        var badge = new Badge( btn );
+        anchor.unreadMessagesCount().onSuccess( unread -> {
+            LOG.info( "Unread: " + unread );
+            if (anchor.name.get().startsWith( "A" )) {
+                unread = anchor.name.get().length();
+            }
+            if (unread > 0) {
+                badge.content.set( String.valueOf( unread ) );
+            }
+        });
 
         btn.events.on( EventType.SELECT, ev -> {
             site.put( anchor );

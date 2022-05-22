@@ -13,7 +13,9 @@
  */
 package areca.ui.component2;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -21,6 +23,7 @@ import java.util.function.Supplier;
 
 import areca.common.Assert;
 import areca.common.base.Opt;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Color;
@@ -54,6 +57,8 @@ public abstract class UIComponent {
     private UIComposite                 parent;
 
     private Map<String,Object>          data;
+
+    private List<UIComponentDecorator>  decorators;
 
     public Object                       htmlElm;
 
@@ -150,6 +155,17 @@ public abstract class UIComponent {
     }
 
 
+    protected void attachDecorator( UIComponentDecorator decorator ) {
+        decorators = decorators != null ? decorators : new ArrayList<>();
+        decorators.add( decorator );
+    }
+
+
+    public Sequence<UIComponentDecorator,RuntimeException> decorators() {
+        return decorators != null ? Sequence.of( decorators ) : Sequence.of();
+    }
+
+
     /**
      * Destruct this component. If this component is attached to a parent it is
      * automatically removed.
@@ -157,8 +173,12 @@ public abstract class UIComponent {
     public void dispose() {
         Assert.that( !isDisposed() );
         disposed = true;
-        //htmlElm = null;
         events.dispose();
+        if (decorators != null) {
+            decorators.forEach( deco -> deco.dispose() );
+            decorators = null;
+        }
+        data = null;
         if (parent != null) {
             parent.components.remove( this );
         }
