@@ -38,7 +38,7 @@ public class StartPage
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
-        ui.title.set( "Start" );
+        ui.title.set( "Anchors" );
 
         // Contacts
         site.actions.add( new Action() {{
@@ -65,9 +65,14 @@ public class StartPage
             });
         }});
 
-        new AnchorsCloudPage( ui.body, site );
+        new AnchorsCloudPage( ui.body, this );
 
         return ui;
+    }
+
+    /* Just testing */
+    PageSite site() {
+        return site;
     }
 
 

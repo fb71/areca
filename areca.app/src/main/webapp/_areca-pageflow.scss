@@ -20,9 +20,12 @@
     background-color: $bg1_color;    
 }
 
+//$header_color: saturate(lighten($accent2_color, 20%), 20%);
+$header_color: $accent_color;
+
 .PageHeader {
-    background-color: saturate(lighten($accent2_color, 20%), 20%);    
-    border-bottom: 1px solid saturate(lighten($accent2_color, 27%), 10%);
+    background-color: $header_color;    
+    border-bottom: 1px solid desaturate(lighten($header_color, 7%), 10%);
     border-radius: 0px;
 }
 
@@ -34,8 +37,12 @@
 .PageHeaderItem {
     background-color: transparent;
     border: none;
+    box-shadow: none;
 }
 .PageHeaderItem:hover {
-    background-color: saturate(lighten($accent2_color, 25%), 25%);
-    background-color: transparent;
+    background-color: saturate(lighten($header_color, 5%), 5%);
+}
+.PageHeaderItem:active {
+    // XXX this is good for buttons oonly
+    box-shadow: inset 0px 1px 3px rgba(0,0,0,0.5);
 }

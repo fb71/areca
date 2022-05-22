@@ -46,6 +46,7 @@ public class TestsMain {
                     )
                     .addTests(
                             org.polymap.model2.test2.SimpleModelTest.info,
+                            org.polymap.model2.test2.SimpleQueryTest.info,
                             org.polymap.model2.test2.AssociationsModelTest.info
                     )
 

@@ -68,6 +68,10 @@ public class ContactPage extends Page {
                     .viewer( new TextViewer() )
                     .adapter( new PropertyAdapter<>( () -> contact.lastname ) )
                     .create() );
+            add( form.newField().label( "EMail" )
+                    .viewer( new TextViewer() )
+                    .adapter( new PropertyAdapter<>( () -> contact.email ) )
+                    .create() );
         }});
 
         // form magic :)

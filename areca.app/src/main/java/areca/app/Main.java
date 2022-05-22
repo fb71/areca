@@ -84,6 +84,7 @@ public class Main {
             catchAll( __ -> {
                 LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
                 LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
+                //LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
                 new AsyncAwareTestRunner()
                         .addTests( areca.app.service.imap.ImapTest.info )
                         //.addTests( areca.app.service.carddav.CardDavTest.info )

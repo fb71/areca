@@ -178,6 +178,9 @@ public class Promise<T> {
     }
 
 
+    /**
+     * Must not filter out the last element that completes the {@link Promise}!
+     */
     public Promise<T> filter( Predicate<T,Exception> p ) {
         var next = new Completable<T>().upstream( this );
         onSuccess( (self,result) -> {

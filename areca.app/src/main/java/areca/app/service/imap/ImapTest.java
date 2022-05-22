@@ -197,6 +197,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> syncFolderTest() {
         return initRepo( "syncFolder" ).then( repo -> {
             return new ImapFolderSynchronizer( "Test1", repo, () -> newRequest(), new NullProgressMonitor() )

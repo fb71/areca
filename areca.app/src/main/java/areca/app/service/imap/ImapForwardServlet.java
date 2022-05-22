@@ -37,6 +37,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.james.mime4j.codec.DecodeMonitor;
+import org.apache.james.mime4j.codec.DecoderUtil;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -90,6 +93,8 @@ public class ImapForwardServlet extends HttpServlet {
         debug( "\n\nREQUEST: length=" + request.getContentLength() );
         var timer = Timer.start();
         var imapRequest = gson.fromJson( request.getReader(), ImapRequestData.class );
+
+        response.setCharacterEncoding( "UTF-8" );
         var out = response.getWriter();
 
         var imap = socketPool.aquireSocket( imapRequest );
@@ -102,6 +107,7 @@ public class ImapForwardServlet extends HttpServlet {
 
             for (var command : imapRequest.commands) {
                 performCommand( command, imap, line -> {
+                    line = DecoderUtil.decodeEncodedWords( line, DecodeMonitor.STRICT );
                     out.write( line );
                     out.write( '\n' );
                 });

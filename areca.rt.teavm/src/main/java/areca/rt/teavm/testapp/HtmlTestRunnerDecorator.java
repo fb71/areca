@@ -111,7 +111,7 @@ public class HtmlTestRunnerDecorator
         var testMethodElm = testMethodElms.get( m );
         testMethodElm.appendChild( span );
         if (testResult.getStatus() == TestStatus.PASSED) {
-            testMethodElm.appendChild( doc.createTextNode( String.format( "( %s%s )",
+            testMethodElm.appendChild( doc.createTextNode( String.format( " (%s%s)",
                     testResult.elapsedTime(), testResult.promised ? "~" : "" ) ) );
         }
     }

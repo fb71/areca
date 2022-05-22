@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.james.mime4j.util.MimeUtil;
 
 import areca.app.service.imap.ImapRequest.Command;
 import areca.common.base.Opt;
@@ -102,7 +101,8 @@ public class MessageFetchHeadersCommand extends Command {
                 currentField = FieldEnum.valueOfString( substringBefore( line, ": " ) )
                         .orElseThrow( () -> new RuntimeException( "Unknown header field: " + line ) );
                 var content = substringAfter( line, ": " );
-                content = MimeUtil.unscrambleHeaderValue( content );
+
+                //content = DecoderUtil.decodeEncodedWords( content, DecodeMonitor.STRICT );
                 headers.computeIfAbsent( currentMsgNum, k -> new HashMap<>() ).put( currentField, content );
             }
             return true;

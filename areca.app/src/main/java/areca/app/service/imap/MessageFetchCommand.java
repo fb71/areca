@@ -60,6 +60,7 @@ public class MessageFetchCommand extends Command {
         super.parse( in );
 
         MimeTokenStream s = new MimeTokenStream( MimeConfig.DEFAULT ) {
+            @Override
             public Reader getReader() throws UnsupportedEncodingException {
                 final BodyDescriptor bodyDescriptor = getBodyDescriptor();
                 final String mimeCharset = bodyDescriptor.getCharset();

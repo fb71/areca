@@ -11,4 +11,12 @@
     font-size: 12px;
     border-radius: 20px;
     padding: 5px 5px;
+    background-color: saturate(lighten($bg1_color, 5%), 5%);
+    //border-color: saturate(lighten($bg1_color, 8%), 0%) !important;
+    border: none !important;
+}
+
+.MessageCard {
+    //background-color: $bg2_color;
+    box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
 }

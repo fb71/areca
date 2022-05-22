@@ -22,8 +22,7 @@ import areca.common.test.SameStackEventManagerTest;
 import areca.common.testrunner.Test;
 
 /**
- * Single test methods from other test to run in (sync) benchmark mode.
- * 
+ *
  * @author Falko Bräutigam
  */
 @RuntimeInfo

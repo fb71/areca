@@ -26,6 +26,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Size;
 import areca.ui.component2.Button;
+import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
@@ -44,10 +45,13 @@ public class AnchorsCloudPage
 
     private UIComposite     body;
 
+    private StartPage       page;
+
 
     /** Work from within StartPage */
-    public AnchorsCloudPage( UIComposite body, PageSite site ) {
-        this.site = site;
+    public AnchorsCloudPage( UIComposite body, StartPage page ) {
+        this.site = page.site();
+        this.page = page;
         this.body = body;
         createBody();
     }
@@ -142,10 +146,10 @@ public class AnchorsCloudPage
 
         btn.data( "prio", () -> anchor.name.get() );
 
-//        btn.events.on( SELECT, ev -> {
-//            site.put( contact );
-//            site.pageflow().open( new ContactPage(), Page.this, ev.clientPos() );
-//        });
+        btn.events.on( EventType.SELECT, ev -> {
+            site.put( anchor );
+            site.pageflow().open( new MessagesPage( anchor.messages ), page, ev.clientPos() );
+        });
         return btn;
     }
 

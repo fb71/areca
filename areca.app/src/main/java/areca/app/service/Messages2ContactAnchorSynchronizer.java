@@ -13,6 +13,7 @@
  */
 package areca.app.service;
 
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,9 +40,11 @@ public class Messages2ContactAnchorSynchronizer {
 
     private static final Log LOG = LogFactory.getLog( Messages2ContactAnchorSynchronizer.class );
 
-    private UnitOfWork          uow;
+    private UnitOfWork              uow;
 
-    private ProgressMonitor     monitor;
+    private ProgressMonitor         monitor;
+
+    private HashMap<String,Contact> seen = new HashMap<>( 512 );
 
 
     public Messages2ContactAnchorSynchronizer( UnitOfWork uow, ProgressMonitor monitor ) {
@@ -52,22 +55,23 @@ public class Messages2ContactAnchorSynchronizer {
 
     public Promise<Triple<Message,Contact,Anchor>> perform( Message message ) {
         var address = addressParts( message.from.get() );
+
         return uow.query( Contact.class )
                 // query Contact
                 .where( Expressions.eq( Contact.TYPE.email, address.pure ) )
                 .executeToList()
                 .map( results -> {
                     if (!results.isEmpty()) {
-                        LOG.info( "Contact found for: %s", address.pure );
-                        return results.get( 0 );
+                        LOG.debug( "Contact found for: %s", address.pure );
+                        return seen.computeIfAbsent( address.pure, __ -> results.get( 0 ) );
                     }
                     else {
-                        return uow.createEntity( Contact.class, proto -> {
-                            LOG.info( "MATCH: %s -> '%s' '%s' '%s'", message.from.get(), address.first, address.last, address.pure );
+                        return seen.computeIfAbsent( address.pure, __ -> uow.createEntity( Contact.class, proto -> {
+                            LOG.debug( "Contact create: %s -> '%s' '%s' '%s'", message.from.get(), address.first, address.last, address.pure );
                             proto.firstname.set( address.first );
                             proto.lastname.set( address.last );
                             proto.email.set( address.pure );
-                        });
+                        }));
                     }
                 })
                 // fetch anchor

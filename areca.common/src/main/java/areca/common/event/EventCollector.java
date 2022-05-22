@@ -24,7 +24,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
- * Deferred handling of events.
+ * Collecting chunk of events and deferred handling them all together.
  *
  * @author Falko Bräutigam
  */

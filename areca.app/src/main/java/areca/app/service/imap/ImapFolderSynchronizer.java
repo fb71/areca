@@ -71,6 +71,7 @@ public class ImapFolderSynchronizer {
         monitor.subTask( folderName );
 
         var uow = repo.newUnitOfWork();
+        var messages2ContactAnchor = new Messages2ContactAnchorSynchronizer( uow, monitor );
 
         return fetchMessageCount()
                 // fetch messages-ids
@@ -113,7 +114,7 @@ public class ImapFolderSynchronizer {
                 .onSuccess( msg -> {
                     monitor.worked( 1 );
                 })
-                .then( (Message msg) -> new Messages2ContactAnchorSynchronizer( uow, monitor ).perform( msg ) )
+                .then( (Message msg) -> messages2ContactAnchor.perform( msg ) )
                 // submit
                 .reduce( new MutableInt(), (r,entity) -> {
                     r.increment();

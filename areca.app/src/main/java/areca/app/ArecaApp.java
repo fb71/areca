@@ -80,7 +80,7 @@ public class ArecaApp extends App {
     protected ArecaApp() {
         EntityRepository.newConfiguration()
                 .entities.set( asList( Message.info, Contact.info, Anchor.info) )
-                .store.set( new IDBStore( "areca.app", 1, false ) )
+                .store.set( new IDBStore( "areca.app", 2, false ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
