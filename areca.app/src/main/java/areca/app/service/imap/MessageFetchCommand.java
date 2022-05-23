@@ -49,7 +49,7 @@ public class MessageFetchCommand extends Command {
 
     public MessageFetchCommand( int number, String part ) {
         this.number = number;
-        command = format( "%s FETCH %d (BODY[%s])", tag, number, part );
+        command = format( "%s FETCH %d (BODY.PEEK[%s])", tag, number, part );
         expected = format( "%s OK FETCH completed", tag );
     }
 

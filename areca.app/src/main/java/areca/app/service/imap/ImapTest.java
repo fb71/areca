@@ -145,6 +145,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> fetchMessageTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new MessageFetchCommand( 1, "TEXT" ) );
@@ -161,14 +162,38 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> fetchMessageHeadersTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
-        request.commands.add( new MessageFetchHeadersCommand( between( 1, 2 ), SUBJECT, FROM, TO, DATE, MESSAGE_ID ) );
+        request.commands.add( new MessageFetchHeadersCommand( between( 1, 3 ), SUBJECT, FROM, TO, DATE, MESSAGE_ID ) );
         return request.submit().onSuccess( command -> {
             with( command ).instanceOf( MessageFetchHeadersCommand.class, fetchCommand -> {
                 for (var entry : fetchCommand.headers.entrySet()) {
                     LOG.info( "HEADER: %s: %s", entry.getKey(), entry.getValue() );
                     Assert.isEqual( 5, entry.getValue().size() );
+                }
+                for (var entry : fetchCommand.flags.entrySet()) {
+                    LOG.info( "FLAGS: %s: %s", entry.getKey(), entry.getValue() );
+                    Assert.isEqual( entry.getKey() == 1 ? 0 :  1, entry.getValue().size() );
+                }
+            });
+        });
+    }
+
+
+    @Test
+    public Promise<?> fetchMessageHeadersTest2() {
+        request.commands.add( new FolderSelectCommand( "Test1" ) );
+        request.commands.add( new MessageFetchHeadersCommand( between( 1, 40 ), MESSAGE_ID ) );
+        return request.submit().onSuccess( command -> {
+            with( command ).instanceOf( MessageFetchHeadersCommand.class, fetchCommand -> {
+                for (var entry : fetchCommand.headers.entrySet()) {
+                    LOG.info( "HEADER: %s: %s", entry.getKey(), entry.getValue() );
+                    Assert.isEqual( 1, entry.getValue().size() );
+                }
+                for (var entry : fetchCommand.flags.entrySet()) {
+                    LOG.info( "FLAGS: %s: %s", entry.getKey(), entry.getValue() );
+                    //Assert.isEqual( entry.getKey() == 1 ? 0 :  1, entry.getValue().size() );
                 }
             });
         });

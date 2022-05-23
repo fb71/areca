@@ -18,7 +18,9 @@ import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.apache.commons.lang3.StringUtils.substringBefore;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
@@ -27,6 +29,7 @@ import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 
 import areca.app.service.imap.ImapRequest.Command;
+import areca.common.Assert;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -40,7 +43,9 @@ public class MessageFetchHeadersCommand extends Command {
 
     private static final Log LOG = LogFactory.getLog( MessageFetchHeadersCommand.class );
 
-    public static final Pattern PATTERN = Pattern.compile( "\\* (\\d+) FETCH \\(BODY\\[HEADER.FIELDS \\(([^)]+)\\)\\] \\{(\\d+)\\}", IGNORE_CASE );
+    public static final Pattern FLAGS = Pattern.compile( "^ FLAGS \\(([^)]*)\\)", IGNORE_CASE );
+
+    public static final Pattern HEADER = Pattern.compile( "\\* (\\d+) FETCH \\(BODY\\[HEADER.FIELDS \\(([^)]+)\\)\\] \\{(\\d+)\\}", IGNORE_CASE );
 
     public enum FieldEnum {
         SUBJECT, FROM, TO, DATE, MESSAGE_ID;
@@ -59,10 +64,21 @@ public class MessageFetchHeadersCommand extends Command {
         }
     }
 
+    public enum Flag {
+        SEEN, ANSWERED, FLAGGED, DELETED, DRAFT, RECENT;
+
+        public static Opt<Flag> valueOfString( String s ) {
+            return Sequence.of( Flag.values() ).filter( e -> e.toString().equalsIgnoreCase( s ) ).first();
+        }
+    }
+
 
     // instance *******************************************
 
+    /** Msg num -> {@link FieldEnum} + value */
     public Map<Integer,Map<FieldEnum,String>>   headers = new TreeMap<>();
+
+    public Map<Integer,Set<Flag>>               flags = new TreeMap<>();
 
     private Integer                             currentMsgNum;
 
@@ -72,7 +88,7 @@ public class MessageFetchHeadersCommand extends Command {
     public MessageFetchHeadersCommand( Range<Integer> msgNum, FieldEnum field, FieldEnum... more ) {
         var fields = StringUtils.join( ArrayUtils.add( more, field ), " " );
         // var fields = field.toString() + Sequence.of( more ).reduce( "", (r,f) -> r + " " + f );
-        command = format( "%s FETCH %d:%d (BODY[HEADER.FIELDS (%s)])", tag, msgNum.getMinimum(), msgNum.getMaximum(), fields );
+        command = format( "%s FETCH %d:%d (FLAGS BODY.PEEK[HEADER.FIELDS (%s)])", tag, msgNum.getMinimum(), msgNum.getMaximum(), fields );
         expected = format( "%s OK FETCH completed", tag );
     }
 
@@ -81,13 +97,26 @@ public class MessageFetchHeadersCommand extends Command {
     protected boolean parseLine( String line ) {
         if (super.parseLine( line )) {
             // delimiter (?)
-            if (line.equals( "" ) || line.equals( ")" )) {
+            if (line.isBlank() || line.equals( ")" )) {
                 return true;
             }
             // header
-            var matcher = PATTERN.matcher( line );
+            var matcher = HEADER.matcher( line );
+            var flagsMatcher = FLAGS.matcher( line );
             if (matcher.matches()) {
                 currentMsgNum = Integer.valueOf( matcher.group( 1 ) );
+                flags.put( currentMsgNum, new HashSet<>() );
+                headers.put( currentMsgNum, new HashMap<>() );
+            }
+            // flags
+            else if (flagsMatcher.find()) {
+                LOG.info( "Flags: %s", line );
+                Assert.notNull( currentMsgNum, "No current message: " + line );
+                Sequence.of( flagsMatcher.group( 1 ).split( "[ ]+" ) )
+                        .filter( s -> !s.isBlank() )
+                        .map( s -> Flag.valueOfString( s.substring( 1 ) ) )
+                        .filter( opt -> opt.isPresent() )
+                        .forEach( flag -> flags.get( currentMsgNum ).add( flag.get() ) );
             }
             // content line continue
             else if (Character.isWhitespace( line.charAt( 0 ) )) {
@@ -103,7 +132,7 @@ public class MessageFetchHeadersCommand extends Command {
                 var content = substringAfter( line, ": " );
 
                 //content = DecoderUtil.decodeEncodedWords( content, DecodeMonitor.STRICT );
-                headers.computeIfAbsent( currentMsgNum, k -> new HashMap<>() ).put( currentField, content );
+                headers.get( currentMsgNum ).put( currentField, content );
             }
             return true;
         }

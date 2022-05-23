@@ -31,6 +31,7 @@ import org.polymap.model2.runtime.UnitOfWork;
 import areca.app.model.Message;
 import areca.app.service.Messages2ContactAnchorSynchronizer;
 import areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum;
+import areca.app.service.imap.MessageFetchHeadersCommand.Flag;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Sequence;
@@ -166,6 +167,7 @@ public class ImapFolderSynchronizer {
                         Map<FieldEnum,String> headers = ((MessageFetchHeadersCommand)command).headers.get( msgNum );
                         entity.storeRef.set( headers.get( MESSAGE_ID ) );
                         entity.from.set( headers.get( FROM ) );
+                        entity.unread.set( !((MessageFetchHeadersCommand)command).flags.get( msgNum ).contains( Flag.SEEN ) );
                     }
                 });
 

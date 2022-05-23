@@ -148,14 +148,13 @@ public class AnchorsCloudPage
         btn.data( "prio", () -> anchor.name.get() );
 
         var badge = new Badge( btn );
-        anchor.unreadMessagesCount().onSuccess( unread -> {
-            LOG.info( "Unread: " + unread );
-            if (anchor.name.get().startsWith( "A" )) {
-                unread = anchor.name.get().length();
-            }
-            if (unread > 0) {
-                badge.content.set( String.valueOf( unread ) );
-            }
+        Platform.schedule( 2250, () -> {
+            anchor.unreadMessagesCount().onSuccess( unread -> {
+                //LOG.info( "Unread: " + unread );
+                if (unread > 0) {
+                    badge.content.set( String.valueOf( unread ) );
+                }
+            });
         });
 
         btn.events.on( EventType.SELECT, ev -> {
