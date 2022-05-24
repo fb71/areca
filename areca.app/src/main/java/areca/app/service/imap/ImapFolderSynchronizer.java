@@ -46,6 +46,8 @@ public class ImapFolderSynchronizer {
 
     private static final Log LOG = LogFactory.getLog( ImapFolderSynchronizer.class );
 
+    public static final int             MAX_PER_FOLDER = 100;
+
     protected ProgressMonitor           monitor;
 
     protected RSupplier<ImapRequest>    requestFactory;
@@ -78,11 +80,12 @@ public class ImapFolderSynchronizer {
                     });
                 })
                 // fetch messages-ids
-                .then( msgCount -> {
-                    LOG.info( "Exists: " + msgCount );
-                    monitor.beginTask( "EMail", (msgCount*3)+2 );
+                .then( totalMsgCount -> {
+                    LOG.info( "Exists: " + totalMsgCount );
+                    int fetchCount = Math.min( totalMsgCount, MAX_PER_FOLDER );
+                    monitor.beginTask( "EMail", (fetchCount*3)+2 );
                     monitor.worked( 1 );
-                    return fetchMessageIds( msgCount );
+                    return fetchMessageIds( totalMsgCount-fetchCount+1, totalMsgCount );
                 })
                 // find missing Message entities
                 .then( (Map<String,Integer> msgIds) -> {
@@ -152,10 +155,10 @@ public class ImapFolderSynchronizer {
 
 
     /** MESSAGE_ID -> message num */
-    protected Promise<Map<String,Integer>> fetchMessageIds( int msgNum ) {
+    protected Promise<Map<String,Integer>> fetchMessageIds( int start, int end ) {
         var r = requestFactory.supply();
         r.commands.add( new FolderSelectCommand( folderName ) );
-        r.commands.add( new MessageFetchHeadersCommand( between( 1, msgNum ), MESSAGE_ID ) );
+        r.commands.add( new MessageFetchHeadersCommand( between( start, end ), MESSAGE_ID ) );
         return r.submit()
                 .filter( command -> command instanceof MessageFetchHeadersCommand )
                 .map( command -> {
