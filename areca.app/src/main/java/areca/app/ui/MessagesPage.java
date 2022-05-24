@@ -14,9 +14,9 @@
 package areca.app.ui;
 
 import static areca.ui.Orientation.VERTICAL;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
-
 import org.apache.commons.lang3.StringUtils;
 
 import org.polymap.model2.ManyAssociation;
@@ -48,8 +48,6 @@ public class MessagesPage extends Page {
 
     protected PageContainer     ui;
 
-    protected long              lastLayout;
-
     protected long              timeout = 280;  // 300ms timeout before page animation starts
 
 
@@ -79,7 +77,6 @@ public class MessagesPage extends Page {
             return;
         }
         ui.body.components.disposeAll();
-        lastLayout = System.currentTimeMillis();
         var timer = Timer.start();
         var chunk = new ArrayList<UIComposite>();
 
@@ -87,11 +84,9 @@ public class MessagesPage extends Page {
             if (msg != null) {
                 chunk.add( createMessageCard( msg ) );
             }
-            var now = System.currentTimeMillis();
-            if (now > lastLayout + timeout || ctx.isComplete()) {
+            if (timer.elapsed( MILLISECONDS ) > timeout || ctx.isComplete()) {
                 LOG.info( "" + timer.elapsedHumanReadable() );
                 timer.restart();
-                lastLayout = now;
                 timeout = 1000;
 
                 chunk.forEach( btn -> ui.body.add( btn ) );
@@ -107,7 +102,7 @@ public class MessagesPage extends Page {
             cssClasses.add( "MessageCard" );
             layoutConstraints.set( new RowConstraints() {{height.set( 100 );}} );
             layout.set( new RowLayout() {{
-                    orientation.set( VERTICAL ); fillWidth.set( true ); margins.set( Size.of( 5, 5 ) );}});
+                    orientation.set( VERTICAL ); fillWidth.set( true ); margins.set( Size.of( 10, 10 ) );}});
             add( new Text().content.set( StringUtils.abbreviate( msg.text.get(), 250 ) ) );
         }};
     }

@@ -50,8 +50,11 @@ public abstract class UIComponentEvent
     public static class ComponentAttachedEvent
             extends UIComponentEvent {
 
-        public ComponentAttachedEvent( UIComponent source ) {
+        public UIComposite parent;
+
+        public ComponentAttachedEvent( UIComponent source, UIComposite parent ) {
             super( source );
+            this.parent = parent;
         }
     }
 

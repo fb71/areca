@@ -7,16 +7,19 @@
     color: darken($font_color, 30%);
 }
 
+$card_color: saturate(lighten($bg1_color, 5%), 5%);
+
 .ContactButton, .AnchorButton {
     font-size: 12px;
     border-radius: 20px;
     padding: 5px 5px;
-    background-color: saturate(lighten($bg1_color, 5%), 5%);
+    background-color: $card_color;
     //border-color: saturate(lighten($bg1_color, 8%), 0%) !important;
     border: none !important;
 }
 
 .MessageCard {
-    //background-color: $bg2_color;
+    color: darken($font_color, 10%);
+    background-color: $card_color;
     box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
 }

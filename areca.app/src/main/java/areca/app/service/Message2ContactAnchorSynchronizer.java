@@ -17,15 +17,14 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.tuple.MutableTriple;
-import org.apache.commons.lang3.tuple.Triple;
-
+import org.apache.commons.lang3.tuple.Pair;
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
+import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Opt;
@@ -36,9 +35,9 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-public class Messages2ContactAnchorSynchronizer {
+public class Message2ContactAnchorSynchronizer {
 
-    private static final Log LOG = LogFactory.getLog( Messages2ContactAnchorSynchronizer.class );
+    private static final Log LOG = LogFactory.getLog( Message2ContactAnchorSynchronizer.class );
 
     private UnitOfWork              uow;
 
@@ -47,13 +46,13 @@ public class Messages2ContactAnchorSynchronizer {
     private HashMap<String,Contact> seen = new HashMap<>( 512 );
 
 
-    public Messages2ContactAnchorSynchronizer( UnitOfWork uow, ProgressMonitor monitor ) {
+    public Message2ContactAnchorSynchronizer( UnitOfWork uow, ProgressMonitor monitor ) {
         this.uow = uow;
         this.monitor = monitor;
     }
 
 
-    public Promise<Triple<Message,Contact,Anchor>> perform( Message message ) {
+    public Promise<Message> perform( Message message ) {
         var address = addressParts( message.from.get() );
 
         return uow.query( Contact.class )
@@ -63,31 +62,39 @@ public class Messages2ContactAnchorSynchronizer {
                 .map( results -> {
                     if (!results.isEmpty()) {
                         LOG.debug( "Contact found for: %s", address.pure );
-                        return seen.computeIfAbsent( address.pure, __ -> results.get( 0 ) );
+                        return results.get( 0 );
+                        //return seen.computeIfAbsent( address.pure, __ -> results.get( 0 ) );
                     }
-                    else {
-                        return seen.computeIfAbsent( address.pure, __ -> uow.createEntity( Contact.class, proto -> {
-                            LOG.debug( "Contact create: %s -> '%s' '%s' '%s'", message.from.get(), address.first, address.last, address.pure );
-                            proto.firstname.set( address.first );
-                            proto.lastname.set( address.last );
-                            proto.email.set( address.pure );
-                        }));
-                    }
+                    return null;
+//                        return seen.computeIfAbsent( address.pure, __ -> uow.createEntity( Contact.class, proto -> {
+//                            LOG.debug( "Contact create: %s -> '%s' '%s' '%s'", message.from.get(), address.first, address.last, address.pure );
+//                            proto.firstname.set( address.first );
+//                            proto.lastname.set( address.last );
+//                            proto.email.set( address.pure );
+//                        }));
+//                    }
                 })
                 // fetch anchor
                 .then( (Contact contact) -> {
-                    return contact.anchor.fetch().map( anchor -> MutableTriple.of( message, contact, anchor ) );
+                    return contact != null
+                            ? contact.anchor.fetch().map( anchor -> Pair.of( contact, anchor ) )
+                            : Platform.async( () -> Pair.of( (Contact)null, (Anchor)null ) );
                 })
                 // create anchor + attach message
-                .map( triple -> {
-                    if (triple.right == null) {
-                        triple.right = uow.createEntity( Anchor.class, proto -> {
-                            proto.name.set( anchorName( message, triple.middle ) );
-                        });
-                        triple.middle.anchor.set( triple.right );
+                .map( (Pair<Contact,Anchor> contactAnchor) -> {
+                    var contact = contactAnchor.getLeft();
+                    if (contact != null) {
+                        var anchor = contactAnchor.getRight();
+                        if (anchor == null) {
+                            anchor = uow.createEntity( Anchor.class, proto -> {
+                                proto.name.set( anchorName( message, contactAnchor.getLeft() ) );
+                                proto.storeRef.set( "contact:" + contactAnchor.getLeft().id() );
+                            });
+                            contact.anchor.set( anchor );
+                        }
+                        anchor.messages.add( message );
                     }
-                    triple.right.messages.add( message );
-                    return triple;
+                    return message;
                 });
 
     }
@@ -109,7 +116,7 @@ public class Messages2ContactAnchorSynchronizer {
     public static Pattern       EMAIL = Pattern.compile( "([^@]+)@(.*)" );
 
 
-    protected static Address addressParts( String email ) {
+    public static Address addressParts( String email ) {
         // extended
         var extMatch = EMAIL_EXT.matcher( email );
         if (extMatch.matches()) {
@@ -142,7 +149,7 @@ public class Messages2ContactAnchorSynchronizer {
     }
 
 
-    private static class Address {
+    public static class Address {
         String first;
         String last;
         String pure;

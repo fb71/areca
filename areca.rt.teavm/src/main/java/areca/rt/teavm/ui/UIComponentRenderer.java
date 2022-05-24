@@ -174,7 +174,10 @@ public abstract class UIComponentRenderer {
     @EventHandler( ComponentAttachedEvent.class )
     public void componentAttached( ComponentAttachedEvent ev ) {
         LOG.debug( "ATTACHED: " + ev.getSource().getClass().getSimpleName() );
-        var htmlParent = htmlElm( ev.getSource().parent() );
+        if (ev.getSource().parent() != ev.parent) {
+            LOG.info( "ATTACHED: parent already changed!" );
+        }
+        var htmlParent = htmlElm( ev.parent );
         htmlParent.appendChild( htmlElm( ev.getSource() ) );
     }
 

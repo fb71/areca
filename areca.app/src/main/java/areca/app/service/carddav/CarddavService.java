@@ -17,6 +17,7 @@ import areca.app.ArecaApp;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.common.ProgressMonitor;
+import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -42,11 +43,13 @@ public class CarddavService
         return new Sync() {
 
             @Override
-            public void start() {
-                var synchronizer = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, ArecaApp.instance().repo() );
+            public Promise<?> start() {
+                var uow = ArecaApp.instance().repo().newUnitOfWork();
+                var synchronizer = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, uow );
                 synchronizer.monitor.set( monitor );
-                synchronizer.start()
+                return synchronizer.start()
                         .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) )
+                        .onError( e -> monitor.done() )
                         .onError( ArecaApp.instance().defaultErrorHandler() );
             }
         };

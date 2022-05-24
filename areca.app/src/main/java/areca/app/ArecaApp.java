@@ -15,10 +15,10 @@ package areca.app;
 
 import static areca.ui.Orientation.VERTICAL;
 import static java.util.Arrays.asList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.Arrays;
 import java.util.List;
-
 import org.teavm.jso.browser.Window;
 
 import org.polymap.model2.runtime.EntityRepository;
@@ -35,6 +35,7 @@ import areca.app.service.imap.ImapService;
 import areca.app.ui.StartPage;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
+import areca.common.Timer;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -80,7 +81,7 @@ public class ArecaApp extends App {
     protected ArecaApp() {
         EntityRepository.newConfiguration()
                 .entities.set( asList( Message.info, Contact.info, Anchor.info) )
-                .store.set( new IDBStore( "areca.app", 3, true ) )
+                .store.set( new IDBStore( "areca.app", 4, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -142,7 +143,7 @@ public class ArecaApp extends App {
         return new ProgressMonitor() {
             private Progress progress = progressBody.add( new Progress() );
             private Text progressText = progressBody.add( new Text() {{ content.set( "..." ); }} );
-            private long lastUpdate;
+            private Timer lastUpdate = Timer.start();
             private int workTotal, workDone;
             private String taskName = "";
             private String subTaskName = "";
@@ -164,9 +165,8 @@ public class ArecaApp extends App {
             public void worked( int work ) {
                 checkCancelled();
 
-                long now = System.currentTimeMillis();
-                if (true || now > lastUpdate + 100) {
-                    lastUpdate = now;
+                if (lastUpdate.elapsed( MILLISECONDS ) > 100) {
+                    lastUpdate.restart();
                     progress.value.set( (float)(workDone += work) );
 
                     StringBuilder label = new StringBuilder( 64 ).append( taskName );
@@ -201,10 +201,12 @@ public class ArecaApp extends App {
 
 
     public void startGlobalServicesSync() {
-        for (var service : services( SyncableService.class ).asIterable()) {
-            var monitor = newAsyncOperation();
-            service.newSync( monitor ).start();
-        }
+        services( SyncableService.class ).forEach( (service,i) -> {
+            Platform.schedule( 3000 * i, () -> { // XXX start  imap after contacts are there
+                var monitor = newAsyncOperation();
+                service.newSync( monitor ).start();
+            });
+        });
     }
 
 

@@ -161,10 +161,9 @@ public class CardDavTest {
     @Test
     //@Skip
     public Promise<?> synContactsTest() {
-        return initRepo( "synContacts" )
-                .then( repo -> {
-                    return new CarddavSynchronizer( ARECA_CONTACTS_ROOT, repo ).start();
-                });
+        return initRepo( "synContacts" ).then( repo -> {
+            return new CarddavSynchronizer( ARECA_CONTACTS_ROOT, repo.newUnitOfWork() ).start();
+        });
     }
 
 

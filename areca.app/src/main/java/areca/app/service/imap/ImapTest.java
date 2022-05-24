@@ -222,12 +222,17 @@ public class ImapTest {
 
 
     @Test
-    @Skip
     public Promise<?> syncFolderTest() {
         return initRepo( "syncFolder" ).then( repo -> {
-            return new ImapFolderSynchronizer( "Test1", repo, () -> newRequest(), new NullProgressMonitor() )
-                    .start();
-                    //.onSuccess( (self,msg) );
+            var uow = repo.newUnitOfWork();
+            return new ImapFolderSynchronizer( "Test1", uow, () -> newRequest(), new NullProgressMonitor() )
+                    .start()
+                    .reduce( new MutableInt(), (r,msg) -> r.increment())
+                    .map( count -> {
+                        return uow.submit().onSuccess( submitted -> {
+                            LOG.info( "Submitted: %s", count );
+                        });
+                    });
         });
     }
 }

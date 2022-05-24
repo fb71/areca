@@ -140,8 +140,8 @@ public abstract class UIComponent {
      */
     protected void attachedTo( UIComposite newParent ) {
         Assert.isNull( parent, "parent should not be set before init()" );
-        this.parent = newParent;
-        UIComponentEvent.manager.publish( new UIComponentEvent.ComponentAttachedEvent( this ) );
+        this.parent = Assert.notNull( newParent  );
+        UIComponentEvent.manager.publish( new UIComponentEvent.ComponentAttachedEvent( this, newParent ) );
     }
 
 

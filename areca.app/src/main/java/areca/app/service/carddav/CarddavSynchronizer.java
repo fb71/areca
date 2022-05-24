@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.model.Contact;
 import areca.common.Assert;
@@ -47,20 +47,20 @@ public class CarddavSynchronizer {
 
     protected DavResource               contactsRoot;
 
-    protected EntityRepository          repo;
+    protected UnitOfWork                uow;
 
 
 
-    public CarddavSynchronizer( DavResource contactsRoot, EntityRepository repo ) {
+    public CarddavSynchronizer( DavResource contactsRoot, UnitOfWork uow ) {
         this.contactsRoot = contactsRoot;
-        this.repo = repo;
+        this.uow = uow;
     }
 
 
     public Promise<List<Contact>> start() {
         monitor.value().beginTask( "CardDav ...", ProgressMonitor.UNKNOWN );
 
-        var uow = repo.newUnitOfWork();
+        LOG.debug( "URL: %s", contactsRoot.url() );
         return new PropfindRequest( contactsRoot )
                 // find all DavResource
                 .submit()

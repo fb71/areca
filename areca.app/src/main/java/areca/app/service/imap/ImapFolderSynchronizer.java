@@ -22,16 +22,14 @@ import static org.apache.commons.lang3.Range.between;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import org.polymap.model2.query.Expressions;
-import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
 
+import areca.app.model.Anchor;
 import areca.app.model.Message;
-import areca.app.service.Messages2ContactAnchorSynchronizer;
 import areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum;
 import areca.app.service.imap.MessageFetchHeadersCommand.Flag;
+import areca.common.Assert;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Sequence;
@@ -48,37 +46,41 @@ public class ImapFolderSynchronizer {
 
     private static final Log LOG = LogFactory.getLog( ImapFolderSynchronizer.class );
 
-//    public Property<Boolean>            checkExisting = Property.create( this, "checkExisting", false );
-
     protected ProgressMonitor           monitor;
 
     protected RSupplier<ImapRequest>    requestFactory;
 
-    protected EntityRepository          repo;
+    protected UnitOfWork                uow;
 
     protected String                    folderName;
 
+    private Anchor                      folderAnchor;
 
-    public ImapFolderSynchronizer( String folderName, EntityRepository repo, RSupplier<ImapRequest> requestFactory, ProgressMonitor monitor ) {
-        this.repo = repo;
+
+    public ImapFolderSynchronizer( String folderName, UnitOfWork uow, RSupplier<ImapRequest> requestFactory, ProgressMonitor monitor ) {
+        this.uow = uow;
         this.requestFactory = requestFactory;
         this.folderName = folderName;
         this.monitor = monitor;
     }
 
 
-    public Promise<?> start() {
+    public Promise<Message> start() {
         monitor.beginTask( "EMail", ProgressMonitor.UNKNOWN );
         monitor.subTask( folderName );
 
-        var uow = repo.newUnitOfWork();
-        var messages2ContactAnchor = new Messages2ContactAnchorSynchronizer( uow, monitor );
-
         return fetchMessageCount()
+                // check/create Anchor
+                .then( msgCount -> {
+                    return checkCreateFolderAnchor().map( anchor -> {
+                        folderAnchor = anchor;
+                        return msgCount;
+                    });
+                })
                 // fetch messages-ids
                 .then( msgCount -> {
                     LOG.info( "Exists: " + msgCount );
-                    monitor.beginTask( "EMail", (msgCount*2)+2 );
+                    monitor.beginTask( "EMail", (msgCount*3)+2 );
                     monitor.worked( 1 );
                     return fetchMessageIds( msgCount );
                 })
@@ -112,20 +114,30 @@ public class ImapFolderSynchronizer {
                         return Promise.joined( notFound.size(), i -> fetchMessage( msgNums.next(), uow ) );
                     }
                 })
-                .onSuccess( msg -> {
+                .map( msg -> {
+                    folderAnchor.messages.add( msg );
                     monitor.worked( 1 );
-                })
-                .then( (Message msg) -> messages2ContactAnchor.perform( msg ) )
-                // submit
-                .reduce( new MutableInt(), (r,entity) -> {
-                    r.increment();
-                    monitor.worked( 1 );
-                })
-                .map( count -> {
-                    return uow.submit().onSuccess( submitted -> {
-                        monitor.done();
-                        LOG.info( "Submitted: %s", count );
-                    });
+                    return msg;
+                });
+    }
+
+
+    protected Promise<Anchor> checkCreateFolderAnchor() {
+        var storeRef = "imap-folder:" + folderName;
+        return uow.query( Anchor.class )
+                .where( Expressions.eq( Anchor.TYPE.storeRef, storeRef ) )
+                .executeToList()
+                .map( anchors -> {
+                    if (anchors.isEmpty()) {
+                        return uow.createEntity( Anchor.class, proto -> {
+                            proto.storeRef.set( storeRef );
+                            proto.name.set( folderName );
+                        });
+                    }
+                    else {
+                        Assert.isEqual( 1, anchors.size() );
+                        return anchors.get( 0 );
+                    }
                 });
     }
 

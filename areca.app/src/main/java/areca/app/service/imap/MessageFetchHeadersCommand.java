@@ -110,7 +110,7 @@ public class MessageFetchHeadersCommand extends Command {
             }
             // flags
             else if (flagsMatcher.find()) {
-                LOG.info( "Flags: %s", line );
+                LOG.debug( "Flags: %s", line );
                 Assert.notNull( currentMsgNum, "No current message: " + line );
                 Sequence.of( flagsMatcher.group( 1 ).split( "[ ]+" ) )
                         .filter( s -> !s.isBlank() )

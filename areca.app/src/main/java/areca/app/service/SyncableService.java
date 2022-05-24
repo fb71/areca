@@ -14,6 +14,7 @@
 package areca.app.service;
 
 import areca.common.ProgressMonitor;
+import areca.common.Promise;
 
 /**
  *
@@ -26,6 +27,6 @@ public interface SyncableService {
 
     public abstract static class Sync {
 
-        public abstract void start();
+        public abstract Promise<?> start();
     }
 }

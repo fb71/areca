@@ -18,11 +18,9 @@ import static areca.common.log.LogFactory.Level.INFO;
 
 import org.teavm.jso.browser.Window;
 
-import org.polymap.model2.engine.UnitOfWorkImpl;
 import areca.common.Platform;
 import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 import areca.common.test.SequenceOpTest;
 import areca.common.testrunner.AsyncAwareTestRunner;
@@ -109,8 +107,11 @@ public class Main {
         else {
             catchAll( __ -> {
                 //LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
-                LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
+                //LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
                 LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
+                LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
+                LogFactory.setClassLevel( areca.app.service.Message2ContactAnchorSynchronizer.class, DEBUG );
+                LogFactory.setClassLevel( areca.app.service.Message2PseudoContactAnchorSynchronizer.class, DEBUG );
 
                 ArecaApp.instance().createUI();
             });

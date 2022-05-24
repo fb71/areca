@@ -13,12 +13,17 @@
  */
 package areca.app.service.imap;
 
+import org.apache.commons.lang3.mutable.MutableInt;
+
 import areca.app.ArecaApp;
+import areca.app.service.Message2ContactAnchorSynchronizer;
+import areca.app.service.Message2PseudoContactAnchorSynchronizer;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
+import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -37,39 +42,65 @@ public class ImapService
         return "Messages - IMAP: ???";
     }
 
+
     @Override
     public Sync newSync( ProgressMonitor monitor ) {
         return new Sync() {
             int work = 10;
 
             @Override
-            public void start() {
-                new ImapFolderSynchronizer( "Test1", ArecaApp.instance().repo(), () -> newRequest(), monitor)
+            public Promise<?> start() {
+                var uow = ArecaApp.instance().repo().newUnitOfWork();
+                var messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow, monitor );
+                var messages2PseudoAnchor = new Message2PseudoContactAnchorSynchronizer( uow, monitor );
+
+                return new ImapFolderSynchronizer( "Test1", uow, () -> newRequest(), monitor)
                         .start()
-                        .onError( ArecaApp.instance().defaultErrorHandler() );
+                        .onSuccess( msg -> monitor.worked( 1 ) )
+
+                        .then( msg -> messages2ContactAnchor.perform( msg ) )
+                        .onSuccess( msg -> monitor.worked( 1 ) )
+
+                        .then( msg -> messages2PseudoAnchor.perform( msg ) )
+                        .onSuccess( msg -> monitor.worked( 1 ) )
+
+                        .reduce( new MutableInt(), (r,msg) -> r.increment())
+                        .map( count -> {
+                            return uow.submit().onSuccess( submitted -> {
+                                monitor.done();
+                                LOG.info( "Submitted: %s", count );
+                            });
+                        })
+                        .onError( ArecaApp.instance().defaultErrorHandler() )
+                        .onError( e -> monitor.done() );
 
 //                monitor.beginTask( "EMail", 10 );
 //                pseudoWork();
             }
 
-            protected ImapRequest newRequest() {
-                return new ImapRequest( self -> {
-                    self.host = "mail.polymap.de";
-                    self.port = 993;
-                    self.loginCommand = new LoginCommand( "areca@polymap.de", "dienstag" );
-                });
-            }
-
-            protected void pseudoWork() {
+            private void pseudoWork() {
                 monitor.worked( 1 );
                 if ((work -= 1) > 0) {
                     Platform.schedule( 1000, () -> pseudoWork() );
-                }
-                else {
+                } else {
                     monitor.done();
                 }
             }
         };
+    }
+
+
+    protected Promise<String> fetchFolders() {
+        throw new RuntimeException( "not yet...");
+    }
+
+
+    protected ImapRequest newRequest() {
+        return new ImapRequest( self -> {
+            self.host = "mail.polymap.de";
+            self.port = 993;
+            self.loginCommand = new LoginCommand( "areca@polymap.de", "dienstag" );
+        });
     }
 
 }
