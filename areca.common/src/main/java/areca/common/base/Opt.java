@@ -131,6 +131,13 @@ public class Opt<T> {
         return transform( mapper );
     }
 
+    /**
+     * Synonym for {@link #transform(Function)}.
+     */
+    public <R,E extends Exception> Opt<R> map( Function<? super T,? extends R,E> mapper ) throws E {
+        return transform( mapper );
+    }
+
 
     /**
      *

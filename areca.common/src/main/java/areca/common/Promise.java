@@ -233,20 +233,31 @@ public class Promise<T> {
      */
     public Promise<T> join( Promise<T> other ) {
         var next = new Completable<T>().upstream( this ).upstream( other );
-        MutableInt c = new MutableInt( 0 );
-        BiConsumer<HandlerSite,T,Exception> handler = (self,result) -> {
-            Assert.that( c.getValue() <= 2 );
-            LOG.debug( "JOIN: c = %s, self.complete = %s", c.getValue(), self.isComplete() );
-            if (!self.isComplete() || c.incrementAndGet() < 2) {
+        MutableInt completeCount = new MutableInt( 0 );
+        BiConsumer<HandlerSite,T,Exception> onSuccessHandler = (self,result) -> {
+            Assert.that( completeCount.getValue() <= 2 );
+            LOG.debug( "JOIN: c = %s, self.complete = %s", completeCount.getValue(), self.isComplete() );
+            if (self.isComplete()) {
+                 completeCount.increment();
+            }
+            if (completeCount.getValue() < 2) {
                 LOG.debug( "JOIN: consume: %s", result );
                 next.consumeResult( result );
             } else {
                 LOG.debug( "JOIN: complete: %s", result );
                 next.complete( result );
             }
+
+//            if (!self.isComplete() || c.incrementAndGet() < 2) {
+//                LOG.debug( "JOIN: consume: %s", result );
+//                next.consumeResult( result );
+//            } else {
+//                LOG.debug( "JOIN: complete: %s", result );
+//                next.complete( result );
+//            }
         };
-        onSuccess( handler );
-        other.onSuccess( handler );
+        onSuccess( onSuccessHandler );
+        other.onSuccess( onSuccessHandler );
 
         RConsumer<Throwable> errorHandler = e -> {
             next.completeWithError( e );

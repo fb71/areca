@@ -26,7 +26,6 @@ import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.common.Assert;
 import areca.common.Platform;
-import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Opt;
 import areca.common.log.LogFactory;
@@ -42,14 +41,11 @@ public class Message2ContactAnchorSynchronizer {
 
     private UnitOfWork              uow;
 
-    private ProgressMonitor         monitor;
-
     private HashMap<String,Contact> seen = new HashMap<>( 512 );
 
 
-    public Message2ContactAnchorSynchronizer( UnitOfWork uow, ProgressMonitor monitor ) {
+    public Message2ContactAnchorSynchronizer( UnitOfWork uow ) {
         this.uow = uow;
-        this.monitor = monitor;
     }
 
 

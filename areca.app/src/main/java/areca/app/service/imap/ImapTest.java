@@ -252,7 +252,8 @@ public class ImapTest {
     public Promise<?> syncFolderTest() {
         return initRepo( "syncFolder" ).then( repo -> {
             var uow = repo.newUnitOfWork();
-            return new ImapFolderSynchronizer( "Test1", uow, () -> newRequest(), new NullProgressMonitor() )
+            return new ImapFolderSynchronizer( "Test1", uow, () -> newRequest() )
+                    .onMessageCount( msgCount -> LOG.debug( "msgCount: %s", msgCount ) )
                     .start()
                     .reduce( new MutableInt(), (r,msg) -> r.increment())
                     .map( count -> {

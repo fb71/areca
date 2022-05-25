@@ -58,7 +58,7 @@ public class CarddavSynchronizer {
 
 
     public Promise<List<Contact>> start() {
-        monitor.value().beginTask( "CardDav ...", ProgressMonitor.UNKNOWN );
+        monitor.value().beginTask( "CardDav", ProgressMonitor.UNKNOWN );
 
         LOG.debug( "URL: %s", contactsRoot.url() );
         return new PropfindRequest( contactsRoot )
@@ -67,7 +67,7 @@ public class CarddavSynchronizer {
                 // get vcf content
                 .then( res -> {
                     LOG.debug( "PROPFIND: %s", Arrays.asList( res ) );
-                    monitor.value().beginTask( "CardDav", res.length );
+                    monitor.value().updateTotalWork( res.length );
                     return Promise.joined( res.length, i -> {
                         return new GetResourceRequest( res[i] ).submit();
                     });

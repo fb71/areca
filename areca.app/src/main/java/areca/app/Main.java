@@ -108,10 +108,11 @@ public class Main {
             catchAll( __ -> {
                 //LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
                 //LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
-                LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
-                //LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
-                LogFactory.setClassLevel( areca.app.service.Message2ContactAnchorSynchronizer.class, DEBUG );
-                LogFactory.setClassLevel( areca.app.service.Message2PseudoContactAnchorSynchronizer.class, DEBUG );
+//                LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
+//                LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
+                LogFactory.setClassLevel( areca.app.service.imap.ImapService.class, DEBUG );
+//                LogFactory.setClassLevel( areca.app.service.Message2ContactAnchorSynchronizer.class, DEBUG );
+//                LogFactory.setClassLevel( areca.app.service.Message2PseudoContactAnchorSynchronizer.class, DEBUG );
 
                 ArecaApp.instance().createUI();
             });

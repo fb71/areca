@@ -35,6 +35,7 @@ import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.carddav.CarddavService;
 import areca.app.service.imap.ImapService;
 import areca.app.ui.StartPage;
+import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Timer;
@@ -106,14 +107,14 @@ public class ArecaApp extends App {
 
             rootWindow.layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true );}} );
             mainBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 23 );}} );
+                layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 10 );}} );
             }});
 
             // monitorBody
             progressBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( 23 );}} );
+                layoutConstraints.set( new RowConstraints() {{height.set( 10 );}} );
                 cssClasses.add( "ProgressContainer" );
-                layout.set( new RowLayout() {{margins.set( Size.of( 5, 5 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
+                layout.set( new RowLayout() {{margins.set( Size.of( 3, 3 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
 
 //                add( new Progress() {{
 //                    value.set( 0.8f );
@@ -143,7 +144,7 @@ public class ArecaApp extends App {
     public ProgressMonitor newAsyncOperation() {
         return new ProgressMonitor() {
             private Progress progress = progressBody.add( new Progress() );
-            private Text progressText = progressBody.add( new Text() {{ content.set( "..." ); }} );
+            private Text progressText = /*progressBody.add(*/ new Text() {{ content.set( "..." ); }}; // );
             private Timer lastUpdate = Timer.start();
             private int workTotal, workDone;
             private String taskName = "";
@@ -151,24 +152,36 @@ public class ArecaApp extends App {
 
             @Override
             public void beginTask( String name, int totalWork ) {
+                Assert.that( taskName.isEmpty() );
                 taskName = name;
-                progress.max.set( (float)(workTotal = totalWork) );
                 progressText.content.set( name );
                 progressBody.layout();
+                updateTotalWork( totalWork );
+            }
+
+            @Override
+            public void updateTotalWork( int toAdd ) {
+                Assert.that( !taskName.isEmpty() );
+                workTotal += toAdd;
+                progress.max.set( (float)(workTotal) );
+                LOG.debug( "PROGRESS: update: +%s -> %s", toAdd, workTotal );
             }
 
             @Override
             public void subTask( String name ) {
-                subTaskName = name;
+                // subTaskName = name;
             }
 
             @Override
             public void worked( int work ) {
+                Assert.that( !taskName.isEmpty() );
                 checkCancelled();
 
-                if (lastUpdate.elapsed( MILLISECONDS ) > 100) {
+                workDone += work;
+
+                if (work > 1 || lastUpdate.elapsed( MILLISECONDS ) > 100) {
                     lastUpdate.restart();
-                    progress.value.set( (float)(workDone += work) );
+                    progress.value.set( (float)workDone );
 
                     StringBuilder label = new StringBuilder( 64 ).append( taskName );
                     if (!subTaskName.isEmpty()) {
@@ -176,11 +189,13 @@ public class ArecaApp extends App {
                     }
                     label.append( " " ).append( (100/workTotal)*workDone ).append( "%" );
                     progressText.content.set( label.toString() );
+                    LOG.debug( "PROGRESS: work: %s / %s", workDone, workTotal );
                 }
             }
 
             @Override
             public void done() {
+                Assert.that( !taskName.isEmpty() );
                 progress.value.set( (float)workTotal );
                 progressText.content.set( taskName + " 100%" );
                 Platform.schedule( 3000, () -> {

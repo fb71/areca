@@ -32,8 +32,8 @@ import areca.app.model.Message;
 import areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum;
 import areca.app.service.imap.MessageFetchHeadersCommand.Flag;
 import areca.common.Assert;
-import areca.common.ProgressMonitor;
 import areca.common.Promise;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.base.Supplier.RSupplier;
@@ -51,8 +51,6 @@ public class ImapFolderSynchronizer {
 
     public static final int             MAX_PER_FOLDER = 100;
 
-    protected ProgressMonitor           monitor;
-
     protected RSupplier<ImapRequest>    requestFactory;
 
     protected UnitOfWork                uow;
@@ -61,19 +59,23 @@ public class ImapFolderSynchronizer {
 
     private Anchor                      folderAnchor;
 
+    private RConsumer<Integer>          onMessageCount;
 
-    public ImapFolderSynchronizer( String folderName, UnitOfWork uow, RSupplier<ImapRequest> requestFactory, ProgressMonitor monitor ) {
+
+    public ImapFolderSynchronizer( String folderName, UnitOfWork uow, RSupplier<ImapRequest> requestFactory ) {
         this.uow = uow;
         this.requestFactory = requestFactory;
         this.folderName = folderName;
-        this.monitor = monitor;
+    }
+
+
+    public ImapFolderSynchronizer onMessageCount( RConsumer<Integer> consumer ) {
+        this.onMessageCount = consumer;
+        return this;
     }
 
 
     public Promise<Opt<Message>> start() {
-        monitor.beginTask( "EMail", ProgressMonitor.UNKNOWN );
-        monitor.subTask( folderName );
-
         return fetchMessageCount()
                 // check/create Anchor
                 .then( msgCount -> {
@@ -84,10 +86,9 @@ public class ImapFolderSynchronizer {
                 })
                 // fetch messages-ids
                 .then( totalMsgCount -> {
-                    LOG.debug( "%s: Exists: %s", folderName, totalMsgCount );
+                    LOG.info( "%s: Exists: %s", folderName, totalMsgCount );
                     int fetchCount = Math.min( totalMsgCount, MAX_PER_FOLDER );
-                    monitor.beginTask( "EMail", (fetchCount*3)+2 );
-                    monitor.worked( 1 );
+                    onMessageCount.accept( fetchCount );
                     return totalMsgCount > 0
                             ? fetchMessageIds( totalMsgCount-fetchCount+1, totalMsgCount )
                             : Promise.completed( Collections.emptyMap() );
@@ -95,7 +96,6 @@ public class ImapFolderSynchronizer {
                 // find missing Message entities
                 .then( (Map<String,Integer> msgIds) -> {
                     LOG.debug( "%s: Ids: %s", folderName, msgIds.size() );
-                    monitor.worked( 1 );
 
                     // query Messages that are in the store
                     String[] queryIds = msgIds.keySet().toArray( String[]::new );
@@ -127,7 +127,6 @@ public class ImapFolderSynchronizer {
                     LOG.debug( "%s: message: %s", folderName, msg );
                     msg.ifPresent( m -> {
                         folderAnchor.messages.add( m );
-                        monitor.worked( 1 );
                     });
                 });
     }

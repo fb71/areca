@@ -38,4 +38,8 @@ public class NullProgressMonitor
     public void done() {
     }
 
+    @Override
+    public void updateTotalWork( int toAdd ) {
+    }
+
 }
