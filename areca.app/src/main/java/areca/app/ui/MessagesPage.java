@@ -80,10 +80,9 @@ public class MessagesPage extends Page {
         var timer = Timer.start();
         var chunk = new ArrayList<UIComposite>();
 
-        src.fetch().onSuccess( (ctx,msg) -> {
-            if (msg != null) {
-                chunk.add( createMessageCard( msg ) );
-            }
+        src.fetch().onSuccess( (ctx,opt) -> {
+            opt.ifPresent( msg -> chunk.add( createMessageCard( msg ) ) );
+
             if (timer.elapsed( MILLISECONDS ) > timeout || ctx.isComplete()) {
                 LOG.info( "" + timer.elapsedHumanReadable() );
                 timer.restart();

@@ -19,6 +19,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.Arrays;
 import java.util.List;
+
 import org.teavm.jso.browser.Window;
 
 import org.polymap.model2.runtime.EntityRepository;
@@ -30,6 +31,7 @@ import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
+import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.carddav.CarddavService;
 import areca.app.service.imap.ImapService;
 import areca.app.ui.StartPage;
@@ -46,7 +48,6 @@ import areca.ui.Size;
 import areca.ui.component2.Progress;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComposite;
-import areca.ui.component2.VisualActionFeedback;
 import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Pageflow;
@@ -81,7 +82,7 @@ public class ArecaApp extends App {
     protected ArecaApp() {
         EntityRepository.newConfiguration()
                 .entities.set( asList( Message.info, Contact.info, Anchor.info) )
-                .store.set( new IDBStore( "areca.app", 4, true ) )
+                .store.set( new IDBStore( "areca.app", 6, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -94,7 +95,7 @@ public class ArecaApp extends App {
         UIComponentRenderer.start();
 
         super.createUI( rootWindow -> {
-            VisualActionFeedback.start();
+            //VisualActionFeedback.start();
 
             rootWindow.size.defaultsTo( () -> {
                 var doc = Window.current().getDocument();
@@ -202,9 +203,12 @@ public class ArecaApp extends App {
 
     public void startGlobalServicesSync() {
         services( SyncableService.class ).forEach( (service,i) -> {
-            Platform.schedule( 3000 * i, () -> { // XXX start  imap after contacts are there
-                var monitor = newAsyncOperation();
-                service.newSync( monitor ).start();
+            Platform.schedule( 3000 * i, () -> { // XXX start imap after contacts are there
+                var ctx = new SyncContext() {{
+                    monitor = newAsyncOperation();
+                    uowFactory = () -> repo().newUnitOfWork();
+                }};
+                service.newSync( ctx ).start();
             });
         });
     }

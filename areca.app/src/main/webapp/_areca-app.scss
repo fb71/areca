@@ -19,7 +19,7 @@ $card_color: saturate(lighten($bg1_color, 5%), 5%);
 }
 
 .MessageCard {
-    color: darken($font_color, 10%);
+    color: darken($font_color, 5%);
     background-color: $card_color;
     box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
 }

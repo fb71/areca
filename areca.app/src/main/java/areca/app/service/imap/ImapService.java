@@ -13,7 +13,11 @@
  */
 package areca.app.service.imap;
 
+import java.util.List;
+
 import org.apache.commons.lang3.mutable.MutableInt;
+
+import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
 import areca.app.service.Message2ContactAnchorSynchronizer;
@@ -21,8 +25,6 @@ import areca.app.service.Message2PseudoContactAnchorSynchronizer;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.imap.ImapRequest.LoginCommand;
-import areca.common.Platform;
-import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -39,59 +41,66 @@ public class ImapService
 
     @Override
     public String label() {
-        return "Messages - IMAP: ???";
+        return "Messages - EMail";
     }
 
 
     @Override
-    public Sync newSync( ProgressMonitor monitor ) {
+    public Sync newSync( SyncContext ctx ) {
         return new Sync() {
-            int work = 10;
+            UnitOfWork uow = ctx.uowFactory.supply();
+            Message2ContactAnchorSynchronizer messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow, ctx.monitor );
+            Message2PseudoContactAnchorSynchronizer messages2PseudoAnchor = new Message2PseudoContactAnchorSynchronizer( uow, ctx.monitor );
 
             @Override
             public Promise<?> start() {
-                var uow = ArecaApp.instance().repo().newUnitOfWork();
-                var messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow, monitor );
-                var messages2PseudoAnchor = new Message2PseudoContactAnchorSynchronizer( uow, monitor );
-
-                return new ImapFolderSynchronizer( "Test1", uow, () -> newRequest(), monitor)
-                        .start()
-                        .onSuccess( msg -> monitor.worked( 1 ) )
-
-                        .then( msg -> messages2ContactAnchor.perform( msg ) )
-                        .onSuccess( msg -> monitor.worked( 1 ) )
-
-                        .then( msg -> messages2PseudoAnchor.perform( msg ) )
-                        .onSuccess( msg -> monitor.worked( 1 ) )
-
-                        .reduce( new MutableInt(), (r,msg) -> r.increment())
-                        .map( count -> {
+                return fetchFolders()
+                        // sync folders
+                        .then( folderNames -> {
+                            LOG.info( "Folders: %s", folderNames );
+                            return Promise.joined( folderNames.size(), i -> syncFolder( folderNames.get( i ) ) );
+                        })
+                        .reduce2( 0, (result,count) -> result + count )
+                        .map( total -> {
                             return uow.submit().onSuccess( submitted -> {
-                                monitor.done();
-                                LOG.info( "Submitted: %s", count );
+                                ctx.monitor.done();
+                                LOG.info( "Submitted: %s, in ?? folders", total );
                             });
                         })
                         .onError( ArecaApp.instance().defaultErrorHandler() )
-                        .onError( e -> monitor.done() );
-
-//                monitor.beginTask( "EMail", 10 );
-//                pseudoWork();
+                        .onError( e -> ctx.monitor.done() );
             }
 
-            private void pseudoWork() {
-                monitor.worked( 1 );
-                if ((work -= 1) > 0) {
-                    Platform.schedule( 1000, () -> pseudoWork() );
-                } else {
-                    monitor.done();
-                }
+
+            protected Promise<Integer> syncFolder( String folderName ) {
+                return new ImapFolderSynchronizer( folderName, uow, () -> newRequest(), ctx.monitor ).start()
+                        .onSuccess( msg -> {
+                            LOG.debug( "%s: pre sync: %s", folderName, msg.getClass() );
+                            ctx.monitor.worked( 1 );
+                        })
+
+                        .thenOpt( msg -> messages2ContactAnchor.perform( msg.get() ) )
+                        .onSuccess( msg -> ctx.monitor.worked( 1 ) )
+
+                        .thenOpt( msg -> messages2PseudoAnchor.perform( msg.get() ) )
+                        .onSuccess( msg -> ctx.monitor.worked( 1 ) )
+
+                        .reduce( new MutableInt(), (r,msg) -> msg.ifPresent( m -> r.increment() ) )
+                        .map( mutableInt -> {
+                            LOG.info( "%s: synched messages: %s", folderName, mutableInt );
+                            return mutableInt.toInteger();
+                        });
+            }
+
+
+            protected Promise<List<String>> fetchFolders() {
+                var request = newRequest();
+                request.commands.add( new FolderListCommand() );
+                return request.submit()
+                        .filter( FolderListCommand.class::isInstance )
+                        .map( command -> ((FolderListCommand)command).folderNames );
             }
         };
-    }
-
-
-    protected Promise<String> fetchFolders() {
-        throw new RuntimeException( "not yet...");
     }
 
 

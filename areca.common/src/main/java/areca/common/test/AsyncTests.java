@@ -25,7 +25,6 @@ import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
-import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -156,9 +155,29 @@ public class AsyncTests {
                 .joined( 3, i -> Platform.async( () -> i ) )
                 .reduce( new MutableInt(), (r,i) -> r.add( i ) )
                 .onSuccess( (self,count) -> {
-                    if (self.isComplete()) {
-                        Assert.isEqual( 3, count.getValue() );
-                    }
+                    Assert.isEqual( 3, count.getValue() );
+                });
+    }
+
+
+    @Test
+    public Promise<?> reduce2PromiseTest() {
+        return Promise
+                .joined( 4, i -> Platform.async( () -> i ) )
+                .reduce2( 0, (r,i) -> r + i )
+                .onSuccess( (self,count) -> {
+                    Assert.isEqual( 6, count );
+                });
+    }
+
+
+    @Test
+    public Promise<?> propagateOptionalPromiseTest() {
+        return Promise.absent()
+                .thenOpt( v -> (Platform.async( () -> Assert.notNull( v.get() ) )) )
+                .reduce2( 0, (r,i) -> r + 1 )
+                .onSuccess( (self,count) -> {
+                    Assert.isEqual( 1, count );
                 });
     }
 

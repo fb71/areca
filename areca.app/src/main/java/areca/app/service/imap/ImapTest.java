@@ -34,6 +34,7 @@ import org.polymap.model2.store.tidbstore.IDBStore;
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
+import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Assert;
 import areca.common.NullProgressMonitor;
@@ -145,6 +146,31 @@ public class ImapTest {
 
 
     @Test
+    public Promise<?> selectEmptyFolderTest() {
+        request.commands.add( new FolderSelectCommand( "Drafts" ) );
+        return request.submit().onSuccess( command -> {
+            with( command ).instanceOf( FolderSelectCommand.class, fsc -> {
+                LOG.info( "Drafts: %s/%s", fsc.exists, fsc.recent );
+                Assert.that( fsc.exists > -1 );
+                Assert.that( fsc.recent > -1 );
+            });
+        });
+    }
+
+
+    @Test
+    public Promise<?> listFoldersTest() {
+        //request.commands.add( new FolderSelectCommand( "INBOX" ) );
+        request.commands.add( new FolderListCommand() );
+        return request.submit().onSuccess( command -> {
+            with( command ).instanceOf( FolderListCommand.class, c -> {
+                LOG.info( "INBOX: Folders: %s", c.folderNames );
+            });
+        });
+    }
+
+
+    @Test
     @Skip
     public Promise<?> fetchMessageTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
@@ -169,11 +195,11 @@ public class ImapTest {
         return request.submit().onSuccess( command -> {
             with( command ).instanceOf( MessageFetchHeadersCommand.class, fetchCommand -> {
                 for (var entry : fetchCommand.headers.entrySet()) {
-                    LOG.info( "HEADER: %s: %s", entry.getKey(), entry.getValue() );
+                    LOG.debug( "HEADER: %s: %s", entry.getKey(), entry.getValue() );
                     Assert.isEqual( 5, entry.getValue().size() );
                 }
                 for (var entry : fetchCommand.flags.entrySet()) {
-                    LOG.info( "FLAGS: %s: %s", entry.getKey(), entry.getValue() );
+                    LOG.debug( "FLAGS: %s: %s", entry.getKey(), entry.getValue() );
                     Assert.isEqual( entry.getKey() == 1 ? 0 :  1, entry.getValue().size() );
                 }
             });
@@ -188,11 +214,11 @@ public class ImapTest {
         return request.submit().onSuccess( command -> {
             with( command ).instanceOf( MessageFetchHeadersCommand.class, fetchCommand -> {
                 for (var entry : fetchCommand.headers.entrySet()) {
-                    LOG.info( "HEADER: %s: %s", entry.getKey(), entry.getValue() );
+                    LOG.debug( "HEADER: %s: %s", entry.getKey(), entry.getValue() );
                     Assert.isEqual( 1, entry.getValue().size() );
                 }
                 for (var entry : fetchCommand.flags.entrySet()) {
-                    LOG.info( "FLAGS: %s: %s", entry.getKey(), entry.getValue() );
+                    LOG.debug( "FLAGS: %s: %s", entry.getKey(), entry.getValue() );
                     //Assert.isEqual( entry.getKey() == 1 ? 0 :  1, entry.getValue().size() );
                 }
             });
@@ -222,6 +248,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> syncFolderTest() {
         return initRepo( "syncFolder" ).then( repo -> {
             var uow = repo.newUnitOfWork();
@@ -235,4 +262,17 @@ public class ImapTest {
                     });
         });
     }
+
+
+    @Test
+    public Promise<?> syncServiceTest() {
+        return initRepo( "syncService" ).then( repo -> {
+            var ctx = new SyncContext() {{
+                monitor = new NullProgressMonitor();
+                uowFactory = () -> repo.newUnitOfWork();
+            }};
+            return new ImapService().newSync( ctx ).start();
+        });
+    }
+
 }

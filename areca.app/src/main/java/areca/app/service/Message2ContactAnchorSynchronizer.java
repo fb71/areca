@@ -24,6 +24,7 @@ import org.polymap.model2.runtime.UnitOfWork;
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
+import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
@@ -53,12 +54,13 @@ public class Message2ContactAnchorSynchronizer {
 
 
     public Promise<Message> perform( Message message ) {
+        Assert.notNull( message );
         var address = addressParts( message.from.get() );
 
         return uow.query( Contact.class )
                 // query Contact
                 .where( Expressions.eq( Contact.TYPE.email, address.pure ) )
-                .executeToList()
+                .executeCollect()
                 .map( results -> {
                     if (!results.isEmpty()) {
                         LOG.debug( "Contact found for: %s", address.pure );

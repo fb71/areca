@@ -59,7 +59,7 @@ public class Message2PseudoContactAnchorSynchronizer {
         return uow.query( Anchor.class )
                 // check/create Anchor
                 .where( Expressions.eq( Anchor.TYPE.storeRef, storeRef ) )
-                .executeToList()
+                .executeCollect()
                 .map( rs -> {
                     if (!rs.isEmpty()) {
                         LOG.debug( "Pseudo contact found: %s", storeRef );
@@ -78,7 +78,7 @@ public class Message2PseudoContactAnchorSynchronizer {
                     else {
                         return uow.query( Message.class )
                                 .where( Expressions.eq( Message.TYPE.from, message.from.get() ) ) // XXX all addresses
-                                .executeToList()
+                                .executeCollect()
                                 .map( foundMsgs -> {
                                     if (foundMsgs.size() > 1) {
                                         var anchor = seen.computeIfAbsent( storeRef, __ -> uow.createEntity( Anchor.class, proto -> {

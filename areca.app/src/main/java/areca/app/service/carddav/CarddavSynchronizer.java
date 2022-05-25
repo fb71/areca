@@ -78,7 +78,7 @@ public class CarddavSynchronizer {
                     LOG.info( "VCard fetched: %s", vcard.fn.value() );
                     return uow.query( Contact.class )
                             .where( eq( Contact.TYPE.storeRef, vcard.uid.value() ) )
-                            .executeToList()
+                            .executeCollect()
                             .map( contacts -> Pair.of( vcard, contacts ) );
                 })
                 // create/update Contact

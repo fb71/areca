@@ -11,11 +11,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.app.service.carddav;
+package areca.app.service;
 
-import areca.app.ArecaApp;
-import areca.app.service.Service;
-import areca.app.service.SyncableService;
+import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -24,34 +22,38 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-public class CarddavService
+public class MonitorTestService
         extends Service
         implements SyncableService {
 
-    private static final Log LOG = LogFactory.getLog( CarddavService.class );
-
+    private static final Log LOG = LogFactory.getLog( MonitorTestService.class );
 
     @Override
     public String label() {
-        return "Contacts - Carddav: ???";
+        return "Monitor Test";
     }
 
 
     @Override
     public Sync newSync( SyncContext ctx ) {
         return new Sync() {
+            int work = 10;
 
             @Override
             public Promise<?> start() {
-                var uow = ArecaApp.instance().repo().newUnitOfWork();
-                var synchronizer = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, uow );
-                synchronizer.monitor.set( ctx.monitor );
-                return synchronizer.start()
-                        .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) )
-                        .onError( e -> ctx.monitor.done() )
-                        .onError( ArecaApp.instance().defaultErrorHandler() );
+                ctx.monitor.beginTask( "EMail", 10 );
+                pseudoWork();
+                return null;
+            }
+
+            private void pseudoWork() {
+                ctx.monitor.worked( 1 );
+                if ((work -= 1) > 0) {
+                    Platform.schedule( 1000, () -> pseudoWork() );
+                } else {
+                    ctx.monitor.done();
+                }
             }
         };
     }
-
 }

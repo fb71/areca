@@ -78,7 +78,7 @@ public class Main {
         // #imap
         else if (hash.equals( "#imap" )) {
             catchAll( __ -> {
-                LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
+                //LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
                 LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
                 //LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
                 new AsyncAwareTestRunner()
@@ -109,7 +109,7 @@ public class Main {
                 //LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
                 //LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
                 LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
-                LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
+                //LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
                 LogFactory.setClassLevel( areca.app.service.Message2ContactAnchorSynchronizer.class, DEBUG );
                 LogFactory.setClassLevel( areca.app.service.Message2PseudoContactAnchorSynchronizer.class, DEBUG );
 

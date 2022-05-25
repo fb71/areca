@@ -17,8 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableObject;
 
 import areca.common.base.BiConsumer;
+import areca.common.base.BiFunction;
 import areca.common.base.Consumer;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Function;
@@ -49,6 +51,7 @@ public class Promise<T> {
      * @return Newly created instance.
      */
     public static <R> Promise<R> joined( int num, RFunction<Integer,Promise<R>> supplier ) {
+        Assert.that( num >= 1 );
         return Sequence.ofInts( 0, num-1 )
                 .map( i -> supplier.apply( i ) )
                 .reduce( (p1, p2) -> p1.join( p2 ) ).get();
@@ -125,6 +128,27 @@ public class Promise<T> {
             next.completeWithError( e );
         });
         return next;
+    }
+
+
+    /**
+     * Chain another async operation and take care of absent values. The given
+     * computation is called *just* if the value is present. Otherwise
+     * {@link Opt#absent()} is passed through.
+     *
+     * @param <R>
+     * @param f
+     * @return A newly created {@link Promise}.
+     */
+    @SuppressWarnings("unchecked")
+    public <R> Promise<Opt<R>> thenOpt( RFunction<T,Promise<R>> f ) {
+        return then( (T result) -> {
+            Assert.that( result instanceof Opt, "Value must be of type Opt<T>: " + result );
+            return ((Opt<T>)result)
+                    .ifPresentMap( v -> f.apply( result ).map( r -> Opt.of( r ) ) )
+                    .orElse( absent() );
+            //return opt( (Opt<T>)result, f );
+        });
     }
 
 
@@ -240,6 +264,22 @@ public class Promise<T> {
             combiner.accept( accu, result );
             if (self.isComplete()) {
                 next.complete( accu );
+            }
+        });
+        onError( e -> {
+            next.completeWithError( e );
+        });
+        return next;
+    }
+
+
+    public <R> Promise<R> reduce2( R start, BiFunction<R,T,R,Exception> combiner ) {
+        var next = new Completable<R>().upstream( this );
+        var accu = new MutableObject<>( start  );
+        onSuccess( (self,result) -> {
+            accu.setValue( combiner.apply( accu.getValue(), result ) );
+            if (self.isComplete()) {
+                next.complete( accu.getValue() );
             }
         });
         onError( e -> {
@@ -375,7 +415,7 @@ public class Promise<T> {
             }
             // already done with error
             else if (error != null) {
-                LOG.warn( "SKIPPING result after error: " + value );
+                LOG.debug( "SKIPPING result after error: " + value );
                 return;
             }
             // done without error -> programming error
@@ -408,7 +448,7 @@ public class Promise<T> {
             }
             // already done with error
             else if (error != null) {
-                LOG.warn( "SKIPPING error after error: " + e );
+                LOG.debug( "SKIPPING error after error: " + e );
                 throw (RuntimeException)Platform.rootCause( e );
             }
             // done without error -> programming error
@@ -455,11 +495,25 @@ public class Promise<T> {
 
 
     /**
-     * Returns a Promise that never emmits a result.
+     * See {@link #thenOpt(RFunction)}
+     * @see #thenOpt(RFunction)
      */
-    public static <R> Promise<R> stop() {
-        return new Promise<>();
+    public static <R> Promise<Opt<R>> absent() {
+        return completed( Opt.<R>absent() );
     }
+
+
+//    /**
+//     * Propagates a - maybe absent - value.
+//     *
+//     * @param value
+//     * @param f
+//     */
+//    public static <V,R> Promise<Opt<R>> opt( Opt<V> value, RFunction<V,Promise<R>> f ) {
+//        return value
+//                .ifPresentMap( v -> f.apply( v ).map( r -> Opt.of( r ) ) )
+//                .orElse( completed( Opt.<R>absent() ) );
+//    }
 
 
     /**

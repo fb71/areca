@@ -54,7 +54,7 @@ public class Anchor
     public Promise<Integer> unreadMessagesCount() {
         // XXX a ComputedProperty would be cached?!
         return messages.fetch()
-                .reduce( new MutableInt(), (count,msg) -> count.add( msg.unread.get() ? 1 : 0 ) )
+                .reduce( new MutableInt(), (count,opt) -> opt.ifPresent( msg -> count.add( msg.unread.get() ? 1 : 0 ) ) )
                 .map( count -> count.getValue() );
     }
 

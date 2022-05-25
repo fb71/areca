@@ -54,7 +54,7 @@ public class Opt<T> {
 
     @Override
     public String toString() {
-        return String.format( "Opt[%s]", value );
+        return String.format( "Opt[%s]", isPresent() ? value : "absent" );
     }
 
 
@@ -117,14 +117,9 @@ public class Opt<T> {
      * If the value {@link #isPresent()} then transform the value with the given
      * mapper function, otherwise return {@link #absent()}.
      *
-     * @return The transformed value, or {@link #absent()}.
+     * @return Newly created {@link Opt} containing the transformed value, or {@link #absent()}.
      */
     public <R,E extends Exception> Opt<R> transform( Function<? super T,? extends R,E> mapper ) throws E {
-        return isPresent() ? Opt.of( mapper.apply( value ) ) : absent();
-    }
-
-
-    public <R,E extends Exception> Opt<R> ifPresentTransform( Function<? super T,? extends R,E> mapper ) throws E {
         return isPresent() ? Opt.of( mapper.apply( value ) ) : absent();
     }
 
