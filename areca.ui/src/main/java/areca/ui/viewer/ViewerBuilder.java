@@ -34,42 +34,35 @@ public class ViewerBuilder {
 
     // instance *******************************************
 
-    private Viewer                      viewer;
+    protected Viewer                    viewer;
 
-    private ModelAdapter                adapter;
+    protected ModelAdapter              adapter;
 
-    private ModelValueTransformer<?,?>  transformer;
+    protected ModelValueTransformer     transformer;
 
-    //private List<TransformerMapping<?>> transformerMappings = new ArrayList<>();
-
-    private ModelValueValidator<?>      validator;
+    protected ModelValueValidator<?>    validator;
 
 
-    public ViewerBuilder viewer( @SuppressWarnings("hiding") Viewer<?> viewer ) {
+    @SuppressWarnings("hiding")
+    public ViewerBuilder viewer( Viewer<?> viewer ) {
         this.viewer = viewer;
         return this;
     }
 
-
-    public ViewerBuilder adapter( @SuppressWarnings("hiding") ModelAdapter adapter ) {
+    @SuppressWarnings("hiding")
+    public ViewerBuilder adapter( ModelAdapter adapter ) {
         this.adapter = adapter;
         return this;
     }
 
-
-    public ViewerBuilder transformer( @SuppressWarnings("hiding") ModelValueTransformer<?,?> transformer ) {
+    @SuppressWarnings("hiding")
+    public ViewerBuilder transformer( ModelValueTransformer<?,?> transformer ) {
         this.transformer = transformer;
         return this;
     }
 
-
-//    public <M> ViewerBuilder transformer( TransformerMapping<M> mapping ) {
-//        this.transformerMappings.add( mapping );
-//        return this;
-//    }
-
-
-    public ViewerBuilder validator( @SuppressWarnings("hiding") ModelValueValidator<?> validator ) {
+    @SuppressWarnings("hiding")
+    public ViewerBuilder validator( ModelValueValidator<?> validator ) {
         this.validator = validator;
         return this;
     }
@@ -97,21 +90,29 @@ public class ViewerBuilder {
 
     protected SingleValueAdapter transformingSingleValueAdapter( SingleValueAdapter delegate ) {
         return new SingleValueAdapter() {
+
             @Override
             public Object getValue() {
                 Object value = delegate.getValue();
                 if (transformer != null) {
-                    throw new RuntimeException( "not yet implemented: transformer(s)" );
+                    value = transformer.transform2UI( value );
                 }
                 if (validator != null) {
                     throw new RuntimeException( "not yet implemented: validator" );
                 }
                 return value;
             }
+
             @Override
+            @SuppressWarnings("unchecked")
             public void setValue( Object value ) {
-                // XXX Auto-generated method stub
-                throw new RuntimeException( "not yet implemented." );
+                if (transformer != null) {
+                    value = transformer.transform2UI( value );
+                }
+                if (validator != null) {
+                    throw new RuntimeException( "not yet implemented: validator" );
+                }
+                delegate.setValue( value );
             }
         };
     }

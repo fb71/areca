@@ -31,4 +31,16 @@ public class ListViewer
         throw new RuntimeException( "not implemented yet." );
     }
 
+    @Override
+    public void store() {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+    @Override
+    public void load() {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
 }

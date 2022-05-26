@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,29 +15,25 @@ package areca.ui.viewer;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component2.UIComponent;
+
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class Viewer<A extends ModelAdapter> {
+public class Number2StringTransformer
+        implements ModelValueTransformer<Number,String> {
 
-    private static final Log log = LogFactory.getLog( Viewer.class );
+    private static final Log LOG = LogFactory.getLog( Number2StringTransformer.class );
 
-    protected A         model;
-
-
-    @SuppressWarnings("hiding")
-    protected Viewer<A> init( A model ) {
-        this.model = model;
-        return this;
+    @Override
+    public String transform2UI( Number value ) {
+        return value != null ? value.toString() : null;
     }
 
+    @Override
+    public Number transfor2Model( String value ) {
+        return value != null ? Integer.valueOf( value ) : null; // XXX other types!?
+    }
 
-    public abstract UIComponent create();
-
-    public abstract void store();
-
-    public abstract void load();
 }

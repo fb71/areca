@@ -163,10 +163,25 @@ public class AsyncTests {
     @Test
     public Promise<?> reduce2PromiseTest() {
         return Promise
-                .joined( 4, i -> Platform.async( () -> i ) )
+                .joined( 4, i -> Platform.async( () -> i ))
                 .reduce2( 0, (r,i) -> r + i )
                 .onSuccess( (self,count) -> {
                     Assert.isEqual( 6, count );
+                });
+    }
+
+
+    @Test
+    public Promise<?> joinedSerialTest() {
+        return Promise
+                .serial( 4, i -> Platform.async( () -> {
+                    LOG.info( "JOIN: " + i );
+                    return i;
+                }))
+                .onSuccess( i -> LOG.info( "JOIN: success: %s", i ) )
+                .reduce2( 0, (r,i) -> r + i )
+                .onSuccess( count -> {
+                    Assert.isEqual( 6, count.intValue() );
                 });
     }
 

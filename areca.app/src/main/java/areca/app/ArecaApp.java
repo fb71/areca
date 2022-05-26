@@ -28,6 +28,7 @@ import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
+import areca.app.model.ImapSettings;
 import areca.app.model.Message;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
@@ -38,9 +39,12 @@ import areca.app.ui.StartPage;
 import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
+import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Opt;
 import areca.common.base.Sequence;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.ui.UIComponentRenderer;
@@ -75,6 +79,10 @@ public class ArecaApp extends App {
 
     private UnitOfWork              uow;
 
+    private EntityRepository        settingsRepo;
+
+    private UnitOfWork              settingsUow;
+
     private UIComposite             mainBody;
 
     private UIComposite             progressBody;
@@ -87,7 +95,18 @@ public class ArecaApp extends App {
                 .create()
                 .onSuccess( result -> {
                     repo = result;
-                    LOG.info( "Database repo initialized." );
+                    uow = repo.newUnitOfWork();
+                    LOG.info( "Database and model repo initialized." );
+                });
+
+        EntityRepository.newConfiguration()
+                .entities.set( asList( ImapSettings.info ) ).store
+                .set( new IDBStore( "areca.app.settings", 1, true ) )
+                .create()
+                .onSuccess( result -> {
+                    settingsRepo = result;
+                    settingsUow = settingsRepo.newUnitOfWork();
+                    LOG.info( "Settings database and model repo initialized." );
                 });
     }
 
@@ -235,9 +254,51 @@ public class ArecaApp extends App {
 
 
     public UnitOfWork unitOfWork() {
-        if (uow == null) {
-            uow = repo.newUnitOfWork();
-        }
         return uow;
+    }
+
+
+    public Promise<UnitOfWork> settings() {
+        return new WaitForCondition<>( () -> settingsUow != null, () -> settingsUow );
+    }
+
+
+    /**
+     * Acts more like a lazily init variable that caches its result (in settingsUow).
+     */
+    public static class WaitForCondition<U>
+            extends Promise.Completable<U> {
+
+        protected RSupplier<Boolean>    condition;
+
+        protected RSupplier<U>          factory;
+
+        public WaitForCondition( RSupplier<Boolean> condition, RSupplier<U> factory ) {
+            this.condition = condition;
+            this.factory = factory;
+            waitForCondition();
+        }
+
+        protected void waitForCondition() {
+            if (!condition.get()) {
+                LOG.info( "WAITING: ..." );
+                Platform.schedule( 100, () -> waitForCondition() );
+            }
+            else {
+                LOG.info( "WAITING: done." );
+                var value = factory.supply();
+
+                // if the condition matches in the first run,
+                // then give the caller time to register its onSuccess handlers
+                Platform.async( () -> complete( value ) );
+
+                // XXX Hack: for ImapSettingsPage
+                waitForResult = value;
+            }
+        }
+
+        public Opt<U> waitForResult() {
+            return Opt.of( waitForResult );
+        }
     }
 }

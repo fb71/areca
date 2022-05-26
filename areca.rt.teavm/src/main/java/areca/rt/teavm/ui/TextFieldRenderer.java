@@ -54,7 +54,7 @@ public class TextFieldRenderer
         var textNode = (HTMLElement)doc().createTextNode( c.label.opt().orElse( "" ) );
         labelElm.appendChild( textNode );
 
-        var inputElm =(HTMLInputElement)doc().createElement( "input" );
+        var inputElm = (HTMLInputElement)doc().createElement( "input" );
         inputElm.setAttribute( "type", "text" );
         labelElm.appendChild( inputElm );
 
@@ -63,8 +63,16 @@ public class TextFieldRenderer
         c.content.onInitAndChange( (newValue, oldValue) -> {
             inputElm.setAttribute( "value", newValue );
         });
+
         c.label.onInitAndChange( (newValue, oldValue) -> {
             textNode.setNodeValue( newValue );
+        });
+
+        inputElm.addEventListener( "input", htmlEv -> {
+            LOG.info( "HTML event: %s", inputElm.getValue() );
+            //((MouseEvent)_htmlEv).stopPropagation();
+            //htmlEv.preventDefault();
+            c.content.rawSet( inputElm.getValue() );
         });
 
         super.componentConstructed( ev );

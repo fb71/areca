@@ -183,7 +183,7 @@ public abstract class Property<C,T> {
         /**
          * For framework/internal use: sets the value without firing event.
          */
-        protected ReadWrite<C,T> rawSet( T newValue ) {
+        public ReadWrite<C,T> rawSet( T newValue ) {
             value = newValue;
             valuePresent = true;
             return this;

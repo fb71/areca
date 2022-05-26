@@ -13,6 +13,7 @@
  */
 package areca.ui.viewer;
 
+import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
@@ -32,15 +33,28 @@ public class TextViewer
 
     public static final ClassInfo<TextViewer> info = TextViewerClassInfo.instance();
 
+    protected TextField     textField;
+
     @Override
     public UIComponent create() {
-        return new TextField() {{
-            content.set( model.getValue() );
-
+        Assert.isNull( textField );
+        textField = new TextField() {{
 //            events.on( EventType.SELECT, ev -> {
 //                content.set(  )
 //            });
         }};
+        load();
+        return textField;
+    }
+
+    @Override
+    public void store() {
+        model.setValue( textField.content.value() );
+    }
+
+    @Override
+    public void load() {
+        textField.content.set( model.getValue() );
     }
 
 }

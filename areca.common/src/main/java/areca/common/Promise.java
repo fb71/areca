@@ -45,7 +45,7 @@ public class Promise<T> {
      * <p/>
      * All generated promises <b>must</b> provide just a <b>single value</b>!
      *
-     * @param <R>
+     * @see #serial(int, RFunction)
      * @param num The total number of promises to create/join.
      * @param supplier
      * @return Newly created instance.
@@ -55,6 +55,65 @@ public class Promise<T> {
         return Sequence.ofInts( 0, num-1 )
                 .map( i -> supplier.apply( i ) )
                 .reduce( (p1, p2) -> p1.join( p2 ) ).get();
+    }
+
+
+    /**
+     * Joins a number of Promises.
+     * <p/>
+     * In contrast to {@link #joined(int, RFunction)} the Promises are created one
+     * after the other. So there is just one Promise running at a given time.
+     *
+     * @see #joined(int, RFunction)
+     * @param num The total number of promises to create/join.
+     * @param supplier The factory that creates the to-be-joined Promises.
+     * @return Newly created {@link Promise}.
+     */
+    public static <R> Promise<R> serial( int num, RFunction<Integer,Promise<R>> supplier ) {
+        return new JoinedSerial<>( num, supplier );
+    }
+
+    /**
+     *
+     */
+    static class JoinedSerial<R> extends Promise.Completable<R> {
+        private int num;
+        private int completeCount;
+        private RFunction<Integer,Promise<R>> supplier;
+
+        protected JoinedSerial( int num, RFunction<Integer,Promise<R>> supplier ) {
+            Assert.that( num > 0 );
+            this.num = num;
+            this.supplier = supplier;
+
+            upstream( supplier.apply( completeCount )
+                    .onSuccess( onSuccessHandler() )
+                    .onError( e -> completeWithError( e ) ) );
+        }
+
+        protected BiConsumer<HandlerSite,R,Exception> onSuccessHandler() {
+            return (self,result) -> {
+                LOG.debug( "JOIN: c = %s, self.complete = %s", completeCount, self.isComplete() );
+                if (!self.isComplete()) {
+                    LOG.debug( "JOIN: consume: %s", result );
+                    consumeResult( result );
+                }
+                else {
+                    completeCount ++;
+                    if (completeCount < num) {
+                        LOG.debug( "JOIN: consume (complete): %s", result );
+                        consumeResult( result );
+                        upstream( supplier.apply( completeCount )
+                                .onSuccess( onSuccessHandler() )
+                                .onError( e -> completeWithError( e ) ) );
+                    }
+                    else {
+                        LOG.debug( "JOIN: complete: %s", result );
+                        complete( result );
+                    }
+                }
+            };
+        }
     }
 
     // instance *******************************************
@@ -392,6 +451,24 @@ public class Promise<T> {
         };
 
         private List<Promise<?>> upstreams = new ArrayList<>();
+
+
+//        @Override
+//        public <E extends Exception> Promise<T> onSuccess( BiConsumer<HandlerSite,T,E> newConsumer ) {
+//            super.onSuccess( newConsumer );
+//            if (isDone()) {
+//                for (var consumer : onSuccess) {
+//                    try {
+//                        consumer.accept( site, waitForResult );
+//                    }
+//                    catch (Throwable e) {
+//                        completeWithError( e );
+//                        break;
+//                    }
+//                }
+//            }
+//            return this;
+//        }
 
 
         /**

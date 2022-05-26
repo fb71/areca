@@ -29,7 +29,6 @@ import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.model.Anchor;
 import areca.app.model.Message;
-import areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum;
 import areca.app.service.imap.MessageFetchHeadersCommand.Flag;
 import areca.common.Assert;
 import areca.common.Promise;
@@ -49,7 +48,7 @@ public class ImapFolderSynchronizer {
 
     private static final Log LOG = LogFactory.getLog( ImapFolderSynchronizer.class );
 
-    public static final int             MAX_PER_FOLDER = 100;
+    public static final int             MAX_PER_FOLDER = 10;
 
     protected RSupplier<ImapRequest>    requestFactory;
 
@@ -84,13 +83,14 @@ public class ImapFolderSynchronizer {
                         return msgCount;
                     });
                 })
-                // fetch messages-ids
+                // fetch message ids
                 .then( totalMsgCount -> {
-                    LOG.info( "%s: Exists: %s", folderName, totalMsgCount );
                     int fetchCount = Math.min( totalMsgCount, MAX_PER_FOLDER );
+                    int from = totalMsgCount-fetchCount+1, to = totalMsgCount;
+                    LOG.info( "%s: Exists: %s, fetching: %s - %s", folderName, totalMsgCount, from, to );
                     onMessageCount.accept( fetchCount );
                     return totalMsgCount > 0
-                            ? fetchMessageIds( totalMsgCount-fetchCount+1, totalMsgCount )
+                            ? fetchMessageIds( from, to )
                             : Promise.completed( Collections.emptyMap() );
                 })
                 // find missing Message entities
@@ -111,7 +111,7 @@ public class ImapFolderSynchronizer {
                 })
                 // MESSAGE_ID -> message num
                 .onSuccess( (HashMap<String,Integer> missingMsgIds) -> {
-                    LOG.debug( "%s: Missing: %s", folderName, missingMsgIds.size() );
+                    LOG.info( "%s: Missing: %s", folderName, missingMsgIds.size() );
                 })
                 // fetch IMAP messages
                 .then( missingMsgIds -> {
@@ -120,7 +120,8 @@ public class ImapFolderSynchronizer {
                         return Promise.absent();
                     } else {
                         var msgNums = missingMsgIds.values().iterator();
-                        return Promise.joined( missingMsgIds.size(), i -> fetchMessage( msgNums.next() ) ).map( msg -> Opt.of( msg ) );
+                        return Promise.joined( missingMsgIds.size(), i -> fetchMessage( msgNums.next() ) )
+                                .map( msg -> Opt.of( msg ) );
                     }
                 })
                 .onSuccess( (Opt<Message> msg) -> {
@@ -141,7 +142,7 @@ public class ImapFolderSynchronizer {
                     if (anchors.isEmpty()) {
                         return uow.createEntity( Anchor.class, proto -> {
                             proto.storeRef.set( storeRef );
-                            proto.name.set( folderName );
+                            proto.name.set( folderName.replace( "/", " " ) );
                         });
                     }
                     else {
@@ -170,16 +171,23 @@ public class ImapFolderSynchronizer {
         return r.submit()
                 .filter( command -> command instanceof MessageFetchHeadersCommand )
                 .map( command -> {
-                    return Sequence.of( ((MessageFetchHeadersCommand)command).headers.entrySet() )
-                            .toMap( entry -> entry.getValue().get( MESSAGE_ID ), entry -> entry.getKey() );
+                    var headers = ((MessageFetchHeadersCommand)command).headers;
+                    LOG.info( "HEADERS: " + headers );
+                    return Sequence.of( headers.entrySet() )
+                            .reduce( new HashMap<String,Integer>( 256 ), (map,entry) -> {
+                                // message-id is not always unique (should!?)
+                                map.putIfAbsent( entry.getValue().get( MESSAGE_ID ), entry.getKey() );
+                                return map;
+                            });
                 });
     }
 
 
     protected Promise<Message> fetchMessage( int msgNum ) {
+        LOG.info( "%s: Fetching: %s", folderName, msgNum );
         var r = requestFactory.supply();
         r.commands.add( new FolderSelectCommand( folderName ) );
-        r.commands.add( new MessageFetchCommand( msgNum, "TEXT" ) );
+        //r.commands.add( new MessageFetchCommand( msgNum, "TEXT" ) );
         r.commands.add( new MessageFetchHeadersCommand( between( msgNum, msgNum ), SUBJECT, FROM, TO, DATE, MESSAGE_ID ) );
         return r.submit()
                 .reduce( uow.createEntity( Message.class ), (entity,command) -> {
@@ -187,7 +195,8 @@ public class ImapFolderSynchronizer {
                         entity.text.set( ((MessageFetchCommand)command).textContent );
                     }
                     else if (command instanceof MessageFetchHeadersCommand) {
-                        Map<FieldEnum,String> headers = ((MessageFetchHeadersCommand)command).headers.get( msgNum );
+                        var headers = ((MessageFetchHeadersCommand)command).headers.get( msgNum );
+                        LOG.info( "%s: fetched headers: %s", folderName, headers );
                         entity.storeRef.set( headers.get( MESSAGE_ID ) );
                         entity.from.set( headers.get( FROM ) );
                         entity.unread.set( !((MessageFetchHeadersCommand)command).flags.get( msgNum ).contains( Flag.SEEN ) );

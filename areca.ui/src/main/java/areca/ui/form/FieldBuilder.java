@@ -19,6 +19,7 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
+import areca.ui.viewer.Viewer;
 import areca.ui.viewer.ViewerBuilder;
 
 /**
@@ -31,6 +32,11 @@ public class FieldBuilder
     private static final Log LOG = LogFactory.getLog( FieldBuilder.class );
 
     private String                      label;
+
+
+    Viewer<?> _viewer() {
+        return viewer;
+    }
 
 
     public FieldBuilder label( @SuppressWarnings("hiding") String label ) {

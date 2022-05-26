@@ -120,14 +120,14 @@ public class MessageFetchHeadersCommand extends Command {
             }
             // content line continue
             else if (Character.isWhitespace( line.charAt( 0 ) )) {
-                LOG.debug( "Content cont: '%s'", line );
+                LOG.info( "Content cont: '%s'", line );
                 headers.get( currentMsgNum ).computeIfPresent( currentField, (__,content) ->
                        content + line.substring( 1 ) );
             }
             // content line start
             else if (currentMsgNum != null) {
-                LOG.debug( "Content start: '%s'", line );
-                currentField = FieldEnum.valueOfString( substringBefore( line, ": " ) )
+                LOG.info( "Content start: '%s'", line );
+                currentField = FieldEnum.valueOfString( substringBefore( line, ":" ) )
                         .orElseThrow( () -> new RuntimeException( "Unknown header field: " + line ) );
                 var content = substringAfter( line, ": " );
 

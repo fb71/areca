@@ -31,8 +31,10 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.store.tidbstore.IDBStore;
+
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
+import areca.app.model.ImapSettings;
 import areca.app.model.Message;
 import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.imap.ImapRequest.LoginCommand;
@@ -248,15 +250,15 @@ public class ImapTest {
 
 
     @Test
-    @Skip
     public Promise<?> syncFolderTest() {
         return initRepo( "syncFolder" ).then( repo -> {
             var uow = repo.newUnitOfWork();
             return new ImapFolderSynchronizer( "Test1", uow, () -> newRequest() )
-                    .onMessageCount( msgCount -> LOG.debug( "msgCount: %s", msgCount ) )
+                    .onMessageCount( msgCount -> LOG.info( "fetching: %s", msgCount ) )
                     .start()
                     .reduce( new MutableInt(), (r,msg) -> r.increment())
                     .map( count -> {
+                        //Assert.isEqual( 10, count.intValue() );
                         return uow.submit().onSuccess( submitted -> {
                             LOG.info( "Submitted: %s", count );
                         });
@@ -272,7 +274,21 @@ public class ImapTest {
                 monitor = new NullProgressMonitor();
                 uowFactory = () -> repo.newUnitOfWork();
             }};
-            return new ImapService().newSync( ctx ).start();
+            ImapService service = new ImapService() {
+                @Override
+                protected Promise<ImapSettings> loadImapSettings() {
+                    return Promise.completed( null );
+                }
+                @Override
+                protected ImapRequest newRequest() {
+                    return new ImapRequest( self -> {
+                        self.host = "mail.polymap.de";
+                        self.port = 993;
+                        self.loginCommand = new LoginCommand( "areca@polymap.de", "dienstag" );
+                    });
+                }
+            };
+            return service.newSync( ctx ).start();
         });
     }
 

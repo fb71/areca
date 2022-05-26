@@ -61,7 +61,7 @@ public class StartPage
             icon.set( "settings" );
             description.set( "Open global settings" );
             handler.set( (UIEvent ev) -> {
-                site.pageflow().open( new SettingsPage(), StartPage.this, ev.clientPos() );
+                site.pageflow().open( new ImapSettingsPage(), StartPage.this, ev.clientPos() );
             });
         }});
 

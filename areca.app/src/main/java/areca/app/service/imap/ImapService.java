@@ -22,6 +22,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
+import areca.app.model.ImapSettings;
 import areca.app.service.Message2ContactAnchorSynchronizer;
 import areca.app.service.Message2PseudoContactAnchorSynchronizer;
 import areca.app.service.Service;
@@ -29,6 +30,7 @@ import areca.app.service.SyncableService;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -42,6 +44,31 @@ public class ImapService
 
     private static final Log LOG = LogFactory.getLog( ImapService.class );
 
+    protected RSupplier<ImapRequest>   requestFactory;
+
+    protected ImapSettings             settings;
+
+
+    /** Default: load from ArecaApp */
+    protected Promise<ImapSettings> loadImapSettings() {
+        return ArecaApp.instance().settings().then( settingsUow -> {
+            return settingsUow.query( ImapSettings.class )
+                    .executeCollect()
+                    .map( list -> !list.isEmpty() ? settings = list.get( 0 ) : null );
+        });
+    }
+
+
+    protected ImapRequest newRequest() {
+        return new ImapRequest( self -> {
+            self.host = settings!= null ? settings.host.get() : "mail.polymap.de";
+            self.port = 993; // settings!= null ? settings.port.get() : 993;
+            self.loginCommand = settings != null
+                    ? new LoginCommand( settings.username.get(), settings.pwd.get() )
+                            : new LoginCommand( "areca@polymap.de", "dienstag" );
+        });
+    }
+
     @Override
     public String label() {
         return "Messages - EMail";
@@ -51,6 +78,7 @@ public class ImapService
     @Override
     public Sync newSync( SyncContext ctx ) {
         return new Sync() {
+            ImapSettings settings;
             UnitOfWork uow = ctx.uowFactory.supply();
             Message2ContactAnchorSynchronizer messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow );
             Message2PseudoContactAnchorSynchronizer messages2PseudoAnchor = new Message2PseudoContactAnchorSynchronizer( uow );
@@ -58,11 +86,13 @@ public class ImapService
             @Override
             public Promise<?> start() {
                 ctx.monitor.beginTask( "EMail", ProgressMonitor.UNKNOWN );
-                return fetchFolders()
+                return loadImapSettings()
+                        //
+                        .then( __ -> fetchFolders() )
                         // sync folders
                         .then( folderNames -> {
                             LOG.info( "Folders: %s", folderNames );
-                            return Promise.joined( folderNames.size(), i -> syncFolder( folderNames.get( i ) ) );
+                            return Promise.serial( folderNames.size(), i -> syncFolder( folderNames.get( i ) ) );
                         })
                         .reduce2( 0, (result,folderCount) -> result + folderCount )
                         .map( total -> {
@@ -109,16 +139,8 @@ public class ImapService
                         .filter( FolderListCommand.class::isInstance )
                         .map( command -> ((FolderListCommand)command).folderNames );
             }
+
         };
-    }
-
-
-    protected ImapRequest newRequest() {
-        return new ImapRequest( self -> {
-            self.host = "mail.polymap.de";
-            self.port = 993;
-            self.loginCommand = new LoginCommand( "areca@polymap.de", "dienstag" );
-        });
     }
 
 }

@@ -11,33 +11,31 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.app.model;
 
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
-import areca.ui.component2.UIComponent;
+import org.polymap.model2.Entity;
+import org.polymap.model2.Property;
+
+import areca.common.reflect.RuntimeInfo;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class Viewer<A extends ModelAdapter> {
+@RuntimeInfo
+public class ImapSettings
+        extends Entity {
 
-    private static final Log log = LogFactory.getLog( Viewer.class );
+    public static final ImapSettingsClassInfo info = ImapSettingsClassInfo.instance();
 
-    protected A         model;
+    public static ImapSettings      TYPE;
 
+    public Property<String>         host;
 
-    @SuppressWarnings("hiding")
-    protected Viewer<A> init( A model ) {
-        this.model = model;
-        return this;
-    }
+    public Property<Integer>        port;
 
+    public Property<String>         username;
 
-    public abstract UIComponent create();
+    public Property<String>         pwd;
 
-    public abstract void store();
-
-    public abstract void load();
 }

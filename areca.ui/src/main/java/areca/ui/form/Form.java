@@ -13,58 +13,28 @@
  */
 package areca.ui.form;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Falko Bräutigam
  */
 public class Form {
 
-//    protected Site          site;
-//
-//
-//    protected void init( @SuppressWarnings("hiding") Site site ) {
-//        this.site = site;
-//    }
-//
-//
-//    protected void customize( UIComposite container ) {
-//    }
-//
-//
-//    protected void dispose() {
-//    }
-//
-//
-//    protected EventHandlerInfo subscribeUIEvent( EventListener<?> l ) {
-//        throw new RuntimeException("not yet...");
-//    }
-//
-//
-//    protected boolean isSource( EventObject ev, ModelAdapter modelAdapter ) {
-//        throw new RuntimeException("not yet...");
-//    }
+    protected List<FieldBuilder>    fields = new ArrayList<>();
+
 
     public FieldBuilder newField() {
-        return new FieldBuilder();
+        return new FieldBuilder() {{ fields.add( this ); }};
     }
 
     public void submit() {
-        throw new RuntimeException( "not yet..." );
+        fields.forEach( f -> f._viewer().store() );
     }
 
     public void revert() {
-        throw new RuntimeException( "not yet..." );
+        fields.forEach( f -> f._viewer().load() );
     }
-
-//    /**
-//     *
-//     */
-//    public interface Site {
-//
-//        public FieldBuilder newField();
-//
-//        //public void addContext( Object value, Mode mode, String scope );
-//
-//    }
 
 }
