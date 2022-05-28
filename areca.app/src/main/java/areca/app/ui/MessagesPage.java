@@ -102,7 +102,7 @@ public class MessagesPage extends Page {
             layoutConstraints.set( new RowConstraints() {{height.set( 100 );}} );
             layout.set( new RowLayout() {{
                     orientation.set( VERTICAL ); fillWidth.set( true ); margins.set( Size.of( 10, 10 ) );}});
-            add( new Text().content.set( StringUtils.abbreviate( msg.text.get(), 250 ) ) );
+            add( new Text().content.set( StringUtils.abbreviate( msg.content.get(), 250 ) ) );
         }};
     }
 

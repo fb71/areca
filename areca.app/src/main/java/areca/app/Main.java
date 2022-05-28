@@ -88,6 +88,17 @@ public class Main {
                         .run();
             });
         }
+        // #matrix
+        else if (hash.equals( "#matrix" )) {
+            catchAll( __ -> {
+                LogFactory.setPackageLevel( areca.app.service.matrix.MatrixService.class, DEBUG );
+                //LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
+                new AsyncAwareTestRunner()
+                        .addTests( areca.app.service.matrix.MatrixTest.info )
+                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
+                        .run();
+            });
+        }
         // #bench
         else if (hash.equals( "#bench" )) {
             catchAll( __ -> {

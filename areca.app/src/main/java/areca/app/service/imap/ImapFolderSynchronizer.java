@@ -192,7 +192,7 @@ public class ImapFolderSynchronizer {
         return r.submit()
                 .reduce( uow.createEntity( Message.class ), (entity,command) -> {
                     if (command instanceof MessageFetchCommand) {
-                        entity.text.set( ((MessageFetchCommand)command).textContent );
+                        entity.content.set( ((MessageFetchCommand)command).textContent );
                     }
                     else if (command instanceof MessageFetchHeadersCommand) {
                         var headers = ((MessageFetchHeadersCommand)command).headers.get( msgNum );

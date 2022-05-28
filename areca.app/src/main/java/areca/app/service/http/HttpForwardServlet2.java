@@ -51,15 +51,23 @@ public class HttpForwardServlet2 extends HttpServlet {
         // Arrays.stream( Security.getProviders() ).forEach( p -> debug( "Provider: " + p.getInfo() ) );
     }
 
+    int c = 0; // ich bin müde :)
 
     @Override
     protected void service( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
         try {
-            var uri = req.getParameter( "uri" );
+            var uri = new StringBuilder( req.getParameter( "uri" ) );
+
+            c = 0;
+            req.getParameterMap().forEach( (key,values) -> {
+                if (!key.equals( "uri" )) {
+                    uri.append( c++==0 ? "?" : "&").append( String.format( "%s=%s", key, values[0] ) );
+                }
+            });
             debug( "URI: %s %s", req.getMethod(), uri );
 
             // connection
-            HttpURLConnection conn = (HttpURLConnection)URI.create( uri ).toURL().openConnection();
+            HttpURLConnection conn = (HttpURLConnection)URI.create( uri.toString() ).toURL().openConnection();
 
             // authentication
             if (req.getHeader( "X_Auth_Username" ) != null) {

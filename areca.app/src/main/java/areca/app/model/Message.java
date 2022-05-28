@@ -38,7 +38,7 @@ public class Message
 
     @Nullable
     @Queryable
-    public Property<String>         text;
+    public Property<String>         content;
 
     @Defaults
     @Queryable

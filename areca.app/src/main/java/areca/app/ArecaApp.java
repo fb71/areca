@@ -34,17 +34,16 @@ import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.carddav.CarddavService;
-import areca.app.service.imap.ImapService;
+import areca.app.service.matrix.MatrixService;
 import areca.app.ui.StartPage;
 import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.Timer;
+import areca.common.WaitFor;
 import areca.common.base.Consumer.RConsumer;
-import areca.common.base.Opt;
 import areca.common.base.Sequence;
-import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.ui.UIComponentRenderer;
@@ -63,7 +62,7 @@ import areca.ui.pageflow.Pageflow;
  */
 public class ArecaApp extends App {
 
-    private static final Log LOG = LogFactory.getLog( ArecaApp.class );
+    static final Log LOG = LogFactory.getLog( ArecaApp.class );
 
     public static ArecaApp instance() {
         return instance != null ? (ArecaApp)instance : (ArecaApp)(instance = new ArecaApp());
@@ -73,7 +72,8 @@ public class ArecaApp extends App {
 
     private List<? extends Service> services = Arrays.asList(  // XXX from DB?
             new CarddavService(),
-            new ImapService() );
+            //new ImapService(),
+            new MatrixService() );
 
     private EntityRepository        repo;
 
@@ -259,46 +259,6 @@ public class ArecaApp extends App {
 
 
     public Promise<UnitOfWork> settings() {
-        return new WaitForCondition<>( () -> settingsUow != null, () -> settingsUow );
-    }
-
-
-    /**
-     * Acts more like a lazily init variable that caches its result (in settingsUow).
-     */
-    public static class WaitForCondition<U>
-            extends Promise.Completable<U> {
-
-        protected RSupplier<Boolean>    condition;
-
-        protected RSupplier<U>          factory;
-
-        public WaitForCondition( RSupplier<Boolean> condition, RSupplier<U> factory ) {
-            this.condition = condition;
-            this.factory = factory;
-            waitForCondition();
-        }
-
-        protected void waitForCondition() {
-            if (!condition.get()) {
-                LOG.info( "WAITING: ..." );
-                Platform.schedule( 100, () -> waitForCondition() );
-            }
-            else {
-                LOG.info( "WAITING: done." );
-                var value = factory.supply();
-
-                // if the condition matches in the first run,
-                // then give the caller time to register its onSuccess handlers
-                Platform.async( () -> complete( value ) );
-
-                // XXX Hack: for ImapSettingsPage
-                waitForResult = value;
-            }
-        }
-
-        public Opt<U> waitForResult() {
-            return Opt.of( waitForResult );
-        }
+        return new WaitFor<>( () -> settingsUow != null, () -> settingsUow );
     }
 }
