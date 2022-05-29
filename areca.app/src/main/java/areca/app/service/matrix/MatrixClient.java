@@ -37,7 +37,13 @@ public abstract class MatrixClient
     @JSBody(params = { "url" }, script = "return window.matrixcs.createClient( url );")
     public static native MatrixClient create( String url );
 
-    @JSBody(params = { "url", "accessToken", "userId" }, script = "return window.matrixcs.createClient({'baseUrl':url,'accessToken':accessToken,'userId':userId});")
+    @JSBody(params = { "url", "accessToken", "userId" }, script = "return window.matrixcs.createClient({"
+            + "'baseUrl':url,"
+            + "'accessToken':accessToken,"
+            + "'userId':userId,"
+            + "'sessionStore':new window.matrixcs.WebStorageSessionStore(window.localStorage),"
+            + "'deviceId':'areca.app'"
+            + "});")
     public static native MatrixClient create( String url, String accessToken, String userId );
 
     @JSBody(params = {"obj"}, script = "console.log( obj );")
@@ -48,8 +54,14 @@ public abstract class MatrixClient
     private String clientSyncState;
 
     @JSMethod
-    public abstract void startClient();
+    public abstract JSPromise<JSCommon> initCrypto();
 
+    /** After {@link #startClient()} */
+    @JSMethod
+    public abstract void setGlobalErrorOnUnknownDevices( boolean flag );
+
+    @JSMethod
+    public abstract void startClient();
 
     @JSMethod
     public abstract void stopClient();
@@ -158,6 +170,10 @@ public abstract class MatrixClient
             return type().equals( "m.room.message" ) ? Opt.of( content().cast() ) : Opt.absent();
         }
 
+        public default Opt<Encrypted> encryptedContent()  {
+            return type().equals( "m.room.encrypted" ) ? Opt.of( content().cast() ) : Opt.absent();
+        }
+
         public default String toString2() {
             return String.format( "Event[type=%s, sender=%s]", type(), sender() );
         }
@@ -178,6 +194,26 @@ public abstract class MatrixClient
 
         @JSProperty
         public abstract OptString getFormat();
+    }
+
+
+    @JSBody(params = {"content"}, script = "return this.crypto.decryptEvent(content);")
+    public abstract JSPromise<JSCommon> decrypt( JSCommon content );
+
+    @JSBody(params = {"event"}, script = "return this.crypto.decryptEvent(new window.matrixcs.MatrixEvent(event));")
+    public abstract JSPromise<JSCommon> decryptEvent( Event event );
+
+    @JSBody(params = {"event"}, script = "return this.decryptEventIfNeeded(new window.matrixcs.MatrixEvent(event));")
+    public abstract JSPromise<JSCommon> decryptEventIfNeeded( Event event );
+
+    /**
+     *
+     */
+    public static abstract class Encrypted
+            implements JSCommon<Message> {
+
+        @JSProperty("content")
+        public abstract JSCommon content();
     }
 
 

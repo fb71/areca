@@ -27,10 +27,8 @@ import areca.app.service.SyncableService;
 import areca.app.service.matrix.MatrixClient.Event;
 import areca.app.service.matrix.MatrixClient.Room;
 import areca.common.Assert;
-import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.base.Opt;
-import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -69,6 +67,13 @@ public class MatrixService
                         var settings = rs.get( 0 );
                         var result = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ),
                                 settings.accessToken.get(), settings.username.get() );
+
+//                        result.initCrypto().then( cryptoResult -> {
+//                            LOG.info( "CRYPTO INIT :)" );
+//                            MatrixClient.console( cryptoResult );
+//                            result.setGlobalErrorOnUnknownDevices( false );
+//                        });
+
                         result.startClient();
                         return result.waitForStartup()
                                 .onSuccess( __ -> matrix = result )
@@ -155,11 +160,18 @@ public class MatrixService
 
         protected Promise<Opt<Message>> ensureMessage( Anchor anchor, Event event ) {
             LOG.info( "    timeline: %s", event.toString2() );
+            // encrypted
+            event.encryptedContent().ifPresent( encrypted -> {
+                MatrixClient.console( event );
+                matrix.decryptEventIfNeeded( event ).then( decrypted -> {
+                    MatrixClient.console( decrypted );
+                });
+            });
+            // plain
             return event.messageContent()
                     .ifPresentMap( content -> {
                         LOG.info( "        content: %s", content.getBody().opt().orElse( "???" ) );
                         var storeRef = "matrix:" + event.eventId();
-                        MatrixClient.console( event );
                         return uow.ensureEntity( Message.class,
                                 Expressions.eq( Message.TYPE.storeRef, storeRef ),
                                 proto -> {
@@ -172,56 +184,6 @@ public class MatrixService
                                 .map( message -> Opt.of( message ) );
                     })
                     .orElse( Promise.<Message>absent() );
-        }
-
-
-        protected void test() {
-//        matrix.on( "Room.timeline", (_event, room, toStartOfTimeline) -> {
-//            Event event = (Event)_event;
-//            if (event.getType().equals( "m.room.message" )) {
-//                LOG.info( "Room.timeline: %s", event.getSender() );
-//                LOG.info( "content: %s", event.getContent().isUndefined() );
-//
-//                event.getContent().opt().ifPresent( self -> {
-//                    LOG.info( "content: opt().ifPresent!" );
-//                });
-//                event.getContent().ifPresent( self -> {
-//                    LOG.info( "content: ifPresent!" );
-//                    LOG.info( "content msgType: %s", event.getContent().getMsgtype().isUndefined() );
-//                    event.getContent().getMsgtype().opt().ifPresent( type -> {
-//                        LOG.info( "content: msgType: %s", type );
-//                    });
-//                });
-//                //MatrixClient.console( event.getContent().cast() );
-//            }
-//        });
-
-        //MatrixClient.console( matrix.whoami() );
-
-        matrix.whoami().then( whoami -> {
-            LOG.info( "Whoami: %s - %s", whoami.getUserId(), whoami.isGuest() );
-            MatrixClient.console( whoami );
-        });
-
-        Platform.schedule( 3000, () -> {
-            Room[] rooms = matrix.getRooms();
-            LOG.info( "Rooms: %s", rooms.length );
-            Sequence.of( rooms ).forEach( room -> {
-                LOG.info( "room: %s", room.toString2() );
-                Sequence.of( room.timeline() ).forEach( timeline -> {
-                    LOG.info( "    timeline: %s", timeline.event().toString2() );
-                    timeline.event().messageContent().ifPresent( content -> {
-                        LOG.info( "        content: %s", content.getBody().opt().orElse( "???" ) );
-                    });
-                    //MatrixClient.console( timeline.event().content() );
-                });
-            });
-        });
-
-//        matrixClient.publicRooms( (err,data) -> {
-//            LOG.info( "Public rooms: ..." );
-//            MatrixClient.console( data );
-//        });
         }
     }
 }

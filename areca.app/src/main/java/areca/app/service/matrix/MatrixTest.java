@@ -22,9 +22,12 @@ import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.app.service.SyncableService;
+import areca.app.service.matrix.MatrixClient.Room;
 import areca.common.Assert;
 import areca.common.NullProgressMonitor;
+import areca.common.Platform;
 import areca.common.Promise;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
@@ -67,7 +70,10 @@ public class MatrixTest {
                     }};
                     return service.newSync( ctx );
                 })
-                .then( sync -> Assert.notNull( sync, "No settings in app DB!" ).start() );
+                .then( sync -> Assert.notNull( sync, "No settings in app DB!" ).start() )
+                .onSuccess( __ -> {
+                    //Platform.schedule( 3000, () -> service.matrix.stopClient() );
+                });
     }
 
 
@@ -84,4 +90,56 @@ public class MatrixTest {
 //                })
 //                .then( ctx -> ((MatrixService.MatrixSync)service.newSync( ctx )).start )
 //    }
+
+    protected void test() {
+        MatrixClient matrix = null;
+
+//      matrix.on( "Room.timeline", (_event, room, toStartOfTimeline) -> {
+//          Event event = (Event)_event;
+//          if (event.getType().equals( "m.room.message" )) {
+//              LOG.info( "Room.timeline: %s", event.getSender() );
+//              LOG.info( "content: %s", event.getContent().isUndefined() );
+//
+//              event.getContent().opt().ifPresent( self -> {
+//                  LOG.info( "content: opt().ifPresent!" );
+//              });
+//              event.getContent().ifPresent( self -> {
+//                  LOG.info( "content: ifPresent!" );
+//                  LOG.info( "content msgType: %s", event.getContent().getMsgtype().isUndefined() );
+//                  event.getContent().getMsgtype().opt().ifPresent( type -> {
+//                      LOG.info( "content: msgType: %s", type );
+//                  });
+//              });
+//              //MatrixClient.console( event.getContent().cast() );
+//          }
+//      });
+
+      //MatrixClient.console( matrix.whoami() );
+
+      matrix.whoami().then( whoami -> {
+          LOG.info( "Whoami: %s - %s", whoami.getUserId(), whoami.isGuest() );
+          MatrixClient.console( whoami );
+      });
+
+      Platform.schedule( 3000, () -> {
+          Room[] rooms = matrix.getRooms();
+          LOG.info( "Rooms: %s", rooms.length );
+          Sequence.of( rooms ).forEach( room -> {
+              LOG.info( "room: %s", room.toString2() );
+              Sequence.of( room.timeline() ).forEach( timeline -> {
+                  LOG.info( "    timeline: %s", timeline.event().toString2() );
+                  timeline.event().messageContent().ifPresent( content -> {
+                      LOG.info( "        content: %s", content.getBody().opt().orElse( "???" ) );
+                  });
+                  //MatrixClient.console( timeline.event().content() );
+              });
+          });
+      });
+
+//      matrixClient.publicRooms( (err,data) -> {
+//          LOG.info( "Public rooms: ..." );
+//          MatrixClient.console( data );
+//      });
+      }
+
 }
