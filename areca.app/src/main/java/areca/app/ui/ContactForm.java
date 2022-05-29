@@ -19,7 +19,7 @@ import areca.common.reflect.RuntimeInfo;
 import areca.ui.form.Form;
 import areca.ui.form.UI;
 import areca.ui.viewer.SingleValueAdapter;
-import areca.ui.viewer.TextViewer;
+import areca.ui.viewer.TextFieldViewer;
 
 @RuntimeInfo
 public class ContactForm extends Form {
@@ -28,10 +28,10 @@ public class ContactForm extends Form {
 
     Contact                     contact;
 
-    @UI(viewer = TextViewer.class)
+    @UI(viewer = TextFieldViewer.class)
     SingleValueAdapter<String>  firstname = new PropertyAdapter<>( () -> contact.firstname );
 
-    @UI(viewer = TextViewer.class)
+    @UI(viewer = TextFieldViewer.class)
     SingleValueAdapter<String>  lastname = new PropertyAdapter<>( () -> contact.lastname );
 
 

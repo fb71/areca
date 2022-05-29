@@ -288,7 +288,7 @@ public class ImapTest {
                     });
                 }
             };
-            return service.newSync( ctx ).start();
+            return service.newSync( ctx ).then( sync -> sync.start() );
         });
     }
 

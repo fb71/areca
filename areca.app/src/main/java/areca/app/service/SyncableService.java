@@ -33,11 +33,19 @@ public interface SyncableService {
         public RSupplier<UnitOfWork>    uowFactory;
     }
 
-    public Sync newSync( SyncContext ctx );
+    /**
+     * A new Sync object, or null if there is nothing to sync.
+     */
+    public Promise<Sync> newSync( SyncContext ctx );
 
 
     public abstract static class Sync {
 
+        /**
+         * Start this sync.
+         * <p/>
+         * Default error handlers are attached by caller.
+         */
         public abstract Promise<?> start();
     }
 }

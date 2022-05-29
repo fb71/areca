@@ -22,6 +22,7 @@ import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.app.service.SyncableService;
+import areca.common.Assert;
 import areca.common.NullProgressMonitor;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
@@ -51,18 +52,24 @@ public class MatrixTest {
 
 
     @Test
-    public Promise<?> syncRoomsTest() {
-        var service = new MatrixService();
-        return initRepo( "syncRooms" )
-                .map( repo -> {
+    public Promise<?> syncServiceTest() {
+        var service = new MatrixService() {
+//            @Override
+//            protected Promise<MatrixClient> initMatrixClient() {
+//                throw new RuntimeException( "not yet implemented." );
+//            }
+        };
+        return initRepo( "syncService" )
+                .then( repo -> {
                     var ctx = new SyncableService.SyncContext() {{
                         monitor = new NullProgressMonitor();
                         uowFactory = () -> repo.newUnitOfWork();
                     }};
                     return service.newSync( ctx );
                 })
-                .then( sync -> sync.start() );
+                .then( sync -> Assert.notNull( sync, "No settings in app DB!" ).start() );
     }
+
 
 //    @Test
 //    public Promise<?> syncRoomsTest() {

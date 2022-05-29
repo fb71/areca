@@ -28,7 +28,7 @@ import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageContainer;
-import areca.ui.viewer.TextViewer;
+import areca.ui.viewer.TextFieldViewer;
 
 /**
  *
@@ -61,15 +61,15 @@ public class ContactPage extends Page {
 
             var form = new Form();
             add( form.newField().label( "Firstname" )
-                    .viewer( new TextViewer() )
+                    .viewer( new TextFieldViewer() )
                     .adapter( new PropertyAdapter<>( () -> contact.firstname ) )
                     .create() );
             add( form.newField().label( "Lastname" )
-                    .viewer( new TextViewer() )
+                    .viewer( new TextFieldViewer() )
                     .adapter( new PropertyAdapter<>( () -> contact.lastname ) )
                     .create() );
             add( form.newField().label( "EMail" )
-                    .viewer( new TextViewer() )
+                    .viewer( new TextFieldViewer() )
                     .adapter( new PropertyAdapter<>( () -> contact.email ) )
                     .create() );
         }});

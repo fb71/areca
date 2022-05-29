@@ -18,10 +18,8 @@ import static areca.ui.Orientation.VERTICAL;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
-import areca.app.model.ImapSettings;
-import areca.app.service.imap.FolderListCommand;
-import areca.app.service.imap.ImapRequest;
-import areca.app.service.imap.ImapRequest.LoginCommand;
+import areca.app.model.MatrixSettings;
+import areca.app.service.matrix.MatrixClient;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -39,17 +37,16 @@ import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageContainer;
-import areca.ui.viewer.Number2StringTransformer;
 import areca.ui.viewer.TextFieldViewer;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class ImapSettingsPage
+public class MatrixSettingsPage
         extends Page {
 
-    private static final Log LOG = LogFactory.getLog( ImapSettingsPage.class );
+    private static final Log LOG = LogFactory.getLog( MatrixSettingsPage.class );
 
     private PageContainer ui;
 
@@ -59,7 +56,7 @@ public class ImapSettingsPage
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         this.ui = new PageContainer( this, parent );
-        ui.title.set( "Email/IMAP Settings" );
+        ui.title.set( "Matrix Settings" );
         ui.body.layout.set( new RowLayout().orientation.set( VERTICAL ).fillWidth.set( true ).spacing.set( 15 ).margins.set( Size.of( 10, 10 ) ) );
 
         uow = ArecaApp.instance().settings();
@@ -68,11 +65,10 @@ public class ImapSettingsPage
             icon.set( "add_circle_outline" );
             description.set( "Create new..." );
             handler.set( (UIEvent ev) -> {
-                uow.waitForResult().get().createEntity( ImapSettings.class, proto -> {
-                    proto.host.set( "mail.polymap.de" );
-                    proto.port.set( 993 );
-                    proto.username.set( String.format( "%s%s%s", "falko", "@", "polymap.de" ) );
-                    proto.pwd.set( "..." );
+                uow.waitForResult().get().createEntity( MatrixSettings.class, proto -> {
+                    proto.baseUrl.set( "https://matrix.fulda.social" );
+                    proto.username.set( "@bolo:fulda.social" );
+                    proto.accessToken.set( "..." );
                 });
                 fetchEntities( ui.body );
             });
@@ -87,7 +83,7 @@ public class ImapSettingsPage
         container.add( new Text().content.set( "Loading..." ) );
         container.layout();
 
-        uow.waitForResult().get().query( ImapSettings.class ).executeCollect().onSuccess( list -> {
+        uow.waitForResult().get().query( MatrixSettings.class ).executeCollect().onSuccess( list -> {
             container.components.disposeAll();
             if (list.isEmpty()) {
                 container.add( new Text().content.set( "No settings yet." ) );
@@ -98,14 +94,9 @@ public class ImapSettingsPage
                     layout.set( new RowLayout().orientation.set( VERTICAL ).fillWidth.set( true ).spacing.set( 10 ).margins.set( Size.of( 10, 10 ) ) );
                     bordered.set( true );
                     var form = new Form();
-                    add( form.newField().label( "Host" )
+                    add( form.newField().label( "Base URL" )
                             .viewer( new TextFieldViewer() )
-                            .adapter( new PropertyAdapter<>( () -> settings.host ) )
-                            .create() );
-                    add( form.newField().label( "Port" )
-                            .viewer( new TextFieldViewer() )
-                            .transformer( new Number2StringTransformer() )
-                            .adapter( new PropertyAdapter<>( () -> settings.port ) )
+                            .adapter( new PropertyAdapter<>( () -> settings.baseUrl ) )
                             .create() );
                     add( form.newField().label( "Username" )
                             .viewer( new TextFieldViewer() )
@@ -114,6 +105,10 @@ public class ImapSettingsPage
                     add( form.newField().label( "Password" )
                             .viewer( new TextFieldViewer() )
                             .adapter( new PropertyAdapter<>( () -> settings.pwd ) )
+                            .create() );
+                    add( form.newField().label( "Access token" )
+                            .viewer( new TextFieldViewer() )
+                            .adapter( new PropertyAdapter<>( () -> settings.accessToken ) )
                             .create() );
 
                     add( new UIComposite() {{
@@ -124,12 +119,18 @@ public class ImapSettingsPage
                             var badge = new Badge( this );
                             label.set( "CHECK" );
                             events.on( EventType.SELECT, ev -> {
-                                badge.content.set( ".." );
-                                newRequest( settings ).submit()
-                                        .onSuccess( (s,command) -> {
+                                badge.content.set( "..." );
+                                form.submit();
+                                var matrix = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ),
+                                        settings.accessToken.get(), settings.username.get() );
+                                matrix.startClient();
+                                matrix.waitForStartup()
+                                        .onSuccess( ( s, command ) -> {
+                                            matrix.stopClient();
                                             badge.content.set( ":)" );
                                         })
                                         .onError( e -> {
+                                            matrix.stopClient();
                                             badge.content.set( ":(" );
                                         });
                             });
@@ -150,20 +151,6 @@ public class ImapSettingsPage
                 }});
             }
             container.layout();
-        });
-    }
-
-    protected ImapRequest newRequest( ImapSettings settings ) {
-        LOG.info( "Settings: %s", settings.port.get() );
-        LOG.info( "Settings: %s", settings.port.get() );
-        var port = settings.port.get();
-        LOG.info( "Settings: %s", port );
-        return new ImapRequest( self -> {
-            self.host = settings.host.get();
-            self.port = 993; //port;
-            self.loginCommand = new LoginCommand( settings.username.get(), settings.pwd.get() );
-            self.commands.add( new FolderListCommand() );
-            LOG.info( "Settings: %s -> %s", (int)settings.port.get(), self.port );
         });
     }
 

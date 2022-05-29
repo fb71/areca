@@ -171,18 +171,22 @@ public abstract class UIComponent {
      * automatically removed.
      */
     public void dispose() {
-        Assert.that( !isDisposed() );
-        disposed = true;
-        events.dispose();
-        if (decorators != null) {
-            decorators.forEach( deco -> deco.dispose() );
-            decorators = null;
+        if (isDisposed()) {
+            LOG.info( "DISPOSE: already disposed! (%s)", getClass().getName() );
         }
-        data = null;
-        if (parent != null) {
-            parent.components.remove( this );
+        else {
+            disposed = true;
+            events.dispose();
+            if (decorators != null) {
+                decorators.forEach( deco -> deco.dispose() );
+                decorators = null;
+            }
+            data = null;
+            if (parent != null) {
+                parent.components.remove( this );
+            }
+            UIComponentEvent.manager.publish( new UIComponentEvent.ComponentDisposedEvent( this ) );
         }
-        UIComponentEvent.manager.publish( new UIComponentEvent.ComponentDisposedEvent( this ) );
     }
 
 

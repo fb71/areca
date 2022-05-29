@@ -173,6 +173,9 @@ $badge-padding: 4px;
     top: -$badge_padding;
     left: -$badge_padding;
     //z-index: 100;
+    
+//    transition: 
+//        opacity $transition_duration,
 }
 
 .Badged-NorthEast:before {

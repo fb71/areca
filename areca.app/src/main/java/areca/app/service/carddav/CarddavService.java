@@ -30,28 +30,25 @@ public class CarddavService
 
     private static final Log LOG = LogFactory.getLog( CarddavService.class );
 
-
     @Override
     public String label() {
-        return "Contacts - Carddav: ???";
+        return "Carddav";
     }
 
 
     @Override
-    public Sync newSync( SyncContext ctx ) {
-        return new Sync() {
-
+    public Promise<Sync> newSync( SyncContext ctx ) {
+        var sync = new Sync() {
             @Override
             public Promise<?> start() {
                 var uow = ArecaApp.instance().repo().newUnitOfWork();
                 var synchronizer = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, uow );
                 synchronizer.monitor.set( ctx.monitor );
                 return synchronizer.start()
-                        .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) )
-                        .onError( e -> ctx.monitor.done() )
-                        .onError( ArecaApp.instance().defaultErrorHandler() );
+                        .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) );
             }
         };
+        return Promise.completed( sync );
     }
 
 }

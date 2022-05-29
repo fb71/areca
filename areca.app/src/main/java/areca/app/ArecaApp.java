@@ -29,6 +29,7 @@ import org.polymap.model2.store.tidbstore.IDBStore;
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.ImapSettings;
+import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
@@ -68,6 +69,10 @@ public class ArecaApp extends App {
         return instance != null ? (ArecaApp)instance : (ArecaApp)(instance = new ArecaApp());
     }
 
+    public static String proxiedUrl( String url ) {
+        return "http?uri=" + url;
+    }
+
     // instance *******************************************
 
     private List<? extends Service> services = Arrays.asList(  // XXX from DB?
@@ -100,8 +105,8 @@ public class ArecaApp extends App {
                 });
 
         EntityRepository.newConfiguration()
-                .entities.set( asList( ImapSettings.info ) ).store
-                .set( new IDBStore( "areca.app.settings", 1, true ) )
+                .entities.set( asList( ImapSettings.info, MatrixSettings.info ) ).store
+                .set( new IDBStore( "areca.app.settings", 2, true ) )
                 .create()
                 .onSuccess( result -> {
                     settingsRepo = result;
@@ -214,8 +219,7 @@ public class ArecaApp extends App {
 
             @Override
             public void done() {
-                Assert.that( !taskName.isEmpty() );
-                progress.value.set( (float)workTotal );
+                progress.value.set( Float.valueOf( workTotal ) );
                 progressText.content.set( taskName + " 100%" );
                 Platform.schedule( 3000, () -> {
                     progress.dispose();
@@ -242,7 +246,19 @@ public class ArecaApp extends App {
                     monitor = newAsyncOperation();
                     uowFactory = () -> repo().newUnitOfWork();
                 }};
-                service.newSync( ctx ).start();
+                service.newSync( ctx )
+                        .onSuccess( sync -> {
+                            if (sync != null) {
+                                sync.start()
+                                        .onSuccess( __ -> ctx.monitor.done() )
+                                        .onError( defaultErrorHandler() );
+                            }
+                            else {
+                                LOG.info( "%s: nothing to sync or no settings.", service.getClass().getSimpleName() );
+                                ctx.monitor.done();
+                            }
+                        })
+                        .onError( defaultErrorHandler() );
             });
         });
     }
@@ -259,6 +275,8 @@ public class ArecaApp extends App {
 
 
     public Promise<UnitOfWork> settings() {
-        return new WaitFor<>( () -> settingsUow != null, () -> settingsUow );
+        return new WaitFor<UnitOfWork>( () -> settingsUow != null )
+                .thenSupply( () -> settingsUow )
+                .start();
     }
 }

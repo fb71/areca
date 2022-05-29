@@ -29,24 +29,43 @@ public class WaitFor<T>
 
     protected RSupplier<Boolean>    condition;
 
-    protected RSupplier<T>          factory;
+    protected RSupplier<Throwable>  errorCondition = () -> null;
+
+    protected RSupplier<T>          supplier;
 
 
-    public WaitFor( RSupplier<Boolean> condition, RSupplier<T> factory ) {
+    public WaitFor( RSupplier<Boolean> condition ) {
         this.condition = condition;
-        this.factory = factory;
-        waitForCondition();
+    }
+
+    @SuppressWarnings("hiding")
+    public WaitFor<T> thenSupply( RSupplier<T> supplier ) {
+        this.supplier = supplier;
+        return this;
+    }
+
+    @SuppressWarnings("hiding")
+    public WaitFor<T> errorWhen( RSupplier<Throwable> errorCondition ) {
+        this.errorCondition = errorCondition;
+        return this;
     }
 
 
-    protected void waitForCondition() {
-        if (!condition.get()) {
+    @SuppressWarnings("hiding")
+    public WaitFor<T> start() {
+        Assert.notNull( supplier );
+        var error = errorCondition.get();
+        if (error != null) {
+            LOG.debug( "WAITING: error" );
+            completeWithError( error );
+        }
+        else if (!condition.get()) {
             LOG.debug( "WAITING: ..." );
-            Platform.schedule( 100, () -> waitForCondition() );
+            Platform.schedule( 100, () -> start() );
         }
         else {
             LOG.debug( "WAITING: done." );
-            T value = factory.supply();
+            T value = supplier.supply();
 
             // if the condition matches in the first run,
             // then give the caller time to register its onSuccess handlers
@@ -55,6 +74,7 @@ public class WaitFor<T>
             // XXX Hack: for ImapSettingsPage
             waitForResult = value;
         }
+        return this;
     }
 
 

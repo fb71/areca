@@ -58,10 +58,18 @@ public class StartPage
         }});
         // Settings
         site.actions.add( new Action() {{
-            icon.set( "settings" );
-            description.set( "Open global settings" );
+            icon.set( "mail" );
+            description.set( "Open EMail settings" );
             handler.set( (UIEvent ev) -> {
                 site.pageflow().open( new ImapSettingsPage(), StartPage.this, ev.clientPos() );
+            });
+        }});
+        // Settings
+        site.actions.add( new Action() {{
+            icon.set( "chat" );
+            description.set( "Open Matrix settings" );
+            handler.set( (UIEvent ev) -> {
+                site.pageflow().open( new MatrixSettingsPage(), StartPage.this, ev.clientPos() );
             });
         }});
 

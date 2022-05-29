@@ -17,15 +17,18 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
+
+import areca.app.ArecaApp;
 import areca.app.model.Anchor;
+import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.matrix.MatrixClient.Event;
 import areca.app.service.matrix.MatrixClient.Room;
+import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Promise;
-import areca.common.WaitFor;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -41,7 +44,7 @@ public class MatrixService
 
     private static final Log LOG = LogFactory.getLog( MatrixService.class );
 
-    protected MatrixClient      matrix;
+    protected MatrixClient      matrix;  // XXX reload if MatrixSettings are modified
 
     protected String            clientSyncState;
 
@@ -51,35 +54,51 @@ public class MatrixService
         return "Matrix";
     }
 
+    /**
+     * Override to provide another configured client (for testing).
+     */
     protected Promise<MatrixClient> initMatrixClient() {
         if (matrix != null) {
             return Promise.completed( matrix );
         }
         else {
-            //var matrixClient = MatrixClient.create( "https://matrix.org" );
-            //var matrixClient = MatrixClient.create( "http?uri=https://matrix.org" );
-            var result = MatrixClient.create(
-                    "http?uri=https://matrix.fulda.social",
-                    "@bolo:fulda.social" );
-
-            result.startClient();
-
-            result.once( "sync", (_state, prevState, res) -> {
-                OptString state = _state.cast();
-                clientSyncState = state.opt().orElse( null );
-                LOG.info( "Client sync: %s - %s", clientSyncState, "PREPARED".equals( clientSyncState ) );
-            });
-            return new WaitFor<>( () -> "PREPARED".equals( clientSyncState ), () -> matrix = result );
+            return ArecaApp.instance().settings()
+                    .then( uow -> uow.query( MatrixSettings.class ).executeCollect() )
+                    .then( rs -> {
+                        Assert.isEqual( 1, rs.size() );
+                        var settings = rs.get( 0 );
+                        var result = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ),
+                                settings.accessToken.get(), settings.username.get() );
+                        result.startClient();
+                        return result.waitForStartup()
+                                .onSuccess( __ -> matrix = result )
+                                .onError( e -> LOG.warn( "ERROR while starting matrix client.", e ) ); // FIXME UI!
+                    });
         }
     }
 
 
     @Override
-    public Sync newSync( SyncContext ctx ) {
-        return new MatrixSync( ctx );
+    public Promise<Sync> newSync( SyncContext ctx ) {
+        return ArecaApp.instance().settings()
+                .then( uow -> uow.query( MatrixSettings.class ).executeCollect() )
+                .map( rs -> {
+                    if (rs.size() > 1) {
+                        throw new IllegalStateException( "To many MatrixSettings: " + rs.size() );
+                    }
+                    else if (rs.size() == 1) {
+                        return new MatrixSync( ctx );
+                    }
+                    else {
+                        return null;
+                    }
+                });
     }
 
 
+    /**
+     *
+     */
     protected class MatrixSync
             extends Sync {
 
@@ -100,9 +119,8 @@ public class MatrixService
                     .reduce( new MutableInt(0), (r,__) -> r.increment() )
                     .then( count -> uow.submit().map( submitted -> count ) )
                     .onSuccess( count -> {
-                        LOG.info( "Submitted: %s", count );
+                        LOG.info( "Messages checked/submitted: %s", count );
                     });
-
         }
 
 
@@ -148,8 +166,9 @@ public class MatrixService
                                     proto.storeRef.set( storeRef );
                                     proto.from.set( event.sender() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
+                                    proto.unread.set( true );
+                                    anchor.messages.add( proto );
                                 })
-                                .onSuccess( message -> anchor.messages.add( message ) )
                                 .map( message -> Opt.of( message ) );
                     })
                     .orElse( Promise.<Message>absent() );

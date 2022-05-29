@@ -26,12 +26,12 @@ import areca.ui.component2.UIComponent;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class TextViewer
+public class TextFieldViewer
         extends Viewer<SingleValueAdapter<String>> {
 
-    private static final Log LOG = LogFactory.getLog( TextViewer.class );
+    private static final Log LOG = LogFactory.getLog( TextFieldViewer.class );
 
-    public static final ClassInfo<TextViewer> info = TextViewerClassInfo.instance();
+    public static final ClassInfo<TextFieldViewer> info = TextFieldViewerClassInfo.instance();
 
     protected TextField     textField;
 
@@ -49,7 +49,7 @@ public class TextViewer
 
     @Override
     public void store() {
-        model.setValue( textField.content.value() );
+        model.setValue( textField.content.opt().orElse( null ) );
     }
 
     @Override

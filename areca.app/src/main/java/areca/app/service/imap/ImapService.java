@@ -49,6 +49,12 @@ public class ImapService
     protected ImapSettings             settings;
 
 
+    @Override
+    public String label() {
+        return "Messages - EMail";
+    }
+
+
     /** Default: load from ArecaApp */
     protected Promise<ImapSettings> loadImapSettings() {
         return ArecaApp.instance().settings().then( settingsUow -> {
@@ -69,16 +75,10 @@ public class ImapService
         });
     }
 
-    @Override
-    public String label() {
-        return "Messages - EMail";
-    }
-
 
     @Override
-    public Sync newSync( SyncContext ctx ) {
-        return new Sync() {
-            ImapSettings settings;
+    public Promise<Sync> newSync( SyncContext ctx ) {
+        var sync = new Sync() {
             UnitOfWork uow = ctx.uowFactory.supply();
             Message2ContactAnchorSynchronizer messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow );
             Message2PseudoContactAnchorSynchronizer messages2PseudoAnchor = new Message2PseudoContactAnchorSynchronizer( uow );
@@ -100,9 +100,7 @@ public class ImapService
                                 ctx.monitor.done();
                                 LOG.info( "Submitted: %s, in ?? folders", total );
                             });
-                        })
-                        .onError( ArecaApp.instance().defaultErrorHandler() )
-                        .onError( e -> ctx.monitor.done() );
+                        });
             }
 
 
@@ -139,8 +137,8 @@ public class ImapService
                         .filter( FolderListCommand.class::isInstance )
                         .map( command -> ((FolderListCommand)command).folderNames );
             }
-
         };
+        return Promise.completed( sync );
     }
 
 }

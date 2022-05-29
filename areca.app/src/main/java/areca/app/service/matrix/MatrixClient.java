@@ -19,7 +19,11 @@ import org.teavm.jso.JSMethod;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 
+import areca.common.Promise;
+import areca.common.WaitFor;
 import areca.common.base.Opt;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 
 /**
  *
@@ -27,6 +31,8 @@ import areca.common.base.Opt;
  */
 public abstract class MatrixClient
         implements JSObject {
+
+    private static final Log LOG = LogFactory.getLog( MatrixClient.class );
 
     @JSBody(params = { "url" }, script = "return window.matrixcs.createClient( url );")
     public static native MatrixClient create( String url );
@@ -39,8 +45,28 @@ public abstract class MatrixClient
 
     // instance *******************************************
 
+    private String clientSyncState;
+
     @JSMethod
     public abstract void startClient();
+
+
+    @JSMethod
+    public abstract void stopClient();
+
+
+    public Promise<MatrixClient> waitForStartup() {
+        once( "sync", (_state, prevState, res) -> {
+            OptString state = _state.cast();
+            clientSyncState = state.opt().orElse( null );
+            LOG.info( "Client sync: %s - %s", clientSyncState, "PREPARED".equals( clientSyncState ) );
+        });
+        return new WaitFor<MatrixClient>( () -> "PREPARED".equals( clientSyncState ) )
+                .thenSupply( () -> MatrixClient.this )
+                .errorWhen( () -> "ERROR".equals( clientSyncState ) ? new RuntimeException("ERROR state in matrix client") : null )
+                .start();
+    }
+
 
     @JSMethod
     public abstract JSPromise<Whoami> whoami();
