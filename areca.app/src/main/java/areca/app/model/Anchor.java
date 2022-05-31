@@ -24,7 +24,9 @@ import org.polymap.model2.runtime.Lifecycle;
 import org.polymap.model2.runtime.config.Mandatory;
 
 import areca.common.Promise;
+import areca.common.event.EventListener;
 import areca.common.event.EventManager;
+import areca.common.event.EventManager.EventHandlerInfo;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -61,9 +63,15 @@ public class Anchor
 
     @Override
     public void onLifecycleChange( State state ) {
-        if (state == State.AFTER_COMMIT) {
-            EventManager.instance().publish( new EntityLifecycleEvent( this ) );
-        }
+        EventManager.instance().publish( new EntityLifecycleEvent( this, state ) );
+    }
+
+
+    public EventHandlerInfo onLifecycle( State state, EventListener<EntityLifecycleEvent> l ) {
+        return EventManager.instance().subscribe( l )
+                .performIf( ev -> ev instanceof EntityLifecycleEvent
+                        && ((EntityLifecycleEvent)ev).state == state
+                        && ev.getSource() == Anchor.this );
     }
 
 }

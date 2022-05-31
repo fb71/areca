@@ -23,17 +23,21 @@ import java.util.List;
 import org.teavm.jso.browser.Window;
 
 import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.Lifecycle.State;
 import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
+import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.ImapSettings;
 import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
+import areca.app.model.ModelSubmittedEvent;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.SyncableService.SyncContext;
+import areca.app.service.SyncableService.SyncType;
 import areca.app.service.carddav.CarddavService;
 import areca.app.service.matrix.MatrixService;
 import areca.app.ui.StartPage;
@@ -45,6 +49,8 @@ import areca.common.Timer;
 import areca.common.WaitFor;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Sequence;
+import areca.common.event.EventCollector;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.ui.UIComponentRenderer;
@@ -96,7 +102,7 @@ public class ArecaApp extends App {
     protected ArecaApp() {
         EntityRepository.newConfiguration()
                 .entities.set( asList( Message.info, Contact.info, Anchor.info) )
-                .store.set( new IDBStore( "areca.app", 6, true ) )
+                .store.set( new IDBStore( "areca.app", 7, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -113,6 +119,19 @@ public class ArecaApp extends App {
                     settingsUow = settingsRepo.newUnitOfWork();
                     LOG.info( "Settings database and model repo initialized." );
                 });
+
+        // listen to model updates
+        var _100ms = new EventCollector<EntityLifecycleEvent>( 100 );
+        EventManager.instance()
+                .subscribe( (EntityLifecycleEvent ev) -> {
+                    _100ms.collect( ev, collected -> {
+                        uow.refresh().onSuccess( __ -> {
+                            EventManager.instance().publish( new ModelSubmittedEvent( this, collected ) );
+                        });
+                    });
+                })
+                .performIf( ev -> ev instanceof EntityLifecycleEvent && ((EntityLifecycleEvent)ev).state == State.AFTER_SUBMIT )
+                .unsubscribeIf( () -> !uow.isOpen() );
     }
 
 
@@ -148,6 +167,9 @@ public class ArecaApp extends App {
             rootWindow.layout();
 
             Pageflow.start( mainBody ).open( new StartPage(), null, null );
+
+            // start background sync services (after we have the monitor UI)
+            Platform.schedule( 1000, () -> startSync( SyncType.BACKGROUND ) );
         });
     }
 
@@ -239,14 +261,14 @@ public class ArecaApp extends App {
     }
 
 
-    public void startGlobalServicesSync() {
+    public void startSync( SyncType type  ) {
         services( SyncableService.class ).forEach( (service,i) -> {
             Platform.schedule( 3000 * i, () -> { // XXX start imap after contacts are there
                 var ctx = new SyncContext() {{
                     monitor = newAsyncOperation();
                     uowFactory = () -> repo().newUnitOfWork();
                 }};
-                service.newSync( ctx )
+                service.newSync( type, ctx )
                         .onSuccess( sync -> {
                             if (sync != null) {
                                 sync.start()
@@ -272,6 +294,12 @@ public class ArecaApp extends App {
     public UnitOfWork unitOfWork() {
         return uow;
     }
+
+//    /** FIXME: hack porque UnitOfWork#discard() no trabaja bien */
+//    @Deprecated
+//    public UnitOfWork discardUnitOfWork() {
+//        return uow = repo.newUnitOfWork();
+//    }
 
 
     public Promise<UnitOfWork> settings() {

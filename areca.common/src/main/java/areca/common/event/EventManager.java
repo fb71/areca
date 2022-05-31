@@ -119,7 +119,10 @@ public abstract class EventManager {
                 newHandlers.add( handler );
             }
         }
-        Assert.isEqual( handlers.size()-remove.size(), newHandlers.size() );
+        //Assert.isEqual( handlers.size()-remove.size(), newHandlers.size() );
+        if (handlers.size()-remove.size() != newHandlers.size()) {
+            LOG.info( "!!!Unsubscribe: expected:%s != newHandlers:%s", handlers.size()-remove.size(), newHandlers.size() );
+        }
         LOG.info( "Expunged: %s, now: %s (%s) (%s)", remove.size(), newHandlers.size(),
                 t.elapsedHumanReadable(), getClass().getSimpleName() );
         handlers = newHandlers;

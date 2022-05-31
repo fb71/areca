@@ -35,7 +35,7 @@ public class MonitorTestService
 
 
     @Override
-    public Promise<Sync> newSync( SyncContext ctx ) {
+    public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
         return Promise.completed( new Sync() {
             int work = 10;
 

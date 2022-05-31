@@ -25,6 +25,10 @@ import areca.common.base.Supplier.RSupplier;
  */
 public interface SyncableService {
 
+    public enum SyncType {
+        FULL, INCREMENT, BACKGROUND
+    }
+
     /**
      *
      */
@@ -35,8 +39,12 @@ public interface SyncableService {
 
     /**
      * A new Sync object, or null if there is nothing to sync.
+     * <p/>
+     * The default implementation signals that there is nothing to sync.
      */
-    public Promise<Sync> newSync( SyncContext ctx );
+    public default Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
+        return Promise.completed( null );
+    }
 
 
     public abstract static class Sync {

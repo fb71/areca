@@ -17,11 +17,9 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSMethod;
 import org.teavm.jso.JSObject;
-import org.teavm.jso.JSProperty;
 
 import areca.common.Promise;
 import areca.common.WaitFor;
-import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -81,66 +79,13 @@ public abstract class MatrixClient
 
 
     @JSMethod
-    public abstract JSPromise<Whoami> whoami();
-
-    /**
-     *
-     */
-    public static abstract class Whoami
-            implements JSCommon {
-
-        @JSProperty( "user_id" )
-        public abstract String getUserId();
-
-        @JSProperty( "is_guest" )
-        public abstract boolean isGuest();
-
-        @JSProperty( "device_id" )
-        public abstract OptString deviceId();
-
-        @Override
-        public String toString() {
-            return String.format( "Whoami[getUserId()=%s, isGuest()=%s, deviceId()=%s]", getUserId(), isGuest(), deviceId() );
-        }
-    }
-
+    public abstract JSPromise<JSWhoami> whoami();
 
     @JSMethod
     public abstract void publicRooms( Callback callback );
 
-
     @JSMethod
-    public abstract Room[] getRooms();
-
-    /**
-     *
-     */
-    public interface Room
-            extends JSCommon<Room> {
-
-        @JSProperty("roomId")
-        public String roomId();
-
-        @JSProperty("name")
-        public String name();
-
-        @JSProperty("timeline")
-        public Timeline[] timeline();
-
-        public default String toString2() {
-            return String.format( "Room[name=%s, roomId=%s]", name(), roomId() );
-        }
-    }
-
-    /**
-     *
-     */
-    public interface Timeline extends JSCommon {
-
-        @JSProperty("event")
-        public Event event();
-    }
-
+    public abstract JSRoom[] getRooms();
 
     @JSMethod // client.once('sync', function(state, prevState, res) {
     public abstract void once( String type, Callback3 callback );
@@ -148,74 +93,14 @@ public abstract class MatrixClient
     @JSMethod
     public abstract void on( String type, Callback3 callback );
 
-    /**
-     *
-     */
-    public interface Event
-            extends JSCommon<Event> {
-
-        @JSProperty("event_id")
-        public String eventId();
-
-        @JSProperty("type")
-        public String type();
-
-        @JSProperty("sender")
-        public String sender();
-
-        @JSProperty("content")
-        public JSCommon content();
-
-        public default Opt<Message> messageContent()  {
-            return type().equals( "m.room.message" ) ? Opt.of( content().cast() ) : Opt.absent();
-        }
-
-        public default Opt<Encrypted> encryptedContent()  {
-            return type().equals( "m.room.encrypted" ) ? Opt.of( content().cast() ) : Opt.absent();
-        }
-
-        public default String toString2() {
-            return String.format( "Event[type=%s, sender=%s]", type(), sender() );
-        }
-    }
-
-
-    /**
-     *
-     */
-    public static abstract class Message
-            implements JSCommon<Message> {
-
-        @JSProperty
-        public abstract OptString getMsgtype();
-
-        @JSProperty
-        public abstract OptString getBody();
-
-        @JSProperty
-        public abstract OptString getFormat();
-    }
-
-
     @JSBody(params = {"content"}, script = "return this.crypto.decryptEvent(content);")
     public abstract JSPromise<JSCommon> decrypt( JSCommon content );
 
     @JSBody(params = {"event"}, script = "return this.crypto.decryptEvent(new window.matrixcs.MatrixEvent(event));")
-    public abstract JSPromise<JSCommon> decryptEvent( Event event );
+    public abstract JSPromise<JSCommon> decryptEvent( JSStoredEvent event );
 
     @JSBody(params = {"event"}, script = "return this.decryptEventIfNeeded(new window.matrixcs.MatrixEvent(event));")
-    public abstract JSPromise<JSCommon> decryptEventIfNeeded( Event event );
-
-    /**
-     *
-     */
-    public static abstract class Encrypted
-            implements JSCommon<Message> {
-
-        @JSProperty("content")
-        public abstract JSCommon content();
-    }
-
+    public abstract JSPromise<JSCommon> decryptEventIfNeeded( JSStoredEvent event );
 
     @JSFunctor
     public interface Callback3 extends JSObject {

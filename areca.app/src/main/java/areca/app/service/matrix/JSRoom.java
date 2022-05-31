@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -11,30 +11,26 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.app.model;
+package areca.app.service.matrix;
 
-import java.util.EventObject;
-
-import org.polymap.model2.Entity;
-import org.polymap.model2.runtime.Lifecycle.State;
-
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
+import org.teavm.jso.JSProperty;
 
 /**
  *
- * @author Falko Bräutigam
  */
-public class EntityLifecycleEvent
-        extends EventObject {
+public interface JSRoom
+        extends JSCommon<JSRoom> {
 
-    private static final Log LOG = LogFactory.getLog( EntityLifecycleEvent.class );
+    @JSProperty("roomId")
+    public String roomId();
 
-    public State state;
+    @JSProperty("name")
+    public String name();
 
-    public EntityLifecycleEvent( Entity source, State state ) {
-        super( source );
-        this.state = state;
+    @JSProperty("timeline")
+    public JSTimeline[] timeline();
+
+    public default String toString2() {
+        return String.format( "Room[name=%s, roomId=%s]", name(), roomId() );
     }
-
 }

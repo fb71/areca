@@ -14,6 +14,7 @@
 package areca.app.ui;
 
 import areca.app.ArecaApp;
+import areca.app.service.SyncableService.SyncType;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Action;
@@ -53,7 +54,7 @@ public class StartPage
             icon.set( "sync" );
             description.set( "Start synchronization" );
             handler.set( (UIEvent ev) -> {
-                ArecaApp.instance().startGlobalServicesSync();
+                ArecaApp.instance().startSync( SyncType.FULL );
             });
         }});
         // Settings

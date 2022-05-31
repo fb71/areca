@@ -24,8 +24,6 @@ import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
-import areca.app.service.matrix.MatrixClient.Event;
-import areca.app.service.matrix.MatrixClient.Room;
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.base.Opt;
@@ -84,7 +82,7 @@ public class MatrixService
 
 
     @Override
-    public Promise<Sync> newSync( SyncContext ctx ) {
+    public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
         return ArecaApp.instance().settings()
                 .then( uow -> uow.query( MatrixSettings.class ).executeCollect() )
                 .map( rs -> {
@@ -92,7 +90,12 @@ public class MatrixService
                         throw new IllegalStateException( "To many MatrixSettings: " + rs.size() );
                     }
                     else if (rs.size() == 1) {
-                        return new MatrixSync( ctx );
+                        switch (syncType) {
+                            case FULL : return new FullSync( ctx );
+                            case INCREMENT : return null;
+                            case BACKGROUND : return new PermanentSync( ctx );
+                            default : return null;
+                        }
                     }
                     else {
                         return null;
@@ -101,17 +104,95 @@ public class MatrixService
     }
 
 
+    protected String anchorStoreRef( String roomId ) {
+        return "matrix-room:" + roomId;
+    }
+
+    protected String messageStoreRef( String eventId ) {
+        return "matrix-room:" + eventId;
+    }
+
+
     /**
      *
      */
-    protected class MatrixSync
+    protected class PermanentSync
+            extends Sync {
+
+        private SyncContext ctx;
+
+        public PermanentSync( SyncContext ctx ) {
+            this.ctx = ctx;
+        }
+
+        @Override
+        public Promise<?> start() {
+            return initMatrixClient()
+                    .onSuccess( count -> {
+                        startListenEvents();
+                        LOG.info( "Start listening..." );
+                    });
+        }
+
+
+        protected void startListenEvents() {
+            matrix.on( "Room.timeline", (_event, _room, _toStartOfTimeline) -> {
+                JSEvent event = _event.cast();
+                LOG.info( "Event: %s - %s", event.eventId(), event.sender() );
+                MatrixClient.console( _room );
+
+                event.messageContent().ifPresent( content -> {
+                    LOG.info( "    Content: %s", content.getBody().opt().orElse( "???" ) );
+
+                    var monitor = ArecaApp.instance().newAsyncOperation();
+                    monitor.beginTask( "Matrix event", 3 );
+                    monitor.worked( 1 );
+
+                    var uow = ctx.uowFactory.supply();
+                    uow
+                            // ensure room Anchor
+                            .ensureEntity( Anchor.class,
+                                    Expressions.eq( Anchor.TYPE.storeRef, anchorStoreRef( event.roomId() ) ),
+                                    proto -> {
+                                        proto.name.set( "New: " + event.sender() );
+                                        proto.storeRef.set( anchorStoreRef( event.roomId() ) );
+                                    })
+                            // create emessage
+                            .map( anchor -> {
+                                monitor.worked( 1 );
+                                return uow.createEntity( Message.class, proto -> {
+                                    proto.storeRef.set( messageStoreRef( event.eventId() ) );
+                                    proto.from.set( event.sender() );
+                                    proto.content.set( content.getBody().opt().orElse( "" ) );
+                                    proto.unread.set( true );
+                                    anchor.messages.add( proto );
+                                });
+                            })
+                            // submit
+                            .then( message -> {
+                                return uow.submit();
+                            })
+                            .onSuccess( submitted -> monitor.done() )
+                            .onError( ArecaApp.instance().defaultErrorHandler() )
+                            .onError( e -> monitor.done() );
+
+                });
+            });
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected class FullSync
             extends Sync {
 
         protected SyncContext       ctx;
 
         private UnitOfWork          uow;
 
-        public MatrixSync( SyncContext ctx ) {
+        public FullSync( SyncContext ctx ) {
             this.ctx = ctx;
             this.uow = ctx.uowFactory.supply();
         }
@@ -130,11 +211,12 @@ public class MatrixService
 
 
         protected Promise<Opt<Message>> syncRooms() {
-            Room[] rooms = matrix.getRooms();
+            JSRoom[] rooms = matrix.getRooms();
             LOG.info( "Rooms: %s", rooms.length );
 
             // ensure room Anchor
             return Promise.serial( rooms.length, i -> {
+                LOG.info( "room: %s", rooms[i].toString2() );
                 return ensureRoomAnchor( rooms[i] );
             })
             // timeline/event -> Message
@@ -145,9 +227,9 @@ public class MatrixService
         }
 
 
-        protected Promise<MutablePair<Room,Anchor>> ensureRoomAnchor( Room room ) {
+        protected Promise<MutablePair<JSRoom,Anchor>> ensureRoomAnchor( JSRoom room ) {
             LOG.info( "room: %s", room.toString2() );
-            var storeRef = "matrix-room:" + room.roomId();
+            var storeRef = anchorStoreRef( room.roomId() );
             return uow.ensureEntity( Anchor.class,
                     Expressions.eq( Anchor.TYPE.storeRef, storeRef ),
                     proto -> {
@@ -158,11 +240,11 @@ public class MatrixService
         }
 
 
-        protected Promise<Opt<Message>> ensureMessage( Anchor anchor, Event event ) {
+        protected Promise<Opt<Message>> ensureMessage( Anchor anchor, JSStoredEvent event ) {
             LOG.info( "    timeline: %s", event.toString2() );
             // encrypted
             event.encryptedContent().ifPresent( encrypted -> {
-                MatrixClient.console( event );
+                //MatrixClient.console( event );
                 matrix.decryptEventIfNeeded( event ).then( decrypted -> {
                     MatrixClient.console( decrypted );
                 });

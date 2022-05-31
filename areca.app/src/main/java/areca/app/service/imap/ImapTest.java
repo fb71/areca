@@ -37,6 +37,7 @@ import areca.app.model.Contact;
 import areca.app.model.ImapSettings;
 import areca.app.model.Message;
 import areca.app.service.SyncableService.SyncContext;
+import areca.app.service.SyncableService.SyncType;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Assert;
 import areca.common.NullProgressMonitor;
@@ -288,7 +289,7 @@ public class ImapTest {
                     });
                 }
             };
-            return service.newSync( ctx ).then( sync -> sync.start() );
+            return service.newSync( SyncType.FULL, ctx ).then( sync -> sync.start() );
         });
     }
 

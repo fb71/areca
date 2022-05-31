@@ -14,10 +14,9 @@
 package areca.app.model;
 
 import java.util.EventObject;
+import java.util.List;
 
-import org.polymap.model2.Entity;
-import org.polymap.model2.runtime.Lifecycle.State;
-
+import areca.app.ArecaApp;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -25,16 +24,16 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-public class EntityLifecycleEvent
+public class ModelSubmittedEvent
         extends EventObject {
 
-    private static final Log LOG = LogFactory.getLog( EntityLifecycleEvent.class );
+    private static final Log LOG = LogFactory.getLog( ModelSubmittedEvent.class );
 
-    public State state;
+    public List<EntityLifecycleEvent>   events;
 
-    public EntityLifecycleEvent( Entity source, State state ) {
+    public ModelSubmittedEvent( ArecaApp source, List<EntityLifecycleEvent> collected ) {
         super( source );
-        this.state = state;
+        this.events = collected;
     }
 
 }

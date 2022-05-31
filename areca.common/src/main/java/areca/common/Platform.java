@@ -32,8 +32,8 @@ public abstract class Platform {
     }
 
 
-    public static void schedule( int delayMillis, Runnable task ) {
-        schedule( delayMillis, () -> {
+    public static Promise<?> schedule( int delayMillis, Runnable task ) {
+        return schedule( delayMillis, () -> {
             task.run();
             return null;
         });

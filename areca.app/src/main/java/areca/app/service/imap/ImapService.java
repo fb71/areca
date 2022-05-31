@@ -77,7 +77,10 @@ public class ImapService
 
 
     @Override
-    public Promise<Sync> newSync( SyncContext ctx ) {
+    public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
+        if (syncType != SyncType.FULL) {
+            return SyncableService.super.newSync( syncType, ctx );
+        }
         var sync = new Sync() {
             UnitOfWork uow = ctx.uowFactory.supply();
             Message2ContactAnchorSynchronizer messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow );

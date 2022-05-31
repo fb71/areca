@@ -37,18 +37,23 @@ public class CarddavService
 
 
     @Override
-    public Promise<Sync> newSync( SyncContext ctx ) {
-        var sync = new Sync() {
-            @Override
-            public Promise<?> start() {
-                var uow = ArecaApp.instance().repo().newUnitOfWork();
-                var synchronizer = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, uow );
-                synchronizer.monitor.set( ctx.monitor );
-                return synchronizer.start()
-                        .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) );
-            }
-        };
-        return Promise.completed( sync );
+    public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
+        if (syncType == SyncType.FULL) {
+            var sync = new Sync() {
+                @Override
+                public Promise<?> start() {
+                    var uow = ArecaApp.instance().repo().newUnitOfWork();
+                    var synchronizer = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, uow );
+                    synchronizer.monitor.set( ctx.monitor );
+                    return synchronizer.start()
+                            .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) );
+                }
+            };
+            return Promise.completed( sync );
+        }
+        else {
+            return SyncableService.super.newSync( syncType, ctx );
+        }
     }
 
 }

@@ -13,14 +13,18 @@
  */
 package areca.app.ui;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import java.util.ArrayList;
+
+import org.apache.commons.lang3.StringUtils;
+
+import org.polymap.model2.runtime.Lifecycle.State;
+
 import areca.app.ArecaApp;
 import areca.app.model.Anchor;
-import areca.app.model.EntityLifecycleEvent;
 import areca.common.Platform;
 import areca.common.Timer;
-import areca.common.event.EventCollector;
-import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Size;
@@ -79,15 +83,10 @@ public class AnchorsCloudPage
         fetchAnchors();
 
         // listen to model updates
-        var _100ms = new EventCollector<EntityLifecycleEvent>( 100 );
-        EventManager.instance()
-                .subscribe( (EntityLifecycleEvent ev) -> {
-                    _100ms.collect( ev, collected -> {
-                        fetchAnchors();
-                    });
-                })
-                .performIf( EntityLifecycleEvent.class::isInstance )
-                .unsubscribeIf( () -> body.isDisposed() );
+//        EventManager.instance()
+//                .subscribe( (ModelSubmittedEvent ev) -> fetchAnchors())
+//                .performIf( ModelSubmittedEvent.class::isInstance )
+//                .unsubscribeIf( () -> body.isDisposed() );
     }
 
 
@@ -121,11 +120,9 @@ public class AnchorsCloudPage
                     result.ifPresent( contact -> {
                         chunk.add( makeAnchorButton( contact ) );
                     });
-                    var now = System.currentTimeMillis();
-                    if (now > lastLayout + timeout || ctx.isComplete()) {
+                    if (timer.elapsed( MILLISECONDS ) > timeout || ctx.isComplete()) {
                         LOG.info( "" + timer.elapsedHumanReadable() );
                         timer.restart();
-                        lastLayout = now;
                         timeout = 1000;
 
                         chunk.forEach( btn -> body.add( btn ) );
@@ -142,20 +139,24 @@ public class AnchorsCloudPage
 //        btn.label.set( String.format( "%.7s %.7s",
 //                contact.firstname.opt().orElse( "" ),
 //                contact.lastname.opt().orElse( "" )) );
-        btn.label.set( anchor.name.opt().orElse( "..." ) );
+        btn.label.set( StringUtils.abbreviate( anchor.name.opt().orElse( "..." ), 17 ) );
         btn.tooltip.set( anchor.name.opt().orElse( "" ) );
 
         btn.data( "prio", () -> anchor.name.get() );
 
         var badge = new Badge( btn );
-        Platform.schedule( 2250, () -> {
+        Runnable updateBadge = () -> {
             anchor.unreadMessagesCount().onSuccess( unread -> {
-                //LOG.info( "Unread: " + unread );
                 if (unread > 0) {
                     badge.content.set( String.valueOf( unread ) );
                 }
             });
-        });
+        };
+        // init badge
+        Platform.schedule( 1250, updateBadge );
+        // check updates
+        anchor.onLifecycle( State.AFTER_REFRESH, ev -> updateBadge.run() )
+                .unsubscribeIf( () -> btn.isDisposed() );
 
         btn.events.on( EventType.SELECT, ev -> {
             site.put( anchor );

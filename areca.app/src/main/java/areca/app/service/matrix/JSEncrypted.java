@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -11,30 +11,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.app.model;
+package areca.app.service.matrix;
 
-import java.util.EventObject;
-
-import org.polymap.model2.Entity;
-import org.polymap.model2.runtime.Lifecycle.State;
-
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
+import org.teavm.jso.JSProperty;
 
 /**
  *
- * @author Falko Bräutigam
  */
-public class EntityLifecycleEvent
-        extends EventObject {
+public abstract class JSEncrypted
+        implements JSCommon<JSMessage> {
 
-    private static final Log LOG = LogFactory.getLog( EntityLifecycleEvent.class );
-
-    public State state;
-
-    public EntityLifecycleEvent( Entity source, State state ) {
-        super( source );
-        this.state = state;
-    }
-
+    @JSProperty("content")
+    public abstract JSCommon content();
 }

@@ -22,12 +22,10 @@ import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.app.service.SyncableService;
-import areca.app.service.matrix.MatrixClient.Room;
+import areca.app.service.SyncableService.SyncType;
 import areca.common.Assert;
 import areca.common.NullProgressMonitor;
-import areca.common.Platform;
 import areca.common.Promise;
-import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
@@ -68,7 +66,7 @@ public class MatrixTest {
                         monitor = new NullProgressMonitor();
                         uowFactory = () -> repo.newUnitOfWork();
                     }};
-                    return service.newSync( ctx );
+                    return service.newSync( SyncType.FULL, ctx );
                 })
                 .then( sync -> Assert.notNull( sync, "No settings in app DB!" ).start() )
                 .onSuccess( __ -> {
@@ -91,7 +89,8 @@ public class MatrixTest {
 //                .then( ctx -> ((MatrixService.MatrixSync)service.newSync( ctx )).start )
 //    }
 
-    protected void test() {
+
+    protected void roomTimelineTest() {
         MatrixClient matrix = null;
 
 //      matrix.on( "Room.timeline", (_event, room, toStartOfTimeline) -> {
@@ -116,30 +115,31 @@ public class MatrixTest {
 
       //MatrixClient.console( matrix.whoami() );
 
-      matrix.whoami().then( whoami -> {
-          LOG.info( "Whoami: %s - %s", whoami.getUserId(), whoami.isGuest() );
-          MatrixClient.console( whoami );
-      });
+    }
 
-      Platform.schedule( 3000, () -> {
-          Room[] rooms = matrix.getRooms();
-          LOG.info( "Rooms: %s", rooms.length );
-          Sequence.of( rooms ).forEach( room -> {
-              LOG.info( "room: %s", room.toString2() );
-              Sequence.of( room.timeline() ).forEach( timeline -> {
-                  LOG.info( "    timeline: %s", timeline.event().toString2() );
-                  timeline.event().messageContent().ifPresent( content -> {
-                      LOG.info( "        content: %s", content.getBody().opt().orElse( "???" ) );
-                  });
-                  //MatrixClient.console( timeline.event().content() );
-              });
-          });
-      });
 
-//      matrixClient.publicRooms( (err,data) -> {
-//          LOG.info( "Public rooms: ..." );
-//          MatrixClient.console( data );
+//    protected void whoamiTest() {
+//        matrix.whoami().then( whoami -> {
+//            LOG.info( "Whoami: %s - %s", whoami.getUserId(), whoami.isGuest() );
+//            MatrixClient.console( whoami );
+//        });
+//    }
+//
+//      Platform.schedule( 3000, () -> {
+//          Room[] rooms = matrix.getRooms();
+//          LOG.info( "Rooms: %s", rooms.length );
+//          Sequence.of( rooms ).forEach( room -> {
+//              LOG.info( "room: %s", room.toString2() );
+//              Sequence.of( room.timeline() ).forEach( timeline -> {
+//                  LOG.info( "    timeline: %s", timeline.event().toString2() );
+//                  timeline.event().messageContent().ifPresent( content -> {
+//                      LOG.info( "        content: %s", content.getBody().opt().orElse( "???" ) );
+//                  });
+//                  //MatrixClient.console( timeline.event().content() );
+//              });
+//          });
 //      });
-      }
+//
+//      }
 
 }
