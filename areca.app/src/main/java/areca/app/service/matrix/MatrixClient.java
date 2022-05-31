@@ -51,15 +51,26 @@ public abstract class MatrixClient
 
     private String clientSyncState;
 
+
     @JSMethod
     public abstract JSPromise<JSCommon> initCrypto();
+
 
     /** After {@link #startClient()} */
     @JSMethod
     public abstract void setGlobalErrorOnUnknownDevices( boolean flag );
 
-    @JSMethod
-    public abstract void startClient();
+
+    public void startClient() {
+        startClient( 30000 );
+    }
+
+    /**
+     * @param pollTimeout The number of milliseconds to wait on /sync. Default: 30000 (30 seconds).
+     */
+    @JSBody(params = {"pollTimeout"}, script = "return this.startClient({'pollTimeout':pollTimeout});")
+    public abstract void startClient( int pollTimeout );
+
 
     @JSMethod
     public abstract void stopClient();

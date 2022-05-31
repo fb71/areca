@@ -14,8 +14,11 @@
 package areca.app.ui;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.apache.commons.lang3.StringUtils.abbreviate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,15 +26,16 @@ import org.polymap.model2.runtime.Lifecycle.State;
 
 import areca.app.ArecaApp;
 import areca.app.model.Anchor;
+import areca.app.model.ModelSubmittedEvent;
 import areca.common.Platform;
 import areca.common.Timer;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Size;
 import areca.ui.component2.Badge;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
-import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.RasterLayout;
@@ -47,9 +51,11 @@ public class AnchorsCloudPage
 
     private static final Log LOG = LogFactory.getLog( AnchorsCloudPage.class );
 
-    private UIComposite     body;
+    protected UIComposite     body;
 
-    private StartPage       page;
+    protected StartPage       page;
+
+    protected Map<Anchor,Button>    btns = new HashMap<>( 128 );
 
 
     /** Work from within StartPage */
@@ -79,14 +85,14 @@ public class AnchorsCloudPage
             itemSize.set( Size.of( 74, 68 ) );
             componentOrder.set( (b1, b2) -> order( b1, b2 ) );
         }});
-        body.add( new Text().content.set( "Loading..." ) );
+        //body.add( new Text().content.set( "Loading..." ) );
         fetchAnchors();
 
         // listen to model updates
-//        EventManager.instance()
-//                .subscribe( (ModelSubmittedEvent ev) -> fetchAnchors())
-//                .performIf( ModelSubmittedEvent.class::isInstance )
-//                .unsubscribeIf( () -> body.isDisposed() );
+        EventManager.instance()
+                .subscribe( (ModelSubmittedEvent ev) -> fetchAnchors())
+                .performIf( ModelSubmittedEvent.class::isInstance )
+                .unsubscribeIf( () -> body.isDisposed() );
     }
 
 
@@ -108,7 +114,7 @@ public class AnchorsCloudPage
             Platform.schedule( 100, () -> fetchAnchors() );
             return;
         }
-        body.components.disposeAll();
+        //body.components.disposeAll();
         lastLayout = System.currentTimeMillis();
         var timer = Timer.start();
         var chunk = new ArrayList<Button>();
@@ -117,8 +123,12 @@ public class AnchorsCloudPage
                 .query( Anchor.class )
                 .execute()
                 .onSuccess( (ctx,result) -> {
-                    result.ifPresent( contact -> {
-                        chunk.add( makeAnchorButton( contact ) );
+                    result.ifPresent( anchor -> {
+                        btns.computeIfAbsent( anchor, __ -> {
+                            var btn = makeAnchorButton( anchor );
+                            chunk.add( btn );
+                            return btn;
+                        });
                     });
                     if (timer.elapsed( MILLISECONDS ) > timeout || ctx.isComplete()) {
                         LOG.info( "" + timer.elapsedHumanReadable() );
@@ -136,13 +146,13 @@ public class AnchorsCloudPage
     protected Button makeAnchorButton( Anchor anchor ) {
         var btn = new Button();
         btn.cssClasses.add( "AnchorButton" );
-//        btn.label.set( String.format( "%.7s %.7s",
-//                contact.firstname.opt().orElse( "" ),
-//                contact.lastname.opt().orElse( "" )) );
-        btn.label.set( StringUtils.abbreviate( anchor.name.opt().orElse( "..." ), 17 ) );
-        btn.tooltip.set( anchor.name.opt().orElse( "" ) );
 
-        btn.data( "prio", () -> anchor.name.get() );
+        Runnable updateBtn = () -> {
+            btn.label.set( abbreviate( anchor.name.opt().orElse( "..." ), 17 ) );
+            btn.tooltip.set( anchor.name.opt().orElse( "" ) );
+            btn.data( "prio", () -> anchor.name.get() );
+        };
+        updateBtn.run();
 
         var badge = new Badge( btn );
         Runnable updateBadge = () -> {
@@ -152,11 +162,15 @@ public class AnchorsCloudPage
                 }
             });
         };
-        // init badge
+        // delayed init badge
         Platform.schedule( 1250, updateBadge );
+
         // check updates
-        anchor.onLifecycle( State.AFTER_REFRESH, ev -> updateBadge.run() )
-                .unsubscribeIf( () -> btn.isDisposed() );
+        anchor.onLifecycle( State.AFTER_REFRESH, ev -> {
+            updateBtn.run();
+            updateBadge.run();
+        })
+        .unsubscribeIf( () -> btn.isDisposed() );
 
         btn.events.on( EventType.SELECT, ev -> {
             site.put( anchor );
