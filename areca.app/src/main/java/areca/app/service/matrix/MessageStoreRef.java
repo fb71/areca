@@ -16,12 +16,16 @@ package areca.app.service.matrix;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import areca.common.Assert;
+import areca.common.base.Opt;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 
 /**
  *
  */
 class MessageStoreRef {
+
+    private static final Log LOG = LogFactory.getLog( MessageStoreRef.class );
 
     public static final Pattern pattern = Pattern.compile( "matrix:([^|]*)\\|(.*)" );
 
@@ -35,13 +39,16 @@ class MessageStoreRef {
     }
 
 
-    public static MessageStoreRef parse( String storeRef ) {
+    public static Opt<MessageStoreRef> parse( String storeRef ) {
         Matcher matcher = pattern.matcher( storeRef );
-        Assert.that( matcher.matches(), "storeRef pattern does not match: " + storeRef );
-        return new MessageStoreRef() {{
-            this.roomId = matcher.group( 1 );
-            this.eventId = matcher.group( 2 );
-        }};
+        if (!matcher.matches()) {
+            LOG.info( "storeRef pattern does not match: " + storeRef );
+        }
+        return Opt.of( matcher.matches()
+                ? new MessageStoreRef() {{
+                    this.roomId = matcher.group( 1 );
+                    this.eventId = matcher.group( 2 ); }}
+                : null);
     }
 
 

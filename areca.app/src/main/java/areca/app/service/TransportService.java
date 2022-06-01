@@ -47,7 +47,11 @@ public interface TransportService {
          * <p/>
          * Default error handlers are attached by caller.
          */
-        public abstract Promise<?> send( String text );
+        public abstract Promise<Sent> send( String text );
+    }
+
+    public static class Sent {
+
     }
 
 }

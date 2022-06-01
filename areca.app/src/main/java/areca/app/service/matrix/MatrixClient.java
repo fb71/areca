@@ -115,7 +115,7 @@ public abstract class MatrixClient
     public abstract JSPromise<JSCommon> decryptEventIfNeeded( JSStoredEvent event );
 
     @JSMethod
-    public abstract JSPromise<JSCommon> send( String roomId, String eventType, JSMessage content );
+    public abstract JSPromise<JSCommon> sendEvent( String roomId, String eventType, JSMessage content, String txnId );
 
 //    const content = {
 //            "body": "message text",

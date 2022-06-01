@@ -32,7 +32,7 @@ public abstract class LayoutManager {
 
     private static final Logger LOG = Logger.getLogger( LayoutManager.class.getSimpleName() );
 
-    public ReadWrite<?,Comparator<UIComponent>>   componentOrder = Property.rw( this, "componentOrder" );
+    public ReadWrite<?,Comparator<? extends UIComponent>>   componentOrder = Property.rw( this, "componentOrder" );
 
 
     public abstract void layout( UIComposite composite );
@@ -42,11 +42,14 @@ public abstract class LayoutManager {
      * The components of the given {@link UIComposite} ordered as specified via
      * {@link #componentOrder}.
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected Collection<UIComponent> orderedComponents( UIComposite composite) {
         return componentOrder.opt()
                 .ifPresentMap( order -> {
                     var result = new ArrayList<>( composite.components.value() );
-                    Collections.sort( result, order );
+                    // XXX this is bad; we trust the caller to have correct types as children and order
+                    Comparator strippedOrder = order;
+                    Collections.sort( result, strippedOrder );
                     return (Collection<UIComponent>)result;
                 })
                 .orElse( composite.components.value() );

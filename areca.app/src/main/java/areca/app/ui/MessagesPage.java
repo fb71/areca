@@ -17,18 +17,33 @@ import static areca.ui.Orientation.VERTICAL;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+
 import org.apache.commons.lang3.StringUtils;
 
 import org.polymap.model2.ManyAssociation;
 
 import areca.app.ArecaApp;
 import areca.app.model.Message;
+import areca.app.service.TransportService;
+import areca.app.service.TransportService.Sent;
+import areca.app.service.TransportService.Transport;
+import areca.app.service.TransportService.TransportContext;
+import areca.common.Assert;
 import areca.common.Platform;
+import areca.common.ProgressMonitor;
+import areca.common.Promise;
 import areca.common.Timer;
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Align.Vertical;
 import areca.ui.Size;
+import areca.ui.component2.Button;
+import areca.ui.component2.Events.EventType;
+import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
+import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.RowConstraints;
@@ -46,9 +61,17 @@ public class MessagesPage extends Page {
 
     protected ManyAssociation<Message>   src;
 
-    protected PageContainer     ui;
+    protected PageContainer         ui;
 
-    protected long              timeout = 280;  // 300ms timeout before page animation starts
+    protected long                  timeout = 280;  // 300ms timeout before page animation starts
+
+    protected ScrollableComposite   messagesContainer;
+
+    protected UIComposite           inputContainer;
+
+    protected MessageCard           selectedCard;
+
+    protected TextField             messageTextInput;
 
 
     protected MessagesPage( ManyAssociation<Message> src ) {
@@ -61,11 +84,74 @@ public class MessagesPage extends Page {
         ui = new PageContainer( this, parent );
         ui.title.set( "Messages" );
 
-        ui.body.layout.set( new RowLayout() {{
-            orientation.set( VERTICAL ); fillWidth.set( true ); spacing.set( 5 ); margins.set( Size.of( 5, 5 ) );}});
-        ui.body.add( new Text().content.set( "Loading..." ) );
+        ui.body.layout.set( new RowLayout().orientation.set( VERTICAL )
+                .fillHeight.set( true )
+                .fillWidth.set( true ) );
+
+        // input field
+        ui.body.add( inputContainer = new UIComposite() {{
+            layoutConstraints.set( new RowConstraints().height.set( 55 ) );
+            layout.set( new RowLayout().margins.set( Size.of( 8, 8 ) ).spacing.set( 8 ).fillHeight.set(  true ).fillWidth.set( true ) );
+            messageTextInput = add( new TextField() {{
+                Platform.schedule( 2000, () -> focus.set( true ) );
+
+            }});
+            add( new Button() {{
+                layoutConstraints.set( new RowConstraints().width.set( 70 ) );
+                icon.set( "send" );
+                tooltip.set( "Do it! :)" );
+                events.on(  EventType.SELECT, ev -> {
+                    send();
+                });
+            }});
+        }});
+
+        // messages
+        ui.body.add( messagesContainer = new ScrollableComposite() {{
+            layout.set( new RowLayout() {{
+                componentOrder.set( Comparator.<MessageCard>naturalOrder().reversed() );
+                orientation.set( VERTICAL );
+                fillWidth.set( true );
+                spacing.set( 8 );
+                margins.set( Size.of( 8, 3 ) );
+            }});
+            add( new Text().content.set( "Loading..." ) );
+        }});
+
         fetchMessages();
         return ui;
+    }
+
+
+    protected void send() {
+        Assert.notNull( selectedCard, "selectedCard == null" );
+        var ctx = new TransportContext() {
+            @Override public ProgressMonitor newMonitor() {
+                return ArecaApp.instance().newAsyncOperation();
+            }
+        };
+        var receipients = selectedCard.message.from.get();
+        var services = ArecaApp.instance().services( TransportService.class ).toList();
+        Promise.joined( services.size(), i -> services.get( i ).newTransport( receipients, ctx ) )
+                .reduce2( (Transport)null, (r, transport) -> transport != null ? transport : r )
+                .then( transport -> {
+                    if (transport == null) {
+                        LOG.info( "No transport found for: %s", receipients );
+                        // XXX UI
+                        return Promise.<Sent>absent();
+                    }
+                    else {
+                        LOG.info( "Transport found for: %s - %s", receipients, transport );
+                        return transport.send( messageTextInput.content.value() ).map( result -> Opt.of( result ) );
+                    }
+                })
+                .onSuccess( result -> {
+                    result.ifPresent( sent -> {
+                        LOG.info( "Transport sent! :) - %s", sent );
+                    });
+                })
+                .onError( ArecaApp.instance().defaultErrorHandler() );
+
     }
 
 
@@ -76,34 +162,90 @@ public class MessagesPage extends Page {
             Platform.schedule( 100, () -> fetchMessages() );
             return;
         }
-        ui.body.components.disposeAll();
+        messagesContainer.components.disposeAll();
         var timer = Timer.start();
-        var chunk = new ArrayList<UIComposite>();
+        var chunk = new ArrayList<MessageCard>();
 
         src.fetch().onSuccess( (ctx,opt) -> {
-            opt.ifPresent( msg -> chunk.add( createMessageCard( msg ) ) );
+            opt.ifPresent( msg -> chunk.add( new MessageCard( msg ) ) );
 
+            // deferred layout chunk
             if (timer.elapsed( MILLISECONDS ) > timeout || ctx.isComplete()) {
                 LOG.info( "" + timer.elapsedHumanReadable() );
                 timer.restart();
                 timeout = 1000;
 
-                chunk.forEach( btn -> ui.body.add( btn ) );
+                chunk.forEach( card -> messagesContainer.add( card ) );
+                messagesContainer.layout();
+
+                var last = chunk.get( chunk.size()-1 );
                 chunk.clear();
-                ui.body.layout();
+                Platform.schedule( 1000, () -> {
+                    last.scrollIntoView.set( Vertical.BOTTOM );
+                    last.select( true );
+                });
             }
         });
     }
 
 
-    protected UIComposite createMessageCard( Message msg ) {
-        return new UIComposite() {{
-            cssClasses.add( "MessageCard" );
-            layoutConstraints.set( new RowConstraints() {{height.set( 100 );}} );
+    public class MessageCard
+            extends UIComposite
+            implements Comparable<MessageCard> {
+
+        private static final String CSS = "MessageCard";
+
+        private static final String CSS_SELECTED = "MessageCard-selected";
+
+        public Message          message;
+
+        protected boolean       isSelected;
+
+
+        public MessageCard( Message msg ) {
+            this.message = msg;
+
+            cssClasses.add( CSS );
+            layoutConstraints.set( new RowConstraints().height.set( 60 ) );
             layout.set( new RowLayout() {{
-                    orientation.set( VERTICAL ); fillWidth.set( true ); margins.set( Size.of( 10, 10 ) );}});
+                orientation.set( VERTICAL ); fillWidth.set( true ); margins.set( Size.of( 10, 10 ) );}});
+
+            events.on( EventType.SELECT, ev -> {
+                toggle();
+            });
+
             add( new Text().content.set( StringUtils.abbreviate( msg.content.get(), 250 ) ) );
-        }};
+        }
+
+
+        public void select( boolean select ) {
+            //LOG.info( "Selected: %s, %s -> %s", message.content.get(), isSelected, select );
+            // select
+            if (!isSelected && select) {
+                if (selectedCard != null) {
+                    selectedCard.select( false );
+                }
+                cssClasses.add( CSS_SELECTED );
+                selectedCard = this;
+            }
+            // unselect
+            else if (isSelected && !select) {
+                cssClasses.remove( CSS_SELECTED );
+                selectedCard = null;
+            }
+            isSelected = select;
+        }
+
+
+        public void toggle() {
+            select( !isSelected );
+        }
+
+
+        @Override
+        public int compareTo( MessageCard other ) {
+            return message.date.get().compareTo( other.message.date.get() );
+        }
     }
 
 }

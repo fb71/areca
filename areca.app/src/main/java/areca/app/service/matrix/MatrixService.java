@@ -81,18 +81,16 @@ public class MatrixService
     }
 
 
-    @Override
-    public Promise<TransportService.Transport> newTransport( String receipient, TransportContext ctx ) {
-        if (receipient != null && receipient.startsWith( "@" )) {
-            return Promise.completed( new Transport( receipient, ctx ) );
-
-        }
-        return TransportService.super.newTransport( receipient, ctx );
-    }
-
-
     protected String anchorStoreRef( String roomId ) {
         return "matrix-room:" + roomId;
+    }
+
+    @Override
+    public Promise<TransportService.Transport> newTransport( String receipient, TransportContext ctx ) {
+        var storeRef = MessageStoreRef.parse( receipient );
+        return storeRef.isPresent()
+                ? Promise.completed( new Transport( storeRef.get(), ctx ) )
+                : Promise.completed( null );
     }
 
 
@@ -102,25 +100,25 @@ public class MatrixService
     protected class Transport
             extends TransportService.Transport {
 
-        private String receipient;
+        private MessageStoreRef     receipient;
 
-        private TransportContext ctx;
+        private TransportContext    ctx;
 
-        public Transport( String receipient, TransportContext ctx ) {
+        public Transport( MessageStoreRef receipient, TransportContext ctx ) {
             this.receipient = receipient;
             this.ctx = ctx;
         }
 
         @Override
-        public Promise<?> send( String text ) {
+        public Promise<Sent> send( String text ) {
             Assert.notNull( matrix, "No Matrix client initialized." ); // XXX show UI
-            var result = new Promise.Completable<>();
-            var message = (Message)null;
-            var storeRef = MessageStoreRef.parse( message.storeRef.get() );
+            var result = new Promise.Completable<Sent>();
             var content = JSMessage.create();
             content.setMsgtype( "m.text" );
             content.setBody( text );
-            matrix.send( storeRef.roomId, "m.room.message", content );
+            MatrixClient.console( content );
+            matrix.sendEvent( receipient.roomId, "m.room.message", content, "" )
+                    .then( sendResult -> result.complete( new Sent() ) );
             return result;
         }
     }
@@ -197,7 +195,9 @@ public class MatrixService
                             .map( anchor -> {
                                 monitor.worked( 1 );
                                 return uow.createEntity( Message.class, proto -> {
-                                    proto.storeRef.set( MessageStoreRef.of( event.roomId(), event.eventId() ).toString() );
+                                    MessageStoreRef storeRef = MessageStoreRef.of( event.roomId(), event.eventId() );
+                                    proto.storeRef.set( storeRef.toString() );
+                                    proto.from.set( storeRef.toString() );
                                     proto.from.set( event.sender() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
                                     proto.unread.set( true );
@@ -296,7 +296,8 @@ public class MatrixService
                                 Expressions.eq( Message.TYPE.storeRef, storeRef.toString() ),
                                 proto -> {
                                     proto.storeRef.set( storeRef.toString() );
-                                    proto.from.set( event.sender() );
+                                    proto.from.set( storeRef.toString() );
+                                    //proto.from.set( event.sender() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
                                     proto.unread.set( true );
                                     proto.date.set( (long)event.date() );
