@@ -15,9 +15,13 @@ package areca.app.ui;
 
 import static areca.ui.Orientation.VERTICAL;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.apache.commons.lang3.StringUtils.abbreviate;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
+
+import java.text.DateFormat;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,6 +42,7 @@ import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Align.Vertical;
+import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
@@ -46,6 +51,7 @@ import areca.ui.component2.Text;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
+import areca.ui.layout.LayoutManager;
 import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Page;
@@ -58,6 +64,8 @@ import areca.ui.pageflow.PageContainer;
 public class MessagesPage extends Page {
 
     private static final Log LOG = LogFactory.getLog( MessagesPage.class );
+
+    public static final DateFormat df = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT );
 
     protected ManyAssociation<Message>   src;
 
@@ -189,32 +197,74 @@ public class MessagesPage extends Page {
     }
 
 
+    /**
+     *
+     */
     public class MessageCard
             extends UIComposite
             implements Comparable<MessageCard> {
 
         private static final String CSS = "MessageCard";
-
         private static final String CSS_SELECTED = "MessageCard-selected";
+        private static final int    MARGINS = 10;
+        private static final int    HEADER = 14;
+        private static final int    SPACING = 5;
+        private static final int    MAX_LINES = 5;
 
         public Message          message;
 
         protected boolean       isSelected;
 
+        protected Text          contentText;
+
 
         public MessageCard( Message msg ) {
             this.message = msg;
-
             cssClasses.add( CSS );
-            layoutConstraints.set( new RowConstraints().height.set( 60 ) );
-            layout.set( new RowLayout() {{
-                orientation.set( VERTICAL ); fillWidth.set( true ); margins.set( Size.of( 10, 10 ) );}});
 
             events.on( EventType.SELECT, ev -> {
                 toggle();
             });
 
-            add( new Text().content.set( StringUtils.abbreviate( msg.content.get(), 250 ) ) );
+            var fromText = add( new Text() {{
+                content.set( abbreviate( msg.from.get(), 30 ) );
+                cssClasses.add( "FromText" );
+            }});
+            var dateText = add( new Text() {{
+                content.set( df.format( new Date( msg.date.get()) ) );
+                cssClasses.add( "DateText" );
+            }});
+            contentText = add( new Text() {{
+                content.set( StringUtils.abbreviate( msg.content.get(), 250 ) );
+            }});
+
+            // layout
+            layout.set( new LayoutManager() {
+                @Override public void layout( UIComposite composite ) {
+                    var s = clientSize.value().substract( MARGINS, MARGINS );
+                    fromText.position.set( Position.of( MARGINS, MARGINS-3) );
+                    fromText.size.set( Size.of( s.width()/2, HEADER ) );
+
+                    dateText.position.set( Position.of( s.width()/2, MARGINS-3) );
+                    dateText.size.set( Size.of( s.width()/2, HEADER ) );
+
+                    contentText.position.set( Position.of( MARGINS, MARGINS + HEADER + SPACING) );
+                    contentText.size.set( Size.of( s.width(), s.height() - HEADER - SPACING ) );
+                }
+            });
+        }
+
+
+        @Override
+        public int computeMinHeight( int width ) {
+            var charsPerLine = (int)((float)width / 8f);
+            var lines = (message.content.get().length() / charsPerLine) + 1;
+            LOG.info( "WIDHT: %s, charsPerLine: %s, lines: %s", width, charsPerLine, lines );
+            lines = Math.min( MAX_LINES, lines );
+
+            contentText.content.set( abbreviate( message.content.get(), lines * charsPerLine ) );
+
+            return (MARGINS*2) + HEADER + SPACING + (lines * 16);
         }
 
 
