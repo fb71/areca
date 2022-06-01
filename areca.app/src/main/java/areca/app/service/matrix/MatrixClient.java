@@ -47,6 +47,7 @@ public abstract class MatrixClient
     @JSBody(params = {"obj"}, script = "console.log( obj );")
     public static native void console( JSObject obj );
 
+
     // instance *******************************************
 
     private String clientSyncState;
@@ -112,6 +113,17 @@ public abstract class MatrixClient
 
     @JSBody(params = {"event"}, script = "return this.decryptEventIfNeeded(new window.matrixcs.MatrixEvent(event));")
     public abstract JSPromise<JSCommon> decryptEventIfNeeded( JSStoredEvent event );
+
+    @JSMethod
+    public abstract JSPromise<JSCommon> send( String roomId, String eventType, JSMessage content );
+
+//    const content = {
+//            "body": "message text",
+//            "msgtype": "m.text"
+//        };
+//        client.sendEvent("roomId", "m.room.message", content, "", (err, res) => {
+//            console.log(err);
+//        });
 
     @JSFunctor
     public interface Callback3 extends JSObject {

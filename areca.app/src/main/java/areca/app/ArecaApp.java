@@ -102,7 +102,7 @@ public class ArecaApp extends App {
     protected ArecaApp() {
         EntityRepository.newConfiguration()
                 .entities.set( asList( Message.info, Contact.info, Anchor.info) )
-                .store.set( new IDBStore( "areca.app", 7, true ) )
+                .store.set( new IDBStore( "areca.app", 9, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -150,14 +150,14 @@ public class ArecaApp extends App {
 
             rootWindow.layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true );}} );
             mainBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 10 );}} );
+                layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 6 );}} );
             }});
 
             // monitorBody
             progressBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( 10 );}} );
+                layoutConstraints.set( new RowConstraints() {{height.set( 6 );}} );
                 cssClasses.add( "ProgressContainer" );
-                layout.set( new RowLayout() {{margins.set( Size.of( 3, 3 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
+                layout.set( new RowLayout() {{margins.set( Size.of( 3, 1 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
 
 //                add( new Progress() {{
 //                    value.set( 0.8f );

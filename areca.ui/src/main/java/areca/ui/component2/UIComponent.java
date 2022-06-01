@@ -26,6 +26,7 @@ import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Align;
 import areca.ui.Color;
 import areca.ui.Position;
 import areca.ui.Size;
@@ -87,6 +88,12 @@ public abstract class UIComponent {
 
     /** */
     public ReadWrite<UIComponent,LayoutConstraints> layoutConstraints = Property.rw( this, "lc" );
+
+    /** Pseudo property that allows to scroll this component. */
+    public ReadWrite<?,Align.Vertical>      scrollIntoView = Property.rw( this, "scrollIntoView" );
+
+    /** Pseudo property that allows to set the focus on this component. */
+    public ReadWrite<?,Boolean>             focus = Property.rw( this, "focus" );
 
     /** */
     public Events events = new Events( this );

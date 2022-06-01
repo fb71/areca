@@ -16,7 +16,6 @@ package areca.ui.layout;
 import static areca.ui.Orientation.HORIZONTAL;
 import static areca.ui.Orientation.VERTICAL;
 
-import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Orientation;
@@ -67,15 +66,24 @@ public class RowLayout
 
         // VERTICAL
         if (orientation.value() == VERTICAL) {
+            // the width to be filled by components without width set
+            int freeHeight = clientSize.height();
+            int freeCount = 0;
+            for (var c : composite.components.value()) {
+                var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
+                freeHeight -= constraints.height.opt().orElse( 0 ) + spacing.value();
+                freeCount += constraints.height.opt().isPresent() ? 0 : 1;
+            }
+            int freeComponentHeight = (freeHeight + spacing.value()) / freeCount;
+
+            // components
             int cTop = margins.value().height();
             for (UIComponent c : orderedComponents( composite )) {
                 var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
 
                 // height
-                Assert.that( !(fillHeight.value() && constraints.height.opt().isPresent()) );
-                int cHeight = fillHeight.value()
-                        ? ((clientSize.height() + spacing.value()) / composite.components.size()) - spacing.value()
-                        : constraints.height.opt().orElse( c.computeMinHeight( clientSize.width() ) );
+                int cHeight = constraints.height.opt().orElse(
+                        fillHeight.value() ? freeComponentHeight : c.computeMinHeight( clientSize.width() ) );
 
                 // width
                 int cWidth = fillWidth.value()
@@ -91,14 +99,25 @@ public class RowLayout
         // HORIZONTAL
         else {
             int cLeft = margins.value().width();
+
+            // the width to be filled by components without width set
+            int freeWidth = clientSize.width();
+            int freeCount = 0;
+            for (var c : composite.components.value()) {
+                var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
+                freeWidth -= constraints.width.opt().orElse( 0 ) + spacing.value();
+                freeCount += constraints.width.opt().isPresent() ? 0 : 1;
+            }
+            int freeComponentWidth = (freeWidth + spacing.value()) / freeCount;
+            LOG.debug( "%s %s %s %s", composite.components.size(), freeCount, freeWidth, freeComponentWidth );
+
+            // components
             for (UIComponent c : orderedComponents( composite )) {
                 var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
 
                 // width
-                Assert.that( !(fillWidth.value() && constraints.width.opt().isPresent()) );
-                int cWidth = fillWidth.value()
-                        ? ((clientSize.width() + spacing.value()) / composite.components.size()) - spacing.value()
-                        : constraints.width.opt().orElse( c.computeMinWidth( clientSize.height() ) );
+                int cWidth = constraints.width.opt().orElse(
+                        fillWidth.value() ? freeComponentWidth : c.computeMinWidth( clientSize.height() ) );
 
                 // height
                 int cHeight = fillHeight.value()

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -13,6 +13,7 @@
  */
 package areca.app.service.matrix;
 
+import org.teavm.jso.JSBody;
 import org.teavm.jso.JSProperty;
 
 /**
@@ -21,11 +22,27 @@ import org.teavm.jso.JSProperty;
 public abstract class JSMessage
         implements JSCommon<JSMessage> {
 
+    @JSBody(params = {}, script = "return {};")
+    public static native JSMessage create();
+
+    public static JSMessage create( String msgType, String body ) {
+        var result = create();
+        result.setMsgtype( msgType );
+        result.setBody( body );
+        return result;
+    }
+
     @JSProperty
     public abstract OptString getMsgtype();
 
     @JSProperty
+    public abstract void setMsgtype( String type );
+
+    @JSProperty
     public abstract OptString getBody();
+
+    @JSProperty
+    public abstract void setBody( String body );
 
     @JSProperty
     public abstract OptString getFormat();

@@ -14,7 +14,6 @@
 package areca.app.service.matrix;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.lang3.tuple.MutablePair;
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
@@ -24,6 +23,7 @@ import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
+import areca.app.service.TransportService;
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.base.Opt;
@@ -36,7 +36,7 @@ import areca.common.log.LogFactory.Log;
  */
 public class MatrixService
         extends Service
-        implements SyncableService {
+        implements SyncableService, TransportService {
 
     private static final Log LOG = LogFactory.getLog( MatrixService.class );
 
@@ -72,11 +72,56 @@ public class MatrixService
 //                            result.setGlobalErrorOnUnknownDevices( false );
 //                        });
 
-                        result.startClient();
+                        result.startClient( 58000 );
                         return result.waitForStartup()
                                 .onSuccess( __ -> matrix = result )
                                 .onError( e -> LOG.warn( "ERROR while starting matrix client.", e ) ); // FIXME UI!
                     });
+        }
+    }
+
+
+    @Override
+    public Promise<TransportService.Transport> newTransport( String receipient, TransportContext ctx ) {
+        if (receipient != null && receipient.startsWith( "@" )) {
+            return Promise.completed( new Transport( receipient, ctx ) );
+
+        }
+        return TransportService.super.newTransport( receipient, ctx );
+    }
+
+
+    protected String anchorStoreRef( String roomId ) {
+        return "matrix-room:" + roomId;
+    }
+
+
+    /**
+     *
+     */
+    protected class Transport
+            extends TransportService.Transport {
+
+        private String receipient;
+
+        private TransportContext ctx;
+
+        public Transport( String receipient, TransportContext ctx ) {
+            this.receipient = receipient;
+            this.ctx = ctx;
+        }
+
+        @Override
+        public Promise<?> send( String text ) {
+            Assert.notNull( matrix, "No Matrix client initialized." ); // XXX show UI
+            var result = new Promise.Completable<>();
+            var message = (Message)null;
+            var storeRef = MessageStoreRef.parse( message.storeRef.get() );
+            var content = JSMessage.create();
+            content.setMsgtype( "m.text" );
+            content.setBody( text );
+            matrix.send( storeRef.roomId, "m.room.message", content );
+            return result;
         }
     }
 
@@ -101,15 +146,6 @@ public class MatrixService
                         return null;
                     }
                 });
-    }
-
-
-    protected String anchorStoreRef( String roomId ) {
-        return "matrix-room:" + roomId;
-    }
-
-    protected String messageStoreRef( String eventId ) {
-        return "matrix-room:" + eventId;
     }
 
 
@@ -139,7 +175,7 @@ public class MatrixService
             matrix.on( "Room.timeline", (_event, _room, _toStartOfTimeline) -> {
                 JSEvent event = _event.cast();
                 LOG.info( "Event: %s - %s", event.eventId(), event.sender() );
-                MatrixClient.console( _room );
+                MatrixClient.console( _event );
 
                 event.messageContent().ifPresent( content -> {
                     LOG.info( "    Content: %s", content.getBody().opt().orElse( "???" ) );
@@ -157,14 +193,15 @@ public class MatrixService
                                         proto.name.set( "New: " + event.sender() );
                                         proto.storeRef.set( anchorStoreRef( event.roomId() ) );
                                     })
-                            // create emessage
+                            // create message
                             .map( anchor -> {
                                 monitor.worked( 1 );
                                 return uow.createEntity( Message.class, proto -> {
-                                    proto.storeRef.set( messageStoreRef( event.eventId() ) );
+                                    proto.storeRef.set( MessageStoreRef.of( event.roomId(), event.eventId() ).toString() );
                                     proto.from.set( event.sender() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
                                     proto.unread.set( true );
+                                    proto.date.set( (long)event.date().getTime() );
                                     anchor.messages.add( proto );
                                 });
                             })
@@ -221,13 +258,13 @@ public class MatrixService
             })
             // timeline/event -> Message
             .then( roomAnchor -> {
-                var timeline = roomAnchor.left.timeline();
-                return Promise.joined( timeline.length, i -> ensureMessage( roomAnchor.right, timeline[i].event() ) );
+                var timeline = roomAnchor.room.timeline();
+                return Promise.joined( timeline.length, i -> ensureMessage( roomAnchor, timeline[i].event() ) );
             });
         }
 
 
-        protected Promise<MutablePair<JSRoom,Anchor>> ensureRoomAnchor( JSRoom room ) {
+        protected Promise<RoomAnchor> ensureRoomAnchor( JSRoom room ) {
             LOG.info( "room: %s", room.toString2() );
             var storeRef = anchorStoreRef( room.roomId() );
             return uow.ensureEntity( Anchor.class,
@@ -236,11 +273,11 @@ public class MatrixService
                         proto.name.set( room.name() );
                         proto.storeRef.set( storeRef );
                     })
-                    .map( anchor -> MutablePair.of( room, anchor ) );
+                    .map( anchor -> RoomAnchor.of( room, anchor ) );
         }
 
 
-        protected Promise<Opt<Message>> ensureMessage( Anchor anchor, JSStoredEvent event ) {
+        protected Promise<Opt<Message>> ensureMessage( RoomAnchor roomAnchor, JSStoredEvent event ) {
             LOG.info( "    timeline: %s", event.toString2() );
             // encrypted
             event.encryptedContent().ifPresent( encrypted -> {
@@ -250,22 +287,37 @@ public class MatrixService
                 });
             });
             // plain
+            MatrixClient.console( event );
             return event.messageContent()
                     .ifPresentMap( content -> {
                         LOG.info( "        content: %s", content.getBody().opt().orElse( "???" ) );
-                        var storeRef = "matrix:" + event.eventId();
+                        var storeRef = MessageStoreRef.of( roomAnchor.room.roomId(), event.eventId() );
                         return uow.ensureEntity( Message.class,
-                                Expressions.eq( Message.TYPE.storeRef, storeRef ),
+                                Expressions.eq( Message.TYPE.storeRef, storeRef.toString() ),
                                 proto -> {
-                                    proto.storeRef.set( storeRef );
+                                    proto.storeRef.set( storeRef.toString() );
                                     proto.from.set( event.sender() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
                                     proto.unread.set( true );
-                                    anchor.messages.add( proto );
+                                    proto.date.set( (long)event.date() );
+                                    roomAnchor.anchor.messages.add( proto );
                                 })
                                 .map( message -> Opt.of( message ) );
                     })
                     .orElse( Promise.<Message>absent() );
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected static class RoomAnchor {
+        public JSRoom   room;
+        public Anchor   anchor;
+
+        public static RoomAnchor of( JSRoom _room, Anchor _anchor ) {
+            return new RoomAnchor() {{ room = _room; anchor = _anchor;}};
         }
     }
 }

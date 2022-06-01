@@ -14,6 +14,8 @@
 package areca.app.service.matrix;
 
 import org.teavm.jso.JSMethod;
+import org.teavm.jso.core.JSDate;
+
 import areca.common.base.Opt;
 
 /**
@@ -30,6 +32,9 @@ public interface JSEvent
 
     @JSMethod("getType")
     public String type();
+
+    @JSMethod("getDate")
+    public JSDate date();
 
     @JSMethod("getSender")
     public String sender();

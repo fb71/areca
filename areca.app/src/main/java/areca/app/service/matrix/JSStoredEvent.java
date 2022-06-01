@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
@@ -13,12 +13,12 @@
  */
 package areca.app.service.matrix;
 
+import org.teavm.jso.JSBody;
 import org.teavm.jso.JSProperty;
-
 import areca.common.base.Opt;
 
 /**
- *
+ * Result when accessing the store.
  */
 public interface JSStoredEvent
         extends JSCommon<JSStoredEvent> {
@@ -28,6 +28,12 @@ public interface JSStoredEvent
 
     @JSProperty("type")
     public String type();
+
+    @JSBody(params = {}, script = "return Date.now() - this.unsigned.age;")
+    public double date();
+
+    @JSBody(params = {}, script = "return this.unsigned.age;")
+    public int age();
 
     @JSProperty("sender")
     public String sender();

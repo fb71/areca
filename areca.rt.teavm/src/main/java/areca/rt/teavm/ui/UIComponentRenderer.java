@@ -13,6 +13,7 @@
  */
 package areca.rt.teavm.ui;
 
+import org.teavm.jso.JSBody;
 import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.events.MouseEvent;
 import org.teavm.jso.dom.html.HTMLDocument;
@@ -24,6 +25,7 @@ import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
+import areca.ui.Align.Vertical;
 import areca.ui.Position;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.UIComponent;
@@ -168,6 +170,28 @@ public abstract class UIComponentRenderer {
                 });
             }
         });
+
+        // scrollIntoView
+        c.scrollIntoView.onInitAndChange( (newValue, __) -> {
+            LOG.info( "Scroll: %s", c );
+            ((ScrollableHTMLElement)htmlElm).scrollIntoView( "smooth", newValue == Vertical.TOP ? "start" : "end" );
+        });
+
+        // focus
+        c.focus.onInitAndChange( (newValue, __) -> {
+            if (newValue) {
+                htmlElm.focus();
+            } else {
+                htmlElm.blur();
+            }
+        });
+    }
+
+
+    protected interface ScrollableHTMLElement
+            extends HTMLElement {
+        @JSBody(params = {"behavior", "block"}, script = "this.scrollIntoView({'block':block, 'behavior':behavior});")
+        void scrollIntoView( String behavior, String block );
     }
 
 

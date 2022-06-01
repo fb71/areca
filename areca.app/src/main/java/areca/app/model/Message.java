@@ -36,6 +36,9 @@ public class Message
     @Queryable
     public Property<String>         from;
 
+    @Queryable
+    public Property<Long>           date;
+
     @Nullable
     @Queryable
     public Property<String>         content;
