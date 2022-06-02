@@ -88,6 +88,16 @@ public class Main {
                         .run();
             });
         }
+        // #smtp
+        else if (hash.equals( "#smtp" )) {
+            catchAll( __ -> {
+                LogFactory.setPackageLevel( areca.app.service.smtp.SmtpClient.class, DEBUG );
+                new AsyncAwareTestRunner()
+                        .addTests( areca.app.service.smtp.SmtpTest.info )
+                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
+                        .run();
+            });
+        }
         // #matrix
         else if (hash.equals( "#matrix" )) {
             catchAll( __ -> {

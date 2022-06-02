@@ -39,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.james.mime4j.codec.DecodeMonitor;
 import org.apache.james.mime4j.codec.DecoderUtil;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -125,12 +124,13 @@ public class ImapForwardServlet extends HttpServlet {
     protected <E extends Exception> void performCommand( CommandData command, PooledSocket imap, Consumer<String,E> sink ) throws E, IOException {
         Timer timer = Timer.start();
         debug( "> " + command.command );
+        //debug( ":: " + EncoderUtil.encodeEncodedWord( command.command, Usage.TEXT_TOKEN ) );
         imap.out.write( command.command );
         imap.out.write( "\r\n" );
         imap.out.flush();
 
-        for (String line = imap.in.readLine();; line = imap.in.readLine()) {
-            // debug( "< " + line );
+        for (String line = imap.in.readLine(); line != null; line = imap.in.readLine()) {
+            debug( "< " + line );
             if (sink != null) {
                 sink.accept( line );
             }
@@ -240,8 +240,8 @@ public class ImapForwardServlet extends HttpServlet {
             public PooledSocket( Socket socket, String poolkey ) throws IOException {
                 this.poolkey = poolkey;
                 this.socket = socket;
-                this.out = new BufferedWriter( new OutputStreamWriter( socket.getOutputStream(), "UTF8" ) );
-                this.in = new BufferedReader( new InputStreamReader( socket.getInputStream(), "UTF8" ) );
+                this.out = new BufferedWriter( new OutputStreamWriter( socket.getOutputStream(), "ISO-8859-1" ) ); //XXX SMTP hack
+                this.in = new BufferedReader( new InputStreamReader( socket.getInputStream(), "UTF8" ) ); //UTF8" ) );
             }
 
             public <E extends Exception> void ifCreated( Consumer<Socket,E> block ) throws E {

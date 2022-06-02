@@ -129,7 +129,11 @@ public class ImapRequest
         protected String            tag = leftPad( Integer.toString( tagCount++ ), 4, '0' ) + ":";
 
         protected void parse( BufferedReader in ) throws Exception {
-            while (parseLine(in.readLine())) { }
+            for (String line = in.readLine(); line != null; line = in.readLine()) {
+                if (!parseLine(line)) {
+                    break;
+                }
+            }
         }
 
         /**

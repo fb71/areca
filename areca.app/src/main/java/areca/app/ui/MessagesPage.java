@@ -69,7 +69,9 @@ public class MessagesPage extends Page {
 
     private static final Log LOG = LogFactory.getLog( MessagesPage.class );
 
-    public static final DateFormat df = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT );
+    public static final DateFormat  sdf = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT );
+
+    public static final int         MESSAGE_MARK_READ_DELAY = 5000;
 
     protected ManyAssociation<Message>   src;
 
@@ -325,7 +327,7 @@ public class MessagesPage extends Page {
 
         protected void delayedMarkRead() {
             if (message.unread.get()) {
-                Platform.schedule( 3000, () -> {
+                Platform.schedule( MESSAGE_MARK_READ_DELAY, () -> {
                     if (selectedCard == this && message.unread.get()) {
                         // FIXME fast but AnchorsCloudPage gets no event
                         message.unread.set( false );
