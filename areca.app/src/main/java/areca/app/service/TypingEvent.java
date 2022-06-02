@@ -11,35 +11,30 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.app.model;
+package areca.app.service;
 
 import java.util.EventObject;
-
-import org.polymap.model2.Entity;
-import org.polymap.model2.runtime.Lifecycle.State;
-
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class EntityLifecycleEvent
+public class TypingEvent
         extends EventObject {
 
-    private static final Log LOG = LogFactory.getLog( EntityLifecycleEvent.class );
+    public boolean  typing;
 
-    public State state;
-
-    public EntityLifecycleEvent( Entity source, State state ) {
+    public TypingEvent( Object source, boolean typing ) {
         super( source );
-        this.state = state;
+        this.typing = typing;
     }
 
+    /**
+     * User-id or something.
+     */
     @Override
-    public Entity getSource() {
-        return (Entity)super.getSource();
+    public String getSource() {
+        return (String)super.getSource();
     }
 
 }

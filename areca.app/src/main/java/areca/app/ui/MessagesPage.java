@@ -26,6 +26,7 @@ import java.text.DateFormat;
 import org.apache.commons.lang3.StringUtils;
 
 import org.polymap.model2.ManyAssociation;
+import org.polymap.model2.runtime.Lifecycle.State;
 
 import areca.app.ArecaApp;
 import areca.app.model.Message;
@@ -33,17 +34,20 @@ import areca.app.service.TransportService;
 import areca.app.service.TransportService.Sent;
 import areca.app.service.TransportService.Transport;
 import areca.app.service.TransportService.TransportContext;
+import areca.app.service.TypingEvent;
 import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Opt;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Align.Vertical;
 import areca.ui.Position;
 import areca.ui.Size;
+import areca.ui.component2.Badge;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.ScrollableComposite;
@@ -97,7 +101,7 @@ public class MessagesPage extends Page {
                 .fillWidth.set( true ) );
 
         // input field
-        ui.body.add( inputContainer = new UIComposite() {{
+        inputContainer = ui.body.add( new UIComposite() {{
             layoutConstraints.set( new RowConstraints().height.set( 55 ) );
             layout.set( new RowLayout().margins.set( Size.of( 8, 8 ) ).spacing.set( 8 ).fillHeight.set(  true ).fillWidth.set( true ) );
             messageTextInput = add( new TextField() {{
@@ -114,14 +118,30 @@ public class MessagesPage extends Page {
             }});
         }});
 
+        // typing...
+        ui.body.add( new Text() {{
+            layoutConstraints.set( new RowConstraints().height.set( 10 ) );
+            cssClasses.add( "TypingText" );
+            EventManager.instance()
+                    .subscribe( (TypingEvent ev) -> {
+                        if (ev.typing) {
+                            content.set( String.format( "%s ...", ev.getSource() ) );
+                        } else {
+                            content.set( "" );
+                        }
+                    })
+                    .performIf( ev -> ev instanceof TypingEvent )
+                    .unsubscribeIf( () -> isDisposed() );
+        }});
+
         // messages
-        ui.body.add( messagesContainer = new ScrollableComposite() {{
+        messagesContainer = ui.body.add( new ScrollableComposite() {{
             layout.set( new RowLayout() {{
                 componentOrder.set( Comparator.<MessageCard>naturalOrder().reversed() );
                 orientation.set( VERTICAL );
                 fillWidth.set( true );
-                spacing.set( 8 );
-                margins.set( Size.of( 8, 3 ) );
+                spacing.set( 10 );
+                margins.set( Size.of( 8, 1 ) );
             }});
             add( new Text().content.set( "Loading..." ) );
         }});
@@ -207,7 +227,7 @@ public class MessagesPage extends Page {
         private static final String CSS = "MessageCard";
         private static final String CSS_SELECTED = "MessageCard-selected";
         private static final int    MARGINS = 10;
-        private static final int    HEADER = 14;
+        private static final int    HEADER = 12;
         private static final int    SPACING = 5;
         private static final int    MAX_LINES = 5;
 
@@ -252,6 +272,17 @@ public class MessagesPage extends Page {
                     contentText.size.set( Size.of( s.width(), s.height() - HEADER - SPACING ) );
                 }
             });
+
+            if (message.unread.get()) {
+                new Badge( this ) {{
+                    content.set( "X" );
+                    // listen to updates
+                    message.onLifecycle( State.AFTER_SUBMIT, ev -> {
+                        content.set( message.unread.get() ? "X" : null );
+                    })
+                    .unsubscribeIf( () -> isDisposed() );
+                }};
+            }
         }
 
 
@@ -277,6 +308,7 @@ public class MessagesPage extends Page {
                 }
                 cssClasses.add( CSS_SELECTED );
                 selectedCard = this;
+                delayedMarkRead();
             }
             // unselect
             else if (isSelected && !select) {
@@ -291,6 +323,17 @@ public class MessagesPage extends Page {
             select( !isSelected );
         }
 
+        protected void delayedMarkRead() {
+            if (message.unread.get()) {
+                Platform.schedule( 3000, () -> {
+                    if (selectedCard == this && message.unread.get()) {
+                        // FIXME fast but AnchorsCloudPage gets no event
+                        message.unread.set( false );
+                        message.context.getUnitOfWork().submit();
+                    }
+                });
+            }
+        }
 
         @Override
         public int compareTo( MessageCard other ) {

@@ -33,10 +33,15 @@ $card_color: saturate(lighten($bg1_color, 5%), 5%);
     transform: scale(1.02);
 }
 
-.MessageCard .FromText, .MessageCard .DateText {
+.MessageCard .FromText, .MessageCard .DateText, .TypingText {
     color: darken($font_color, 30%);
-    font-size: small;
+    font-size: 10px;
 }
 .MessageCard .DateText {
     text-align: right;
+}
+.TypingText {
+    //font-size: 10px;
+    margin-top: -5px;
+    margin-left: 10px;
 }

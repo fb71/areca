@@ -69,7 +69,7 @@ public class TextFieldRenderer
         });
 
         inputElm.addEventListener( "input", htmlEv -> {
-            LOG.info( "HTML event: %s", inputElm.getValue() );
+            //LOG.info( "HTML event: %s", inputElm.getValue() );
             //((MouseEvent)_htmlEv).stopPropagation();
             //htmlEv.preventDefault();
             c.content.rawSet( inputElm.getValue() );

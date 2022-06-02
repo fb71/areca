@@ -14,7 +14,6 @@
 package areca.app.model;
 
 import org.polymap.model2.Defaults;
-import org.polymap.model2.Entity;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
@@ -26,7 +25,7 @@ import areca.common.reflect.RuntimeInfo;
  */
 @RuntimeInfo
 public class Message
-        extends Entity {
+        extends Common {
 
     public static final MessageClassInfo info = MessageClassInfo.instance();
 

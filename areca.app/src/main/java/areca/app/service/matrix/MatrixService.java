@@ -14,6 +14,7 @@
 package areca.app.service.matrix;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
@@ -24,9 +25,11 @@ import areca.app.model.Message;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.TransportService;
+import areca.app.service.TypingEvent;
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.base.Opt;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -136,7 +139,7 @@ public class MatrixService
                         switch (syncType) {
                             case FULL : return new FullSync( ctx );
                             case INCREMENT : return null;
-                            case BACKGROUND : return new PermanentSync( ctx );
+                            case BACKGROUND : return new BackgroundSync( ctx );
                             default : return null;
                         }
                     }
@@ -150,12 +153,12 @@ public class MatrixService
     /**
      *
      */
-    protected class PermanentSync
+    protected class BackgroundSync
             extends Sync {
 
         private SyncContext ctx;
 
-        public PermanentSync( SyncContext ctx ) {
+        public BackgroundSync( SyncContext ctx ) {
             this.ctx = ctx;
         }
 
@@ -170,6 +173,15 @@ public class MatrixService
 
 
         protected void startListenEvents() {
+            // typing...
+            matrix.on("RoomMember.typing", (_event, _member) -> {
+                MatrixClient.console( _event );
+                MatrixClient.console( _member );
+                JSMember member = _member.cast();
+                EventManager.instance().publish( new TypingEvent( member.userId(), member.typing() ) );
+            });
+
+            // event/message
             matrix.on( "Room.timeline", (_event, _room, _toStartOfTimeline) -> {
                 JSEvent event = _event.cast();
                 LOG.info( "Event: %s - %s", event.eventId(), event.sender() );

@@ -11,35 +11,27 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.app.model;
+package areca.app.service.matrix;
 
-import java.util.EventObject;
-
-import org.polymap.model2.Entity;
-import org.polymap.model2.runtime.Lifecycle.State;
-
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
+import org.teavm.jso.JSProperty;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class EntityLifecycleEvent
-        extends EventObject {
+public interface JSMember
+    extends JSCommon<JSMember> {
 
-    private static final Log LOG = LogFactory.getLog( EntityLifecycleEvent.class );
+    @JSProperty("userId")
+    public String userId();
 
-    public State state;
+    @JSProperty("roomId")
+    public String roomId();
 
-    public EntityLifecycleEvent( Entity source, State state ) {
-        super( source );
-        this.state = state;
-    }
+    @JSProperty("name")
+    public String name();
 
-    @Override
-    public Entity getSource() {
-        return (Entity)super.getSource();
-    }
+    @JSProperty("typing")
+    public boolean typing();
 
 }

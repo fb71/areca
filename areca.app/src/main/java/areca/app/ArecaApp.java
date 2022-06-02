@@ -124,6 +124,10 @@ public class ArecaApp extends App {
         var _100ms = new EventCollector<EntityLifecycleEvent>( 100 );
         EventManager.instance()
                 .subscribe( (EntityLifecycleEvent ev) -> {
+                    // no refresh needed if main UoW was submitted
+                    if (ev.getSource().context.getUnitOfWork() == uow) {
+                        return;
+                    }
                     _100ms.collect( ev, collected -> {
                         uow.refresh().onSuccess( __ -> {
                             EventManager.instance().publish( new ModelSubmittedEvent( this, collected ) );

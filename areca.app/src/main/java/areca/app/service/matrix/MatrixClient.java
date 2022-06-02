@@ -94,7 +94,7 @@ public abstract class MatrixClient
     public abstract JSPromise<JSWhoami> whoami();
 
     @JSMethod
-    public abstract void publicRooms( Callback callback );
+    public abstract void publicRooms( Callback2 callback );
 
     @JSMethod
     public abstract JSRoom[] getRooms();
@@ -104,6 +104,9 @@ public abstract class MatrixClient
 
     @JSMethod
     public abstract void on( String type, Callback3 callback );
+
+    @JSMethod
+    public abstract void on( String type, Callback2 callback );
 
     @JSBody(params = {"content"}, script = "return this.crypto.decryptEvent(content);")
     public abstract JSPromise<JSCommon> decrypt( JSCommon content );
@@ -127,12 +130,12 @@ public abstract class MatrixClient
 
     @JSFunctor
     public interface Callback3 extends JSObject {
-        void handle( JSCommon first, JSCommon second, JSCommon third );
+        void handle( JSCommon _1, JSCommon _2, JSCommon _3 );
     }
 
     @JSFunctor
-    public interface Callback extends JSObject {
-        void handle( JSObject err, JSObject data );
+    public interface Callback2 extends JSObject {
+        void handle( JSCommon _1, JSCommon _2 );
     }
 
 }

@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-
 import org.polymap.model2.runtime.Lifecycle.State;
 
 import areca.app.ArecaApp;
