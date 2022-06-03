@@ -13,7 +13,7 @@
  */
 package areca.app.service.smtp;
 
-import areca.app.service.carddav.CardDavTest;
+import areca.app.service.carddav.CarddavTest;
 import areca.app.service.smtp.SmtpRequest.AuthPlainCommand;
 import areca.app.service.smtp.SmtpRequest.DataCommand;
 import areca.app.service.smtp.SmtpRequest.HeloCommand;
@@ -45,8 +45,8 @@ public class SmtpTest {
             self.host = "mail.polymap.de";
             self.port = 465;
             self.loginCommand = new HeloCommand( "zuhause" );
-            self.commands.add( new AuthPlainCommand( CardDavTest.ARECA_USERNAME, CardDavTest.ARECA_PWD ) );
-            self.commands.add( new MailFromCommand( CardDavTest.ARECA_USERNAME ) );
+            self.commands.add( new AuthPlainCommand( CarddavTest.ARECA_USERNAME, CarddavTest.ARECA_PWD ) );
+            self.commands.add( new MailFromCommand( CarddavTest.ARECA_USERNAME ) );
             self.commands.add( new RcptToCommand( "falko@polymap.de" ) );
             self.commands.add( new DataCommand() );
             self.commands.add( new DataContentCommand( "Schäfchen...", "...möchte auch dir etwas senden!" ) );

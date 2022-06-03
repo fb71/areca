@@ -75,7 +75,7 @@ public class HttpForwardServlet2 extends HttpServlet {
                 byte[] encodedAuth = Base64.getEncoder().encode( auth.getBytes( UTF_8 ) );
                 String basic = "Basic " + new String( encodedAuth );
                 conn.setRequestProperty( "Authorization", basic );
-                debug( "Authorization: %s (%s)", basic, auth  );
+                debug( "Authorization: %s", basic );
             }
 
             // headers

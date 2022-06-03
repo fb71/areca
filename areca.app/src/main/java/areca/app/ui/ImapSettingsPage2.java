@@ -14,7 +14,7 @@
 package areca.app.ui;
 
 import areca.app.model.ImapSettings;
-import areca.app.service.carddav.CardDavTest;
+import areca.app.service.carddav.CarddavTest;
 import areca.app.service.imap.FolderListCommand;
 import areca.app.service.imap.ImapRequest;
 import areca.app.service.imap.ImapRequest.LoginCommand;
@@ -56,7 +56,7 @@ public class ImapSettingsPage2
             proto.host.set( "mail.polymap.de" );
             proto.port.set( 993 );
             //proto.username.set( String.format( "%s%s%s", "falko", "@", "polymap.de" ) );
-            proto.username.set( CardDavTest.ARECA_USERNAME );
+            proto.username.set( CarddavTest.ARECA_USERNAME );
             proto.pwd.set( "..." );
         });
     }

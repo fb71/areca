@@ -32,15 +32,15 @@ public class DavResource {
 
     // instance *******************************************
 
-    protected Opt<String>   username;
+    protected Opt<String>   username = Opt.absent();
 
-    protected Opt<String>   pwd;
+    protected Opt<String>   pwd = Opt.absent();
 
-    public String       baseUrl;
+    public String           baseUrl;
 
-    public String       href;
+    public String           href;
 
-    public Date         lastModified;
+    public Date             lastModified;
 
 
     private DavResource() {};

@@ -42,11 +42,11 @@ import areca.common.testrunner.Test;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class CardDavTest {
+public class CarddavTest {
 
-    private static final Log LOG = LogFactory.getLog( CardDavTest.class );
+    private static final Log LOG = LogFactory.getLog( CarddavTest.class );
 
-    public static final ClassInfo<CardDavTest> info = CardDavTestClassInfo.instance();
+    public static final ClassInfo<CarddavTest> info = CarddavTestClassInfo.instance();
 
     private static final String ARECA_CONTACTS_BASE = "https://polymap.de:8443";
     private static final String ARECA_CONTACTS_RES = "/dav/areca@polymap.de/Contacts/";

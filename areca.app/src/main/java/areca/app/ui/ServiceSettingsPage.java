@@ -172,7 +172,8 @@ public abstract class ServiceSettingsPage<S extends Entity>
                                 enabled.set( true );
                                 badge.content.set( ":(" );
                                 status.set( Status.INVALID );
-                            });
+                            })
+                            .onError( ArecaApp.instance().defaultErrorHandler() );
                 });
             }};
         }

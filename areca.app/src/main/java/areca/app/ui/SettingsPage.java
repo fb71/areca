@@ -49,6 +49,7 @@ public class SettingsPage
         ui.body.add( createBtn( "Email (IMAP)", "", "email", () -> new ImapSettingsPage2() ) );
         ui.body.add( createBtn( "Email Send (SMTP)", "", "send", () -> new SmtpSettingsPage() ) );
         ui.body.add( createBtn( "Matrix", "", "chat", () -> new MatrixSettingsPage2() ) );
+        ui.body.add( createBtn( "Contacts (CardDav)", "", "faces", () -> new CarddavSettingsPage() ) );
 
         return ui;
     }
@@ -56,7 +57,7 @@ public class SettingsPage
 
     protected UIComponent createBtn( String _label, String _tooltip, String _icon, RSupplier<Page> _pageFactory ) {
         return new Button() {{
-            label.set( _label.toUpperCase() );
+            label.set( _label );
             //icon.set( _icon );
             tooltip.set( _tooltip );
             layoutConstraints.set( new RowConstraints().height.set( 50 ) );

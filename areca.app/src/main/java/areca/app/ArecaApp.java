@@ -28,6 +28,7 @@ import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
+import areca.app.model.CarddavSettings;
 import areca.app.model.Contact;
 import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.ImapSettings;
@@ -114,11 +115,11 @@ public class ArecaApp extends App {
                     LOG.info( "Database and model repo initialized." );
                 });
 
-        var settingsEntityTypes = asList( ImapSettings.info, MatrixSettings.info, SmtpSettings.info );
+        var settingsEntityTypes = asList( ImapSettings.info, MatrixSettings.info, SmtpSettings.info, CarddavSettings.info );
         var settingsEntities = Sequence.of( settingsEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
                 .entities.set( settingsEntityTypes )
-                .store.set( new IDBStore( "areca.app.settings", 3, true ) )
+                .store.set( new IDBStore( "areca.app.settings", 4, true ) )
                 .create()
                 .onSuccess( result -> {
                     settingsRepo = result;

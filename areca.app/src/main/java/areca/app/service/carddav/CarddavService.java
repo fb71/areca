@@ -43,7 +43,7 @@ public class CarddavService
                 @Override
                 public Promise<?> start() {
                     var uow = ArecaApp.instance().repo().newUnitOfWork();
-                    var synchronizer = new CarddavSynchronizer( CardDavTest.ARECA_CONTACTS_ROOT, uow );
+                    var synchronizer = new CarddavSynchronizer( CarddavTest.ARECA_CONTACTS_ROOT, uow );
                     synchronizer.monitor.set( ctx.monitor );
                     return synchronizer.start()
                             .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) );
