@@ -13,7 +13,6 @@
  */
 package areca.rt.teavm.ui;
 
-import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
 import areca.common.event.EventHandler;
@@ -50,13 +49,13 @@ public class TextFieldRenderer
     public void componentConstructed( ComponentConstructedEvent ev ) {
         TextField c = (TextField)ev.getSource();
 
-        var labelElm = (HTMLElement)doc().createElement( "label" );
-        var textNode = (HTMLElement)doc().createTextNode( c.label.opt().orElse( "" ) );
-        labelElm.appendChild( textNode );
+//        var labelElm = (HTMLElement)doc().createElement( "label" );
+//        var textNode = (HTMLElement)doc().createTextNode( c.label.opt().orElse( "" ) );
+//        labelElm.appendChild( textNode );
 
         var inputElm = (HTMLInputElement)doc().createElement( "input" );
         inputElm.setAttribute( "type", "text" );
-        labelElm.appendChild( inputElm );
+//        labelElm.appendChild( inputElm );
 
         c.htmlElm = inputElm;
 
@@ -64,9 +63,9 @@ public class TextFieldRenderer
             inputElm.setAttribute( "value", newValue );
         });
 
-        c.label.onInitAndChange( (newValue, oldValue) -> {
-            textNode.setNodeValue( newValue );
-        });
+//        c.label.onInitAndChange( (newValue, oldValue) -> {
+//            textNode.setNodeValue( newValue );
+//        });
 
         inputElm.addEventListener( "input", htmlEv -> {
             //LOG.info( "HTML event: %s", inputElm.getValue() );

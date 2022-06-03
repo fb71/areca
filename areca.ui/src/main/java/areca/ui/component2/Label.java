@@ -18,22 +18,32 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.ReadWrite;
 
 /**
+ * A label decoration.
+ * <p/>
+ * Does not work for {@link TextField}! (yet?)
  *
  * @author Falko Bräutigam
  */
-public class TextField
-        extends UIComponent {
+public class Label
+        extends UIComponentDecorator {
 
-    private static final Log LOG = LogFactory.getLog( TextField.class );
+    private static final Log LOG = LogFactory.getLog( Label.class );
 
-    public ReadWrite<TextField,String> content = Property.rw( this, "content" );
+    /**
+     * The text to be shown by the label. Null makes the label to disappear.
+     */
+    public ReadWrite<Label,String> content = new ReadWrite<>( this, "content" );
 
-    //public ReadWrite<TextField,String> label = Property.rw( this, "label" );
 
-    @Override
-    public int computeMinHeight( int width ) {
-        return 32;
+    public Label( UIComponent decorated ) {
+        super( decorated );
     }
 
+
+    @Override
+    public void dispose() {
+        content.set( null );
+        super.dispose();
+    }
 
 }

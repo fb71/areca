@@ -16,7 +16,7 @@ package areca.ui.form;
 import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component2.TextField;
+import areca.ui.component2.Label;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.viewer.Viewer;
@@ -48,8 +48,8 @@ public class FieldBuilder
     @Override
     public UIComponent create() {
         var result = super.create();
-        if (label != null && result instanceof TextField) {
-            ((TextField)result).label.set( label );
+        if (label != null) {
+            new Label( result ).content.set( label );
         }
         return result;
     }

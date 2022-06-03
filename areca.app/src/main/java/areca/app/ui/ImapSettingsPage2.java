@@ -13,12 +13,11 @@
  */
 package areca.app.ui;
 
-import areca.app.model.SmtpSettings;
-import areca.app.service.smtp.SmtpRequest;
-import areca.app.service.smtp.SmtpRequest.AuthPlainCommand;
-import areca.app.service.smtp.SmtpRequest.HeloCommand;
-import areca.app.service.smtp.SmtpRequest.MailFromCommand;
-import areca.app.service.smtp.SmtpRequest.QuitCommand;
+import areca.app.model.ImapSettings;
+import areca.app.service.carddav.CardDavTest;
+import areca.app.service.imap.FolderListCommand;
+import areca.app.service.imap.ImapRequest;
+import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -32,75 +31,66 @@ import areca.ui.viewer.TextFieldViewer;
  *
  * @author Falko Bräutigam
  */
-public class SmtpSettingsPage
-        extends ServiceSettingsPage<SmtpSettings> {
+public class ImapSettingsPage2
+        extends ServiceSettingsPage<ImapSettings> {
 
-    private static final Log LOG = LogFactory.getLog( SmtpSettingsPage.class );
+    private static final Log LOG = LogFactory.getLog( ImapSettingsPage2.class );
 
 
-    public SmtpSettingsPage() {
-        super( SmtpSettings.class );
+    public ImapSettingsPage2() {
+        super( ImapSettings.class );
     }
 
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         var result = super.doInit( parent );
-        ui.title.set( "Email Send Settings" );
+        ui.title.set( "Email Settings" );
         return result;
     }
 
 
     @Override
-    protected SmtpSettings newSettings() {
-        return uow.waitForResult().get().createEntity( SmtpSettings.class, proto -> {
+    protected ImapSettings newSettings() {
+        return uow.waitForResult().get().createEntity( ImapSettings.class, proto -> {
             proto.host.set( "mail.polymap.de" );
-            proto.port.set( 465 );
-            //proto.from.set( CardDavTest.ARECA_USERNAME );
-            proto.from.set( String.format( "%s%s%s", "falko", "@", "polymap.de" ) );
-            proto.username.set( proto.from.get() );
+            proto.port.set( 993 );
+            //proto.username.set( String.format( "%s%s%s", "falko", "@", "polymap.de" ) );
+            proto.username.set( CardDavTest.ARECA_USERNAME );
             proto.pwd.set( "..." );
         });
     }
 
 
-    protected Promise<?> checkSettings( SmtpSettings settings ) {
-        var request = new SmtpRequest( self -> {
+    protected Promise<?> checkSettings( ImapSettings settings ) {
+        var request = new ImapRequest( self -> {
             self.host = settings.host.get();
             self.port = settings.port.get();
-            self.loginCommand = new HeloCommand( "zuhause" ); // XXX
-            self.commands.add( new AuthPlainCommand( settings.username.get(), settings.pwd.get() ) );
-            self.commands.add( new MailFromCommand( settings.from.get() ) );
-            self.commands.add( new QuitCommand() );
+            self.loginCommand = new LoginCommand( settings.username.get(), settings.pwd.get() );
+            self.commands.add( new FolderListCommand() );
         });
-        return request.submit()
-                .onSuccess( command -> {
-                    LOG.info( "Response: %s", command );
-                });
+        return request.submit();
     }
 
+
     @Override
-    protected UIComposite buildCheckingForm( SmtpSettings settings, Form form ) {
-        return new SmtpCheckingForm( settings, form );
+    protected UIComposite buildCheckingForm( ImapSettings settings, Form form ) {
+        return new ImapCheckingForm( settings, form );
     }
 
 
     /**
      *
      */
-    protected class SmtpCheckingForm
+    protected class ImapCheckingForm
             extends CheckingForm {
 
-        public SmtpCheckingForm( SmtpSettings settings, Form form ) {
+        public ImapCheckingForm( ImapSettings settings, Form form ) {
             super( settings, form );
         }
 
         @Override
         protected void buildForm() {
-            add( form.newField().label( "Email Address" )
-                    .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.from ) )
-                    .create() );
             add( form.newField().label( "Username" )
                     .viewer( new TextFieldViewer() )
                     .adapter( new PropertyAdapter<>( () -> settings.username ) )

@@ -132,8 +132,9 @@ public abstract class ServiceSettingsPage<S extends Entity>
             this.settings = settings;
             this.form = form;
             layoutConstraints.set( new RowConstraints().height.set( 250 ) );
-            layout.set( new RowLayout().orientation.set( VERTICAL ).fillWidth.set( true ).spacing.set( 10 ).margins.set( Size.of( 10, 10 ) ) );
-            bordered.set( true );
+            layout.set( new RowLayout().orientation.set( VERTICAL ).fillWidth.set( true )
+                    .spacing.set( 25 ).margins.set( Size.of( 10, 15 ) ) );
+            //bordered.set( true );
 
             buildForm();
 

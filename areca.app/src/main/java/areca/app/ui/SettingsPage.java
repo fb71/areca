@@ -46,9 +46,9 @@ public class SettingsPage
         ui.title.set( "Settings" );
 
         ui.body.layout.set( new RowLayout().orientation.set( VERTICAL ).margins.set( Size.of( 10, 10 ) ).spacing.set( 8 ).fillWidth.set( true ) );
-        ui.body.add( createBtn( "Email (IMAP)", "", "email", () -> new ImapSettingsPage() ) );
+        ui.body.add( createBtn( "Email (IMAP)", "", "email", () -> new ImapSettingsPage2() ) );
         ui.body.add( createBtn( "Email Send (SMTP)", "", "send", () -> new SmtpSettingsPage() ) );
-        ui.body.add( createBtn( "Matrix", "", "chat", () -> new MatrixSettingsPage() ) );
+        ui.body.add( createBtn( "Matrix", "", "chat", () -> new MatrixSettingsPage2() ) );
 
         return ui;
     }

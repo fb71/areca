@@ -18,6 +18,9 @@ import areca.common.base.Function;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComposite;
+import areca.ui.layout.FillLayout;
+import areca.ui.layout.RowConstraints;
 
 /**
  *
@@ -77,7 +80,15 @@ public class ViewerBuilder {
             throw new RuntimeException( "Unknown adapter type: " + adapter );
         }
         viewer = viewer != null ? viewer : guessViewer();
-        return viewer.create();
+        var field = viewer.create();
+
+        // container for label and valid decorators
+        return new UIComposite() {{
+            // FIXME hack! UIComposite does not calculate its minHeight depending on its children (yet:)
+            layoutConstraints.set( new RowConstraints().height.set( field.computeMinHeight( 400 ) ) );
+            layout.set( new FillLayout() );
+            add( field );
+        }};
     }
 
 
