@@ -34,6 +34,7 @@ import areca.app.model.ImapSettings;
 import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
 import areca.app.model.ModelSubmittedEvent;
+import areca.app.model.SmtpSettings;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.SyncableService.SyncContext;
@@ -49,6 +50,7 @@ import areca.common.Timer;
 import areca.common.WaitFor;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Sequence;
+import areca.common.base.With;
 import areca.common.event.EventCollector;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
@@ -100,8 +102,10 @@ public class ArecaApp extends App {
 
 
     protected ArecaApp() {
+        var appEntityTypes = asList( Message.info, Contact.info, Anchor.info);
+        var appEntities = Sequence.of( appEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
-                .entities.set( asList( Message.info, Contact.info, Anchor.info) )
+                .entities.set( appEntityTypes )
                 .store.set( new IDBStore( "areca.app", 10, true ) )
                 .create()
                 .onSuccess( result -> {
@@ -110,9 +114,11 @@ public class ArecaApp extends App {
                     LOG.info( "Database and model repo initialized." );
                 });
 
+        var settingsEntityTypes = asList( ImapSettings.info, MatrixSettings.info, SmtpSettings.info );
+        var settingsEntities = Sequence.of( settingsEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
-                .entities.set( asList( ImapSettings.info, MatrixSettings.info ) ).store
-                .set( new IDBStore( "areca.app.settings", 2, true ) )
+                .entities.set( settingsEntityTypes )
+                .store.set( new IDBStore( "areca.app.settings", 3, true ) )
                 .create()
                 .onSuccess( result -> {
                     settingsRepo = result;
@@ -120,22 +126,45 @@ public class ArecaApp extends App {
                     LOG.info( "Settings database and model repo initialized." );
                 });
 
-        // listen to model updates
-        var _100ms = new EventCollector<EntityLifecycleEvent>( 100 );
+        // app model updates
+        var collector = new EventCollector<EntityLifecycleEvent>( 100 );
         EventManager.instance()
                 .subscribe( (EntityLifecycleEvent ev) -> {
                     // no refresh needed if main UoW was submitted
                     if (ev.getSource().context.getUnitOfWork() == uow) {
                         return;
                     }
-                    _100ms.collect( ev, collected -> {
-                        uow.refresh().onSuccess( __ -> {
+                    collector.collect( ev, collected -> {
+                        var ids = Sequence.of( collected ).map( _ev -> _ev.getSource().id() ).toSet();
+                        uow.refresh( ids ).onSuccess( __ -> {
                             EventManager.instance().publish( new ModelSubmittedEvent( this, collected ) );
                         });
                     });
                 })
-                .performIf( ev -> ev instanceof EntityLifecycleEvent && ((EntityLifecycleEvent)ev).state == State.AFTER_SUBMIT )
+                .performIf( ev -> With.$( ev ).instanceOf( EntityLifecycleEvent.class )
+                        .map( lev -> lev.state == State.AFTER_SUBMIT && appEntities.contains( lev.getSource().getClass() ) )
+                        .orElse( false ))
                 .unsubscribeIf( () -> !uow.isOpen() );
+
+        // settings model updates
+        var collector2 = new EventCollector<EntityLifecycleEvent>( 100 );
+        EventManager.instance()
+                .subscribe( (EntityLifecycleEvent ev) -> {
+                    // no refresh needed if main UoW was submitted
+                    if (ev.getSource().context.getUnitOfWork() == settingsUow) {
+                        return;
+                    }
+                    collector2.collect( ev, collected -> {
+                        var ids = Sequence.of( collected ).map( _ev -> _ev.getSource().id() ).toSet();
+                        settingsUow.refresh( ids ).onSuccess( __ -> {
+                            EventManager.instance().publish( new ModelSubmittedEvent( this, collected ) );
+                        });
+                    });
+                })
+                .performIf( ev -> With.$( ev ).instanceOf( EntityLifecycleEvent.class )
+                        .map( lev -> lev.state == State.AFTER_SUBMIT && settingsEntities.contains( lev.getSource().getClass() ) )
+                        .orElse( false ))
+                .unsubscribeIf( () -> !settingsUow.isOpen() );
     }
 
 
@@ -299,16 +328,13 @@ public class ArecaApp extends App {
         return uow;
     }
 
-//    /** FIXME: hack porque UnitOfWork#discard() no trabaja bien */
-//    @Deprecated
-//    public UnitOfWork discardUnitOfWork() {
-//        return uow = repo.newUnitOfWork();
-//    }
-
 
     public Promise<UnitOfWork> settings() {
-        return new WaitFor<UnitOfWork>( () -> settingsUow != null )
-                .thenSupply( () -> settingsUow )
-                .start();
+        return new WaitFor<UnitOfWork>( () -> settingsUow != null ).thenSupply( () -> settingsUow ).start();
     }
+
+    public Promise<UnitOfWork> modifiableSettings() {
+        return new WaitFor<UnitOfWork>( () -> settingsRepo != null ).thenSupply( () -> settingsRepo.newUnitOfWork() ).start();
+    }
+
 }

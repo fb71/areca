@@ -11,20 +11,34 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.app.model;
+
+import org.polymap.model2.Entity;
+import org.polymap.model2.Property;
+
+import areca.common.reflect.ClassInfo;
+import areca.common.reflect.RuntimeInfo;
 
 /**
  *
- * @param <M> Type of the model value.
- * @param <U> Type of the user interface value.
  * @author Falko Bräutigam
  */
-public interface ModelValueTransformer<M,U> {
+@RuntimeInfo
+public class SmtpSettings
+        extends Entity {
 
-    public U transform2UI( M value );
+    public static final ClassInfo<SmtpSettings> info = SmtpSettingsClassInfo.instance();
 
-    public default M transform2Model( U value ) {
-        throw new RuntimeException( "Implement this method if the field is modifiable." );
-    }
+    public static SmtpSettings      TYPE;
+
+    public Property<String>         host;
+
+    public Property<Integer>        port;
+
+    public Property<String>         username;
+
+    public Property<String>         pwd;
+
+    public Property<String>         from;
 
 }

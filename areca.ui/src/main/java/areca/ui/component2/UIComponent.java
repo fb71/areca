@@ -86,6 +86,9 @@ public abstract class UIComponent {
     /**  */
     public ReadWrite<UIComponent,Float>     opacity = Property.rw( this, "opacity" );
 
+    /**  */
+    public ReadWrite<UIComponent,Boolean>   enabled = Property.rw( this, "enabled" );
+
     /** */
     public ReadWrite<UIComponent,LayoutConstraints> layoutConstraints = Property.rw( this, "lc" );
 

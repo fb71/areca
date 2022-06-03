@@ -69,7 +69,7 @@ public class MessagesPage extends Page {
 
     private static final Log LOG = LogFactory.getLog( MessagesPage.class );
 
-    public static final DateFormat  sdf = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT );
+    public static final DateFormat  df = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT );
 
     public static final int         MESSAGE_MARK_READ_DELAY = 5000;
 

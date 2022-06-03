@@ -59,20 +59,29 @@ public class StartPage
         }});
         // Settings
         site.actions.add( new Action() {{
-            icon.set( "mail" );
-            description.set( "Open EMail settings" );
+            icon.set( "settings" );
+            description.set( "Open settings" );
             handler.set( (UIEvent ev) -> {
-                site.pageflow().open( new ImapSettingsPage(), StartPage.this, ev.clientPos() );
+                site.pageflow().open( new SettingsPage(), StartPage.this, ev.clientPos() );
             });
         }});
-        // Settings
-        site.actions.add( new Action() {{
-            icon.set( "chat" );
-            description.set( "Open Matrix settings" );
-            handler.set( (UIEvent ev) -> {
-                site.pageflow().open( new MatrixSettingsPage(), StartPage.this, ev.clientPos() );
-            });
-        }});
+
+//        // Settings
+//        site.actions.add( new Action() {{
+//            icon.set( "mail" );
+//            description.set( "Open EMail settings" );
+//            handler.set( (UIEvent ev) -> {
+//                site.pageflow().open( new ImapSettingsPage(), StartPage.this, ev.clientPos() );
+//            });
+//        }});
+//        // Settings
+//        site.actions.add( new Action() {{
+//            icon.set( "chat" );
+//            description.set( "Open Matrix settings" );
+//            handler.set( (UIEvent ev) -> {
+//                site.pageflow().open( new MatrixSettingsPage(), StartPage.this, ev.clientPos() );
+//            });
+//        }});
 
         new AnchorsCloudPage( ui.body, this );
 

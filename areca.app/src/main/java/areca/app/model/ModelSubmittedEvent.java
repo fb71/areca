@@ -16,11 +16,16 @@ package areca.app.model;
 import java.util.EventObject;
 import java.util.List;
 
+import org.polymap.model2.Entity;
+import org.polymap.model2.runtime.UnitOfWork;
+
 import areca.app.ArecaApp;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
+ * Fired by {@link ArecaApp} when Entities where modified and the main {@link UnitOfWork}
+ * was refreshed.
  *
  * @author Falko Bräutigam
  */
@@ -29,11 +34,16 @@ public class ModelSubmittedEvent
 
     private static final Log LOG = LogFactory.getLog( ModelSubmittedEvent.class );
 
-    public List<EntityLifecycleEvent>   events;
+    private List<EntityLifecycleEvent>      events;
 
     public ModelSubmittedEvent( ArecaApp source, List<EntityLifecycleEvent> collected ) {
         super( source );
         this.events = collected;
+    }
+
+    public <R extends Entity> List<R> entities( Class<R> type, UnitOfWork uow ) {
+        throw new RuntimeException( "not yet..." );
+        //return Sequence.of( events ).map( ev -> uow.entity( type, ev.getSource().id() ) ).toList();
     }
 
 }

@@ -71,14 +71,12 @@ public class ViewerBuilder {
     public UIComponent create() {
         Assert.notNull( adapter, "Adapter is mandatory for building a viewer!" );
         if (adapter instanceof SingleValueAdapter) {
-            viewer.init( transformingSingleValueAdapter( (SingleValueAdapter<?>)adapter ) );
+            viewer.init( new TransformingSingleValueAdapter() );
         }
         else {
             throw new RuntimeException( "Unknown adapter type: " + adapter );
         }
-
         viewer = viewer != null ? viewer : guessViewer();
-
         return viewer.create();
     }
 
@@ -88,33 +86,35 @@ public class ViewerBuilder {
     }
 
 
-    protected SingleValueAdapter transformingSingleValueAdapter( SingleValueAdapter delegate ) {
-        return new SingleValueAdapter() {
+    /**
+     *
+     */
+    protected class TransformingSingleValueAdapter
+            implements SingleValueAdapter {
 
-            @Override
-            public Object getValue() {
-                Object value = delegate.getValue();
-                if (transformer != null) {
-                    value = transformer.transform2UI( value );
-                }
-                if (validator != null) {
-                    throw new RuntimeException( "not yet implemented: validator" );
-                }
-                return value;
+        @Override
+        public Object getValue() {
+            Object value = ((SingleValueAdapter)adapter).getValue();
+            if (transformer != null) {
+                value = transformer.transform2UI( value );
             }
+            if (validator != null) {
+                throw new RuntimeException( "not yet implemented: validator" );
+            }
+            return value;
+        }
 
-            @Override
-            @SuppressWarnings("unchecked")
-            public void setValue( Object value ) {
-                if (transformer != null) {
-                    value = transformer.transform2UI( value );
-                }
-                if (validator != null) {
-                    throw new RuntimeException( "not yet implemented: validator" );
-                }
-                delegate.setValue( value );
+        @Override
+        @SuppressWarnings("unchecked")
+        public void setValue( Object value ) {
+            if (transformer != null) {
+                value = transformer.transform2Model( value );
             }
-        };
+            if (validator != null) {
+                throw new RuntimeException( "not yet implemented: validator" );
+            }
+            ((SingleValueAdapter)adapter).setValue( value );
+        }
     }
 
 }

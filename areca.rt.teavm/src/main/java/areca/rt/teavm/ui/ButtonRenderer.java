@@ -53,6 +53,8 @@ public class ButtonRenderer
         var htmlButton = (HTMLButtonElement)doc().createElement( "button" );
         c.htmlElm = htmlButton;
 
+        htmlButton.setAttribute( "type", "button" );
+
         // icon
         htmlButton.appendChild( doc().createElement( "span", (HTMLElement span) -> {
             span.setAttribute( "class", "material-icons" );

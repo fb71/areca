@@ -17,6 +17,7 @@ import java.util.EventObject;
 
 import org.polymap.model2.Entity;
 import org.polymap.model2.runtime.Lifecycle.State;
+import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -37,6 +38,9 @@ public class EntityLifecycleEvent
         this.state = state;
     }
 
+    /**
+     * !Beware: The entity is probably from another {@link UnitOfWork}!
+     */
     @Override
     public Entity getSource() {
         return (Entity)super.getSource();

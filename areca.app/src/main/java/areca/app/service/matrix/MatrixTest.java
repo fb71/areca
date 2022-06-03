@@ -91,8 +91,8 @@ public class MatrixTest {
 
 
     protected void roomTimelineTest() {
-        MatrixClient matrix = null;
-
+//        MatrixClient matrix = null;
+//
 //      matrix.on( "Room.timeline", (_event, room, toStartOfTimeline) -> {
 //          Event event = (Event)_event;
 //          if (event.getType().equals( "m.room.message" )) {

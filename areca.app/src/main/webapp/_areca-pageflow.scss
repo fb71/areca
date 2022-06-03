@@ -39,10 +39,10 @@ $header_color: $accent_color;
     border: none;
     box-shadow: none;
 }
-.PageHeaderItem:hover {
+.PageHeaderItem:hover:enabled {
     background-color: saturate(lighten($header_color, 5%), 5%);
 }
-.PageHeaderItem:active {
+.PageHeaderItem:active:enabled {
     // XXX this is good for buttons oonly
     box-shadow: inset 0px 1px 3px rgba(0,0,0,0.5);
 }

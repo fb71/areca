@@ -55,6 +55,9 @@ public class SmtpTest {
         request.submit()
                 .onSuccess( command -> {
                     LOG.info( "Response: %s", command );
+                })
+                .onError( e -> {
+                    LOG.info( "Error: %s", e );
                 });
     }
 

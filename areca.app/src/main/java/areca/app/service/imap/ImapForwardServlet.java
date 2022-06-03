@@ -25,6 +25,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.time.Duration;
 import java.time.Instant;
@@ -146,7 +147,9 @@ public class ImapForwardServlet extends HttpServlet {
         Timer timer = Timer.start();
         debug( "trying %s:%s ...", imapRequest.host, imapRequest.port );
         SSLSocketFactory factory = sslContext.getSocketFactory();
-        SSLSocket socket = (SSLSocket)factory.createSocket( imapRequest.host, imapRequest.port );
+        SSLSocket socket = (SSLSocket)factory.createSocket();
+        socket.connect( new InetSocketAddress( imapRequest.host, imapRequest.port ), 5000 );
+        socket.setSoTimeout( 7000 );
         socket.startHandshake();
         debug( "####################################### SSL connection: established. (" + timer.elapsedHumanReadable() + ")" );
         return socket;

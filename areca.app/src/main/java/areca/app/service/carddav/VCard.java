@@ -17,8 +17,6 @@ import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-import static org.apache.commons.lang3.StringUtils.substringBefore;
-
 import java.util.ArrayList;
 
 import java.io.BufferedReader;
@@ -116,7 +114,7 @@ public class VCard {
             }
             // PHOTO;ENCODING=B;TYPE=JPEG:
             else if (line.startsWith( "PHOTO" )) {
-                var parts = split( substringBefore( line, ":" ), ';' );
+                //var parts = split( substringBefore( line, ":" ), ';' );
                 photo.set( substringAfterLast( line, ":" ) );
                 LOG.debug( "PHOTO: %s", photo.value() );
             }

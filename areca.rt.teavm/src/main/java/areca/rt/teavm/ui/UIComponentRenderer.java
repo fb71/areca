@@ -104,6 +104,16 @@ public abstract class UIComponentRenderer {
                     }
                 });
 
+        // enabled
+        c.enabled
+                .onInitAndChange( (newValue, oldValue) -> {
+                    if (newValue == null || newValue) {
+                        htmlElm.removeAttribute( "disabled" );
+                    } else {
+                        htmlElm.setAttribute( "disabled", "disabled" );
+                    }
+                });
+
         // size
         c.size
                 .onInitAndChange( (newValue, oldValue) -> {

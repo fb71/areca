@@ -61,4 +61,9 @@ public class With<T> {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
+    public <R,E extends Exception> Opt<R> instanceOf( Class<R> type ) throws E {
+        return type.isInstance( obj ) ? Opt.of( (R)obj ) : Opt.absent();
+    }
+
 }

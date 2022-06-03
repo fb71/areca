@@ -32,7 +32,7 @@ public class Number2StringTransformer
     }
 
     @Override
-    public Number transfor2Model( String value ) {
+    public Number transform2Model( String value ) {
         return value != null ? Integer.valueOf( value ) : null; // XXX other types!?
     }
 
