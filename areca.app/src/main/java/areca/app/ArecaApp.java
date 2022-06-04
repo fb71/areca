@@ -19,7 +19,9 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
+import org.teavm.jso.browser.Navigator;
 import org.teavm.jso.browser.Window;
 
 import org.polymap.model2.runtime.EntityRepository;
@@ -41,6 +43,7 @@ import areca.app.service.SyncableService;
 import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.SyncableService.SyncType;
 import areca.app.service.carddav.CarddavService;
+import areca.app.service.imap.ImapService;
 import areca.app.service.matrix.MatrixService;
 import areca.app.ui.StartPage;
 import areca.common.Assert;
@@ -82,11 +85,24 @@ public class ArecaApp extends App {
         return "http?uri=" + url;
     }
 
+    public static Locale locale() {
+        try {
+            var splitted = Navigator.getLanguage().split( "-" );
+            LOG.info( "Lang: %s", Arrays.asList( splitted ) );
+            return splitted.length == 1
+                    ? new Locale( splitted[0] )
+                    : new Locale( splitted[0], splitted[1] );
+        }
+        catch (Exception e) {
+            return Locale.getDefault();
+        }
+    }
+
     // instance *******************************************
 
     private List<? extends Service> services = Arrays.asList(  // XXX from DB?
             new CarddavService(),
-            //new ImapService(),
+            new ImapService(),
             new MatrixService() );
 
     private EntityRepository        repo;
@@ -107,7 +123,7 @@ public class ArecaApp extends App {
         var appEntities = Sequence.of( appEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
                 .entities.set( appEntityTypes )
-                .store.set( new IDBStore( "areca.app", 10, true ) )
+                .store.set( new IDBStore( "areca.app", 11, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -184,14 +200,14 @@ public class ArecaApp extends App {
 
             rootWindow.layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true );}} );
             mainBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 6 );}} );
+                layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 5 );}} );
             }});
 
             // monitorBody
             progressBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( 6 );}} );
+                layoutConstraints.set( new RowConstraints() {{height.set( 5 );}} );
                 cssClasses.add( "ProgressContainer" );
-                layout.set( new RowLayout() {{margins.set( Size.of( 3, 1 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
+                layout.set( new RowLayout() {{margins.set( Size.of( 0, 0 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
 
 //                add( new Progress() {{
 //                    value.set( 0.8f );
@@ -277,7 +293,7 @@ public class ArecaApp extends App {
             public void done() {
                 progress.value.set( Float.valueOf( workTotal ) );
                 progressText.content.set( taskName + " 100%" );
-                Platform.schedule( 3000, () -> {
+                Platform.schedule( 1000, () -> {
                     progress.dispose();
                     progressText.dispose();
                     progressBody.layout();

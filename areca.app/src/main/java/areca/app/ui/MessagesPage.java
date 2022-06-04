@@ -20,7 +20,6 @@ import static org.apache.commons.lang3.StringUtils.abbreviate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-
 import java.text.DateFormat;
 
 import org.apache.commons.lang3.StringUtils;
@@ -69,7 +68,7 @@ public class MessagesPage extends Page {
 
     private static final Log LOG = LogFactory.getLog( MessagesPage.class );
 
-    public static final DateFormat  df = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT );
+    public static final DateFormat  df = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT, ArecaApp.locale() );
 
     public static final int         MESSAGE_MARK_READ_DELAY = 5000;
 

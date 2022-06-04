@@ -21,6 +21,7 @@ import static areca.app.service.imap.MessageFetchHeadersCommand.FieldEnum.TO;
 import static org.apache.commons.lang3.Range.between;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -183,11 +184,12 @@ public class ImapFolderSynchronizer {
     }
 
 
+    @SuppressWarnings("deprecation")
     protected Promise<Message> fetchMessage( int msgNum ) {
         LOG.info( "%s: Fetching: %s", folderName, msgNum );
         var r = requestFactory.supply();
         r.commands.add( new FolderSelectCommand( folderName ) );
-        //r.commands.add( new MessageFetchCommand( msgNum, "TEXT" ) );
+        r.commands.add( new MessageFetchCommand( msgNum, "TEXT" ) );
         r.commands.add( new MessageFetchHeadersCommand( between( msgNum, msgNum ), SUBJECT, FROM, TO, DATE, MESSAGE_ID ) );
         return r.submit()
                 .reduce( uow.createEntity( Message.class ), (entity,command) -> {
@@ -200,6 +202,7 @@ public class ImapFolderSynchronizer {
                         entity.storeRef.set( headers.get( MESSAGE_ID ) );
                         entity.from.set( headers.get( FROM ) );
                         entity.unread.set( !((MessageFetchHeadersCommand)command).flags.get( msgNum ).contains( Flag.SEEN ) );
+                        entity.date.set( Date.parse( headers.get( DATE ) ) );
                     }
                 });
 

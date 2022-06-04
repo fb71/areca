@@ -40,6 +40,7 @@ public class Message
 
     @Nullable
     @Queryable
+    @Defaults
     public Property<String>         content;
 
     @Defaults
