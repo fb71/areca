@@ -39,7 +39,7 @@ public class SameStackEventManager
     @Override
     public void publish( EventObject ev ) {
         for (EventHandlerInfo handler : handlers) {
-            handler.perform( ev );
+             handler.perform( ev );
         }
         checkExpunge();
     }

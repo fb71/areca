@@ -102,6 +102,10 @@ public class MessageFetchCommand extends Command {
                 }
             }
         }
+        // fallback: no MIME, just use everything
+        if (textContent == null || textContent.isBlank()) {
+            textContent = text.substring( 0, text.length()-1 ); // trailing ")" from IMAP
+        }
     }
 
 

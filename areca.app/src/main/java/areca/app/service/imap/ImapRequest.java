@@ -42,6 +42,9 @@ public class ImapRequest
 
     private static final Log LOG = LogFactory.getLog( ImapRequest.class );
 
+    /** @see ImapForwardServlet#DEFAULT_ENCODING */
+    public static final String DEFAULT_ENCODING = "UTF-8";
+
 
     public <E extends Exception> ImapRequest( Consumer<ImapRequest,E> initializer ) throws E {
         initializer.accept( this );
@@ -70,41 +73,6 @@ public class ImapRequest
                         }
                     });
                 });
-
-
-//        var promise = new Promise.Completable<Command>();
-//
-//        Timer timer = Timer.start();
-//        XMLHttpRequest request = XMLHttpRequest.create();
-//        request.setOnReadyStateChange( () -> {
-//            LOG.info( "Request ready state: " + request.getReadyState() );
-//        });
-//        request.open( "POST", "imap/", true );
-//
-//        request.onComplete( () -> {
-//            try {
-//                LOG.info( "Status: " + request.getStatus() + " (" + timer.elapsedHumanReadable() + ")" );
-//                if (request.getStatus() > 299) {
-//                    throw new IOException( "HTTP Status: " + request.getStatus() );
-//                }
-//                String response = request.getResponseText();
-//                var in = new BufferedReader( new StringReader( response ) );
-//                Sequence.of( Exception.class, commands ).map( c -> (Command)c ).forEach( (command,i) -> {
-//                    command.parse( in );
-//                    if (i < commands.size() - 1) {
-//                        promise.consumeResult( command );
-//                    }
-//                    else {
-//                        promise.complete( command );
-//                    }
-//                });
-//            }
-//            catch (Exception e) {
-//                promise.completeWithError( e );
-//            }
-//        });
-//        request.send( toJson() );
-//        return promise;
     }
 
 
@@ -145,6 +113,9 @@ public class ImapRequest
     }
 
 
+    /**
+     *
+     */
     public static class LoginCommand extends Command {
 
         public LoginCommand( String username, String passwd ) {
@@ -155,6 +126,9 @@ public class ImapRequest
     }
 
 
+    /**
+     *
+     */
     public static class LogoutCommand extends Command {
 
         public LogoutCommand() {

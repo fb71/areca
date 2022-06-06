@@ -17,6 +17,9 @@ import org.polymap.model2.Defaults;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
+
+import areca.app.service.Service;
+import areca.app.service.TransportService;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -31,9 +34,23 @@ public class Message
 
     public static Message           TYPE;
 
+    /**
+     * An {@link Address} that identifies the origin sender of this Message.
+     * It should identify the {@link Contact}, if one exists.
+     */
     @Nullable
     @Queryable
-    public Property<String>         from;
+    public Property<String>         fromAddress;
+
+    /**
+     * An {@link Address} that is the {@link Service} specific path to reply to this
+     * Message. In Matrix this specifies a "room". EMail may have a ReplyTo:.
+     * {@link TransportService Sending} a message to this {@link Address} is the
+     * Service specific and intented way to reply to a message.
+     */
+    @Nullable
+    @Queryable
+    public Property<String>         replyAddress;
 
     @Queryable
     public Property<Long>           date;
@@ -43,10 +60,19 @@ public class Message
     @Defaults
     public Property<String>         content;
 
+    @Nullable
+    @Queryable
+    //@Defaults
+    public Property<String>         threadSubject;
+
     @Defaults
     @Queryable
     public Property<Boolean>        unread;
 
+    /**
+     * A {@link Service} specific reference that is used to identify the origin of
+     * this message in the backend store.
+     */
     @Nullable
     @Queryable
     public Property<String>         storeRef;

@@ -13,14 +13,13 @@
  */
 package areca.app.service;
 
-import static areca.app.service.Message2ContactAnchorSynchronizer.addressParts;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
+import areca.app.model.Address;
 import areca.app.model.Anchor;
 import areca.app.model.Message;
 import areca.common.Assert;
@@ -49,8 +48,8 @@ public class Message2PseudoContactAnchorSynchronizer {
 
     public Promise<Message> perform( Message message ) {
         // XXX all associated adresses
-        var address = addressParts( message.from.get() );
-        var storeRef = "pseudo-contact:" + address.pure;
+        var address = Address.parseEncoded( message.fromAddress.get() );
+        var storeRef = "pseudo-contact:" + address.content;
 
         return uow.query( Anchor.class )
                 // check/create Anchor
@@ -73,13 +72,13 @@ public class Message2PseudoContactAnchorSynchronizer {
                     // no Anchor yet
                     else {
                         return uow.query( Message.class )
-                                .where( Expressions.eq( Message.TYPE.from, message.from.get() ) ) // XXX all addresses
+                                .where( Expressions.eq( Message.TYPE.fromAddress, message.fromAddress.get() ) ) // XXX all addresses
                                 .executeCollect()
                                 .map( foundMsgs -> {
                                     if (foundMsgs.size() > 1) {
                                         var anchor = seen.computeIfAbsent( storeRef, __ -> uow.createEntity( Anchor.class, proto -> {
-                                            LOG.debug( "Pseudo contact create: %s -> '%s' '%s' '%s'", message.from.get(), address.first, address.last, address.pure );
-                                            proto.name.set( String.format( "%s %s", address.first, address.last ) );
+                                            //LOG.debug( "Pseudo contact create: %s -> '%s' '%s' '%s'", message.from.get(), address.first, address.last, address.pure );
+                                            proto.name.set( address.content.replace( "@", "@ " ) );
                                             proto.storeRef.set( storeRef );
                                         }));
                                         // FIXME should add all found, and check for found Anchors if the messsage is already there;

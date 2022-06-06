@@ -61,6 +61,9 @@ public class ImapForwardServlet extends HttpServlet {
 
     private static final Duration POOL_DURATION = Duration.ofSeconds( 3 );
 
+    /** See {@link ImapRequest#DEFAULT_ENCODING} */
+    public static final String DEFAULT_ENCODING = "UTF-8";
+
     @FunctionalInterface
     interface Consumer<T,E extends Exception> {
         void accept( T consumable ) throws E;
@@ -243,8 +246,8 @@ public class ImapForwardServlet extends HttpServlet {
             public PooledSocket( Socket socket, String poolkey ) throws IOException {
                 this.poolkey = poolkey;
                 this.socket = socket;
-                this.out = new BufferedWriter( new OutputStreamWriter( socket.getOutputStream(), "ISO-8859-1" ) ); //XXX SMTP hack
-                this.in = new BufferedReader( new InputStreamReader( socket.getInputStream(), "UTF8" ) ); //UTF8" ) );
+                this.out = new BufferedWriter( new OutputStreamWriter( socket.getOutputStream(), DEFAULT_ENCODING ) ); //XXX SMTP hack
+                this.in = new BufferedReader( new InputStreamReader( socket.getInputStream(), DEFAULT_ENCODING ) ); //UTF8" ) );
             }
 
             public <E extends Exception> void ifCreated( Consumer<Socket,E> block ) throws E {

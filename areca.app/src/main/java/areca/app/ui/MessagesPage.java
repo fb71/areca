@@ -20,24 +20,24 @@ import static org.apache.commons.lang3.StringUtils.abbreviate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.james.mime4j.codec.DecoderUtil;
 
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.runtime.Lifecycle.State;
 
 import areca.app.ArecaApp;
+import areca.app.model.Address;
 import areca.app.model.Message;
-import areca.app.service.TransportService;
-import areca.app.service.TransportService.Sent;
-import areca.app.service.TransportService.Transport;
-import areca.app.service.TransportService.TransportContext;
+import areca.app.service.TransportService.TransportMessage;
+import areca.app.service.MessageSentEvent;
 import areca.app.service.TypingEvent;
 import areca.common.Assert;
 import areca.common.Platform;
-import areca.common.ProgressMonitor;
-import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Opt;
 import areca.common.event.EventManager;
@@ -154,32 +154,48 @@ public class MessagesPage extends Page {
 
     protected void send() {
         Assert.notNull( selectedCard, "selectedCard == null" );
-        var ctx = new TransportContext() {
-            @Override public ProgressMonitor newMonitor() {
-                return ArecaApp.instance().newAsyncOperation();
-            }
-        };
-        var receipients = selectedCard.message.from.get();
-        var services = ArecaApp.instance().services( TransportService.class ).toList();
-        Promise.joined( services.size(), i -> services.get( i ).newTransport( receipients, ctx ) )
-                .reduce2( (Transport)null, (r, transport) -> transport != null ? transport : r )
-                .then( transport -> {
-                    if (transport == null) {
-                        LOG.info( "No transport found for: %s", receipients );
-                        // XXX UI
-                        return Promise.<Sent>absent();
-                    }
-                    else {
-                        LOG.info( "Transport found for: %s - %s", receipients, transport );
-                        return transport.send( messageTextInput.content.value() ).map( result -> Opt.of( result ) );
-                    }
+        var msg = new TransportMessage() {{
+            receipient = Address.parseEncoded( selectedCard.message.fromAddress.get() );
+            text = messageTextInput.content.value();
+            threadSubject = Opt.of( selectedCard.message.threadSubject.get() );
+            followUp = Opt.of( selectedCard.message );
+        }};
+        ArecaApp.current().transportFor( msg.receipient )
+                .thenOpt( transport -> {
+                    LOG.info( "Transport found for: %s - %s", msg.receipient, transport );
+                    return transport.get().send( msg );
                 })
-                .onSuccess( result -> {
-                    result.ifPresent( sent -> {
-                        LOG.info( "Transport sent! :) - %s", sent );
-                    });
-                })
-                .onError( ArecaApp.instance().defaultErrorHandler() );
+                .onSuccess( result -> result
+                        .ifPresent( sent -> {
+                            LOG.info( "Transport sent! :) - %s", sent );
+                            EventManager.instance().publish( new MessageSentEvent( sent ) );
+                        })
+                        .ifAbsent( __ -> {
+                            LOG.info( "No Transport!" );
+                        })
+                )
+                .onError( ArecaApp.current().defaultErrorHandler() ); // XXX UI
+
+//        var services = ArecaApp.instance().services( TransportService.class ).toList();
+//        Promise.joined( services.size(), i -> services.get( i ).newTransport( receipients, ctx ) )
+//                .reduce2( (Transport)null, (r, transport) -> transport != null ? transport : r )
+//                .then( transport -> {
+//                    if (transport == null) {
+//                        LOG.info( "No transport found for: %s", receipients );
+//                        // XXX UI
+//                        return Promise.<Sent>absent();
+//                    }
+//                    else {
+//                        LOG.info( "Transport found for: %s - %s", receipients, transport );
+//                        return transport.send( messageTextInput.content.value() ).map( result -> Opt.of( result ) );
+//                    }
+//                })
+//                .onSuccess( result -> {
+//                    result.ifPresent( sent -> {
+//                        LOG.info( "Transport sent! :) - %s", sent );
+//                    });
+//                })
+//                .onError( ArecaApp.instance().defaultErrorHandler() );
 
     }
 
@@ -247,8 +263,9 @@ public class MessagesPage extends Page {
                 toggle();
             });
 
+            var address = Address.parseEncoded( msg.fromAddress.get() );
             var fromText = add( new Text() {{
-                content.set( abbreviate( msg.from.get(), 30 ) );
+                content.set( abbreviate( address.content, 30 ) );
                 cssClasses.add( "FromText" );
             }});
             var dateText = add( new Text() {{
@@ -256,7 +273,8 @@ public class MessagesPage extends Page {
                 cssClasses.add( "DateText" );
             }});
             contentText = add( new Text() {{
-                content.set( StringUtils.abbreviate( msg.content.get(), 250 ) );
+                var decoded = DecoderUtil. decodeEncodedWords( msg.content.get(), Charset.forName( "ISO-8859-1" ) );
+                content.set( StringUtils.abbreviate( decoded, 250 ) );
             }});
 
             // layout

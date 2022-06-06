@@ -25,12 +25,14 @@ import areca.app.ArecaApp;
 import areca.app.model.ImapSettings;
 import areca.app.service.Message2ContactAnchorSynchronizer;
 import areca.app.service.Message2PseudoContactAnchorSynchronizer;
+import areca.app.service.MessageSentEvent;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Supplier.RSupplier;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -49,9 +51,24 @@ public class ImapService
     protected ImapSettings             settings;
 
 
+    public ImapService() {
+        // append sent messages to Sent folder
+        EventManager.instance()
+                .subscribe( (MessageSentEvent ev) -> {
+                    LOG.info( "Message sent: attaching to Sent folder..." );
+                    var request = newRequest();
+                    request.commands.addAll( new AppendCommand( "Sent", ev.sent.message, ev.sent.from ).commands );
+                    request.submit()
+                            .onSuccess( command -> LOG.info( "OK" ))
+                            .onError( ArecaApp.current().defaultErrorHandler() );
+                })
+                .performIf( MessageSentEvent.class::isInstance );
+    }
+
+
     @Override
     public String label() {
-        return "Messages - EMail";
+        return "Email";
     }
 
 
@@ -66,9 +83,10 @@ public class ImapService
 
 
     protected ImapRequest newRequest() {
+        // defaults for testing?
         return new ImapRequest( self -> {
             self.host = settings!= null ? settings.host.get() : "mail.polymap.de";
-            self.port = 993; // settings!= null ? settings.port.get() : 993;
+            self.port = settings!= null ? settings.port.get() : 993;
             self.loginCommand = settings != null
                     ? new LoginCommand( settings.username.get(), settings.pwd.get() )
                             : new LoginCommand( "areca@polymap.de", "dienstag" );

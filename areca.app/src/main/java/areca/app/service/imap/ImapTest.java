@@ -38,6 +38,7 @@ import areca.app.model.ImapSettings;
 import areca.app.model.Message;
 import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.SyncableService.SyncType;
+import areca.app.service.carddav.CarddavTest;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Assert;
 import areca.common.NullProgressMonitor;
@@ -74,11 +75,11 @@ public class ImapTest {
     protected ImapRequest   request = newRequest();
 
 
-    protected ImapRequest newRequest() {
+    public static ImapRequest newRequest() {
         return new ImapRequest( self -> {
             self.host = "mail.polymap.de";
             self.port = 993;
-            self.loginCommand = new LoginCommand( "areca@polymap.de", "dienstag" );
+            self.loginCommand = new LoginCommand( CarddavTest.ARECA_USERNAME, CarddavTest.ARECA_PWD );
         });
     }
 
@@ -285,12 +286,21 @@ public class ImapTest {
                     return new ImapRequest( self -> {
                         self.host = "mail.polymap.de";
                         self.port = 993;
-                        self.loginCommand = new LoginCommand( "areca@polymap.de", "dienstag" );
+                        self.loginCommand = new LoginCommand( CarddavTest.ARECA_USERNAME, CarddavTest.ARECA_PWD );
                     });
                 }
             };
             return service.newSync( SyncType.FULL, ctx ).then( sync -> sync.start() );
         });
+    }
+
+
+    @Test
+    public void prefixedSubjectTest() {
+        Assert.isEqual( "Irgendwas", ImapFolderSynchronizer.strippedSubject( "Re: AW: Irgendwas" ) );
+        Assert.isEqual( "Irgendwas", ImapFolderSynchronizer.strippedSubject( "Irgendwas" ) );
+        Assert.isEqual( "Irgendwas: ist anders", ImapFolderSynchronizer.strippedSubject( "Irgendwas: ist anders" ) );
+        Assert.isEqual( null, ImapFolderSynchronizer.strippedSubject( null ) );
     }
 
 }

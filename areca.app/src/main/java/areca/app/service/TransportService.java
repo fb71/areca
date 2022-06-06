@@ -12,8 +12,14 @@
  */
 package areca.app.service;
 
+import java.util.Collections;
+import java.util.List;
+
+import areca.app.model.Address;
+import areca.app.model.Message;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
+import areca.common.base.Opt;
 
 /**
  *
@@ -33,8 +39,8 @@ public interface TransportService {
      * <p/>
      * The default implementation signals that there is no transport.
      */
-    public default Promise<Transport> newTransport( String receipient, TransportContext ctx ) {
-        return Promise.completed( null );
+    public default Promise<List<Transport>> newTransport( Address address, TransportContext ctx ) {
+        return Promise.completed( Collections.emptyList() );
     }
 
     /**
@@ -43,15 +49,35 @@ public interface TransportService {
     public abstract static class Transport {
 
         /**
-         * Sends the given content.
+         * Sends the given message.
          * <p/>
          * Default error handlers are attached by caller.
          */
-        public abstract Promise<Sent> send( String text );
+        public abstract Promise<Sent> send( TransportMessage msg );
     }
 
+    /**
+     * A message that is to be sent via a {@link Transport}.
+     */
+    public static class TransportMessage {
+
+        public Opt<Message> followUp = Opt.absent();
+
+        public Address      receipient;
+
+        public Opt<String>  threadSubject;
+
+        public String       text;
+    }
+
+    /**
+     *
+     */
     public static class Sent {
 
+        public TransportMessage     message;
+
+        public String               from;
     }
 
 }

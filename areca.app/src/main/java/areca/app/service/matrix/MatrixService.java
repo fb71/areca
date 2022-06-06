@@ -13,12 +13,18 @@
  */
 package areca.app.service.matrix;
 
+import static java.util.Collections.singletonList;
+
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
+import areca.app.model.Address;
 import areca.app.model.Anchor;
 import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
@@ -89,38 +95,38 @@ public class MatrixService
     }
 
     @Override
-    public Promise<TransportService.Transport> newTransport( String receipient, TransportContext ctx ) {
-        var storeRef = MessageStoreRef.parse( receipient );
-        return storeRef.isPresent()
-                ? Promise.completed( new Transport( storeRef.get(), ctx ) )
-                : Promise.completed( null );
+    public Promise<List<Transport>> newTransport( Address receipient, TransportContext ctx ) {
+        var address = MatrixAddress.check( receipient );
+        return Promise.completed( address.isPresent()
+                ? singletonList( new MatrixTransport( address.get(), ctx ) )
+                : Collections.emptyList() );
     }
 
 
     /**
      *
      */
-    protected class Transport
+    protected class MatrixTransport
             extends TransportService.Transport {
 
-        private MessageStoreRef     receipient;
+        private MatrixAddress       receipient;
 
         private TransportContext    ctx;
 
-        public Transport( MessageStoreRef receipient, TransportContext ctx ) {
+        public MatrixTransport( MatrixAddress receipient, TransportContext ctx ) {
             this.receipient = receipient;
             this.ctx = ctx;
         }
 
         @Override
-        public Promise<Sent> send( String text ) {
+        public Promise<Sent> send( TransportMessage msg ) {
             Assert.notNull( matrix, "No Matrix client initialized." ); // XXX show UI
             var result = new Promise.Completable<Sent>();
             var content = JSMessage.create();
             content.setMsgtype( "m.text" );
-            content.setBody( text );
+            content.setBody( msg.text );
             MatrixClient.console( content );
-            matrix.sendEvent( receipient.roomId, "m.room.message", content, "" )
+            matrix.sendEvent( receipient.roomId(), "m.room.message", content, "" )
                     .then( sendResult -> result.complete( new Sent() ) );
             return result;
         }
@@ -209,8 +215,7 @@ public class MatrixService
                                 return uow.createEntity( Message.class, proto -> {
                                     MessageStoreRef storeRef = MessageStoreRef.of( event.roomId(), event.eventId() );
                                     proto.storeRef.set( storeRef.toString() );
-                                    proto.from.set( storeRef.toString() );
-                                    proto.from.set( event.sender() );
+                                    proto.fromAddress.set( new MatrixAddress( event.sender(), event.roomId() ).encoded() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
                                     proto.unread.set( true );
                                     proto.date.set( (long)event.date().getTime() );
@@ -308,8 +313,7 @@ public class MatrixService
                                 Expressions.eq( Message.TYPE.storeRef, storeRef.toString() ),
                                 proto -> {
                                     proto.storeRef.set( storeRef.toString() );
-                                    proto.from.set( storeRef.toString() );
-                                    //proto.from.set( event.sender() );
+                                    proto.fromAddress.set( new MatrixAddress( event.sender(), roomAnchor.room.roomId() ).encoded() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
                                     proto.unread.set( true );
                                     proto.date.set( (long)event.date() );
@@ -321,6 +325,32 @@ public class MatrixService
         }
     }
 
+    /**
+     *
+     */
+    protected static class MatrixAddress
+            extends Address {
+
+        public static final String PREFIX = "matrix:";
+
+        public static Opt<MatrixAddress> check( Address check ) {
+            Assert.that( !MatrixAddress.class.isInstance( check ) );
+            return Opt.of( PREFIX.equals( check.prefix )
+                    ? new MatrixAddress( check.content, check.ext )
+                    : null );
+        }
+
+        public MatrixAddress( String address, String roomId ) {
+            Assert.that( address.startsWith( "@" ) );
+            this.prefix = PREFIX;
+            this.content = Assert.notNull( address );
+            this.ext = Assert.notNull( roomId );
+        }
+
+        public String roomId() {
+            return ext;
+        }
+    }
 
     /**
      *

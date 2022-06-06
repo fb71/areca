@@ -13,6 +13,8 @@
  */
 package areca.app.service.smtp;
 
+import static java.lang.String.format;
+
 import org.teavm.classlib.impl.Base64Impl;
 
 import areca.app.service.imap.ImapRequest;
@@ -21,6 +23,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
+ * The SMTP client.
  *
  * @author Falko Bräutigam
  */
@@ -45,6 +48,7 @@ public class SmtpRequest
 
     /**
      * https://www.samlogic.net/articles/smtp-commands-reference-auth.htm
+     * https://www.atmail.com/blog/smtp-101-manual-smtp-sessions/
      */
     public static class AuthPlainCommand extends Command {
         public AuthPlainCommand( String username, String password ) {
@@ -57,7 +61,7 @@ public class SmtpRequest
 
     public static class MailFromCommand extends Command {
         public MailFromCommand( String from ) {
-            command = String.format( "MAIL FROM: %s", from );
+            command = String.format( "MAIL FROM: <%s>", from );
             expected = "250";
         }
     }
@@ -65,7 +69,7 @@ public class SmtpRequest
 
     public static class RcptToCommand extends Command {
         public RcptToCommand( String to ) {
-            command = String.format( "RCPT TO: %s", to );
+            command = String.format( "RCPT TO: <%s>", to );
             expected = "250";
         }
     }
@@ -81,7 +85,9 @@ public class SmtpRequest
 
     public static class DataContentCommand extends Command {
         public DataContentCommand( String subject, String body ) {
-            command = String.format( "Subject: %s\r\n%s\r\n.", subject, body ); // last CRLF is added by servlet
+            command = format( "Subject: %s\r\n", subject, body );
+            command += format( "Content-Type: text/plain; charset=%s\r\n", DEFAULT_ENCODING );
+            command += String.format( "%s\r\n.", body ); // last CRLF is added by servlet
             expected = "250";
         }
     }

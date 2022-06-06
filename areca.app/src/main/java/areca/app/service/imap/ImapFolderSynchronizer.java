@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
@@ -49,7 +50,7 @@ public class ImapFolderSynchronizer {
 
     private static final Log LOG = LogFactory.getLog( ImapFolderSynchronizer.class );
 
-    public static final int             MAX_PER_FOLDER = 10;
+    public static final int             MAX_PER_FOLDER = 100;
 
     protected RSupplier<ImapRequest>    requestFactory;
 
@@ -197,15 +198,34 @@ public class ImapFolderSynchronizer {
                         entity.content.set( ((MessageFetchCommand)command).textContent );
                     }
                     else if (command instanceof MessageFetchHeadersCommand) {
-                        var headers = ((MessageFetchHeadersCommand)command).headers.get( msgNum );
+                        var fetched = (MessageFetchHeadersCommand)command;
+                        var headers = fetched.headers.get( msgNum );
                         LOG.info( "%s: fetched headers: %s", folderName, headers );
                         entity.storeRef.set( headers.get( MESSAGE_ID ) );
-                        entity.from.set( headers.get( FROM ) );
-                        entity.unread.set( !((MessageFetchHeadersCommand)command).flags.get( msgNum ).contains( Flag.SEEN ) );
+                        entity.fromAddress.set( new EmailAddress( headers.get( FROM ) ).encoded() );
+                        entity.replyAddress.set( new EmailAddress( headers.get( FROM ) ).encoded() );  // XXX ReplyTo:
+                        entity.threadSubject.set( strippedSubject( headers.get( SUBJECT ) ) );
+                        entity.unread.set( !fetched.flags.get( msgNum ).contains( Flag.SEEN ) );
                         entity.date.set( Date.parse( headers.get( DATE ) ) );
                     }
                 });
 
     }
 
+
+    public static final Pattern SUBJECT_PREFIX = Pattern.compile( "[^:]+:\\s*" );
+
+    protected static String strippedSubject( String prefixed ) {
+        if (prefixed == null) {
+            return null;
+        }
+        var matcher = SUBJECT_PREFIX.matcher( prefixed );
+        var start = 0;
+        for (; matcher.find( start ); start = matcher.end()) {
+            if (matcher.end() - start > 5) {
+                break;
+            }
+        }
+        return prefixed.substring( start );
+    }
 }

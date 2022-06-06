@@ -21,6 +21,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
+import areca.app.model.Address;
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
@@ -51,15 +52,15 @@ public class Message2ContactAnchorSynchronizer {
 
     public Promise<Message> perform( Message message ) {
         Assert.notNull( message );
-        var address = addressParts( message.from.get() );
+        var address = Address.parseEncoded( message.fromAddress.get() );
 
         return uow.query( Contact.class )
                 // query Contact
-                .where( Expressions.eq( Contact.TYPE.email, address.pure ) )
+                .where( Expressions.eq( Contact.TYPE.email, address.content ) )
                 .executeCollect()
                 .map( results -> {
                     if (!results.isEmpty()) {
-                        LOG.debug( "Contact found for: %s", address.pure );
+                        LOG.debug( "Contact found for: %s", address.content );
                         return results.get( 0 );
                         //return seen.computeIfAbsent( address.pure, __ -> results.get( 0 ) );
                     }
@@ -103,55 +104,55 @@ public class Message2ContactAnchorSynchronizer {
     }
 
 
-    public static Pattern       EMAIL_EXT = Pattern.compile( "([^<]+)[ ]*<([^>]+)>" );
-
-    public static Pattern       NAME_COMMA = Pattern.compile( "([^,]+),[ ]*(.+)" );
-
-    public static Pattern       NAME_SIMPLE = Pattern.compile( "([^ ]+)[ ]*(.*)" );
-
-    public static Pattern       NAME_DOT = Pattern.compile( "([^.]+)[.](.+)" );
-
-    public static Pattern       EMAIL = Pattern.compile( "([^@]+)@(.*)" );
-
-
-    public static Address addressParts( String email ) {
-        // extended
-        var extMatch = EMAIL_EXT.matcher( email );
-        if (extMatch.matches()) {
-            String name = extMatch.group( 1 ).replace( "\"", "" ).trim();
-            // comma separated name
-            var commaMatch = NAME_COMMA.matcher( name );
-            if (commaMatch.matches()) {
-                return new Address() {{first = commaMatch.group( 2 ); last = commaMatch.group( 1 ); pure = extMatch.group( 2 );}};
-            }
-            // normal name
-            var normalMatch = NAME_SIMPLE.matcher( name );
-            if (normalMatch.matches()) {
-                return new Address() {{first = normalMatch.group( 1 ); last = normalMatch.group( 2 ); pure = extMatch.group( 2 );}};
-            }
-            throw new RuntimeException( "No name match: " + name );
-        }
-        // just an email address
-        var emailMatch = EMAIL.matcher( email );
-        if (emailMatch.matches()) {
-            var name = emailMatch.group( 1 );
-            var dorMatch = NAME_DOT.matcher( name );
-            if (dorMatch.matches()) {
-                return new Address() {{first = dorMatch.group( 1 ); last = dorMatch.group( 2 ); pure = email;}};
-            }
-            else {
-                return new Address() {{first = name; last = ""; pure = email;}};
-            }
-        }
-        throw new RuntimeException( "No email match: " + email );
-    }
-
-
-    public static class Address {
-        String first;
-        String last;
-        String pure;
-    }
+//    public static Pattern       EMAIL_EXT = Pattern.compile( "([^<]+)[ ]*<([^>]+)>" );
+//
+//    public static Pattern       NAME_COMMA = Pattern.compile( "([^,]+),[ ]*(.+)" );
+//
+//    public static Pattern       NAME_SIMPLE = Pattern.compile( "([^ ]+)[ ]*(.*)" );
+//
+//    public static Pattern       NAME_DOT = Pattern.compile( "([^.]+)[.](.+)" );
+//
+//    public static Pattern       EMAIL = Pattern.compile( "([^@]+)@(.*)" );
+//
+//
+//    public static Address addressParts( String email ) {
+//        // extended
+//        var extMatch = EMAIL_EXT.matcher( email );
+//        if (extMatch.matches()) {
+//            String name = extMatch.group( 1 ).replace( "\"", "" ).trim();
+//            // comma separated name
+//            var commaMatch = NAME_COMMA.matcher( name );
+//            if (commaMatch.matches()) {
+//                return new Address() {{first = commaMatch.group( 2 ); last = commaMatch.group( 1 ); pure = extMatch.group( 2 );}};
+//            }
+//            // normal name
+//            var normalMatch = NAME_SIMPLE.matcher( name );
+//            if (normalMatch.matches()) {
+//                return new Address() {{first = normalMatch.group( 1 ); last = normalMatch.group( 2 ); pure = extMatch.group( 2 );}};
+//            }
+//            throw new RuntimeException( "No name match: " + name );
+//        }
+//        // just an email address
+//        var emailMatch = EMAIL.matcher( email );
+//        if (emailMatch.matches()) {
+//            var name = emailMatch.group( 1 );
+//            var dorMatch = NAME_DOT.matcher( name );
+//            if (dorMatch.matches()) {
+//                return new Address() {{first = dorMatch.group( 1 ); last = dorMatch.group( 2 ); pure = email;}};
+//            }
+//            else {
+//                return new Address() {{first = name; last = ""; pure = email;}};
+//            }
+//        }
+//        throw new RuntimeException( "No email match: " + email );
+//    }
+//
+//
+//    public static class Address {
+//        String first;
+//        String last;
+//        String pure;
+//    }
 
 
     protected static Opt<Matcher> match( String s, Pattern p ) {

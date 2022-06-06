@@ -13,18 +13,29 @@
  */
 package areca.app.service.smtp;
 
+import java.io.IOException;
+import org.apache.james.mime4j.MimeException;
+import areca.app.model.Address;
+import areca.app.service.TransportService.TransportMessage;
 import areca.app.service.carddav.CarddavTest;
+import areca.app.service.imap.AppendCommand;
+import areca.app.service.imap.EmailAddress;
+import areca.app.service.imap.ImapTest;
 import areca.app.service.smtp.SmtpRequest.AuthPlainCommand;
 import areca.app.service.smtp.SmtpRequest.DataCommand;
-import areca.app.service.smtp.SmtpRequest.HeloCommand;
 import areca.app.service.smtp.SmtpRequest.DataContentCommand;
+import areca.app.service.smtp.SmtpRequest.HeloCommand;
 import areca.app.service.smtp.SmtpRequest.MailFromCommand;
 import areca.app.service.smtp.SmtpRequest.QuitCommand;
 import areca.app.service.smtp.SmtpRequest.RcptToCommand;
+import areca.common.Assert;
+import areca.common.Promise;
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -40,7 +51,8 @@ public class SmtpTest {
 
 
     @Test
-    public void doIt() {
+    @Skip
+    public Promise<?> doIt() {
         var request = new SmtpRequest( self -> {
             self.host = "mail.polymap.de";
             self.port = 465;
@@ -52,7 +64,7 @@ public class SmtpTest {
             self.commands.add( new DataContentCommand( "Schäfchen...", "...möchte auch dir etwas senden!" ) );
             self.commands.add( new QuitCommand() );
         });
-        request.submit()
+        return request.submit()
                 .onSuccess( command -> {
                     LOG.info( "Response: %s", command );
                 })
@@ -61,4 +73,44 @@ public class SmtpTest {
                 });
     }
 
+
+    @Test
+    public Promise<?> appendTest() {
+        var msg = new TransportMessage() {{
+            text = "Hällo! :)";
+            threadSubject = Opt.of( "SmtpTest - appendTest()" );
+            receipient = new EmailAddress( "falko@polymap.de" );
+        }};
+        var request = ImapTest.newRequest();
+        request.commands.addAll( new AppendCommand( "Sent", msg, "areca@polymap.de" ).commands );
+        return request.submit().onSuccess( command -> {
+        });
+    }
+
+
+    @Test
+    public void multipartTest() throws MimeException, IOException {
+
+
+
+//        ContentHandler contentHandler = new CustomContentHandler();
+//
+//        MimeConfig mime4jParserConfig = MimeConfig.DEFAULT;
+//        BodyDescriptorBuilder bodyDescriptorBuilder = new DefaultBodyDescriptorBuilder();
+//        MimeStreamParser mime4jParser = new MimeStreamParser(mime4jParserConfig,DecodeMonitor.SILENT,bodyDescriptorBuilder);
+//        mime4jParser.setContentDecoding(true);
+//        mime4jParser.setContentHandler(contentHandler);
+//
+//        InputStream mailIn = null; //"Provide email mime stream here';
+//        mime4jParser.parse(mailIn);
+    }
+
+    @Test
+    public void addressTest() {
+         var address = new EmailAddress( "schaefchen@polymap.de" );
+         LOG.info( "Encoded: %s", address.encoded() );
+         var result = Address.parseEncoded( address.encoded() );
+         LOG.info( "result: %s", result );
+         Assert.isEqual( address.encoded(), result.encoded() );
+    }
 }

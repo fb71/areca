@@ -17,10 +17,12 @@ import static areca.ui.Orientation.VERTICAL;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import org.teavm.jso.browser.Location;
 import org.teavm.jso.browser.Navigator;
 import org.teavm.jso.browser.Window;
 
@@ -29,6 +31,7 @@ import org.polymap.model2.runtime.Lifecycle.State;
 import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
+import areca.app.model.Address;
 import areca.app.model.Anchor;
 import areca.app.model.CarddavSettings;
 import areca.app.model.Contact;
@@ -42,9 +45,13 @@ import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.SyncableService.SyncType;
+import areca.app.service.TransportService;
+import areca.app.service.TransportService.Transport;
+import areca.app.service.TransportService.TransportContext;
 import areca.app.service.carddav.CarddavService;
 import areca.app.service.imap.ImapService;
 import areca.app.service.matrix.MatrixService;
+import areca.app.service.smtp.SmtpService;
 import areca.app.ui.StartPage;
 import areca.common.Assert;
 import areca.common.Platform;
@@ -53,8 +60,10 @@ import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.WaitFor;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.base.With;
+import areca.common.event.AsyncEventManager;
 import areca.common.event.EventCollector;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
@@ -81,10 +90,17 @@ public class ArecaApp extends App {
         return instance != null ? (ArecaApp)instance : (ArecaApp)(instance = new ArecaApp());
     }
 
+    public static ArecaApp current() {
+        return instance();
+    }
+
     public static String proxiedUrl( String url ) {
         return "http?uri=" + url;
     }
 
+    /**
+     * XXX {@link Platform}!!
+     */
     public static Locale locale() {
         try {
             var splitted = Navigator.getLanguage().split( "-" );
@@ -98,12 +114,25 @@ public class ArecaApp extends App {
         }
     }
 
+    /**
+     * XXX {@link Platform}!!
+     */
+    public static String hostname() {
+        return Location.current().getHostName();
+    }
+
+    static {
+        EventManager.setInstance( new AsyncEventManager() );
+
+    }
+
     // instance *******************************************
 
     private List<? extends Service> services = Arrays.asList(  // XXX from DB?
             new CarddavService(),
             new ImapService(),
-            new MatrixService() );
+            new MatrixService(),
+            new SmtpService() );
 
     private EntityRepository        repo;
 
@@ -123,7 +152,7 @@ public class ArecaApp extends App {
         var appEntities = Sequence.of( appEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
                 .entities.set( appEntityTypes )
-                .store.set( new IDBStore( "areca.app", 11, true ) )
+                .store.set( new IDBStore( "areca.app", 13, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -333,6 +362,44 @@ public class ArecaApp extends App {
                         .onError( defaultErrorHandler() );
             });
         });
+    }
+
+
+    /**
+     * One Transport that can be used for the given receipient, or {@link Promise#absent()}
+     * if there is no Transport that can handle the receipient.
+     *
+     * @return One or {@link Promise#absent()}
+     */
+    public Promise<Opt<Transport>> transportFor( Address receipient ) {
+        var ctx = new TransportContext() {
+            @Override public ProgressMonitor newMonitor() {
+                return ArecaApp.instance().newAsyncOperation();
+            }
+        };
+
+        LOG.info( "Transports for: %s ", receipient );
+        var s = services( TransportService.class ).toList();
+        if (s.isEmpty()) {
+            return Promise.absent();
+        }
+        return Promise
+                .joined( s.size(), i -> s.get( i ).newTransport( receipient, ctx ) )
+                .onSuccess( l -> LOG.info( "Transports: %s", l ) )
+                .reduce( new ArrayList<Transport>(), (r,transports) -> r.addAll( transports ) )
+                .map( l -> l.isEmpty() ? Opt.absent() : Opt.of( l.get( 0 ) ) );
+
+//        return Promise
+//                .joined( s.size(), i -> s.get( i ).newTransport( receipient, ctx ) )
+//                .reduce2( Opt.<Transport>absent(), (r,opt) -> opt.isPresent() ? opt : r );
+
+//        services( TransportService.class )
+//                .map( service -> service.newTransport( receipient, ctx ) )
+//                .reduce( (result,next) -> result.join( next ) )
+//                .orElse( Promise.absent() )
+//                .reduce( Promise.<Transport>absent(), (r,next) -> next.orElse( r ));
+//
+//        }
     }
 
 
