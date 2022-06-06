@@ -39,14 +39,20 @@ $card_color: saturate(lighten($bg1_color, 5%), 5%);
     transform: scale(1.02);
 }
 
-.MessageCard .FromText, .MessageCard .DateText, .TypingText {
+.MessageCard .FromText, 
+.MessageCard .DateText, 
+.MessagesPage .TypingText,
+.MessagesPage .SubjectText {
     color: darken($font_color, 20%);
+    font-size: 10px;
+}
+.MessagesPage .SubjectLink {
     font-size: 10px;
 }
 .MessageCard .DateText {
     text-align: right;
 }
-.TypingText {
+.MessagesPage .TypingText {
     //font-size: 10px;
     margin-top: -5px;
     margin-left: 10px;

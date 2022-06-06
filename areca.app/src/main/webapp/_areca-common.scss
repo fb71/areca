@@ -70,6 +70,17 @@ body {
     overflow-x: visible;
 }
 
+.Link {
+    color: $link_color;
+}
+.Link:hover {
+    color: lighten($link_color, 10%);
+}
+.Link:active {
+    margin-top: 2px;
+    color: lighten($link_color, 15%);
+}
+
 .Button {
     font-family: inherit;
     font-size: inherit;

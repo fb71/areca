@@ -13,14 +13,16 @@
  */
 package areca.rt.teavm.ui;
 
+import org.teavm.jso.dom.html.HTMLAnchorElement;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import areca.common.Assert;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
-import areca.ui.component2.Label;
+import areca.ui.component2.Link;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
@@ -30,39 +32,41 @@ import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class LabelRenderer {
+public class LinkRenderer
+        extends UIComponentRenderer {
 
-    private static final Log LOG = LogFactory.getLog( LabelRenderer.class );
+    private static final Log LOG = LogFactory.getLog( LinkRenderer.class );
 
-    public static final ClassInfo<LabelRenderer> TYPE = LabelRendererClassInfo.instance();
+    public static final ClassInfo<LinkRenderer> TYPE = LinkRendererClassInfo.instance();
 
     static void _start() {
         UIComponentEvent.manager
-                .subscribe( new LabelRenderer() )
-                .performIf( ev -> {
-                    if (ev instanceof ComponentConstructedEvent) {
-                        return ((UIComponentEvent)ev).getSource().decorators().anyMatches( Label.class::isInstance );
-                    }
-                    return false;
-                });
+                .subscribe( new LinkRenderer() )
+                .performIf( ev -> ev instanceof UIComponentEvent && ev.getSource() instanceof Link );
     }
 
 
     // instance *******************************************
 
+    protected HTMLAnchorElement htmlElm( UIComponent c ) {
+        return Assert.notNull( (HTMLAnchorElement)c.htmlElm );
+    }
+
+    @Override
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
-        UIComponent c = ev.getSource();
-        Label label = (Label)c.decorators().filter( Label.class::isInstance ).single();
+        Link c = (Link)ev.getSource();
 
-        label.content.onInitAndChange( (content,__) -> {
-            if (content != null) {
-                ((HTMLElement)c.htmlElm).setAttribute( "data-label", content );
-                c.cssClasses.add( "Labeled" );
-            } else {
-                ((HTMLElement)c.htmlElm).removeAttribute( "data-label" );
-                c.cssClasses.remove( "Labeled" );
-            }
+        c.htmlElm = (HTMLAnchorElement)doc().createElement( "a" );
+        var textNode = (HTMLElement)doc().createTextNode( c.content.opt().orElse( "" ) );
+        htmlElm( c ).appendChild( textNode );
+        htmlElm( c ).setAttribute( "href", c.href.opt().orElse( "#" ) );
+
+        c.content.onChange( (newValue, oldValue) -> {
+            textNode.setNodeValue( newValue );
         });
+
+        super.componentConstructed( ev );
     }
+
 }

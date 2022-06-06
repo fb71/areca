@@ -53,6 +53,7 @@ public abstract class UIComponentRenderer {
         ProgressRenderer._start();
         BadgeRenderer._start();
         LabelRenderer._start();
+        LinkRenderer._start();
     }
 
     // instance *******************************************

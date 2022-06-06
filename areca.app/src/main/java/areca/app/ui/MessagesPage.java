@@ -49,6 +49,9 @@ import areca.ui.Size;
 import areca.ui.component2.Badge;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
+import areca.ui.component2.Link;
+import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
 import areca.ui.component2.TextField;
@@ -72,7 +75,11 @@ public class MessagesPage extends Page {
 
     public static final int         MESSAGE_MARK_READ_DELAY = 5000;
 
-    protected ManyAssociation<Message>   src;
+    protected ManyAssociation<Message>  src;
+
+    protected ReadWrite<?,MessageCard>  selectedCard;  // wait create until UI is there in doInit()
+
+    protected ReadWrite<?,String>       subject;  // wait create until UI is there in doInit()
 
     protected PageContainer         ui;
 
@@ -82,7 +89,7 @@ public class MessagesPage extends Page {
 
     protected UIComposite           inputContainer;
 
-    protected MessageCard           selectedCard;
+    protected UIComposite           headerContainer;
 
     protected TextField             messageTextInput;
 
@@ -93,18 +100,87 @@ public class MessagesPage extends Page {
 
 
     @Override
+    protected void doDispose() {
+        ui.dispose();
+    }
+
+
+    @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
+        ui.cssClasses.add( "MessagesPage" );
         ui.title.set( "Messages" );
+
+        selectedCard = Property.rw( ui, "selectedCard" );
+        subject = Property.rw( ui, "subject" );
 
         ui.body.layout.set( new RowLayout().orientation.set( VERTICAL )
                 .fillHeight.set( true )
                 .fillWidth.set( true ) );
 
+        // header
+        headerContainer = ui.body.add( new UIComposite() {{
+            layoutConstraints.set( new RowConstraints().height.set( 40 ) );
+
+            layout.set( new RowLayout().orientation.set( VERTICAL ).margins.set( Size.of( 8, 0 ) ).fillHeight.set( true ).fillWidth.set( true ) );
+            // margin
+            add( new Text() {{
+                cssClasses.add( "SubjectText" );
+            }});
+            // To:
+            add( new Text() {{
+                cssClasses.add( "SubjectText" );
+                selectedCard.onInitAndChange( (newValue,__) -> {
+                    if (newValue != null) {
+                        var address = Address.parseEncoded( newValue.message.fromAddress.get() );
+                        content.set( String.format( "To: %s", address.content ) );
+                    }
+                });
+            }});
+            // Subject:
+            add( new UIComposite() {{
+                layout.set( new RowLayout().fillHeight.set( true ).fillWidth.set( true ) );
+                // Label
+                add( new Text() {{
+                    layoutConstraints.set( new RowConstraints().width.set( 40 ) );
+                    cssClasses.add( "SubjectText" );
+                    content.set( "Subject: " );
+                }});
+                // Link
+                add( new Link() {{
+                    cssClasses.add( "SubjectLink" );
+                    selectedCard.onInitAndChange( (newValue,__) -> {
+                        if (newValue != null) {
+                            subject.set( newValue.message.threadSubject.opt().orElse( "???" ) );
+                            content.set( abbreviate( subject.get(), 50 ) );
+                        }
+                    });
+                    var link = this;
+                    events.on( EventType.CLICK, ev -> {
+                        components.remove( this );
+                        components.add( new TextField() {{
+                            layoutConstraints.set( new RowConstraints().width.set( 250 ) );
+                            cssClasses.add( "SubjectLink" );
+                            content.set( subject.get() );
+                            Platform.schedule( 750, () -> focus.set( true ) );
+                            events.on( EventType.SELECT, tev -> {
+                                components.remove( this );
+                                components.add( link );
+                                subject.set( content.get() );
+                                link.content.set( abbreviate( subject.get(), 50 ) );
+                                layout();
+                            });
+                        }});
+                        layout();
+                    });
+                }});
+            }});
+        }});
+
         // input field
         inputContainer = ui.body.add( new UIComposite() {{
-            layoutConstraints.set( new RowConstraints().height.set( 55 ) );
-            layout.set( new RowLayout().margins.set( Size.of( 8, 8 ) ).spacing.set( 8 ).fillHeight.set(  true ).fillWidth.set( true ) );
+            layoutConstraints.set( new RowConstraints().height.set( 38 ) );
+            layout.set( new RowLayout().margins.set( Size.of( 8, 0 ) ).spacing.set( 8 ).fillHeight.set(  true ).fillWidth.set( true ) );
             messageTextInput = add( new TextField() {{
                 Platform.schedule( 2000, () -> focus.set( true ) );
 
@@ -121,7 +197,7 @@ public class MessagesPage extends Page {
 
         // typing...
         ui.body.add( new Text() {{
-            layoutConstraints.set( new RowConstraints().height.set( 10 ) );
+            layoutConstraints.set( new RowConstraints().height.set( 20 ) );
             cssClasses.add( "TypingText" );
             EventManager.instance()
                     .subscribe( (TypingEvent ev) -> {
@@ -153,12 +229,12 @@ public class MessagesPage extends Page {
 
 
     protected void send() {
-        Assert.notNull( selectedCard, "selectedCard == null" );
+        Assert.that( selectedCard.opt().isPresent(), "selectedCard == null" );
         var msg = new TransportMessage() {{
-            receipient = Address.parseEncoded( selectedCard.message.fromAddress.get() );
+            receipient = Address.parseEncoded( selectedCard.$().message.fromAddress.get() );
             text = messageTextInput.content.value();
-            threadSubject = Opt.of( selectedCard.message.threadSubject.get() );
-            followUp = Opt.of( selectedCard.message );
+            threadSubject = Opt.of( subject.get() );
+            followUp = Opt.of( selectedCard.$().message );
         }};
         ArecaApp.current().transportFor( msg.receipient )
                 .thenOpt( transport -> {
@@ -168,6 +244,7 @@ public class MessagesPage extends Page {
                 .onSuccess( result -> result
                         .ifPresent( sent -> {
                             LOG.info( "Transport sent! :) - %s", sent );
+                            messageTextInput.content.set( "." );
                             EventManager.instance().publish( new MessageSentEvent( sent ) );
                         })
                         .ifAbsent( __ -> {
@@ -175,28 +252,6 @@ public class MessagesPage extends Page {
                         })
                 )
                 .onError( ArecaApp.current().defaultErrorHandler() ); // XXX UI
-
-//        var services = ArecaApp.instance().services( TransportService.class ).toList();
-//        Promise.joined( services.size(), i -> services.get( i ).newTransport( receipients, ctx ) )
-//                .reduce2( (Transport)null, (r, transport) -> transport != null ? transport : r )
-//                .then( transport -> {
-//                    if (transport == null) {
-//                        LOG.info( "No transport found for: %s", receipients );
-//                        // XXX UI
-//                        return Promise.<Sent>absent();
-//                    }
-//                    else {
-//                        LOG.info( "Transport found for: %s - %s", receipients, transport );
-//                        return transport.send( messageTextInput.content.value() ).map( result -> Opt.of( result ) );
-//                    }
-//                })
-//                .onSuccess( result -> {
-//                    result.ifPresent( sent -> {
-//                        LOG.info( "Transport sent! :) - %s", sent );
-//                    });
-//                })
-//                .onError( ArecaApp.instance().defaultErrorHandler() );
-
     }
 
 
@@ -322,17 +377,15 @@ public class MessagesPage extends Page {
             //LOG.info( "Selected: %s, %s -> %s", message.content.get(), isSelected, select );
             // select
             if (!isSelected && select) {
-                if (selectedCard != null) {
-                    selectedCard.select( false );
-                }
+                selectedCard.opt().ifPresent( it -> it.select( false ) );
                 cssClasses.add( CSS_SELECTED );
-                selectedCard = this;
+                selectedCard.set( this );
                 delayedMarkRead();
             }
             // unselect
             else if (isSelected && !select) {
                 cssClasses.remove( CSS_SELECTED );
-                selectedCard = null;
+                selectedCard.set( null );
             }
             isSelected = select;
         }
@@ -345,7 +398,7 @@ public class MessagesPage extends Page {
         protected void delayedMarkRead() {
             if (message.unread.get()) {
                 Platform.schedule( MESSAGE_MARK_READ_DELAY, () -> {
-                    if (selectedCard == this && message.unread.get()) {
+                    if (selectedCard.$() == this && message.unread.get()) {
                         // FIXME fast but AnchorsCloudPage gets no event
                         message.unread.set( false );
                         message.context.getUnitOfWork().submit();

@@ -150,6 +150,18 @@ public abstract class Property<C,T> {
             return opt().orElseThrow( () -> new NoSuchElementException( name() ) );
         }
 
+        public T get() {
+            return value();
+        }
+
+        public T $() {
+            return value();
+        }
+
+        public T __() {
+            return value();
+        }
+
         public Opt<T> opt() {
             if (!valuePresent & valueSupplier != null) {
                 valuePresent = true; // before supplier! otherwise Component.clientSize cannot reset
