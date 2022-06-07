@@ -7,7 +7,7 @@
     color: darken($font_color, 30%);
 }
 
-$card_color: saturate(lighten($bg1_color, 5%), 5%);
+$card_color: saturate(lighten($bg1_color, 4%), 0%);
 
 .ContactButton, .AnchorButton {
     font-size: 12px;
@@ -56,4 +56,8 @@ $card_color: saturate(lighten($bg1_color, 5%), 5%);
     //font-size: 10px;
     margin-top: -5px;
     margin-left: 10px;
+}
+.MessagesPage .MessageTextInput {
+    background-color: darken($bg1_color, 3%);
+    border-radius: 6px;
 }

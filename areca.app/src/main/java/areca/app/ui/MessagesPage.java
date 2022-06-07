@@ -122,7 +122,7 @@ public class MessagesPage extends Page {
         headerContainer = ui.body.add( new UIComposite() {{
             layoutConstraints.set( new RowConstraints().height.set( 40 ) );
 
-            layout.set( new RowLayout().orientation.set( VERTICAL ).margins.set( Size.of( 8, 0 ) ).fillHeight.set( true ).fillWidth.set( true ) );
+            layout.set( new RowLayout().orientation.set( VERTICAL ).margins.set( Size.of( 8, 3 ) ).fillHeight.set( true ).fillWidth.set( true ) );
             // margin
             add( new Text() {{
                 cssClasses.add( "SubjectText" );
@@ -182,8 +182,8 @@ public class MessagesPage extends Page {
             layoutConstraints.set( new RowConstraints().height.set( 38 ) );
             layout.set( new RowLayout().margins.set( Size.of( 8, 0 ) ).spacing.set( 8 ).fillHeight.set(  true ).fillWidth.set( true ) );
             messageTextInput = add( new TextField() {{
-                Platform.schedule( 2000, () -> focus.set( true ) );
-
+                cssClasses.add( "MessageTextInput" );
+                //Platform.schedule( 2000, () -> focus.set( true ) );
             }});
             add( new Button() {{
                 layoutConstraints.set( new RowConstraints().width.set( 70 ) );
@@ -244,7 +244,7 @@ public class MessagesPage extends Page {
                 .onSuccess( result -> result
                         .ifPresent( sent -> {
                             LOG.info( "Transport sent! :) - %s", sent );
-                            messageTextInput.content.set( "." );
+                            messageTextInput.content.set( "" );
                             EventManager.instance().publish( new MessageSentEvent( sent ) );
                         })
                         .ifAbsent( __ -> {
