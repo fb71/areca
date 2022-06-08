@@ -13,18 +13,21 @@
  */
 package areca.app.service.matrix;
 
-import org.teavm.jso.JSMethod;
-import org.teavm.jso.JSObject;
+import org.teavm.jso.JSProperty;
 
 /**
  *
+ * @author Falko Bräutigam
  */
-public interface JSPromise<T extends JSObject>
-        extends JSObject {
+public interface JSCredentials
+        extends JSCommon<JSCredentials> {
 
-    @JSMethod
-    public JSPromise<T> then( Callback1<T> callback );
+    @JSProperty("user_id")
+    public String userd();
 
-    @JSMethod("catch")
-    public JSPromise<T> catch_( Callback1<JSCommon> err );
+    @JSProperty("device_id")
+    public String deviceId();
+
+    @JSProperty("access_token")
+    public String accessToken();
 }

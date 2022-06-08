@@ -13,6 +13,8 @@
  */
 package areca.app.service.matrix;
 
+import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_ENCRYPTED;
+import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_MESSAGE;
 import static java.util.Collections.singletonList;
 
 import java.util.Collections;
@@ -34,6 +36,7 @@ import areca.app.service.TransportService;
 import areca.app.service.TypingEvent;
 import areca.common.Assert;
 import areca.common.Promise;
+import areca.common.Promise.Completable;
 import areca.common.base.Opt;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
@@ -63,7 +66,7 @@ public class MatrixService
      * Override to provide another configured client (for testing).
      */
     protected Promise<MatrixClient> initMatrixClient() {
-        if (matrix != null) {
+        if (matrix != null) {  // FIXME race cond!
             return Promise.completed( matrix );
         }
         else {
@@ -73,17 +76,21 @@ public class MatrixService
                         Assert.isEqual( 1, rs.size() );
                         var settings = rs.get( 0 );
                         var result = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ),
-                                settings.accessToken.get(), settings.username.get() );
+                                settings.accessToken.get(), settings.username.get(), settings.deviceId.get() );
 
-//                        result.initCrypto().then( cryptoResult -> {
-//                            LOG.info( "CRYPTO INIT :)" );
-//                            MatrixClient.console( cryptoResult );
-//                            result.setGlobalErrorOnUnknownDevices( false );
-//                        });
+                        result.initCrypto().then( cryptoResult -> {
+                            LOG.info( "CRYPTO INIT :)" );
+                            MatrixClient.console( cryptoResult );
+                            result.setGlobalErrorOnUnknownDevices( false );
+                        });
 
-                        result.startClient( 58000 );
+                        result.startClient( 57000 );
                         return result.waitForStartup()
-                                .onSuccess( __ -> matrix = result )
+                                .onSuccess( __ -> {
+                                    result.uploadKeys().then( ___ -> LOG.info( "Keys uploaded." ) );
+                                    result.exportRoomKeys().then( ___ -> LOG.info( "Room keys exported." ) );
+                                    matrix = result;
+                                })
                                 .onError( e -> LOG.warn( "ERROR while starting matrix client.", e ) ); // FIXME UI!
                     });
         }
@@ -191,27 +198,37 @@ public class MatrixService
             matrix.on( "Room.timeline", (_event, _room, _toStartOfTimeline) -> {
                 JSEvent event = _event.cast();
                 LOG.info( "Event: %s - %s", event.eventId(), event.sender() );
-                MatrixClient.console( _event );
 
-                event.messageContent().ifPresent( content -> {
-                    LOG.info( "    Content: %s", content.getBody().opt().orElse( "???" ) );
+                if (M_ROOM_MESSAGE.equals( event.type() ) || M_ROOM_ENCRYPTED.equals( event.type() )) {
+                    MatrixClient.console( event );
 
                     var monitor = ArecaApp.instance().newAsyncOperation();
                     monitor.beginTask( "Matrix event", 3 );
-                    monitor.worked( 1 );
 
                     var uow = ctx.uowFactory.supply();
-                    uow
+
+                    // decrypt
+                    Completable<JSCommon> decrypted = new Completable<>();
+                    matrix.decryptEventIfNeeded( event ).then( _decrypted -> {
+                        monitor.worked( 1 );
+                        MatrixClient.console( _decrypted );
+                        MatrixClient.console( event.content() );
+                        decrypted.complete( _decrypted );
+                    });
+                    decrypted
                             // ensure room Anchor
-                            .ensureEntity( Anchor.class,
-                                    Expressions.eq( Anchor.TYPE.storeRef, anchorStoreRef( event.roomId() ) ),
-                                    proto -> {
-                                        proto.name.set( "New: " + event.sender() );
-                                        proto.storeRef.set( anchorStoreRef( event.roomId() ) );
-                                    })
+                            .then( __ -> {
+                                return uow.ensureEntity( Anchor.class,
+                                        Expressions.eq( Anchor.TYPE.storeRef, anchorStoreRef( event.roomId() ) ),
+                                        proto -> {
+                                            proto.name.set( "New: " + event.sender() );
+                                            proto.storeRef.set( anchorStoreRef( event.roomId() ) );
+                                        });
+                            })
                             // create message
                             .map( anchor -> {
                                 monitor.worked( 1 );
+                                JSMessage content = event.content().cast();
                                 return uow.createEntity( Message.class, proto -> {
                                     MessageStoreRef storeRef = MessageStoreRef.of( event.roomId(), event.eventId() );
                                     proto.storeRef.set( storeRef.toString() );
@@ -224,13 +241,14 @@ public class MatrixService
                             })
                             // submit
                             .then( message -> {
+                                monitor.worked( 1 );
                                 return uow.submit();
                             })
                             .onSuccess( submitted -> monitor.done() )
                             .onError( ArecaApp.instance().defaultErrorHandler() )
                             .onError( e -> monitor.done() );
 
-                });
+                }
             });
         }
     }
@@ -300,6 +318,7 @@ public class MatrixService
             event.encryptedContent().ifPresent( encrypted -> {
                 //MatrixClient.console( event );
                 matrix.decryptEventIfNeeded( event ).then( decrypted -> {
+                    LOG.info( "Decrypted:" );
                     MatrixClient.console( decrypted );
                 });
             });

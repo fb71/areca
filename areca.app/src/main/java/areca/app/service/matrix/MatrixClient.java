@@ -35,14 +35,14 @@ public abstract class MatrixClient
     @JSBody(params = { "url" }, script = "return window.matrixcs.createClient( url );")
     public static native MatrixClient create( String url );
 
-    @JSBody(params = { "url", "accessToken", "userId" }, script = "return window.matrixcs.createClient({"
+    @JSBody(params = { "url", "accessToken", "userId", "deviceId" }, script = "return window.matrixcs.createClient({"
             + "'baseUrl':url,"
             + "'accessToken':accessToken,"
             + "'userId':userId,"
             + "'sessionStore':new window.matrixcs.WebStorageSessionStore(window.localStorage),"
-            + "'deviceId':'areca.app'"
+            + "'deviceId':deviceId"
             + "});")
-    public static native MatrixClient create( String url, String accessToken, String userId );
+    public static native MatrixClient create( String url, String accessToken, String userId, String deviceId );
 
     @JSBody(params = {"obj"}, script = "console.log( obj );")
     public static native void console( JSObject obj );
@@ -53,14 +53,34 @@ public abstract class MatrixClient
     private String clientSyncState;
 
 
+    public abstract JSPromise<JSCredentials> loginWithPassword( String username, String password );
+
+    /** */
+    @JSMethod
+    public abstract JSPromise<JSCommon> downloadKeys( String[] usersIds );
+
+    /** */
+    @JSMethod
+    public abstract JSPromise<JSCommon> uploadKeys();
+
+    @JSMethod
+    public abstract JSPromise<JSCommon> exportRoomKeys();
+
     @JSMethod
     public abstract JSPromise<JSCommon> initCrypto();
-
 
     /** After {@link #startClient()} */
     @JSMethod
     public abstract void setGlobalErrorOnUnknownDevices( boolean flag );
 
+    @JSMethod
+    public abstract JSStoredDevice[] getStoredDevicesForUser( String userId );
+
+    @JSMethod
+    public abstract JSPromise setDeviceKnown( String userId, String deviceId, boolean flag );
+
+    @JSMethod
+    public abstract JSPromise setDeviceVerified( String userId, String deviceId, boolean flag );
 
     public void startClient() {
         startClient( 30000 );
@@ -116,6 +136,9 @@ public abstract class MatrixClient
 
     @JSBody(params = {"event"}, script = "return this.decryptEventIfNeeded(new window.matrixcs.MatrixEvent(event));")
     public abstract JSPromise<JSCommon> decryptEventIfNeeded( JSStoredEvent event );
+
+    @JSMethod
+    public abstract JSPromise<JSCommon> decryptEventIfNeeded( JSEvent event );
 
     @JSMethod
     public abstract JSPromise<JSCommon> sendEvent( String roomId, String eventType, JSMessage content, String txnId );

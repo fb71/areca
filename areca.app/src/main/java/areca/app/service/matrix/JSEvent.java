@@ -24,6 +24,23 @@ import areca.common.base.Opt;
 public interface JSEvent
         extends JSCommon<JSEvent> {
 
+    /**
+     *
+     */
+    enum EventType {
+        M_ROOM_MESSAGE, M_ROOM_ENCRYPTED;
+
+        //@Override
+        public boolean equals( String other ) {
+            return toString().equals( other );
+        }
+
+        @Override
+        public String toString() {
+            return super.toString().toLowerCase().replace( "_", "." );
+        }
+    }
+
     @JSMethod("getId")
     public String eventId();
 
@@ -42,6 +59,11 @@ public interface JSEvent
     @JSMethod("getContent")
     public JSCommon content();
 
+    /**
+      * https://github.com/matrix-org/matrix-js-sdk/issues/1767
+      */
+    @JSMethod("getWiredContent")
+    public JSCommon wiredContent();
 
     public default Opt<JSMessage> messageContent()  {
         return type().equals( "m.room.message" ) ? Opt.of( content().cast() ) : Opt.absent();

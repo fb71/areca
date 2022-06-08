@@ -34,10 +34,8 @@ import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
-import areca.app.model.ImapSettings;
 import areca.app.model.Message;
 import areca.app.service.SyncableService.SyncContext;
-import areca.app.service.SyncableService.SyncType;
 import areca.app.service.carddav.CarddavTest;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.Assert;
@@ -276,11 +274,7 @@ public class ImapTest {
                 monitor = new NullProgressMonitor();
                 uowFactory = () -> repo.newUnitOfWork();
             }};
-            ImapService service = new ImapService() {
-                @Override
-                protected Promise<ImapSettings> loadImapSettings() {
-                    return Promise.completed( null );
-                }
+            return new ImapService.FullSync( null, ctx ) {
                 @Override
                 protected ImapRequest newRequest() {
                     return new ImapRequest( self -> {
@@ -289,8 +283,7 @@ public class ImapTest {
                         self.loginCommand = new LoginCommand( CarddavTest.ARECA_USERNAME, CarddavTest.ARECA_PWD );
                     });
                 }
-            };
-            return service.newSync( SyncType.FULL, ctx ).then( sync -> sync.start() );
+            }.start();
         });
     }
 

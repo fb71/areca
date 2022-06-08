@@ -42,6 +42,6 @@ public class MatrixSettings
     public Property<String>         accessToken;
 
     @Nullable
-    public Property<String>         pwd;
+    public Property<String>         deviceId;
 
 }

@@ -17,6 +17,7 @@ import areca.app.ArecaApp;
 import areca.app.model.MatrixSettings;
 import areca.app.service.matrix.MatrixClient;
 import areca.common.Promise;
+import areca.common.Promise.Completable;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
@@ -32,6 +33,8 @@ public class MatrixSettingsPage2
         extends ServiceSettingsPage<MatrixSettings> {
 
     private static final Log LOG = LogFactory.getLog( MatrixSettingsPage2.class );
+
+    protected SingleValue<String>       password = new SingleValue<>( "" );
 
 
     public MatrixSettingsPage2() {
@@ -52,22 +55,25 @@ public class MatrixSettingsPage2
         return uow.waitForResult().get().createEntity( MatrixSettings.class, proto -> {
             proto.baseUrl.set( "https://matrix.fulda.social" );
             proto.username.set( "@bolo:fulda.social" );
-            proto.accessToken.set( "..." );
+            //proto.accessToken.set( "..." );
         });
     }
 
 
     protected Promise<?> checkSettings( MatrixSettings settings ) {
-        var matrix = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ),
-                settings.accessToken.get(), settings.username.get() );
-        matrix.startClient();
-        return matrix.waitForStartup()
-                .onSuccess( ( s, command ) -> {
-                    matrix.stopClient();
+        Completable<?> result = new Completable();
+        var matrix = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ) );
+        matrix.loginWithPassword( settings.username.get(), password.getValue() )
+                .then( credentials -> {
+                    LOG.info( "Logged in: %s", credentials.userd() );
+                    settings.accessToken.set( credentials.accessToken() );
+                    settings.deviceId.set( credentials.deviceId() );
+                    result.complete( null );
                 })
-                .onError( e -> {
-                    matrix.stopClient();
+                .catch_( err -> {
+                    result.completeWithError( new Exception( "Error while login." ) );
                 });
+        return result;
     }
 
 
@@ -99,11 +105,7 @@ public class MatrixSettingsPage2
                     .create() );
             add( form.newField().label( "Password" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.pwd ) )
-                    .create() );
-            add( form.newField().label( "Access token" )
-                    .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.accessToken ) )
+                    .adapter( password )
                     .create() );
         }
 

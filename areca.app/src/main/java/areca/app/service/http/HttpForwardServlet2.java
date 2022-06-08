@@ -15,6 +15,7 @@ package areca.app.service.http;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
 
@@ -82,13 +83,13 @@ public class HttpForwardServlet2 extends HttpServlet {
             req.getHeaderNames().asIterator().forEachRemaining( name -> {
                 if (!name.startsWith( "X" )) {
                     conn.setRequestProperty( name, req.getHeader( name ) );
-                    debug( "Request Header: %s: %s", name, req.getHeader( name ) );
+                    //debug( "Request Header: %s: %s", name, req.getHeader( name ) );
                 }
             });
 
             // method -> send
             setRequestMethod( conn, req.getMethod() );
-            if ("POST".equals( req.getMethod() ) || "REPORT".equals( req.getMethod() )) {
+            if (Arrays.asList("POST", "REPORT", "PUT").contains( req.getMethod() )) {
                 conn.setDoOutput( true );
                 setRequestMethod( conn, req.getMethod() );
                 copyAndClose( req.getInputStream(), conn.getOutputStream() );
@@ -96,7 +97,7 @@ public class HttpForwardServlet2 extends HttpServlet {
 
             resp.setStatus( conn.getResponseCode() );
             conn.getHeaderFields().forEach( (name,values) -> {
-                debug( "Response Header: %s: %s", name, values );
+                //debug( "Response Header: %s: %s", name, values );
                 if (name != null) {
                     resp.addHeader( name, values.get( 0 ) ); // FIXME
                 }

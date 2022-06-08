@@ -11,20 +11,36 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.app.service.matrix;
+package areca.app.ui;
 
-import org.teavm.jso.JSMethod;
-import org.teavm.jso.JSObject;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
+import areca.ui.viewer.SingleValueAdapter;
 
 /**
  *
+ * @author Falko Bräutigam
  */
-public interface JSPromise<T extends JSObject>
-        extends JSObject {
+public class SingleValue<T>
+        implements SingleValueAdapter<T> {
 
-    @JSMethod
-    public JSPromise<T> then( Callback1<T> callback );
+    private static final Log LOG = LogFactory.getLog( SingleValue.class );
 
-    @JSMethod("catch")
-    public JSPromise<T> catch_( Callback1<JSCommon> err );
+    protected T value;
+
+
+    public SingleValue( T value ) {
+        this.value = value;
+    }
+
+    @Override
+    public T getValue() {
+        return value;
+    }
+
+    @Override
+    public void setValue( T value ) {
+        this.value = value;
+    }
+
 }

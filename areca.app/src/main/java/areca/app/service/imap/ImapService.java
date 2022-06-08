@@ -31,7 +31,6 @@ import areca.app.service.SyncableService;
 import areca.app.service.imap.ImapRequest.LoginCommand;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
-import areca.common.base.Supplier.RSupplier;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -46,23 +45,32 @@ public class ImapService
 
     private static final Log LOG = LogFactory.getLog( ImapService.class );
 
-    protected RSupplier<ImapRequest>   requestFactory;
-
-    protected ImapSettings             settings;
-
 
     public ImapService() {
-        // append sent messages to Sent folder
+        // MessageSentEvent: append sent messages to Sent folder
         EventManager.instance()
                 .subscribe( (MessageSentEvent ev) -> {
                     LOG.info( "Message sent: attaching to Sent folder..." );
-                    var request = newRequest();
-                    request.commands.addAll( new AppendCommand( "Sent", ev.sent.message, ev.sent.from ).commands );
-                    request.submit()
+                    loadImapSettings()
+                            .then( settings -> {
+                                if (settings != null) {
+                                    ImapRequest request = new ImapRequest( self -> {
+                                        self.host = settings.host.get();
+                                        self.port = settings.port.get();
+                                        self.loginCommand = new LoginCommand( settings.username.get(), settings.pwd.get() );
+                                    });
+                                    request.commands.addAll( new AppendCommand( "Sent", ev.sent.message, ev.sent.from ).commands );
+                                    return request.submit();
+                                }
+                                else {
+                                    return Promise.completed( null );
+                                }
+                            })
                             .onSuccess( command -> LOG.info( "OK" ))
                             .onError( ArecaApp.current().defaultErrorHandler() );
+
                 })
-                .performIf( MessageSentEvent.class::isInstance );
+                .performIf( MessageSentEvent.class::isInstance );  // FIXME sender was email :)
     }
 
 
@@ -74,22 +82,10 @@ public class ImapService
 
     /** Default: load from ArecaApp */
     protected Promise<ImapSettings> loadImapSettings() {
-        return ArecaApp.instance().settings().then( settingsUow -> {
-            return settingsUow.query( ImapSettings.class )
+        return ArecaApp.instance().settings().then( uow -> {
+            return uow.query( ImapSettings.class )
                     .executeCollect()
-                    .map( list -> !list.isEmpty() ? settings = list.get( 0 ) : null );
-        });
-    }
-
-
-    protected ImapRequest newRequest() {
-        // defaults for testing?
-        return new ImapRequest( self -> {
-            self.host = settings!= null ? settings.host.get() : "mail.polymap.de";
-            self.port = settings!= null ? settings.port.get() : 993;
-            self.loginCommand = settings != null
-                    ? new LoginCommand( settings.username.get(), settings.pwd.get() )
-                            : new LoginCommand( "areca@polymap.de", "dienstag" );
+                    .map( list -> !list.isEmpty() ? list.get( 0 ) : null );
         });
     }
 
@@ -97,69 +93,101 @@ public class ImapService
     @Override
     public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
         if (syncType != SyncType.FULL) {
-            return SyncableService.super.newSync( syncType, ctx );
+            loadImapSettings().map( settings -> {
+                return settings != null
+                        ? Promise.completed( new FullSync( settings, ctx ) )
+                        : Promise.completed( null );
+            });
         }
-        var sync = new Sync() {
-            UnitOfWork uow = ctx.uowFactory.supply();
-            Message2ContactAnchorSynchronizer messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow );
-            Message2PseudoContactAnchorSynchronizer messages2PseudoAnchor = new Message2PseudoContactAnchorSynchronizer( uow );
+        return SyncableService.super.newSync( syncType, ctx );
+    }
 
-            @Override
-            public Promise<?> start() {
-                ctx.monitor.beginTask( "EMail", ProgressMonitor.UNKNOWN );
-                return loadImapSettings()
-                        //
-                        .then( __ -> fetchFolders() )
-                        // sync folders
-                        .then( folderNames -> {
-                            LOG.info( "Folders: %s", folderNames );
-                            return Promise.serial( folderNames.size(), i -> syncFolder( folderNames.get( i ) ) );
-                        })
-                        .reduce2( 0, (result,folderCount) -> result + folderCount )
-                        .map( total -> {
-                            return uow.submit().onSuccess( submitted -> {
-                                ctx.monitor.done();
-                                LOG.info( "Submitted: %s, in ?? folders", total );
-                            });
+
+    /**
+     *
+     */
+    protected static class FullSync
+            extends Sync {
+        protected ImapSettings  settings;
+
+        protected SyncContext   ctx;
+
+        protected UnitOfWork    uow;
+
+        protected Message2ContactAnchorSynchronizer messages2ContactAnchor;
+
+        protected Message2PseudoContactAnchorSynchronizer messages2PseudoAnchor;
+
+        public FullSync( ImapSettings settings, SyncContext ctx ) {
+            this.settings = settings;
+            this.ctx = ctx;
+            uow = ctx.uowFactory.supply();
+            messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow );
+            messages2PseudoAnchor = new Message2PseudoContactAnchorSynchronizer( uow );
+        }
+
+
+        protected ImapRequest newRequest() {
+            return new ImapRequest( self -> {
+                self.host = settings.host.get();
+                self.port = settings.port.get();
+                self.loginCommand = new LoginCommand( settings.username.get(), settings.pwd.get() );
+            });
+        }
+
+
+        @Override
+        public Promise<?> start() {
+            ctx.monitor.beginTask( "EMail", ProgressMonitor.UNKNOWN );
+            return fetchFolders()
+                    // sync folders
+                    .then( folderNames -> {
+                        LOG.info( "Folders: %s", folderNames );
+                        return Promise.serial( folderNames.size(), i -> syncFolder( folderNames.get( i ) ) );
+                    })
+                    .reduce2( 0, (result,folderCount) -> result + folderCount )
+                    .map( total -> {
+                        return uow.submit().onSuccess( submitted -> {
+                            ctx.monitor.done();
+                            LOG.info( "Submitted: %s, in ?? folders", total );
                         });
-            }
+                    });
+        }
 
 
-            protected Promise<Integer> syncFolder( String folderName ) {
-                var subMonitor = ctx.monitor.subMonitor();
-                return new ImapFolderSynchronizer( folderName, uow, () -> newRequest() )
-                        .onMessageCount( msgCount -> subMonitor.beginTask( abbreviate( folderName, 5 ), msgCount*3 ) )
+        protected Promise<Integer> syncFolder( String folderName ) {
+            var subMonitor = ctx.monitor.subMonitor();
+            return new ImapFolderSynchronizer( folderName, uow, () -> newRequest() )
+                    .onMessageCount( msgCount -> subMonitor.beginTask( abbreviate( folderName, 5 ), msgCount*3 ) )
 
-                        .start()
-                        .onSuccess( msg -> {
-                            //LOG.debug( "%s: pre sync: %s", folderName, msg.getClass() );
-                            subMonitor.worked( 1 );
-                        })
+                    .start()
+                    .onSuccess( msg -> {
+                        //LOG.debug( "%s: pre sync: %s", folderName, msg.getClass() );
+                        subMonitor.worked( 1 );
+                    })
 
-                        .thenOpt( msg -> messages2ContactAnchor.perform( msg.get() ) )
-                        .onSuccess( msg -> subMonitor.worked( 1 ) )
+                    .thenOpt( msg -> messages2ContactAnchor.perform( msg.get() ) )
+                    .onSuccess( msg -> subMonitor.worked( 1 ) )
 
-                        .thenOpt( msg -> messages2PseudoAnchor.perform( msg.get() ) )
-                        .onSuccess( msg -> subMonitor.worked( 1 ) )
+                    .thenOpt( msg -> messages2PseudoAnchor.perform( msg.get() ) )
+                    .onSuccess( msg -> subMonitor.worked( 1 ) )
 
-                        .reduce( new MutableInt(), (r,msg) -> msg.ifPresent( m -> r.increment() ) )
-                        .map( mutableInt -> {
-                            LOG.info( "%s: synched messages: %s", folderName, mutableInt );
-                            subMonitor.done();
-                            return mutableInt.toInteger();
-                        });
-            }
+                    .reduce( new MutableInt(), (r,msg) -> msg.ifPresent( m -> r.increment() ) )
+                    .map( mutableInt -> {
+                        LOG.info( "%s: synched messages: %s", folderName, mutableInt );
+                        subMonitor.done();
+                        return mutableInt.toInteger();
+                    });
+        }
 
 
-            protected Promise<List<String>> fetchFolders() {
-                var request = newRequest();
-                request.commands.add( new FolderListCommand() );
-                return request.submit()
-                        .filter( FolderListCommand.class::isInstance )
-                        .map( command -> ((FolderListCommand)command).folderNames );
-            }
-        };
-        return Promise.completed( sync );
+        protected Promise<List<String>> fetchFolders() {
+            var request = newRequest();
+            request.commands.add( new FolderListCommand() );
+            return request.submit()
+                    .filter( FolderListCommand.class::isInstance )
+                    .map( command -> ((FolderListCommand)command).folderNames );
+        }
     }
 
 }
