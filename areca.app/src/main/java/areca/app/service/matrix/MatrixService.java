@@ -128,13 +128,22 @@ public class MatrixService
         @Override
         public Promise<Sent> send( TransportMessage msg ) {
             Assert.notNull( matrix, "No Matrix client initialized." ); // XXX show UI
+            var monitor = ctx.newMonitor().beginTask( "Send", 2 ).worked( 1 );
+
             var result = new Promise.Completable<Sent>();
             var content = JSMessage.create();
             content.setMsgtype( "m.text" );
             content.setBody( msg.text );
-            MatrixClient.console( content );
+            //MatrixClient.console( content );
             matrix.sendEvent( receipient.roomId(), "m.room.message", content, "" )
-                    .then( sendResult -> result.complete( new Sent() ) );
+                    .then( sendResult -> {
+                        result.complete( new Sent() );
+                        monitor.done();
+                    })
+                    .catch_( err -> {
+                        result.completeWithError( new Exception( "Error while sending message.") );
+                        monitor.done();
+                    });
             return result;
         }
     }

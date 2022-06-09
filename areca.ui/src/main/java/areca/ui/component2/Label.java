@@ -37,6 +37,9 @@ public class Label
 
     public Label( UIComponent decorated ) {
         super( decorated );
+        if (decorated instanceof TextField) {
+            throw new IllegalArgumentException( "Unfortunatelly Label does not work directly with TextField :(" );
+        }
     }
 
 

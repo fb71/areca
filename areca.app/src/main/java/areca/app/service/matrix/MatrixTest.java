@@ -15,6 +15,8 @@ package areca.app.service.matrix;
 
 import java.util.Arrays;
 
+import org.teavm.jso.core.JSString;
+
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
@@ -30,6 +32,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -53,6 +56,48 @@ public class MatrixTest {
 
 
     @Test
+    @Skip
+    public void loginTest() {
+        var matrix = MatrixClient.create( "https://matrix.fulda.social" );
+        var p = matrix.loginWithPassword( "@bolo:fulda.social", "1Bolonia8" );
+        MatrixClient.console( p );
+        p.then( credentials -> {
+            MatrixClient.console( credentials );
+        }).catch_( err -> {
+            String s = ((JSString)err).stringValue();
+            LOG.info( "Error: %s", s );
+            MatrixClient.console( err );
+        });
+    }
+
+    @Test
+    public Promise<?> verifyTest() {
+        String userId = "@bolo:fulda.social";
+        var matrix = MatrixClient.create( "https://matrix.fulda.social",
+                "syt_Ym9sbw_eXvFQbDTVWfzSONFpJJv_4SO6zS", userId, "QRWKUGRCWK" );
+
+        matrix.initCrypto().then( cryptoResult -> {
+            LOG.info( "CRYPTO INIT :)" );
+            MatrixClient.console( cryptoResult );
+            matrix.setGlobalErrorOnUnknownDevices( false );
+        });
+
+        matrix.startClient( 58000 );
+        return matrix.waitForStartup()
+                .onSuccess( __ -> {
+                    var devices = matrix.getStoredDevicesForUser( "@bolo:fulda.social" );
+                    for (int i=0; i<devices.length; i++) {
+                        MatrixClient.console( devices[i] );
+                        matrix.setDeviceKnown( userId, devices[i].deviceId(), true );
+                        matrix.setDeviceVerified( userId, devices[i].deviceId(), true );
+                    }
+                })
+                .onError( e -> LOG.warn( "ERROR while starting matrix client.", e ) );
+    }
+
+
+    @Test
+    @Skip
     public Promise<?> syncServiceTest() {
         var service = new MatrixService() {
 //            @Override

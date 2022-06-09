@@ -42,13 +42,13 @@ public abstract class ProgressMonitor {
         }
     }
 
-    public abstract void beginTask( String name, int totalWork );
+    public abstract ProgressMonitor beginTask( String name, int totalWork );
 
-    public abstract void subTask( String name );
+    public abstract ProgressMonitor subTask( String name );
 
-    public abstract void worked( int work );
+    public abstract ProgressMonitor worked( int work );
 
-    public abstract void done();
+    public abstract ProgressMonitor done();
 
     public ProgressMonitor subMonitor() {
         return new SubMonitor( this );
@@ -78,32 +78,36 @@ public abstract class ProgressMonitor {
         }
 
         @Override
-        public void beginTask( String name, int totalWork ) {
+        public ProgressMonitor beginTask( String name, int totalWork ) {
             LOG.debug( "SUB: beginTask: %s / %s ", name, totalWork );
             this.taskName = name;
             this.workTotal = totalWork;
 
             parent.subTask( name );
             parent.updateTotalWork( totalWork );
+            return this;
         }
 
         @Override
-        public void subTask( String name ) {
+        public ProgressMonitor subTask( String name ) {
             parent.subTask( String.format( "%s - %s", taskName, name ) );
+            return this;
         }
 
         @Override
-        public void worked( int work ) {
+        public ProgressMonitor worked( int work ) {
             workDone += work;
             parent.worked( work );
+            return this;
         }
 
         @Override
-        public void done() {
+        public ProgressMonitor done() {
             int workLeft = Math.max( 0, workTotal - workDone );
             parent.worked( workLeft );
             workDone = workTotal;
             LOG.debug( "SUB: done: %s / %s ", workLeft, workTotal );
+            return this;
         }
 
         @Override

@@ -53,6 +53,7 @@ public class GalleryMain {
         add( RowLayoutTest.class );
         add( RasterLayoutTest.class );
         add( BadgeTest.class );
+        add( TextInputTest.class );
     }};
 
     protected static UIComposite    btnArea;

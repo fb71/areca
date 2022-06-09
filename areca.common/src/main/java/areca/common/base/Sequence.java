@@ -18,6 +18,7 @@ import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 
 import java.util.AbstractCollection;
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collector;
@@ -570,6 +572,24 @@ public abstract class Sequence<T, E extends Exception> {
             @Override
             public Iterator<T> iterator() {
                 return noExceptionSequence.asIterable().iterator();
+            }
+            @Override
+            public int size() {
+                return size.get();
+            }
+        };
+    }
+
+
+    public <RE extends E> Set<T> asSet() throws E {
+        return new AbstractSet<T>() {
+            /** fail fast if Sequence throws checked Exception */
+            @SuppressWarnings("unchecked")
+            Sequence<T,RuntimeException>    noExceptionSequence = (Sequence<T,RuntimeException>)Sequence.this;
+            Lazy<Integer,RuntimeException>  size = new Lazy<>( () -> noExceptionSequence.count() );
+            @Override
+            public Iterator<T> iterator() {
+                return noExceptionSequence.asIterable().iterator(); // XXX check Set constraint
             }
             @Override
             public int size() {

@@ -92,7 +92,7 @@ public class ImapService
 
     @Override
     public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
-        if (syncType != SyncType.FULL) {
+        if (syncType == SyncType.FULL) {
             loadImapSettings().map( settings -> {
                 return settings != null
                         ? Promise.completed( new FullSync( settings, ctx ) )

@@ -23,19 +23,23 @@ public class NullProgressMonitor
     public static final NullProgressMonitor INSTANCE = new NullProgressMonitor();
 
     @Override
-    public void beginTask( String name, int totalWork ) {
+    public ProgressMonitor beginTask( String name, int totalWork ) {
+        return this;
     }
 
     @Override
-    public void subTask( String name ) {
+    public ProgressMonitor subTask( String name ) {
+        return this;
     }
 
     @Override
-    public void worked( int work ) {
+    public ProgressMonitor worked( int work ) {
+        return this;
     }
 
     @Override
-    public void done() {
+    public ProgressMonitor done() {
+        return this;
     }
 
     @Override

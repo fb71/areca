@@ -20,6 +20,8 @@ import static org.apache.commons.lang3.StringUtils.abbreviate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.nio.charset.Charset;
 import java.text.DateFormat;
@@ -33,13 +35,16 @@ import org.polymap.model2.runtime.Lifecycle.State;
 import areca.app.ArecaApp;
 import areca.app.model.Address;
 import areca.app.model.Message;
-import areca.app.service.TransportService.TransportMessage;
+import areca.app.model.ModelSubmittedEvent;
 import areca.app.service.MessageSentEvent;
+import areca.app.service.TransportService.TransportMessage;
 import areca.app.service.TypingEvent;
 import areca.common.Assert;
 import areca.common.Platform;
+import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Opt;
+import areca.common.base.Sequence;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -77,9 +82,11 @@ public class MessagesPage extends Page {
 
     protected ManyAssociation<Message>  src;
 
-    protected ReadWrite<?,MessageCard>  selectedCard;  // wait create until UI is there in doInit()
+    protected ReadWrite<?,MessageCard>  selectedCard;  // create when UI is there in doInit()
 
-    protected ReadWrite<?,String>       subject;  // wait create until UI is there in doInit()
+    protected ReadWrite<?,String>       subject;
+
+    protected String                title;
 
     protected PageContainer         ui;
 
@@ -93,9 +100,12 @@ public class MessagesPage extends Page {
 
     protected TextField             messageTextInput;
 
+    protected Map<Message,MessageCard> cards = new HashMap<>();
 
-    protected MessagesPage( ManyAssociation<Message> src ) {
+
+    protected MessagesPage( ManyAssociation<Message> src, String title ) {
         this.src = src;
+        this.title = title;
     }
 
 
@@ -109,7 +119,7 @@ public class MessagesPage extends Page {
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.cssClasses.add( "MessagesPage" );
-        ui.title.set( "Messages" );
+        ui.title.set( abbreviate( title, 25 ) );
 
         selectedCard = Property.rw( ui, "selectedCard" );
         subject = Property.rw( ui, "subject" );
@@ -191,6 +201,7 @@ public class MessagesPage extends Page {
                 tooltip.set( "Do it! :)" );
                 events.on(  EventType.SELECT, ev -> {
                     send();
+                    //messageTextInput.content.set( "" );
                 });
             }});
         }});
@@ -220,15 +231,24 @@ public class MessagesPage extends Page {
                 spacing.set( 10 );
                 margins.set( Size.of( 8, 1 ) );
             }});
-            add( new Text().content.set( "Loading..." ) );
         }});
+
+        // update
+        EventManager.instance()
+                .subscribe( (ModelSubmittedEvent ev) -> {
+                    LOG.info( "Model submitted" );
+                    fetchMessages();
+                })
+                .performIf( ev -> ev instanceof ModelSubmittedEvent
+                        && !((ModelSubmittedEvent)ev).entities( Message.class ).isEmpty() )
+                .unsubscribeIf( () -> ui.isDisposed() );
 
         fetchMessages();
         return ui;
     }
 
 
-    protected void send() {
+    protected Promise<?> send() {
         Assert.that( selectedCard.opt().isPresent(), "selectedCard == null" );
         var msg = new TransportMessage() {{
             receipient = Address.parseEncoded( selectedCard.$().message.fromAddress.get() );
@@ -236,7 +256,8 @@ public class MessagesPage extends Page {
             threadSubject = Opt.of( subject.get() );
             followUp = Opt.of( selectedCard.$().message );
         }};
-        ArecaApp.current().transportFor( msg.receipient )
+        return ArecaApp.current()
+                .transportFor( msg.receipient )
                 .thenOpt( transport -> {
                     LOG.info( "Transport found for: %s - %s", msg.receipient, transport );
                     return transport.get().send( msg );
@@ -262,12 +283,17 @@ public class MessagesPage extends Page {
             Platform.schedule( 100, () -> fetchMessages() );
             return;
         }
-        messagesContainer.components.disposeAll();
         var timer = Timer.start();
         var chunk = new ArrayList<MessageCard>();
 
-        src.fetch().onSuccess( (ctx,opt) -> {
-            opt.ifPresent( msg -> chunk.add( new MessageCard( msg ) ) );
+        src.fetch().onSuccess( (ctx,result) -> {
+            result.ifPresent( msg -> {
+                cards.computeIfAbsent( msg, __ -> {
+                    var card = new MessageCard( msg );
+                    chunk.add( card );
+                    return card;
+                });
+            });
 
             // deferred layout chunk
             if (timer.elapsed( MILLISECONDS ) > timeout || ctx.isComplete()) {
@@ -277,13 +303,17 @@ public class MessagesPage extends Page {
 
                 chunk.forEach( card -> messagesContainer.add( card ) );
                 messagesContainer.layout();
-
-                var last = chunk.get( chunk.size()-1 );
                 chunk.clear();
-                Platform.schedule( 1000, () -> {
-                    last.scrollIntoView.set( Vertical.BOTTOM );
-                    last.select( true );
-                });
+
+                // scrollIntoView last
+                Sequence.of( cards.values() )
+                        .reduce( (c1,c2) -> c1.compareTo( c2 ) < 0 ? c2 : c1 )
+                        .ifPresent( last -> {
+                            Platform.schedule( 1000, () -> {
+                                last.scrollIntoView.set( Vertical.BOTTOM );
+                                last.select( true );
+                            });
+                        });
             }
         });
     }
@@ -364,7 +394,7 @@ public class MessagesPage extends Page {
         public int computeMinHeight( int width ) {
             var charsPerLine = (int)((float)width / 8f);
             var lines = (message.content.get().length() / charsPerLine) + 1;
-            LOG.info( "WIDHT: %s, charsPerLine: %s, lines: %s", width, charsPerLine, lines );
+            LOG.debug( "WIDHT: %s, charsPerLine: %s, lines: %s", width, charsPerLine, lines );
             lines = Math.min( MAX_LINES, lines );
 
             contentText.content.set( abbreviate( message.content.get(), lines * charsPerLine ) );

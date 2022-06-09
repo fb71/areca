@@ -185,7 +185,7 @@ public abstract class UIComponentRenderer {
 
         // scrollIntoView
         c.scrollIntoView.onInitAndChange( (newValue, __) -> {
-            LOG.info( "Scroll: %s", c );
+            LOG.debug( "Scroll: %s", c );
             ((ScrollableHTMLElement)htmlElm).scrollIntoView( "smooth", newValue == Vertical.TOP ? "start" : "end" );
         });
 

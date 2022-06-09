@@ -26,6 +26,7 @@ import org.teavm.jso.browser.Location;
 import org.teavm.jso.browser.Navigator;
 import org.teavm.jso.browser.Window;
 
+import org.polymap.model2.Entity;
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.Lifecycle.State;
 import org.polymap.model2.runtime.UnitOfWork;
@@ -173,7 +174,7 @@ public class ArecaApp extends App {
                 });
 
         // app model updates
-        var collector = new EventCollector<EntityLifecycleEvent>( 100 );
+        var collector = new EventCollector<EntityLifecycleEvent>( 250 );
         EventManager.instance()
                 .subscribe( (EntityLifecycleEvent ev) -> {
                     // no refresh needed if main UoW was submitted
@@ -181,9 +182,11 @@ public class ArecaApp extends App {
                         return;
                     }
                     collector.collect( ev, collected -> {
-                        var ids = Sequence.of( collected ).map( _ev -> _ev.getSource().id() ).toSet();
+                        var mse = new ModelSubmittedEvent( this, collected );
+                        var ids = mse.entities( Entity.class );
+                        LOG.info( "Refreshing: %s", ids );
                         uow.refresh( ids ).onSuccess( __ -> {
-                            EventManager.instance().publish( new ModelSubmittedEvent( this, collected ) );
+                            EventManager.instance().publish( mse );
                         });
                     });
                 })
@@ -193,7 +196,7 @@ public class ArecaApp extends App {
                 .unsubscribeIf( () -> !uow.isOpen() );
 
         // settings model updates
-        var collector2 = new EventCollector<EntityLifecycleEvent>( 100 );
+        var collector2 = new EventCollector<EntityLifecycleEvent>( 250 );
         EventManager.instance()
                 .subscribe( (EntityLifecycleEvent ev) -> {
                     // no refresh needed if main UoW was submitted
@@ -276,12 +279,13 @@ public class ArecaApp extends App {
             private String subTaskName = "";
 
             @Override
-            public void beginTask( String name, int totalWork ) {
+            public ProgressMonitor beginTask( String name, int totalWork ) {
                 Assert.that( taskName.isEmpty() );
                 taskName = name;
                 progressText.content.set( name );
                 progressBody.layout();
                 updateTotalWork( totalWork );
+                return this;
             }
 
             @Override
@@ -293,12 +297,13 @@ public class ArecaApp extends App {
             }
 
             @Override
-            public void subTask( String name ) {
+            public ProgressMonitor subTask( String name ) {
                 // subTaskName = name;
+                return this;
             }
 
             @Override
-            public void worked( int work ) {
+            public ProgressMonitor worked( int work ) {
                 Assert.that( !taskName.isEmpty() );
                 checkCancelled();
 
@@ -316,10 +321,11 @@ public class ArecaApp extends App {
                     progressText.content.set( label.toString() );
                     LOG.debug( "PROGRESS: work: %s / %s", workDone, workTotal );
                 }
+                return this;
             }
 
             @Override
-            public void done() {
+            public ProgressMonitor done() {
                 progress.value.set( Float.valueOf( workTotal ) );
                 progressText.content.set( taskName + " 100%" );
                 Platform.schedule( 1000, () -> {
@@ -327,6 +333,7 @@ public class ArecaApp extends App {
                     progressText.dispose();
                     progressBody.layout();
                 });
+                return this;
             }
         };
     }

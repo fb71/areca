@@ -86,6 +86,7 @@ public class SmtpService
 
         @Override
         public Promise<Sent> send( TransportMessage msg ) {
+            var monitor = ctx.newMonitor().beginTask( "Send", 9 ).worked( 1 );
             var request = new SmtpRequest( self -> {
                 self.host = settings.host.get();
                 self.port = settings.port.get();
@@ -101,6 +102,7 @@ public class SmtpService
             return request.submit()
                     .onSuccess( command -> {
                         LOG.info( "Response: %s", command );
+                        monitor.worked( 1 );
                     })
                     .onError( e -> {
                         LOG.info( "Error: %s", e );
@@ -109,6 +111,7 @@ public class SmtpService
                     .map( l -> new Sent() {{
                         message = msg;
                         from = settings.from.get();
+                        monitor.done();
                     }});
         }
     }

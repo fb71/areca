@@ -15,17 +15,20 @@ package areca.app.model;
 
 import java.util.EventObject;
 import java.util.List;
+import java.util.Set;
 
 import org.polymap.model2.Entity;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
+import areca.common.Promise;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
- * Fired by {@link ArecaApp} when Entities where modified and the main {@link UnitOfWork}
- * was refreshed.
+ * Fired by {@link ArecaApp} when entities were modified and after the main
+ * {@link UnitOfWork} was refreshed.
  *
  * @author Falko Bräutigam
  */
@@ -36,14 +39,25 @@ public class ModelSubmittedEvent
 
     private List<EntityLifecycleEvent>      events;
 
+
     public ModelSubmittedEvent( ArecaApp source, List<EntityLifecycleEvent> collected ) {
         super( source );
         this.events = collected;
     }
 
-    public <R extends Entity> List<R> entities( Class<R> type, UnitOfWork uow ) {
-        throw new RuntimeException( "not yet..." );
-        //return Sequence.of( events ).map( ev -> uow.entity( type, ev.getSource().id() ) ).toList();
+
+    public <R extends Entity> Set<Object> entities( Class<R> type ) {
+        return Sequence.of( events )
+                .map( ev -> ev.getSource() )
+                .filter( entity -> type.isInstance( entity ) )
+                .map( entity -> entity.id() )
+                .asSet();
+    }
+
+
+    public <R extends Entity> Promise<Set<R>> entities( Class<R> type, UnitOfWork uow ) {
+        throw new RuntimeException( "..." );
+        //return Sequence.of( entities( type ) ).map( id -> uow.entity( type, id ) ).asCollection();
     }
 
 }

@@ -50,7 +50,7 @@ public class EventCollector<T extends EventObject> {
             async = Platform.schedule( delay, () -> {
                 LOG.info( "Publishing: %s events", events.size() );
                 handler.accept( events );
-                events.clear();
+                events = new ArrayList<>( 128 );
                 async = null;
                 return null;
             });

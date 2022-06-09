@@ -46,4 +46,9 @@ public class EntityLifecycleEvent
         return (Entity)super.getSource();
     }
 
+    @Override
+    public String toString() {
+        return String.format( "EntityLifecycleEvent[state=%s, type=%s]", state, getSource().getClass().getSimpleName() );
+    }
+
 }
