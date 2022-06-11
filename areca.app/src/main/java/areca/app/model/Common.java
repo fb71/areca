@@ -14,21 +14,32 @@
 package areca.app.model;
 
 import org.polymap.model2.Entity;
+import org.polymap.model2.Property;
+import org.polymap.model2.Queryable;
 import org.polymap.model2.runtime.Lifecycle;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
 import areca.common.event.EventManager.EventHandlerInfo;
+import areca.common.reflect.RuntimeInfo;
 
 /**
  *
  * @author Falko Bräutigam
  */
+@RuntimeInfo
 public abstract class Common
         extends Entity
         implements Lifecycle {
 
+    @Queryable
+    public Property<Long>   lastModified;
+
+
     @Override
     public void onLifecycleChange( State state ) {
+        if (state == State.BEFORE_SUBMIT) {
+            lastModified.set( System.currentTimeMillis() );
+        }
         EventManager.instance().publish( new EntityLifecycleEvent( this, state ) );
     }
 

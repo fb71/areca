@@ -92,14 +92,17 @@ public class ImapService
 
     @Override
     public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
-        if (syncType == SyncType.FULL) {
-            loadImapSettings().map( settings -> {
-                return settings != null
-                        ? Promise.completed( new FullSync( settings, ctx ) )
-                        : Promise.completed( null );
-            });
-        }
-        return SyncableService.super.newSync( syncType, ctx );
+        return loadImapSettings().map( settings -> {
+            if (settings == null) {
+                return null;
+            }
+            switch (syncType) {
+                case FULL : return new FullSync( settings, ctx );
+                case INCREMENT : return null;
+                case BACKGROUND : return null;
+                default: return null;
+            }
+        });
     }
 
 
@@ -108,6 +111,7 @@ public class ImapService
      */
     protected static class FullSync
             extends Sync {
+
         protected ImapSettings  settings;
 
         protected SyncContext   ctx;

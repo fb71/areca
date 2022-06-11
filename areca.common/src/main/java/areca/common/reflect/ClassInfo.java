@@ -151,10 +151,29 @@ public abstract class ClassInfo<T>
     protected abstract List<MethodInfo> createDeclaredMethods();
 
 
-    public List<FieldInfo> fields() {
+    /**
+     * All methods declared by this class and {@link #superclassInfo() annotated
+     * super classes}.
+     */
+    public Collection<FieldInfo> fields() {
+        Map<String,FieldInfo> result = new HashMap<>( 128 );
+        ClassInfo<?> ci = this;
+        while (ci != null) {
+            for (var f : ci.declaredFields()) {
+                if (result.putIfAbsent( f.name(), f ) != null) {
+                    LOG.debug( "Field overridden: %s::%s", ci.name(), f.name() );
+                }
+            }
+            ci = ci.superclassInfo().orElse( null );
+        }
+        return result.values();
+    }
+
+    public List<FieldInfo> declaredFields() {
         return fields.supply();
     }
 
-    protected abstract List<FieldInfo> createFields();
+
+    protected abstract List<FieldInfo> createFields(); // XXX rename createDeclaredFields()
 
 }

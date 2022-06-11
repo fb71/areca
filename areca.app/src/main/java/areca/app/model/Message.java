@@ -32,7 +32,7 @@ public class Message
 
     public static final MessageClassInfo info = MessageClassInfo.instance();
 
-    public static Message           TYPE;
+    public static Message            TYPE;
 
     /**
      * An {@link Address} that identifies the origin sender of this Message.

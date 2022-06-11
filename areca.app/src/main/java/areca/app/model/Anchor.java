@@ -19,8 +19,6 @@ import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
-import org.polymap.model2.runtime.config.Mandatory;
-
 import areca.common.Promise;
 import areca.common.reflect.RuntimeInfo;
 
@@ -34,9 +32,8 @@ public class Anchor
 
     public static final AnchorClassInfo info = AnchorClassInfo.instance();
 
-    public static Anchor TYPE;
+    public static Anchor            TYPE;
 
-    @Mandatory
     @Queryable
     public Property<String>         name;
 

@@ -153,7 +153,7 @@ public class ArecaApp extends App {
         var appEntities = Sequence.of( appEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
                 .entities.set( appEntityTypes )
-                .store.set( new IDBStore( "areca.app", 13, true ) )
+                .store.set( new IDBStore( "areca.app", 14, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -347,7 +347,7 @@ public class ArecaApp extends App {
     }
 
 
-    public void startSync( SyncType type  ) {
+    public void startSync( SyncType type ) {
         services( SyncableService.class ).forEach( (service,i) -> {
             Platform.schedule( 3000 * i, () -> { // XXX start imap after contacts are there
                 var ctx = new SyncContext() {{
