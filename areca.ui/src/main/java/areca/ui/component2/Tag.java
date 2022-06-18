@@ -13,21 +13,32 @@
  */
 package areca.ui.component2;
 
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
-import areca.ui.component2.Property.ReadWrite;
+import java.util.ArrayList;
+
+import areca.ui.component2.Property.ReadWrites;
 
 /**
+ * A
  *
  * @author Falko Bräutigam
  */
-public class ScrollableComposite
-        extends UIComposite {
+public class Tag
+        extends UIComponentDecorator {
 
-    private static final Log LOG = LogFactory.getLog( ScrollableComposite.class );
+    /**
+     * The icons (by ligature) to be shown by the tag.
+     */
+    public ReadWrites<Tag,String> icons = Property.rws( this, "icons", new ArrayList<>() );
 
-    public ReadWrite<?,Integer> scrollTop = Property.rw( this, "scrollTop", 0 );
 
-    public ReadWrite<?,Integer> scrollLeft = Property.rw( this, "scrollLeft", 0 );
+    public Tag( UIComponent decorated ) {
+        super( decorated );
+    }
+
+//    @Override
+//    public void dispose() {
+//        content.set( null );
+//        super.dispose();
+//    }
 
 }

@@ -343,7 +343,7 @@ public class MatrixService
                                     proto.storeRef.set( storeRef.toString() );
                                     proto.fromAddress.set( new MatrixAddress( event.sender(), roomAnchor.room.roomId() ).encoded() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
-                                    proto.unread.set( true );
+                                    proto.unread.set( false );
                                     proto.date.set( (long)event.date() );
                                     roomAnchor.anchor.messages.add( proto );
                                 })

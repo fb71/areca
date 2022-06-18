@@ -31,7 +31,7 @@ public class Badge
     /**
      * The text to be shown by the badge. Null makes the badge to disappear.
      */
-    public ReadWrite<Badge,String> content = new ReadWrite<>( this, "content" );
+    public ReadWrite<Badge,String> content = Property.rw( this, "content" );
 
 
     public Badge( UIComponent decorated ) {

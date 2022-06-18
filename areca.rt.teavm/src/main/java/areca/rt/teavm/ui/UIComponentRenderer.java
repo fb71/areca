@@ -14,9 +14,7 @@
 package areca.rt.teavm.ui;
 
 import org.teavm.jso.JSBody;
-import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.events.MouseEvent;
-import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.common.Assert;
@@ -24,11 +22,13 @@ import areca.common.Platform;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.Align.Vertical;
 import areca.ui.Position;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDisposedEvent;
@@ -39,32 +39,39 @@ import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public abstract class UIComponentRenderer {
+public class UIComponentRenderer
+        extends RendererBase {
 
     private static final Log LOG = LogFactory.getLog( UIComponentRenderer.class );
 
-    private static HTMLDocument         doc = Window.current().getDocument();
+    public static final ClassInfo<UIComponentRenderer> TYPE = UIComponentRendererClassInfo.instance();
 
     public static void start() {
         UICompositeRenderer._start();
+        ScrollableCompositeRenderer._start(); // after UIComposite
         TextRenderer._start();
         TextFieldRenderer._start();
         ButtonRenderer._start();
         ProgressRenderer._start();
+        LinkRenderer._start();
+        SeparatorRenderer._start();
+
         BadgeRenderer._start();
         LabelRenderer._start();
-        LinkRenderer._start();
+        TagRenderer._start();
+        UIComponentRenderer._start(); // last
+    }
+
+    static void _start() {
+        UIComponentEvent.manager
+                .subscribe( new UIComponentRenderer() )
+                .performIf( ev -> ev instanceof UIComponentEvent && ev.getSource() instanceof UIComponent );
     }
 
     // instance *******************************************
 
-    protected HTMLDocument doc() {
-        return doc;
-    }
-
-
     protected HTMLElement htmlElm( UIComponent c ) {
-        return Assert.notNull( (HTMLElement)c.htmlElm );
+        return Assert.notNull( (HTMLElement)c.htmlElm, "No htmlElm for: " + c.getClass().getSimpleName() );
     }
 
 

@@ -70,6 +70,12 @@ body {
     overflow-x: visible;
 }
 
+.Separator {
+    border-top: 1px solid $separator_color;
+    border-bottom: none;
+    overflow: visible;    
+}
+
 .Link {
     color: $link_color;
     text-decoration: none;
@@ -238,3 +244,25 @@ $badge-padding: 4px;
 //    top: auto;
 //    bottom: -7px;
 //}
+
+.Tagged:after {
+    @extend .material-icons;
+    
+    content: attr(data-tag);
+    //width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: left;
+    display: block;
+    //background: saturate(darken($accent_color, 5%), 10%);
+    //border: 1px solid darken($font_color, 20%);
+    color: desaturate(darken($link_color, 32%), 60%);
+    font-size: 21px;
+    text-shadow: 1px 2px 4px rgba(0,0,0,50%);
+    //font-w+eight: bold;
+    position: absolute;
+    top: -4px;
+    left: auto;
+    right: -2px;
+    //bottom: -$badge_padding;
+}

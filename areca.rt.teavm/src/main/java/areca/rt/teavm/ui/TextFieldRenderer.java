@@ -30,7 +30,7 @@ import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
  */
 @RuntimeInfo
 public class TextFieldRenderer
-        extends UIComponentRenderer {
+        extends RendererBase {
 
     private static final Log LOG = LogFactory.getLog( TextFieldRenderer.class );
 
@@ -39,12 +39,11 @@ public class TextFieldRenderer
     static void _start() {
         UIComponentEvent.manager
                 .subscribe( new TextFieldRenderer() )
-                .performIf( ev -> ev instanceof UIComponentEvent && ev.getSource() instanceof TextField );
+                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof TextField );
     }
 
     // instance *******************************************
 
-    @Override
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
         TextField c = (TextField)ev.getSource();
@@ -74,8 +73,6 @@ public class TextFieldRenderer
             //htmlEv.preventDefault();
             c.content.rawSet( inputElm.getValue() );
         });
-
-        super.componentConstructed( ev );
     }
 
 }

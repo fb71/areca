@@ -33,7 +33,7 @@ import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
  */
 @RuntimeInfo
 public class LinkRenderer
-        extends UIComponentRenderer {
+        extends RendererBase {
 
     private static final Log LOG = LogFactory.getLog( LinkRenderer.class );
 
@@ -42,7 +42,7 @@ public class LinkRenderer
     static void _start() {
         UIComponentEvent.manager
                 .subscribe( new LinkRenderer() )
-                .performIf( ev -> ev instanceof UIComponentEvent && ev.getSource() instanceof Link );
+                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Link );
     }
 
 
@@ -52,7 +52,6 @@ public class LinkRenderer
         return Assert.notNull( (HTMLAnchorElement)c.htmlElm );
     }
 
-    @Override
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
         Link c = (Link)ev.getSource();
@@ -65,8 +64,6 @@ public class LinkRenderer
         c.content.onChange( (newValue, oldValue) -> {
             textNode.setNodeValue( newValue );
         });
-
-        super.componentConstructed( ev );
     }
 
 }

@@ -25,6 +25,7 @@ import areca.common.log.LogFactory.Log;
 
 /**
  * Collecting chunk of events and deferred handling them all together.
+ * Can be used to throttle event rate.
  *
  * @author Falko Bräutigam
  */

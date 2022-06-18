@@ -142,7 +142,7 @@ public class PanGesture {
             if (ev.clientPos().y > (component.size.value().height() - EDGE_THRESHOLD)) {
                 onEnd( ev );
             }
-            else if ((System.currentTimeMillis() - lastTime) < 100) {
+            else if ((System.currentTimeMillis() - lastTime) < 100) { // XXX use Timer
                 LOG.debug( "IGNORED" );
             }
             else {

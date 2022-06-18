@@ -13,14 +13,17 @@
  */
 package areca.rt.teavm.ui;
 
+import static areca.ui.Orientation.HORIZONTAL;
+
 import org.teavm.jso.dom.html.HTMLElement;
 
+import areca.common.Assert;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
-import areca.ui.component2.Progress;
+import areca.ui.component2.Separator;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
 
@@ -29,36 +32,27 @@ import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class ProgressRenderer
+public class SeparatorRenderer
         extends RendererBase {
 
-    private static final Log LOG = LogFactory.getLog( ProgressRenderer.class );
+    private static final Log LOG = LogFactory.getLog( SeparatorRenderer.class );
 
-    public static final ClassInfo<ProgressRenderer> TYPE = ProgressRendererClassInfo.instance();
+    public static final ClassInfo<SeparatorRenderer> TYPE = SeparatorRendererClassInfo.instance();
 
     static void _start() {
         UIComponentEvent.manager
-                .subscribe( new ProgressRenderer() )
-                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Progress );
+                .subscribe( new SeparatorRenderer() )
+                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Separator );
     }
 
     // instance *******************************************
 
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
-        Progress c = (Progress)ev.getSource();
+        Separator c = (Separator)ev.getSource();
 
-        c.htmlElm = (HTMLElement)doc().createElement( "progress" );
-        var textNode = (HTMLElement)doc().createTextNode( "" );
-        htmlElm( c ).appendChild( textNode );
-
-        c.max.onInitAndChange( (newValue, __) -> {
-            htmlElm( c ).setAttribute( "max", newValue.toString() );
-        });
-        c.value.onInitAndChange( (newValue, __) -> {
-            htmlElm( c ).setAttribute( "value", newValue.toString() );
-            //textNode.setNodeValue( newValue );
-        });
+        Assert.that( c.orientation.value() == HORIZONTAL, "Separator: VERTICAL orientation is not yet supported." );
+        c.htmlElm = (HTMLElement)doc().createElement( "HR" );
     }
 
 }

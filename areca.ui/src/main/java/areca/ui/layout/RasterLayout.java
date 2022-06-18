@@ -42,7 +42,6 @@ public class RasterLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        //LOG.debug( "Components: %s, %s", components.size(), composite.clientSize.opt().orElse( Size.of( -1, -1 ) ) );
         Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) ).substract( margins.value() );
 
         var cWidth = itemSize.value().width();

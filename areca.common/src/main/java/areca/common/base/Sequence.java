@@ -176,14 +176,20 @@ public abstract class Sequence<T, E extends Exception> {
 
 
     public <R,RE extends E> Sequence<R,E> transform( Function<T,R,RE> function ) throws RE {
+        return transform( (elm,index) -> function.apply( elm ) );
+    }
+
+
+    public <R,RE extends E> Sequence<R,E> transform( areca.common.base.BiFunction<T,Integer,R,RE> function ) throws RE {
         return new Sequence<R,E>( this ) {
             @Override
             @SuppressWarnings("unchecked")
             protected SequenceIterator<R,E> iterator() {
                 return new DelegatingIterator<T,R,E>( (SequenceIterator<T,E>)parent.iterator() ) {
+                    int index = 0;
                     @Override
                     public R next() throws E {
-                        return function.apply( delegate.next() );
+                        return function.apply( delegate.next(), index ++ );
                     }
                 };
             }
@@ -195,6 +201,11 @@ public abstract class Sequence<T, E extends Exception> {
      * Same as {@link #transform(Function)}
      */
     public <R,RE extends E> Sequence<R,E> map( Function<T,R,RE> function ) throws RE {
+        return transform( function );
+    }
+
+
+    public <R,RE extends E> Sequence<R,E> map( areca.common.base.BiFunction<T,Integer,R,RE> function ) throws RE {
         return transform( function );
     }
 

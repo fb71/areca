@@ -31,7 +31,7 @@ import areca.ui.component2.UIComposite;
  */
 @RuntimeInfo
 public class UICompositeRenderer
-        extends UIComponentRenderer {
+        extends RendererBase {
 
     private static final Log LOG = LogFactory.getLog( UICompositeRenderer.class );
 
@@ -40,12 +40,11 @@ public class UICompositeRenderer
     static void _start() {
         UIComponentEvent.manager
                 .subscribe( new UICompositeRenderer( ) )
-                .performIf( ev -> ev instanceof UIComponentEvent && ev.getSource() instanceof UIComposite );
+                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof UIComposite );
     }
 
     // instance *******************************************
 
-    @Override
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
         UIComposite c = (UIComposite)ev.getSource();
@@ -61,8 +60,6 @@ public class UICompositeRenderer
 //                return Size.of( doc().getBody().getClientWidth(), doc().getBody().getClientHeight() );
 //            });
         }
-
-        super.componentConstructed( ev );
     }
 
 }

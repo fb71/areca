@@ -15,6 +15,8 @@ package areca.app.model;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import org.polymap.model2.Concerns;
+import org.polymap.model2.Defaults;
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
@@ -37,7 +39,12 @@ public class Anchor
     @Queryable
     public Property<String>         name;
 
+    @Concerns(AnchorMessagesConcern.class)
     public ManyAssociation<Message> messages;
+
+    @Defaults
+    @Queryable
+    public Property<Long>           lastMessageDate;
 
     @Nullable
     @Queryable

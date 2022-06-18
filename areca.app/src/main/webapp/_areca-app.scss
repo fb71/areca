@@ -7,7 +7,13 @@
     color: darken($font_color, 30%);
 }
 
-$card_color: saturate(lighten($bg1_color, 4%), 0%);
+// make Label hover over Separator
+.StartPage .Labeled:before {
+    background-color: $bg1_color;
+    padding: 0px 7px 0px 7px;
+}
+
+$card_color: lighten($bg1_color, 4%);
 
 .ContactButton, .AnchorButton {
     font-size: 12px;
@@ -16,6 +22,13 @@ $card_color: saturate(lighten($bg1_color, 4%), 0%);
     background-color: $card_color;
     //border-color: saturate(lighten($bg1_color, 8%), 0%) !important;
     border: none !important;
+}
+// Tag
+.AnchorButton:after {
+    color: lighten($card_color, 17%);
+}
+.HasUnreadMessages:after {
+    color: saturate(lighten($accent_color, 8%), 8%);
 }
 
 // XXX make cards

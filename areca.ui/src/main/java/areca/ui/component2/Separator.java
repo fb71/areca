@@ -13,21 +13,16 @@
  */
 package areca.ui.component2;
 
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
+import areca.ui.Orientation;
 import areca.ui.component2.Property.ReadWrite;
 
 /**
  *
- * @author Falko Bräutigam
+ * @author falko
  */
-public class ScrollableComposite
-        extends UIComposite {
+public class Separator
+        extends UIComponent {
 
-    private static final Log LOG = LogFactory.getLog( ScrollableComposite.class );
-
-    public ReadWrite<?,Integer> scrollTop = Property.rw( this, "scrollTop", 0 );
-
-    public ReadWrite<?,Integer> scrollLeft = Property.rw( this, "scrollLeft", 0 );
+    public ReadWrite<Separator,Orientation> orientation = Property.rw( this, "orientation", Orientation.HORIZONTAL );
 
 }

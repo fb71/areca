@@ -13,14 +13,15 @@
  */
 package areca.rt.teavm.ui;
 
-import org.teavm.jso.dom.html.HTMLElement;
+import java.util.EventObject;
 
+import areca.common.event.EventCollector;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
-import areca.ui.component2.Progress;
+import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
 
@@ -29,35 +30,33 @@ import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class ProgressRenderer
+public class ScrollableCompositeRenderer
         extends RendererBase {
 
-    private static final Log LOG = LogFactory.getLog( ProgressRenderer.class );
+    private static final Log LOG = LogFactory.getLog( ScrollableCompositeRenderer.class );
 
-    public static final ClassInfo<ProgressRenderer> TYPE = ProgressRendererClassInfo.instance();
+    public static final ClassInfo<ScrollableCompositeRenderer> TYPE = ScrollableCompositeRendererClassInfo.instance();
 
     static void _start() {
         UIComponentEvent.manager
-                .subscribe( new ProgressRenderer() )
-                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Progress );
+                .subscribe( new ScrollableCompositeRenderer() )
+                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof ScrollableComposite );
     }
 
     // instance *******************************************
 
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
-        Progress c = (Progress)ev.getSource();
+        ScrollableComposite c = (ScrollableComposite)ev.getSource();
+        var div = htmlElm( c );
 
-        c.htmlElm = (HTMLElement)doc().createElement( "progress" );
-        var textNode = (HTMLElement)doc().createTextNode( "" );
-        htmlElm( c ).appendChild( textNode );
-
-        c.max.onInitAndChange( (newValue, __) -> {
-            htmlElm( c ).setAttribute( "max", newValue.toString() );
-        });
-        c.value.onInitAndChange( (newValue, __) -> {
-            htmlElm( c ).setAttribute( "value", newValue.toString() );
-            //textNode.setNodeValue( newValue );
+        var throttle = new EventCollector<>( 300 );
+        div.addEventListener( "scroll", htmlEv -> {
+            throttle.collect( new EventObject( c ), l -> {
+                LOG.info( "Throttle: " + l.size() );
+                c.scrollLeft.set( div.getScrollLeft() );
+                c.scrollTop.set( div.getScrollTop() );
+            });
         });
     }
 

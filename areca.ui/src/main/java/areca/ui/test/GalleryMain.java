@@ -44,7 +44,7 @@ public class GalleryMain {
 
     public static void initLog() {
         LogFactory.DEFAULT_LEVEL = Level.INFO;
-        LogFactory.setPackageLevel( areca.ui.component2.UIComponent.class, Level.DEBUG );
+        //LogFactory.setPackageLevel( areca.ui.component2.UIComponent.class, Level.DEBUG );
         LogFactory.setPackageLevel( GalleryMain.class, Level.DEBUG );
         //LogFactory.setPackageLevel( areca.rt.teavm.ui.UIComponentRenderer.class, Level.DEBUG );
     }
@@ -54,6 +54,7 @@ public class GalleryMain {
         add( RasterLayoutTest.class );
         add( BadgeTest.class );
         add( TextInputTest.class );
+        add( DynamicRasterTest.class );
     }};
 
     protected static UIComposite    btnArea;

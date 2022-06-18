@@ -31,7 +31,7 @@ import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
  */
 @RuntimeInfo
 public class ButtonRenderer
-        extends UIComponentRenderer {
+        extends RendererBase {
 
     private static final Log LOG = LogFactory.getLog( ButtonRenderer.class );
 
@@ -40,12 +40,11 @@ public class ButtonRenderer
     static void _start() {
         UIComponentEvent.manager
                 .subscribe( new ButtonRenderer() )
-                .performIf( ev -> ev instanceof UIComponentEvent && ev.getSource() instanceof Button );
+                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Button );
     }
 
     // instance *******************************************
 
-    @Override
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
         Button c = (Button)ev.getSource();
@@ -71,7 +70,5 @@ public class ButtonRenderer
         c.label.onChange( (newValue, oldValue) -> {
             textNode.setNodeValue( newValue );
         });
-
-        super.componentConstructed( ev );
     }
 }

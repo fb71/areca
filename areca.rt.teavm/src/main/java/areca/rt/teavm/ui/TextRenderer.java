@@ -30,7 +30,7 @@ import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
  */
 @RuntimeInfo
 public class TextRenderer
-        extends UIComponentRenderer {
+        extends RendererBase {
 
     private static final Log LOG = LogFactory.getLog( TextRenderer.class );
 
@@ -39,12 +39,11 @@ public class TextRenderer
     static void _start() {
         UIComponentEvent.manager
                 .subscribe( new TextRenderer() )
-                .performIf( ev -> ev instanceof UIComponentEvent && ev.getSource() instanceof Text );
+                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Text );
     }
 
     // instance *******************************************
 
-    @Override
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
         Text c = (Text)ev.getSource();
@@ -56,8 +55,6 @@ public class TextRenderer
         c.content.onChange( (newValue, oldValue) -> {
             textNode.setNodeValue( newValue );
         });
-
-        super.componentConstructed( ev );
     }
 
 }
