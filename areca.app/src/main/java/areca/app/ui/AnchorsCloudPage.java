@@ -14,6 +14,8 @@
 package areca.app.ui;
 
 import static org.apache.commons.lang3.StringUtils.abbreviate;
+import static org.apache.commons.lang3.time.DateUtils.addDays;
+import static org.apache.commons.lang3.time.DateUtils.addYears;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -45,7 +47,6 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
-import areca.ui.component2.Badge;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Label;
@@ -143,13 +144,13 @@ public class AnchorsCloudPage
         };
         updateBtn.run();
 
-        // badge
-        var badge = new Badge( btn );
-        Runnable updateBadge = () -> {
-            anchor.unreadMessagesCount().onSuccess( unread -> {
-                badge.content.set( unread > 0 ? String.valueOf( unread ) : null );
-            });
-        };
+//        // badge
+//        var badge = new Badge( btn );
+//        Runnable updateBadge = () -> {
+//            anchor.unreadMessagesCount().onSuccess( unread -> {
+//                badge.content.set( unread > 0 ? String.valueOf( unread ) : null );
+//            });
+//        };
 
         // tag
         var tag = new Tag( btn );
@@ -194,7 +195,12 @@ public class AnchorsCloudPage
 
 
     /**
-     *
+     * {@link #checkVisibleLines()} creates {@link RasterLine}s until currently
+     * scrolled view is filled. {@link RasterLine} requests components and does
+     * layout according the previous line.
+     * <p>
+     * The {@link Interval} checks/counts every component requested by a RasterLine
+     * in order to create {@link SeparatorLine}s.
      */
     protected static class CloudRaster
             extends DynamicLayoutManager<CloudComponent> {
@@ -220,27 +226,16 @@ public class AnchorsCloudPage
 
 
         public CloudRaster() {
-            var border = DateUtils.truncate( new Date(), Calendar.DATE );
-            intervalBorders.add( new IntervalBorder( "Today", border.getTime() ) );
-
-            border = DateUtils.addDays( border, -1 );
-            intervalBorders.add( new IntervalBorder( "Yesterday", border.getTime() ) );
-
-            border = DateUtils.addDays( border, -1 );
-            intervalBorders.add( new IntervalBorder( "Last 3 days", border.getTime() ) );
-
-            border = DateUtils.addDays( border, -4 );
-            intervalBorders.add( new IntervalBorder( "Last 7 days", border.getTime() ) );
-
-            border = DateUtils.addDays( border, -10 );
-            intervalBorders.add( new IntervalBorder( "Last 14 days", border.getTime() ) );
-
-            border = DateUtils.addDays( border, -16 );
-            intervalBorders.add( new IntervalBorder( "Last 30 days", border.getTime() ) );
-
-            border = DateUtils.addYears( border, -30 );
-            intervalBorders.add( new IntervalBorder( "Ever", border.getTime() ) );
-
+            var today = DateUtils.truncate( new Date(), Calendar.DATE );
+            today = DateUtils.addHours( today, -12 ); // ???
+            intervalBorders.add( new IntervalBorder( "Today", today.getTime() ) );
+            intervalBorders.add( new IntervalBorder( "Yesterday", addDays( today, -1 ).getTime() ) );
+            intervalBorders.add( new IntervalBorder( "2 days ago", addDays( today, -2 ).getTime() ) );
+            intervalBorders.add( new IntervalBorder( "3 days ago", addDays( today, -3 ).getTime() ) );
+            intervalBorders.add( new IntervalBorder( "7 days ago", addDays( today, -7 ).getTime() ) );
+            intervalBorders.add( new IntervalBorder( "2 weeks ago", addDays( today, -14 ).getTime() ) );
+            intervalBorders.add( new IntervalBorder( "1 month ago", addDays( today, -30 ).getTime() ) );
+            intervalBorders.add( new IntervalBorder( "Older", addYears( today, -30 ).getTime() ) );
             LOG.info( "Intervals: %s", Sequence.of( intervalBorders ).map( b -> df.format( b.start ) ) );
         }
 
@@ -282,7 +277,7 @@ public class AnchorsCloudPage
 
 
         /**
-         * Recursivly check if the current last loaded line is "under" the currently
+         * Recursivly check if the current last loaded line is "below" the currently
          * scrolled view area. Wait for the current line to be layouted and recursivly
          * check the next line afterwards, so that the next line knows the height of
          * its predecessor.
@@ -292,21 +287,23 @@ public class AnchorsCloudPage
             int viewTop = scrollable.scrollTop.value();
 
             if (lines.isEmpty() || (lines.getLast().bottom() - (viewSize.height()/2)) < (viewTop + viewSize.height())) {
-                var lastLine = lines.isEmpty() ? null : lines.getLast();
-
                 if (currentInterval.isComplete) {
                     LOG.info( "Raster: interval: isComplete: %s", currentInterval.isComplete );
                     currentInterval = currentInterval.next();
-                    lines.add( currentInterval.createSeparatorLine( lastLine ) );
                     checkVisibleLines();
                 }
                 else {
-                    new RasterLine( lastLine ).layout().onSuccess( line -> {
-                        lines.add( line );
-                        checkVisibleLines();
+                    new RasterLine().layout().onSuccess( hasMore -> {
+                        if (hasMore) {
+                            checkVisibleLines();
+                        }
                     });
                 }
             }
+        }
+
+        protected RasterLine lastLine() {
+            return lines.isEmpty() ? null : lines.getLast();
         }
 
 
@@ -323,8 +320,12 @@ public class AnchorsCloudPage
 
             public List<CloudComponent> components;
 
-
-            public RasterLine( RasterLine last ) {
+            /**
+             * Init 'top' right before the first Button is layouted, so that
+             * the {@link Interval} can draw a {@link SeparatorLine} before it.
+             */
+            public RasterLine() {
+                var last = lastLine();
                 this.top = last != null ? last.bottom() + spacing : margins;
                 this.height = cHeight;
                 this.startIndex = last != null ? last.startIndex + last.components.size() : 0;
@@ -335,7 +336,7 @@ public class AnchorsCloudPage
                 components.clear();
             }
 
-            public Promise<RasterLine> layout() {
+            public Promise<Boolean> layout() {
                 return provider.$().provide( startIndex, cols ).map( loaded -> {
                     LOG.info( "%s: loaded: top=%s, startIndex=%s, components=%d (%s)", getClass().getSimpleName(),
                             top, startIndex, loaded.size(), timer.elapsedHumanReadable() );
@@ -347,13 +348,19 @@ public class AnchorsCloudPage
                             if (c.component.parent() == null) {
                                 scrollable.add( c.component );
                             }
+                            if (components.isEmpty()) {
+                                // interval checkAdd() might have inserted a SeparatorLine before us
+                                var last = lastLine();
+                                this.top = last != null ? last.bottom() + spacing : margins;
+                                lines.add( this );
+                            }
                             components.add( c );
                             c.component.position.set( Position.of( left + margins, top ) );
                             c.component.size.set( Size.of( cWidth, cHeight ) );
                             left += cWidth + spacing;
                         }
                     }
-                    return this;
+                    return !loaded.isEmpty();
                 });
             }
 
@@ -372,8 +379,7 @@ public class AnchorsCloudPage
 
             public UIComponent      sep;
 
-            public SeparatorLine( RasterLine last, String label ) {
-                super( last );
+            public SeparatorLine( String label ) {
                 height = 0;
                 components = Collections.emptyList();
                 sep = scrollable.add( new Separator() {{
@@ -423,7 +429,9 @@ public class AnchorsCloudPage
                         border = intervalBorders.get( ++borderIndex );
                     }
                     LOG.info( "    borderIndex=%d", borderIndex );
+                    lines.add( new SeparatorLine( intervalBorders.get( borderIndex ).label ) );
                 }
+
                 if (component.date >= border.start) {
                     componentCount ++;
                 }
@@ -438,10 +446,6 @@ public class AnchorsCloudPage
                 var result = new Interval();
                 result.borderIndex = this.borderIndex;
                 return result;
-            }
-
-            public RasterLine createSeparatorLine( RasterLine lastLine ) {
-                return new SeparatorLine( lastLine, intervalBorders.get( borderIndex ).label );
             }
         }
 
