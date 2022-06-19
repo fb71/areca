@@ -281,6 +281,15 @@ public abstract class Property<C,T> {
             }
         }
 
+        /**
+         *
+         * @param elm
+         * @param add True signals that the given element is to be added. Remove otherwise.
+         * @return See {@link #add(Object)} and {@link #remove(Object)}
+         */
+        public Opt<T> modify( T elm, boolean add ) {
+            return add ? add( elm ) : remove( elm );
+        }
     }
 
 

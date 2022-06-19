@@ -78,7 +78,7 @@ public class MessagesPage extends Page {
 
     public static final DateFormat  df = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT, ArecaApp.locale() );
 
-    public static final int         MESSAGE_MARK_READ_DELAY = 5000;
+    public static final int         MESSAGE_MARK_READ_DELAY = 3000;
 
     protected ManyAssociation<Message>  src;
 
@@ -380,8 +380,7 @@ public class MessagesPage extends Page {
             if (message.unread.get()) {
                 new Badge( this ) {{
                     content.set( "X" );
-                    // listen to updates
-                    message.onLifecycle( State.AFTER_SUBMIT, ev -> {
+                    message.onLifecycle( State.AFTER_REFRESH, ev -> {
                         content.set( message.unread.get() ? "X" : null );
                     })
                     .unsubscribeIf( () -> isDisposed() );
@@ -429,9 +428,11 @@ public class MessagesPage extends Page {
             if (message.unread.get()) {
                 Platform.schedule( MESSAGE_MARK_READ_DELAY, () -> {
                     if (selectedCard.$() == this && message.unread.get()) {
-                        // FIXME fast but AnchorsCloudPage gets no event
-                        message.unread.set( false );
-                        message.context.getUnitOfWork().submit();
+                        var uow = ArecaApp.current().repo().newUnitOfWork();
+                        uow.entity( message ).onSuccess( _message -> {
+                            _message.unread.set( false );
+                            uow.submit();
+                        });
                     }
                 });
             }

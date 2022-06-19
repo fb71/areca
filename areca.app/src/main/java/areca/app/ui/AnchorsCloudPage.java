@@ -16,6 +16,7 @@ package areca.app.ui;
 import static org.apache.commons.lang3.StringUtils.abbreviate;
 import static org.apache.commons.lang3.time.DateUtils.addDays;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
+import static org.polymap.model2.runtime.Lifecycle.State.AFTER_REFRESH;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -32,16 +33,18 @@ import java.text.SimpleDateFormat;
 import org.apache.commons.lang3.time.DateUtils;
 
 import org.polymap.model2.query.Query.Order;
-import org.polymap.model2.runtime.Lifecycle.State;
 
 import areca.app.ArecaApp;
 import areca.app.model.Anchor;
+import areca.app.model.EntityLifecycleEvent;
+import areca.app.model.Message;
 import areca.app.model.ModelSubmittedEvent;
 import areca.app.ui.AnchorsCloudPage.CloudRaster.CloudComponent;
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Sequence;
+import areca.common.event.EventCollector;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -168,22 +171,29 @@ public class AnchorsCloudPage
         }
         Runnable updateTag = () -> {
             anchor.unreadMessagesCount().onSuccess( unread -> {
-                if (unread > 0) {
-                    btn.cssClasses.add( "HasUnreadMessages" );
-                } else {
-                    btn.cssClasses.remove( "HasUnreadMessages" );
-                }
+                btn.cssClasses.modify( "HasUnreadMessages", unread > 0 );
             });
         };
         Platform.schedule( 1250, updateTag );
 
-        // check updates
-        anchor.onLifecycle( State.AFTER_REFRESH, ev -> {
-            updateBtn.run();
-            //updateBadge.run();
-            updateTag.run();
-        })
-        .unsubscribeIf( () -> btn.isDisposed() );
+        // Anchor/Messages updates
+        var throttle = new EventCollector<>( 250 );
+        EventManager.instance()
+                .subscribe( ev -> {
+                    LOG.info( "Entity AFTER_REFRESH: %s", ev.getSource().getClass().getSimpleName() );
+                    // probably a message was added
+                    if (ev.getSource() == anchor) {
+                        updateBtn.run();
+                        updateTag.run();
+                    }
+                    // maybe Message.unread has changed
+                    else if (ev.getSource() instanceof Message) {
+                        throttle.collect( ev, evs -> updateTag.run() );
+                    }
+                })
+                .performIf( ev -> ev instanceof EntityLifecycleEvent
+                        && ((EntityLifecycleEvent)ev).state == AFTER_REFRESH )
+                .unsubscribeIf( () -> btn.isDisposed() );
 
         // click
         btn.events.on( EventType.SELECT, ev -> {
@@ -236,7 +246,7 @@ public class AnchorsCloudPage
             intervalBorders.add( new IntervalBorder( "2 weeks ago", addDays( today, -14 ).getTime() ) );
             intervalBorders.add( new IntervalBorder( "1 month ago", addDays( today, -30 ).getTime() ) );
             intervalBorders.add( new IntervalBorder( "Older", addYears( today, -30 ).getTime() ) );
-            LOG.info( "Intervals: %s", Sequence.of( intervalBorders ).map( b -> df.format( b.start ) ) );
+            LOG.debug( "Intervals: %s", Sequence.of( intervalBorders ).map( b -> df.format( b.start ) ) );
         }
 
 
@@ -248,7 +258,7 @@ public class AnchorsCloudPage
 
         @Override
         public void layout( UIComposite composite ) {
-            LOG.info( "layout(): clientSize=%s", composite.clientSize.opt().orElse( Size.of( -1, -1 ) ) );
+            LOG.debug( "layout(): clientSize=%s", composite.clientSize.opt().orElse( Size.of( -1, -1 ) ) );
             super.layout( composite );
 
             // remove previous lines (separators)
@@ -288,7 +298,7 @@ public class AnchorsCloudPage
 
             if (lines.isEmpty() || (lines.getLast().bottom() - (viewSize.height()/2)) < (viewTop + viewSize.height())) {
                 if (currentInterval.isComplete) {
-                    LOG.info( "Raster: interval: isComplete: %s", currentInterval.isComplete );
+                    LOG.debug( "Raster: interval: isComplete: %s", currentInterval.isComplete );
                     currentInterval = currentInterval.next();
                     checkVisibleLines();
                 }
@@ -338,7 +348,7 @@ public class AnchorsCloudPage
 
             public Promise<Boolean> layout() {
                 return provider.$().provide( startIndex, cols ).map( loaded -> {
-                    LOG.info( "%s: loaded: top=%s, startIndex=%s, components=%d (%s)", getClass().getSimpleName(),
+                    LOG.debug( "%s: loaded: top=%s, startIndex=%s, components=%d (%s)", getClass().getSimpleName(),
                             top, startIndex, loaded.size(), timer.elapsedHumanReadable() );
 
                     this.components = new ArrayList<>( loaded.size() );
@@ -420,7 +430,7 @@ public class AnchorsCloudPage
             public int      borderIndex;
 
             public boolean checkAdd( CloudComponent component ) {
-                LOG.info( "Interval: count=%d, component.date=%s, borderIndex=%d",componentCount, df.format( component.date ), borderIndex );
+                LOG.debug( "Interval: count=%d, component.date=%s, borderIndex=%d",componentCount, df.format( component.date ), borderIndex );
                 var border = intervalBorders.get( borderIndex );
 
                 // find border on first component
@@ -428,7 +438,7 @@ public class AnchorsCloudPage
                     while (component.date < border.start) {
                         border = intervalBorders.get( ++borderIndex );
                     }
-                    LOG.info( "    borderIndex=%d", borderIndex );
+                    LOG.debug( "    borderIndex=%d", borderIndex );
                     lines.add( new SeparatorLine( intervalBorders.get( borderIndex ).label ) );
                 }
 
@@ -436,7 +446,7 @@ public class AnchorsCloudPage
                     componentCount ++;
                 }
                 else {
-                    LOG.info( "    isComplete!" );
+                    LOG.debug( "    isComplete!" );
                     isComplete = true;
                 }
                 return !isComplete;
