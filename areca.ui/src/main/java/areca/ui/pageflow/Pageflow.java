@@ -103,8 +103,13 @@ public class Pageflow {
         };
         var _pageContainer = _page.init( rootContainer, _pageSite );
         pages.push( new PageData() {{page = _page; site = _pageSite; container = _pageContainer;}} );
-        rootContainer.layout();
-        ((PageStackLayout)rootContainer.layout.value()).openLast( origin );
+
+        var layout = (PageStackLayout)rootContainer.layout.value();
+        layout.layout( rootContainer ); // do NOT layout ALL child components
+        if (_pageContainer instanceof UIComposite) {
+            ((UIComposite)_pageContainer).layout();
+        }
+        layout.openLast( origin );
     }
 
 
