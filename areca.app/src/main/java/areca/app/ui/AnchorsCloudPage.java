@@ -14,14 +14,10 @@
 package areca.app.ui;
 
 import static org.apache.commons.lang3.StringUtils.abbreviate;
-import static org.apache.commons.lang3.time.DateUtils.addDays;
-import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.polymap.model2.runtime.Lifecycle.State.AFTER_REFRESH;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,8 +25,6 @@ import java.util.Map;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-
-import org.apache.commons.lang3.time.DateUtils;
 
 import org.polymap.model2.query.Query.Order;
 
@@ -230,24 +224,7 @@ public class AnchorsCloudPage
 
         protected Timer                 timer = Timer.start();
 
-        protected List<IntervalBorder>  intervalBorders = new ArrayList<>();
-
         protected Interval              currentInterval;
-
-
-        public CloudRaster() {
-            var today = DateUtils.truncate( new Date(), Calendar.DATE );
-            today = DateUtils.addHours( today, -12 ); // ???
-            intervalBorders.add( new IntervalBorder( "Today", today.getTime() ) );
-            intervalBorders.add( new IntervalBorder( "Yesterday", addDays( today, -1 ).getTime() ) );
-            intervalBorders.add( new IntervalBorder( "2 days ago", addDays( today, -2 ).getTime() ) );
-            intervalBorders.add( new IntervalBorder( "3 days ago", addDays( today, -3 ).getTime() ) );
-            intervalBorders.add( new IntervalBorder( "7 days ago", addDays( today, -7 ).getTime() ) );
-            intervalBorders.add( new IntervalBorder( "2 weeks ago", addDays( today, -14 ).getTime() ) );
-            intervalBorders.add( new IntervalBorder( "1 month ago", addDays( today, -30 ).getTime() ) );
-            intervalBorders.add( new IntervalBorder( "Older", addYears( today, -30 ).getTime() ) );
-            LOG.debug( "Intervals: %s", Sequence.of( intervalBorders ).map( b -> df.format( b.start ) ) );
-        }
 
 
         @Override
@@ -259,6 +236,7 @@ public class AnchorsCloudPage
         @Override
         public void layout( UIComposite composite ) {
             LOG.debug( "layout(): clientSize=%s", composite.clientSize.opt().orElse( Size.of( -1, -1 ) ) );
+            boolean isFirstRun = scrollable == null;
             super.layout( composite );
 
             // remove previous lines (separators)
@@ -272,9 +250,11 @@ public class AnchorsCloudPage
             cols = (viewSize.width() - (margins*2) + spacing) / (cWidth + spacing);
             currentInterval = new Interval();
 
-            scrollable.scrollTop.onChange( (newValue,__) -> {
-                checkScroll();
-            });
+            if (isFirstRun) {
+                scrollable.scrollTop.onChange( (newValue,__) -> {
+                    checkScroll();
+                });
+            }
             checkScroll();
         }
 
@@ -410,20 +390,6 @@ public class AnchorsCloudPage
         /**
          *
          */
-        protected static class IntervalBorder {
-            public String           label;
-            public long             start; // time
-
-            public IntervalBorder( String label, long start ) {
-                this.label = label;
-                this.start = start;
-            }
-        }
-
-
-        /**
-         *
-         */
         protected class Interval {
             public boolean  isComplete;
             public int      componentCount;
@@ -431,15 +397,15 @@ public class AnchorsCloudPage
 
             public boolean checkAdd( CloudComponent component ) {
                 LOG.debug( "Interval: count=%d, component.date=%s, borderIndex=%d",componentCount, df.format( component.date ), borderIndex );
-                var border = intervalBorders.get( borderIndex );
+                var border = DaySeparatorBorder.borders.get( borderIndex );
 
                 // find border on first component
                 if (componentCount == 0) {
                     while (component.date < border.start) {
-                        border = intervalBorders.get( ++borderIndex );
+                        border = DaySeparatorBorder.borders.get( ++borderIndex );
                     }
                     LOG.debug( "    borderIndex=%d", borderIndex );
-                    lines.add( new SeparatorLine( intervalBorders.get( borderIndex ).label ) );
+                    lines.add( new SeparatorLine( DaySeparatorBorder.borders.get( borderIndex ).label ) );
                 }
 
                 if (component.date >= border.start) {

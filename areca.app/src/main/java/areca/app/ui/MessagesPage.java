@@ -14,13 +14,12 @@
 package areca.app.ui;
 
 import static areca.ui.Orientation.VERTICAL;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.commons.lang3.StringUtils.abbreviate;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import java.nio.charset.Charset;
@@ -30,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.james.mime4j.codec.DecoderUtil;
 
 import org.polymap.model2.ManyAssociation;
+import org.polymap.model2.query.Query.Order;
 import org.polymap.model2.runtime.Lifecycle.State;
 
 import areca.app.ArecaApp;
@@ -48,7 +48,6 @@ import areca.common.base.Sequence;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.Align.Vertical;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Badge;
@@ -62,6 +61,8 @@ import areca.ui.component2.Text;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
+import areca.ui.layout.DynamicLayoutManager;
+import areca.ui.layout.DynamicLayoutManager.Component;
 import areca.ui.layout.LayoutManager;
 import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
@@ -111,6 +112,7 @@ public class MessagesPage extends Page {
 
     @Override
     protected void doDispose() {
+        cards.clear();
         ui.dispose();
     }
 
@@ -224,27 +226,41 @@ public class MessagesPage extends Page {
 
         // messages
         messagesContainer = ui.body.add( new ScrollableComposite() {{
-            layout.set( new RowLayout() {{
-                componentOrder.set( Comparator.<MessageCard>naturalOrder().reversed() );
-                orientation.set( VERTICAL );
-                fillWidth.set( true );
-                spacing.set( 10 );
-                margins.set( Size.of( 8, 1 ) );
+            layout.set( new MessagesLayout() {{
+                provider.set( (startIndex, num) -> fetchMessages( startIndex, num ) );
             }});
         }});
 
         // update
         EventManager.instance()
                 .subscribe( (ModelSubmittedEvent ev) -> {
-                    LOG.info( "Model submitted" );
-                    fetchMessages();
+                    messagesContainer.layout();
                 })
                 .performIf( ev -> ev instanceof ModelSubmittedEvent
                         && !((ModelSubmittedEvent)ev).entities( Message.class ).isEmpty() )
                 .unsubscribeIf( () -> ui.isDisposed() );
 
-        fetchMessages();
+        ui.layout();
         return ui;
+    }
+
+
+    protected Promise<List<MessageComponent>> fetchMessages( int startIndex, int num ) {
+        var timer = Timer.start();
+        return src.query()
+                .firstResult( startIndex )
+                .maxResults( num )
+                .orderBy( Message.TYPE.date, Order.DESC )
+                .executeCollect()
+                .map( fetched -> {
+                    LOG.info( "fetchMessages(): %d / %d -> %d (%s)", startIndex, num, fetched.size(), timer.elapsedHumanReadable() );
+                    return Sequence.of( fetched )
+                            .map( (msg,i) -> {
+                                var card = cards.computeIfAbsent( msg, __ -> new MessageCard( msg ) );
+                                return new MessageComponent( card, i + startIndex );
+                            })
+                            .toList();
+                });
     }
 
 
@@ -276,53 +292,113 @@ public class MessagesPage extends Page {
     }
 
 
-    protected void fetchMessages() {
-        // XXX wait for repo to show up
-        if (ArecaApp.instance().repo() == null) {
-            LOG.info( "waiting for repo..." );
-            Platform.schedule( 100, () -> fetchMessages() );
-            return;
-        }
-        var timer = Timer.start();
-        var chunk = new ArrayList<MessageCard>();
+    /**
+     *
+     */
+    protected class MessagesLayout
+            extends DynamicLayoutManager<MessageComponent> {
 
-        src.fetch().onSuccess( (ctx,result) -> {
-            result.ifPresent( msg -> {
-                cards.computeIfAbsent( msg, __ -> {
-                    var card = new MessageCard( msg );
-                    chunk.add( card );
-                    return card;
-                });
-            });
+        protected static final int  SPACING = 10;
+        protected static final int  MARGINS = 8;
 
-            // deferred layout chunk
-            if (timer.elapsed( MILLISECONDS ) > timeout || ctx.isComplete()) {
-                LOG.info( "" + timer.elapsedHumanReadable() );
-                timer.restart();
-                timeout = 1000;
+        protected Size              viewSize;
 
-                chunk.forEach( card -> messagesContainer.add( card ) );
-                messagesContainer.layout();
-                chunk.clear();
+        protected List<UIComponent> separators = new ArrayList<>();
 
-                // scrollIntoView last
-                Sequence.of( cards.values() )
-                        .reduce( (c1,c2) -> c1.compareTo( c2 ) < 0 ? c2 : c1 )
-                        .ifPresent( last -> {
-                            Platform.schedule( 1000, () -> {
-                                last.scrollIntoView.set( Vertical.BOTTOM );
-                                last.select( true );
-                            });
-                        });
+        protected Component         last;
+
+        protected boolean           hasMore = true;
+
+
+        @Override
+        public void layout( UIComposite composite ) {
+            boolean isFirstRun = scrollable == null;
+            super.layout( composite );
+            if (composite.clientSize.opt().isAbsent()) {
+                return;
             }
-        });
+            // remove previous lines (separators)
+            Sequence.of( separators ).forEach( sep -> sep.dispose() );
+            separators.clear();
+
+            last = null;
+            viewSize = composite.clientSize.$(); //.substract( margins ).substract( margins );
+
+            if (isFirstRun) {
+                scrollable.scrollTop.onChange( (newValue,__) -> {
+                    checkVisibleMessages();
+                });
+            }
+            checkVisibleMessages();
+        }
+
+
+        /**
+         * Recursivly check if the current last loaded line is "below" the currently
+         * scrolled view area. Wait for the current line to be layouted and recursivly
+         * check the next line afterwards, so that the next line knows the height of
+         * its predecessor.
+         */
+        protected void checkVisibleMessages() {
+            LOG.info( "checkScroll(): scroll=%d, height=%d", scrollable.scrollTop.$(), viewSize.height() );
+            int viewTop = scrollable.scrollTop.value();
+
+            var startIndex = last != null ? last.index + 1 : 0;
+
+            if (hasMore && lastBottom() - (viewSize.height()/2) < (viewTop + viewSize.height())) {
+                provider.$().provide( startIndex, 5 ).onSuccess( loaded -> {
+                    for (var c : loaded) {
+                        var bottom = lastBottom();
+                        LOG.debug( "Card: bottom=%d", bottom );
+                        var card = (MessageCard)c.component;
+                        if (card.parent() == null) {
+                            scrollable.add( card );
+                        }
+                        card.position.set( Position.of( MARGINS, bottom + SPACING ) );
+                        card.size.set( Size.of( viewSize.width() - (MARGINS*2), card.computeMinHeight( viewSize.width() ) ) );
+                        card.layout();
+                        if (last == null) {  // select very first
+                            card.select( true );
+                        }
+                        last = c;
+                    }
+                    hasMore = !loaded.isEmpty();
+                    checkVisibleMessages();
+                });
+            }
+        }
+
+
+        protected int lastBottom() {
+            return last != null ? last.component.position.$().y + last.component.size.$().height() : 0;
+        }
+
+
+        @Override
+        public void componentHasChanged( Component changed ) {
+            throw new RuntimeException( "not yet implemented." );
+        }
     }
 
 
     /**
      *
      */
-    public class MessageCard
+    protected class MessageComponent
+            extends Component {
+
+        public Message      message;
+
+        public MessageComponent( UIComponent component, int index ) {
+            super( component, index );
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected class MessageCard
             extends UIComposite
             implements Comparable<MessageCard> {
 

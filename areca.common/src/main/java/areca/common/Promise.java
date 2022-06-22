@@ -163,8 +163,12 @@ public class Promise<T> {
      */
     public <R> Promise<R> then( Function<T,Promise<R>,Exception> f ) {
         var next = new Completable<R>().upstream( this );
+        var promised = new MutableInt( 0 );
+        var ready = new MutableInt( 0 );
+
         onSuccess( (self,result) -> {
             var promise = f.apply( result );
+            promised.increment();
             Assert.notNull( promise, "Promise.then(): returned Promise must not be null." );
 
 //            // *inside* the onSuccess handler of the newly created promise (probably) all
@@ -173,7 +177,13 @@ public class Promise<T> {
             var isComplete = self.isComplete();
 
             promise.onSuccess( (_s,_r) -> {
-                if (isComplete && _s.isComplete()) {
+                if (_s.isComplete()) {
+                    ready.increment();
+                }
+                LOG.debug( "then(): promised=%d, ready=%d, self.isComplete=%s (%s)",
+                        promised.getValue(), ready.getValue(), self.isComplete(), isComplete );
+
+                if (self.isComplete() && ready.equals( promised )) {
                     next.complete( _r );
                 } else {
                     next.consumeResult( _r );
@@ -508,7 +518,7 @@ public class Promise<T> {
             }
             // done without error -> programming error
             else if (isDone()) {
-                LOG.warn( "CONSUME after COMPLETE: " + value.getClass().getName() );
+                LOG.warn( "CONSUME after COMPLETE: " + value != null ? value.getClass().getName() : "null" );
                 throw new IllegalStateException();
             }
             // not done, not cancelled -> normal

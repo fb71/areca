@@ -17,6 +17,7 @@ import java.util.Collection;
 
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.PropertyConcernBase;
+import org.polymap.model2.query.Query;
 
 import areca.common.Promise;
 import areca.common.base.Opt;
@@ -64,6 +65,12 @@ public class AnchorMessagesConcern
     @Override
     public Promise<Opt<Message>> fetch() {
         return delegate().fetch();
+    }
+
+
+    @Override
+    public Query<Message> query() {
+        return delegate().query();
     }
 
 }

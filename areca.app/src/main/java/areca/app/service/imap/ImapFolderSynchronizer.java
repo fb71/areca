@@ -100,9 +100,8 @@ public class ImapFolderSynchronizer {
                     LOG.debug( "%s: Ids: %s", folderName, msgIds.size() );
 
                     // query Messages that are in the store
-                    String[] queryIds = msgIds.keySet().toArray( String[]::new );
                     return uow.query( Message.class )
-                            .where( Expressions.eqAny( Message.TYPE.storeRef, queryIds ) )
+                            .where( Expressions.eqAny( Message.TYPE.storeRef, msgIds.keySet() ) )
                             .execute()
                             // reduce to not-found msgIds
                             .reduce( new HashMap<String,Integer>( msgIds ), (r,entity) -> {
