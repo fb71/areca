@@ -122,6 +122,7 @@ public class ImapService
 
         protected Message2PseudoContactAnchorSynchronizer messages2PseudoAnchor;
 
+
         public FullSync( ImapSettings settings, SyncContext ctx ) {
             this.settings = settings;
             this.ctx = ctx;
@@ -144,17 +145,19 @@ public class ImapService
         public Promise<?> start() {
             ctx.monitor.beginTask( "EMail", ProgressMonitor.UNKNOWN );
             return fetchFolders()
-                    // sync folders
+                    // sync + submit folders
                     .then( folderNames -> {
                         LOG.info( "Folders: %s", folderNames );
-                        return Promise.serial( folderNames.size(), i -> syncFolder( folderNames.get( i ) ) );
-                    })
-                    .reduce2( 0, (result,folderCount) -> result + folderCount )
-                    .map( total -> {
-                        return uow.submit().onSuccess( submitted -> {
-                            ctx.monitor.done();
-                            LOG.info( "Submitted: %s, in ?? folders", total );
+                        return Promise.serial( folderNames.size(), i -> {
+                            return syncFolder( folderNames.get( i ) )
+                                    .then( __ -> uow.submit() )
+                                    .onSuccess( __ -> LOG.info( "%s: submitted", folderNames.get( i ) ) );
                         });
+                    })
+                    .reduce2( 0, (result,submitted) -> result + 1 )
+                    .onSuccess( totalFolders -> {
+                        ctx.monitor.done();
+                        LOG.info( "Done: %d folders", totalFolders );
                     });
         }
 

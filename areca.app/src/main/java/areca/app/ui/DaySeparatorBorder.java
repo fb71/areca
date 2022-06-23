@@ -43,7 +43,7 @@ class DaySeparatorBorder {
 
     static {
         var today = DateUtils.truncate( new Date(), Calendar.DATE );
-        today = DateUtils.addHours( today, -12 ); // ???
+        //today = DateUtils.addHours( today, -12 ); // ???
         borders.add( new DaySeparatorBorder( "Today", today.getTime() ) );
         borders.add( new DaySeparatorBorder( "Yesterday", addDays( today, -1 ).getTime() ) );
         borders.add( new DaySeparatorBorder( "2 days ago", addDays( today, -2 ).getTime() ) );

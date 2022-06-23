@@ -153,7 +153,7 @@ public class ArecaApp extends App {
         var appEntities = Sequence.of( appEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
                 .entities.set( appEntityTypes )
-                .store.set( new IDBStore( "areca.app", 15, true ) )
+                .store.set( new IDBStore( "areca.app", 16, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -240,11 +240,6 @@ public class ArecaApp extends App {
                 layoutConstraints.set( new RowConstraints() {{height.set( 5 );}} );
                 cssClasses.add( "ProgressContainer" );
                 layout.set( new RowLayout() {{margins.set( Size.of( 0, 0 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
-
-//                add( new Progress() {{
-//                    value.set( 0.8f );
-//                }});
-//                add( new Text() {{ content.set( "80%" ); }} );
             }});
             rootWindow.layout();
 
@@ -328,7 +323,7 @@ public class ArecaApp extends App {
             public ProgressMonitor done() {
                 progress.value.set( Float.valueOf( workTotal ) );
                 progressText.content.set( taskName + " 100%" );
-                Platform.schedule( 1000, () -> {
+                Platform.schedule( 500, () -> {
                     progress.dispose();
                     progressText.dispose();
                     progressBody.layout();

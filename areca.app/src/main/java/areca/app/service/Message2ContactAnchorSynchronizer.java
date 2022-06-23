@@ -104,57 +104,6 @@ public class Message2ContactAnchorSynchronizer {
     }
 
 
-//    public static Pattern       EMAIL_EXT = Pattern.compile( "([^<]+)[ ]*<([^>]+)>" );
-//
-//    public static Pattern       NAME_COMMA = Pattern.compile( "([^,]+),[ ]*(.+)" );
-//
-//    public static Pattern       NAME_SIMPLE = Pattern.compile( "([^ ]+)[ ]*(.*)" );
-//
-//    public static Pattern       NAME_DOT = Pattern.compile( "([^.]+)[.](.+)" );
-//
-//    public static Pattern       EMAIL = Pattern.compile( "([^@]+)@(.*)" );
-//
-//
-//    public static Address addressParts( String email ) {
-//        // extended
-//        var extMatch = EMAIL_EXT.matcher( email );
-//        if (extMatch.matches()) {
-//            String name = extMatch.group( 1 ).replace( "\"", "" ).trim();
-//            // comma separated name
-//            var commaMatch = NAME_COMMA.matcher( name );
-//            if (commaMatch.matches()) {
-//                return new Address() {{first = commaMatch.group( 2 ); last = commaMatch.group( 1 ); pure = extMatch.group( 2 );}};
-//            }
-//            // normal name
-//            var normalMatch = NAME_SIMPLE.matcher( name );
-//            if (normalMatch.matches()) {
-//                return new Address() {{first = normalMatch.group( 1 ); last = normalMatch.group( 2 ); pure = extMatch.group( 2 );}};
-//            }
-//            throw new RuntimeException( "No name match: " + name );
-//        }
-//        // just an email address
-//        var emailMatch = EMAIL.matcher( email );
-//        if (emailMatch.matches()) {
-//            var name = emailMatch.group( 1 );
-//            var dorMatch = NAME_DOT.matcher( name );
-//            if (dorMatch.matches()) {
-//                return new Address() {{first = dorMatch.group( 1 ); last = dorMatch.group( 2 ); pure = email;}};
-//            }
-//            else {
-//                return new Address() {{first = name; last = ""; pure = email;}};
-//            }
-//        }
-//        throw new RuntimeException( "No email match: " + email );
-//    }
-//
-//
-//    public static class Address {
-//        String first;
-//        String last;
-//        String pure;
-//    }
-
-
     protected static Opt<Matcher> match( String s, Pattern p ) {
         var matcher = p.matcher( s );
         return Opt.of( matcher.matches() ? matcher : null );

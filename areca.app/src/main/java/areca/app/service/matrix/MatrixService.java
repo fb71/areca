@@ -293,11 +293,11 @@ public class MatrixService
 
         protected Promise<Opt<Message>> syncRooms() {
             JSRoom[] rooms = matrix.getRooms();
-            LOG.info( "Rooms: %s", rooms.length );
+            LOG.debug( "Rooms: %s", rooms.length );
 
             // ensure room Anchor
             return Promise.serial( rooms.length, i -> {
-                LOG.info( "room: %s", rooms[i].toString2() );
+                LOG.debug( "room: %s", rooms[i].toString2() );
                 return ensureRoomAnchor( rooms[i] );
             })
             // timeline/event -> Message
@@ -309,7 +309,7 @@ public class MatrixService
 
 
         protected Promise<RoomAnchor> ensureRoomAnchor( JSRoom room ) {
-            LOG.info( "room: %s", room.toString2() );
+            LOG.debug( "room: %s", room.toString2() );
             var storeRef = anchorStoreRef( room.roomId() );
             return uow.ensureEntity( Anchor.class,
                     Expressions.eq( Anchor.TYPE.storeRef, storeRef ),
@@ -322,20 +322,20 @@ public class MatrixService
 
 
         protected Promise<Opt<Message>> ensureMessage( RoomAnchor roomAnchor, JSStoredEvent event ) {
-            LOG.info( "    timeline: %s", event.toString2() );
+            LOG.debug( "    timeline: %s", event.toString2() );
             // encrypted
             event.encryptedContent().ifPresent( encrypted -> {
                 //MatrixClient.console( event );
                 matrix.decryptEventIfNeeded( event ).then( decrypted -> {
-                    LOG.info( "Decrypted:" );
-                    MatrixClient.console( decrypted );
+                    LOG.debug( "Decrypted:" );
+                    //MatrixClient.console( decrypted );
                 });
             });
             // plain
             MatrixClient.console( event );
             return event.messageContent()
                     .ifPresentMap( content -> {
-                        LOG.info( "        content: %s", content.getBody().opt().orElse( "???" ) );
+                        LOG.debug( "        content: %s", content.getBody().opt().orElse( "???" ) );
                         var storeRef = MessageStoreRef.of( roomAnchor.room.roomId(), event.eventId() );
                         return uow.ensureEntity( Message.class,
                                 Expressions.eq( Message.TYPE.storeRef, storeRef.toString() ),
