@@ -32,7 +32,7 @@ import areca.app.ArecaApp;
 import areca.app.model.Anchor;
 import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.Message;
-import areca.app.model.ModelSubmittedEvent;
+import areca.app.model.ModelUpdateEvent;
 import areca.app.ui.AnchorsCloudPage.CloudRaster.CloudComponent;
 import areca.common.Platform;
 import areca.common.Promise;
@@ -124,8 +124,8 @@ public class AnchorsCloudPage
 
         // listen to model updates
         EventManager.instance()
-                .subscribe( (ModelSubmittedEvent ev) -> body.layout())
-                .performIf( ModelSubmittedEvent.class::isInstance )
+                .subscribe( (ModelUpdateEvent ev) -> body.layout())
+                .performIf( ModelUpdateEvent.class::isInstance )
                 .unsubscribeIf( () -> body.isDisposed() );
     }
 

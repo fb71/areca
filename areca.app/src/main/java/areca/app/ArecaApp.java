@@ -40,7 +40,7 @@ import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.ImapSettings;
 import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
-import areca.app.model.ModelSubmittedEvent;
+import areca.app.model.ModelUpdateEvent;
 import areca.app.model.SmtpSettings;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
@@ -182,7 +182,7 @@ public class ArecaApp extends App {
                         return;
                     }
                     collector.collect( ev, collected -> {
-                        var mse = new ModelSubmittedEvent( this, collected );
+                        var mse = new ModelUpdateEvent( this, collected );
                         var ids = mse.entities( Entity.class );
                         LOG.info( "Refreshing: %s", ids );
                         uow.refresh( ids ).onSuccess( __ -> {
@@ -206,7 +206,7 @@ public class ArecaApp extends App {
                     collector2.collect( ev, collected -> {
                         var ids = Sequence.of( collected ).map( _ev -> _ev.getSource().id() ).toSet();
                         settingsUow.refresh( ids ).onSuccess( __ -> {
-                            EventManager.instance().publish( new ModelSubmittedEvent( this, collected ) );
+                            EventManager.instance().publish( new ModelUpdateEvent( this, collected ) );
                         });
                     });
                 })

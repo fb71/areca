@@ -32,15 +32,15 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-public class ModelSubmittedEvent
+public class ModelUpdateEvent
         extends EventObject {
 
-    private static final Log LOG = LogFactory.getLog( ModelSubmittedEvent.class );
+    private static final Log LOG = LogFactory.getLog( ModelUpdateEvent.class );
 
     private List<EntityLifecycleEvent>      events;
 
 
-    public ModelSubmittedEvent( ArecaApp source, List<EntityLifecycleEvent> collected ) {
+    public ModelUpdateEvent( ArecaApp source, List<EntityLifecycleEvent> collected ) {
         super( source );
         this.events = collected;
     }

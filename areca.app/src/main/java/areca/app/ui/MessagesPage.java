@@ -22,11 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import java.nio.charset.Charset;
 import java.text.DateFormat;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.james.mime4j.codec.DecoderUtil;
 
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.query.Query.Order;
@@ -35,7 +33,7 @@ import org.polymap.model2.runtime.Lifecycle.State;
 import areca.app.ArecaApp;
 import areca.app.model.Address;
 import areca.app.model.Message;
-import areca.app.model.ModelSubmittedEvent;
+import areca.app.model.ModelUpdateEvent;
 import areca.app.service.MessageSentEvent;
 import areca.app.service.TransportService.TransportMessage;
 import areca.app.service.TypingEvent;
@@ -233,11 +231,12 @@ public class MessagesPage extends Page {
 
         // update
         EventManager.instance()
-                .subscribe( (ModelSubmittedEvent ev) -> {
+                .subscribe( (ModelUpdateEvent ev) -> {
+                    LOG.info( "Updating ..." );
                     messagesContainer.layout();
                 })
-                .performIf( ev -> ev instanceof ModelSubmittedEvent
-                        && !((ModelSubmittedEvent)ev).entities( Message.class ).isEmpty() )
+                .performIf( ev -> ev instanceof ModelUpdateEvent
+                        && !((ModelUpdateEvent)ev).entities( Message.class ).isEmpty() )
                 .unsubscribeIf( () -> ui.isDisposed() );
 
         ui.layout();
@@ -248,18 +247,26 @@ public class MessagesPage extends Page {
     protected Promise<List<MessageComponent>> fetchMessages( int startIndex, int num ) {
         var timer = Timer.start();
         return src.query()
-                .firstResult( startIndex )
-                .maxResults( num )
+                .firstResult( startIndex ).maxResults( num )
                 .orderBy( Message.TYPE.date, Order.DESC )
                 .executeCollect()
                 .map( fetched -> {
                     LOG.info( "fetchMessages(): %d / %d -> %d (%s)", startIndex, num, fetched.size(), timer.elapsedHumanReadable() );
-                    return Sequence.of( fetched )
-                            .map( (msg,i) -> {
-                                var card = cards.computeIfAbsent( msg, __ -> new MessageCard( msg ) );
-                                return new MessageComponent( card, i + startIndex );
-                            })
-                            .toList();
+                    //LOG.info( "%s", Sequence.of( fetched ) );
+                    var result = new ArrayList<MessageComponent>();
+                    for (int i = 0; i < fetched.size(); i++) {
+                        var msg = fetched.get( i );
+                        var card = cards.computeIfAbsent( msg, __ -> new MessageCard( msg ) );
+                        result.add( new MessageComponent( card, i + startIndex ) );
+                    }
+                    return result;
+//                    return Sequence.of( fetched )
+//                            .map( (msg,i) -> {
+//                                var card = cards.computeIfAbsent( msg, __ -> new MessageCard( msg ) );
+//                                return new MessageComponent( card, i + startIndex );
+//                            })
+//                            .asCollection();
+                    //return Collections.emptyList();
                 });
     }
 
@@ -322,6 +329,7 @@ public class MessagesPage extends Page {
             separators.clear();
 
             last = null;
+            hasMore = true;
             viewSize = composite.clientSize.$(); //.substract( margins ).substract( margins );
 
             if (isFirstRun) {
@@ -434,7 +442,7 @@ public class MessagesPage extends Page {
                 cssClasses.add( "DateText" );
             }});
             contentText = add( new Text() {{
-                var decoded = DecoderUtil. decodeEncodedWords( msg.content.get(), Charset.forName( "ISO-8859-1" ) );
+                var decoded = msg.content.get(); //DecoderUtil.decodeEncodedWords( msg.content.get(), Charset.forName( "ISO-8859-1" ) );
                 content.set( StringUtils.abbreviate( decoded, 250 ) );
             }});
 
