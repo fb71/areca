@@ -412,6 +412,7 @@ public class MessagesPage extends Page {
 
         private static final String CSS = "MessageCard";
         private static final String CSS_SELECTED = "MessageCard-selected";
+        private static final String CSS_OUTGOING = "MessageCard-outgoing";
         private static final int    MARGINS = 10;
         private static final int    HEADER = 12;
         private static final int    SPACING = 5;
@@ -427,12 +428,15 @@ public class MessagesPage extends Page {
         public MessageCard( Message msg ) {
             this.message = msg;
             cssClasses.add( CSS );
+            if (msg.outgoing.get()) {
+                cssClasses.add( CSS_OUTGOING );
+            }
 
             events.on( EventType.SELECT, ev -> {
                 toggle();
             });
 
-            var address = Address.parseEncoded( msg.fromAddress.get() );
+            var address = Address.parseEncoded( msg.outgoing.get() ? msg.toAddress.get() : msg.fromAddress.get() );
             var fromText = add( new Text() {{
                 content.set( abbreviate( address.content, 30 ) );
                 cssClasses.add( "FromText" );
@@ -442,7 +446,7 @@ public class MessagesPage extends Page {
                 cssClasses.add( "DateText" );
             }});
             contentText = add( new Text() {{
-                var decoded = msg.content.get(); //DecoderUtil.decodeEncodedWords( msg.content.get(), Charset.forName( "ISO-8859-1" ) );
+                var decoded = msg.content.get();
                 content.set( StringUtils.abbreviate( decoded, 250 ) );
             }});
 

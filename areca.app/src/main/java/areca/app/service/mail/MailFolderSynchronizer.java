@@ -56,7 +56,7 @@ public class MailFolderSynchronizer {
 
     protected String                    folderName;
 
-    private Anchor                      folderAnchor;
+    private Opt<Anchor>                 folderAnchor = Opt.absent();
 
     private RConsumer<Integer>          onMessageCount;
 
@@ -76,15 +76,17 @@ public class MailFolderSynchronizer {
 
 
     public Promise<Opt<Message>> start() {
+        // query imap messages
         return fetchMessageIds()
                 // check/create Anchor
                 .then( (MessageHeaders[] msgs) -> {
-                    if (msgs.length == 0) {
+                    if (msgs.length == 0
+                            || folderName.equalsIgnoreCase( "INBOX" ) || folderName.equalsIgnoreCase( "Sent" )) {
                         LOG.debug( "%s: no messages to sync -> skipping Anchor" );
                         return Promise.completed( msgs );
                     }
                     return checkCreateFolderAnchor().map( anchor -> {
-                        folderAnchor = anchor;
+                        folderAnchor = Opt.of( anchor );
                         return msgs;
                     });
                 })
@@ -124,7 +126,7 @@ public class MailFolderSynchronizer {
                 .onSuccess( (Opt<Message> msg) -> {
                     LOG.debug( "%s: message: %s", folderName, msg );
                     msg.ifPresent( m -> {
-                        folderAnchor.messages.add( m );
+                        folderAnchor.ifPresent( it -> it.messages.add( m ) );
                     });
                 });
     }
@@ -165,7 +167,7 @@ public class MailFolderSynchronizer {
 
     protected Promise<MessageHeaders[]> fetchMessageIds() {
         var minDate = DateUtils.addMonths( new Date(), -monthsToSync );
-        LOG.info( "MIN. DATE: %s", minDate );
+        LOG.debug( "MIN. DATE: %s", minDate );
         return new MessageHeadersRequest( params, folderName, minDate, null )
                 .submit()
                 .map( response -> response.messageHeaders() );
@@ -180,13 +182,17 @@ public class MailFolderSynchronizer {
                     Assert.isEqual( 1, response.messageContent().length );
                     return uow.createEntity( Message.class, proto -> {
                         proto.storeRef.set( msg.messageId() );
-                        if (msg.from().length > 0) {
+                        if (msg.from().length > 0) { // XXX skip message without From: ?
                             proto.fromAddress.set( new EmailAddress( msg.from()[0].address() ).encoded() );
                             proto.replyAddress.set( new EmailAddress( msg.from()[0].address() ).encoded() );  // XXX ReplyTo:
+                        }
+                        if (msg.to().length > 0) { // XXX skip message without To: ?
+                            proto.toAddress.set( new EmailAddress( msg.to()[0].address() ).encoded() );
                         }
                         proto.threadSubject.set( strippedSubject( msg.subject().opt().orElse( "" ) ) );
                         proto.unread.set( !msg.flags().contains( "SEEN" ) );
                         proto.date.set( msg.receivedDate().getTime() );
+                        proto.outgoing.set( folderName.equalsIgnoreCase( "Sent" ) );
 
                         var content = response.messageContent()[0];
                         content.bodyParts( "text/plain", "text/html" ).ifPresent( body -> {

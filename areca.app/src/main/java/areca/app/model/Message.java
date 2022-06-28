@@ -32,7 +32,13 @@ public class Message
 
     public static final MessageClassInfo info = MessageClassInfo.instance();
 
-    public static Message            TYPE;
+    public static final String      NO_ADDRESS = "";
+
+    public static Message           TYPE;
+
+    @Defaults
+    @Queryable
+    public Property<Boolean>        outgoing;
 
     /**
      * An {@link Address} that identifies the origin sender of this Message.
@@ -41,6 +47,13 @@ public class Message
     @Nullable
     @Queryable
     public Property<String>         fromAddress;
+
+    /**
+     * An {@link Address} that identifies the receipient this Message.
+     */
+    @Nullable
+    @Queryable
+    public Property<String>         toAddress;
 
     /**
      * An {@link Address} that is the {@link Service} specific path to reply to this

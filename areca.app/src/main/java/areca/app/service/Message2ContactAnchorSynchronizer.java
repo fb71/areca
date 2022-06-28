@@ -52,10 +52,14 @@ public class Message2ContactAnchorSynchronizer {
 
     public Promise<Message> perform( Message message ) {
         Assert.notNull( message );
-        if (!message.fromAddress.opt().isPresent()) {
+        if (!message.fromAddress.opt().isPresent() || !message.toAddress.opt().isPresent()) {
             return Promise.completed( message );
         }
-        var address = Address.parseEncoded( message.fromAddress.get() );
+
+        var address = Address.parseEncoded( message.outgoing.get()
+                ? message.toAddress.get()
+                : message.fromAddress.get() );
+
         return uow.query( Contact.class )
                 // query Contact
                 .where( Expressions.eq( Contact.TYPE.email, address.content ) )

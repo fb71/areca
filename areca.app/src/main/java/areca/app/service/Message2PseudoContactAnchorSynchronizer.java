@@ -47,11 +47,13 @@ public class Message2PseudoContactAnchorSynchronizer {
 
 
     public Promise<Message> perform( Message message ) {
-        if (!message.fromAddress.opt().isPresent()) {
+        if (!message.fromAddress.opt().isPresent() || !message.toAddress.opt().isPresent()) {
             return Promise.completed( message );
         }
         // XXX all associated adresses
-        var address = Address.parseEncoded( message.fromAddress.get() );
+        var address = Address.parseEncoded( message.outgoing.get()
+                ? message.toAddress.get()
+                : message.fromAddress.get() );
         var storeRef = "pseudo-contact:" + address.content;
 
         return uow.query( Anchor.class )

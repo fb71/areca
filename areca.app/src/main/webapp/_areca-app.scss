@@ -45,6 +45,10 @@ $card_color: lighten($bg1_color, 4%);
     cursor: pointer;
 }
 
+.MessageCard-outgoing {
+    background-color: darken(desaturate($accent2_color, 10%), 0%);
+}
+
 .MessageCard-selected {
     color: lighten($font_color, 5%);
     background-color: lighten($card_color,10%);

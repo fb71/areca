@@ -36,6 +36,9 @@ public class Address {
     public static final String  DELIM = "\\x00";
     public static final Pattern ENCODED = Pattern.compile("([^%s]+)%s([^%s]+)%s?([^%s]*)".replace( "%s", DELIM ) );
 
+    public static final Address ABSENT = new Address() {{prefix = "absent"; content = "--";}};
+    public static final String  ABSENT_ENCODED = ABSENT.encoded();
+
     /** {@link Service} specific prefix. */
     public String               prefix;
 
@@ -54,7 +57,6 @@ public class Address {
     public String toString() {
         return String.format( "[%s:%s]", prefix, content );
     }
-
 
 
     public static Address parseEncoded( String encoded ) {

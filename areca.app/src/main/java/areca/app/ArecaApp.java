@@ -50,9 +50,8 @@ import areca.app.service.TransportService;
 import areca.app.service.TransportService.Transport;
 import areca.app.service.TransportService.TransportContext;
 import areca.app.service.carddav.CarddavService;
-import areca.app.service.imap.ImapService;
+import areca.app.service.mail.MailService;
 import areca.app.service.matrix.MatrixService;
-import areca.app.service.smtp.SmtpService;
 import areca.app.ui.StartPage;
 import areca.common.Assert;
 import areca.common.Platform;
@@ -124,16 +123,16 @@ public class ArecaApp extends App {
 
     static {
         EventManager.setInstance( new AsyncEventManager() );
-
     }
+
+    public static final int DEFAULT_MODEL_UPDATE_EVENT_DELAY = 1000;
 
     // instance *******************************************
 
     private List<? extends Service> services = Arrays.asList(  // XXX from DB?
             new CarddavService(),
-            new ImapService(),
-            new MatrixService(),
-            new SmtpService() );
+            new MailService(),
+            new MatrixService());
 
     private EntityRepository        repo;
 
@@ -147,13 +146,16 @@ public class ArecaApp extends App {
 
     private UIComposite             progressBody;
 
+    private EventCollector<EntityLifecycleEvent> modelUpdateEventCollector =
+            new EventCollector<EntityLifecycleEvent>( DEFAULT_MODEL_UPDATE_EVENT_DELAY );
+
 
     protected ArecaApp() {
         var appEntityTypes = asList( Message.info, Contact.info, Anchor.info);
         var appEntities = Sequence.of( appEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
                 .entities.set( appEntityTypes )
-                .store.set( new IDBStore( "areca.app", 16, true ) )
+                .store.set( new IDBStore( "areca.app", 18, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -165,7 +167,7 @@ public class ArecaApp extends App {
         var settingsEntities = Sequence.of( settingsEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
                 .entities.set( settingsEntityTypes )
-                .store.set( new IDBStore( "areca.app.settings", 4, true ) )
+                .store.set( new IDBStore( "areca.app.settings", 5, true ) )
                 .create()
                 .onSuccess( result -> {
                     settingsRepo = result;
@@ -173,15 +175,13 @@ public class ArecaApp extends App {
                     LOG.info( "Settings database and model repo initialized." );
                 });
 
-        // app model updates
-        var collector = new EventCollector<EntityLifecycleEvent>( 250 );
         EventManager.instance()
                 .subscribe( (EntityLifecycleEvent ev) -> {
                     // no refresh needed if main UoW was submitted
                     if (ev.getSource().context.getUnitOfWork() == uow) {
                         return;
                     }
-                    collector.collect( ev, collected -> {
+                    modelUpdateEventCollector.collect( ev, collected -> {
                         var mse = new ModelUpdateEvent( this, collected );
                         var ids = mse.entities( Entity.class );
                         LOG.info( "Refreshing: %s", ids );
@@ -343,27 +343,29 @@ public class ArecaApp extends App {
 
 
     public void startSync( SyncType type ) {
-        services( SyncableService.class ).forEach( (service,i) -> {
-            Platform.schedule( 3000 * i, () -> { // XXX start imap after contacts are there
-                var ctx = new SyncContext() {{
-                    monitor = newAsyncOperation();
-                    uowFactory = () -> repo().newUnitOfWork();
-                }};
-                service.newSync( type, ctx )
-                        .onSuccess( sync -> {
-                            if (sync != null) {
-                                sync.start()
-                                        .onSuccess( __ -> ctx.monitor.done() )
-                                        .onError( defaultErrorHandler() );
-                            }
-                            else {
-                                LOG.info( "%s: nothing to sync or no settings.", service.getClass().getSimpleName() );
-                                ctx.monitor.done();
-                            }
-                        })
-                        .onError( defaultErrorHandler() );
-            });
-        });
+        modelUpdateEventCollector.setDelay( 30000 );
+        var syncables = services( SyncableService.class ).toList();
+        Promise.serial( syncables.size(), i -> {
+            var ctx = new SyncContext() {{
+                monitor = newAsyncOperation();
+                uowFactory = () -> repo().newUnitOfWork();
+            }};
+            return syncables.get( i ).newSync( type, ctx )
+                    .onSuccess( sync -> {
+                        if (sync != null) {
+                            sync.start()
+                                    .onSuccess( __ -> ctx.monitor.done() )
+                                    .onError( defaultErrorHandler() );
+                        }
+                        else {
+                            LOG.info( "%s: nothing to sync or no settings.", syncables.get( i ).getClass().getSimpleName() );
+                            ctx.monitor.done();
+                        }
+                    })
+                    .onError( defaultErrorHandler() );
+        })
+        .onError( e -> modelUpdateEventCollector.setDelay( DEFAULT_MODEL_UPDATE_EVENT_DELAY ) )
+        .onSuccess( __ -> modelUpdateEventCollector.setDelay( DEFAULT_MODEL_UPDATE_EVENT_DELAY ) );
     }
 
 
