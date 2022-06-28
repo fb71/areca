@@ -15,6 +15,7 @@ package areca.app.service.mail;
 
 import static org.apache.commons.lang3.StringUtils.abbreviate;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -22,11 +23,14 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
+import areca.app.model.Address;
 import areca.app.model.ImapSettings;
+import areca.app.model.SmtpSettings;
 import areca.app.service.Message2ContactAnchorSynchronizer;
 import areca.app.service.Message2PseudoContactAnchorSynchronizer;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
+import areca.app.service.TransportService;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Sequence;
@@ -39,7 +43,7 @@ import areca.common.log.LogFactory.Log;
  */
 public class MailService
         extends Service
-        implements SyncableService {
+        implements SyncableService, TransportService {
 
     private static final Log LOG = LogFactory.getLog( MailService.class );
 
@@ -125,12 +129,7 @@ public class MailService
 
         public FullSync( ImapSettings settings, SyncContext ctx ) {
             this.settings = settings;
-            this.params = new RequestParams() {{
-                this.host.value = settings.host.get();
-                //this.port.value = settings.port.get();
-                this.username.value = settings.username.get();
-                this.password.value = settings.pwd.get();
-            }};
+            this.params = settings.toRequestParams();
             this.ctx = ctx;
             uow = ctx.uowFactory.supply();
             messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow );
@@ -191,6 +190,77 @@ public class MailService
         protected Promise<List<String>> fetchFolders() {
             return new AccountInfoRequest( params ).submit()
                     .map( accountInfo -> Sequence.of( accountInfo.folderNames() ).toList() );
+        }
+    }
+
+
+    // TransportService ***********************************
+
+    @Override
+    public Promise<List<Transport>> newTransport( Address receipient, TransportContext ctx ) {
+        var email = EmailAddress.check( receipient );
+        if (email.isPresent()) {
+            return ArecaApp.current().settings()
+                    .then( uow -> uow.query( SmtpSettings.class ).executeCollect() )
+                    .map( rs -> Sequence.of( rs )
+                            .map( settings -> (Transport)new MailTransport( settings, email.get(), ctx ) )
+                            .toList() );
+        }
+        else {
+            return Promise.completed( Collections.emptyList() );
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected class MailTransport
+            extends Transport {
+
+        protected SmtpSettings      settings;
+
+        protected EmailAddress      receipient;
+
+        protected TransportContext  ctx;
+
+        public MailTransport( SmtpSettings settings, EmailAddress receipient, TransportContext ctx ) {
+            this.settings = settings;
+            this.receipient = receipient;
+            this.ctx = ctx;
+        }
+
+
+        @Override
+        public Promise<Sent> send( TransportMessage msg ) {
+            var monitor = ctx.newMonitor().beginTask( "Send", 9 ).worked( 1 );
+            throw new RuntimeException( "..." );
+//            var request = new SmtpRequest( self -> {
+//                self.host = settings.host.get();
+//                self.port = settings.port.get();
+//                LOG.info( "Hostname: ", ArecaApp.hostname() );
+//                self.loginCommand = new HeloCommand( ArecaApp.hostname() );
+//                self.commands.add( new AuthPlainCommand( settings.username.get(), settings.pwd.get() ) );
+//                self.commands.add( new MailFromCommand( settings.from.get() ) );
+//                self.commands.add( new RcptToCommand( receipient.content ) );
+//                self.commands.add( new DataCommand() );
+//                self.commands.add( new DataContentCommand( msg.threadSubject.orElse( "" ), msg.text ) );
+//                self.commands.add( new QuitCommand() );
+//            });
+//            return request.submit()
+//                    .onSuccess( command -> {
+//                        LOG.info( "Response: %s", command );
+//                        monitor.worked( 1 );
+//                    })
+//                    .onError( e -> {
+//                        LOG.info( "Error: %s", e );
+//                    })
+//                    .reduce( new ArrayList<>(), (r,c) -> r.add( c ) )
+//                    .map( l -> new Sent() {{
+//                        message = msg;
+//                        from = settings.from.get();
+//                        monitor.done();
+//                    }});
         }
     }
 

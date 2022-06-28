@@ -94,29 +94,7 @@ public class Main {
                 new AsyncAwareTestRunner()
                         .addTests( areca.app.service.mail.MailTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
-                        .run();
-            });
-        }
-        // #imap
-        else if (hash.equals( "#imap" )) {
-            catchAll( __ -> {
-                //LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
-                LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
-                //LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
-                new AsyncAwareTestRunner()
-                        .addTests( areca.app.service.imap.ImapTest.info )
                         //.addTests( areca.app.service.carddav.CardDavTest.info )
-                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
-                        .run();
-            });
-        }
-        // #smtp
-        else if (hash.equals( "#smtp" )) {
-            catchAll( __ -> {
-                LogFactory.setPackageLevel( areca.app.service.smtp.SmtpClient.class, DEBUG );
-                new AsyncAwareTestRunner()
-                        .addTests( areca.app.service.smtp.SmtpTest.info )
-                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                         .run();
             });
         }
@@ -153,7 +131,6 @@ public class Main {
                 //LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
 //                LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
 //                LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
-                LogFactory.setClassLevel( areca.app.service.imap.ImapService.class, DEBUG );
 //                LogFactory.setClassLevel( areca.app.service.Message2ContactAnchorSynchronizer.class, DEBUG );
 //                LogFactory.setClassLevel( areca.app.service.Message2PseudoContactAnchorSynchronizer.class, DEBUG );
 

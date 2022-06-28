@@ -16,7 +16,6 @@ package areca.app.ui;
 import areca.app.model.ImapSettings;
 import areca.app.service.carddav.CarddavTest;
 import areca.app.service.mail.AccountInfoRequest;
-import areca.app.service.mail.RequestParams;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -63,13 +62,7 @@ public class ImapSettingsPage2
 
 
     protected Promise<?> checkSettings( ImapSettings settings ) {
-        var params = new RequestParams() {{
-            this.host.value = settings.host.get();
-            //this.port.value = settings.port.get();
-            this.username.value = settings.username.get();
-            this.password.value = settings.pwd.get();
-        }};
-        return new AccountInfoRequest( params ).submit();
+        return new AccountInfoRequest( settings.toRequestParams() ).submit();
     }
 
 

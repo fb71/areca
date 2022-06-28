@@ -14,11 +14,6 @@
 package areca.app.ui;
 
 import areca.app.model.SmtpSettings;
-import areca.app.service.smtp.SmtpRequest;
-import areca.app.service.smtp.SmtpRequest.AuthPlainCommand;
-import areca.app.service.smtp.SmtpRequest.HeloCommand;
-import areca.app.service.smtp.SmtpRequest.MailFromCommand;
-import areca.app.service.smtp.SmtpRequest.QuitCommand;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -57,7 +52,7 @@ public class SmtpSettingsPage
             proto.host.set( "mail.polymap.de" );
             proto.port.set( 465 );
             //proto.from.set( CardDavTest.ARECA_USERNAME );
-            proto.from.set( String.format( "%s%s%s", "falko", "@", "polymap.de" ) );
+            proto.from.set( String.format( "%s%s%s", "areca", "@", "polymap.de" ) );
             proto.username.set( proto.from.get() );
             proto.pwd.set( "..." );
         });
@@ -65,18 +60,9 @@ public class SmtpSettingsPage
 
 
     protected Promise<?> checkSettings( SmtpSettings settings ) {
-        var request = new SmtpRequest( self -> {
-            self.host = settings.host.get();
-            self.port = settings.port.get();
-            self.loginCommand = new HeloCommand( "zuhause" ); // XXX
-            self.commands.add( new AuthPlainCommand( settings.username.get(), settings.pwd.get() ) );
-            self.commands.add( new MailFromCommand( settings.from.get() ) );
-            self.commands.add( new QuitCommand() );
-        });
-        return request.submit()
-                .onSuccess( command -> {
-                    LOG.info( "Response: %s", command );
-                });
+        settings.toRequestParams();
+        throw new RuntimeException( "hier mussde wo noochema ran!" );
+        //return new AccountInfoRequest( params ).submit();
     }
 
     @Override

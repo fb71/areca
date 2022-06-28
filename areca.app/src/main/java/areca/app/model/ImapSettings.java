@@ -16,6 +16,7 @@ package areca.app.model;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 
+import areca.app.service.mail.RequestParams;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -39,5 +40,15 @@ public class ImapSettings
     public Property<String>         pwd;
 
     public Property<Integer>        monthsToSync;
+
+
+    public RequestParams toRequestParams() {
+        return new RequestParams() {{
+            this.host.value = ImapSettings.this.host.get();
+            //this.port.value = settings.port.get();
+            this.username.value = ImapSettings.this.username.get();
+            this.password.value = ImapSettings.this.pwd.get();
+        }};
+    }
 
 }

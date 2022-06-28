@@ -16,6 +16,7 @@ package areca.app.model;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 
+import areca.app.service.mail.RequestParams;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 
@@ -40,5 +41,15 @@ public class SmtpSettings
     public Property<String>         pwd;
 
     public Property<String>         from;
+
+
+    public RequestParams toRequestParams() {
+        return new RequestParams() {{
+            this.host.value = SmtpSettings.this.host.get();
+            //this.port.value = settings.port.get();
+            this.username.value = SmtpSettings.this.username.get();
+            this.password.value = SmtpSettings.this.pwd.get();
+        }};
+    }
 
 }
