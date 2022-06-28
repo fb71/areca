@@ -120,8 +120,11 @@ public class MailService
 
         protected Message2PseudoContactAnchorSynchronizer messages2PseudoAnchor;
 
+        protected ImapSettings settings;
+
 
         public FullSync( ImapSettings settings, SyncContext ctx ) {
+            this.settings = settings;
             this.params = new RequestParams() {{
                 this.host.value = settings.host.get();
                 //this.port.value = settings.port.get();
@@ -162,7 +165,7 @@ public class MailService
 
         protected Promise<Integer> syncFolder( String folderName ) {
             var subMonitor = ctx.monitor.subMonitor();
-            return new MailFolderSynchronizer( folderName, uow, params )
+            return new MailFolderSynchronizer( folderName, uow, params, settings.monthsToSync.get() )
                     .onMessageCount( msgCount -> subMonitor.beginTask( abbreviate( folderName, 5 ), msgCount*3 ) )
                     .start()
                     .onSuccess( msg -> {

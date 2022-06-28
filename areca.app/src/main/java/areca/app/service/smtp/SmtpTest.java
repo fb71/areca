@@ -14,7 +14,6 @@
 package areca.app.service.smtp;
 
 import java.io.IOException;
-import org.apache.james.mime4j.MimeException;
 import areca.app.model.Address;
 import areca.app.service.TransportService.TransportMessage;
 import areca.app.service.carddav.CarddavTest;
@@ -88,22 +87,22 @@ public class SmtpTest {
     }
 
 
-    @Test
-    public void multipartTest() throws MimeException, IOException {
-
-
-
-//        ContentHandler contentHandler = new CustomContentHandler();
+//    @Test
+//    public void multipartTest() throws MimeException, IOException {
 //
-//        MimeConfig mime4jParserConfig = MimeConfig.DEFAULT;
-//        BodyDescriptorBuilder bodyDescriptorBuilder = new DefaultBodyDescriptorBuilder();
-//        MimeStreamParser mime4jParser = new MimeStreamParser(mime4jParserConfig,DecodeMonitor.SILENT,bodyDescriptorBuilder);
-//        mime4jParser.setContentDecoding(true);
-//        mime4jParser.setContentHandler(contentHandler);
 //
-//        InputStream mailIn = null; //"Provide email mime stream here';
-//        mime4jParser.parse(mailIn);
-    }
+//
+////        ContentHandler contentHandler = new CustomContentHandler();
+////
+////        MimeConfig mime4jParserConfig = MimeConfig.DEFAULT;
+////        BodyDescriptorBuilder bodyDescriptorBuilder = new DefaultBodyDescriptorBuilder();
+////        MimeStreamParser mime4jParser = new MimeStreamParser(mime4jParserConfig,DecodeMonitor.SILENT,bodyDescriptorBuilder);
+////        mime4jParser.setContentDecoding(true);
+////        mime4jParser.setContentHandler(contentHandler);
+////
+////        InputStream mailIn = null; //"Provide email mime stream here';
+////        mime4jParser.parse(mailIn);
+//    }
 
     @Test
     public void addressTest() {

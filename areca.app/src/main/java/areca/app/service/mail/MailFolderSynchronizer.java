@@ -16,10 +16,13 @@ package areca.app.service.mail;
 import static org.polymap.model2.query.Expressions.eqAny;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.Range;
+import org.apache.commons.lang3.time.DateUtils;
+
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
@@ -47,6 +50,8 @@ public class MailFolderSynchronizer {
 
     protected RequestParams             params;
 
+    protected int                       monthsToSync;
+
     protected UnitOfWork                uow;
 
     protected String                    folderName;
@@ -56,10 +61,11 @@ public class MailFolderSynchronizer {
     private RConsumer<Integer>          onMessageCount;
 
 
-    public MailFolderSynchronizer( String folderName, UnitOfWork uow, RequestParams params ) {
+    public MailFolderSynchronizer( String folderName, UnitOfWork uow, RequestParams params, int months ) {
         this.uow = uow;
         this.params = params;
         this.folderName = folderName;
+        this.monthsToSync = months;
     }
 
 
@@ -70,23 +76,17 @@ public class MailFolderSynchronizer {
 
 
     public Promise<Opt<Message>> start() {
-        return fetchMessageCount()
+        return fetchMessageIds()
                 // check/create Anchor
-                .then( msgCount -> {
+                .then( (MessageHeaders[] msgs) -> {
+                    if (msgs.length == 0) {
+                        LOG.debug( "%s: no messages to sync -> skipping Anchor" );
+                        return Promise.completed( msgs );
+                    }
                     return checkCreateFolderAnchor().map( anchor -> {
                         folderAnchor = anchor;
-                        return msgCount;
+                        return msgs;
                     });
-                })
-                // fetch message ids
-                .then( totalMsgCount -> {
-                    int fetchCount = Math.min( totalMsgCount, MAX_PER_FOLDER );
-                    int from = totalMsgCount-fetchCount+1, to = totalMsgCount;
-                    LOG.info( "%s: Exists: %s, fetching: %s - %s", folderName, totalMsgCount, from, to );
-                    onMessageCount.accept( fetchCount );
-                    return totalMsgCount > 0
-                            ? fetchMessageIds( from, to )
-                            : Promise.completed( new MessageHeaders[0] );
                 })
                 // find missing Message entities
                 .then( (MessageHeaders[] msgs) -> {
@@ -156,9 +156,17 @@ public class MailFolderSynchronizer {
     }
 
 
-    /** MESSAGE_ID -> message num */
     protected Promise<MessageHeaders[]> fetchMessageIds( int start, int end ) {
         return new MessageHeadersRequest( params, folderName, Range.between( start, end ) )
+                .submit()
+                .map( response -> response.messageHeaders() );
+    }
+
+
+    protected Promise<MessageHeaders[]> fetchMessageIds() {
+        var minDate = DateUtils.addMonths( new Date(), -monthsToSync );
+        LOG.info( "MIN. DATE: %s", minDate );
+        return new MessageHeadersRequest( params, folderName, minDate, null )
                 .submit()
                 .map( response -> response.messageHeaders() );
     }

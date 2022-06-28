@@ -16,6 +16,7 @@ package areca.app.service.mail;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -58,6 +60,9 @@ import jakarta.mail.Session;
 import jakarta.mail.Store;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.search.AndTerm;
+import jakarta.mail.search.ComparisonTerm;
+import jakarta.mail.search.ReceivedDateTerm;
 
 /**
  *
@@ -268,15 +273,25 @@ public class MailServlet extends HttpServlet {
             var msgs = (Message[])null;
 
             // msg nums
-            String minParam = request.getParameter( MessageHeadersRequest.MIN_NAME );
-            String maxParam = request.getParameter( MessageHeadersRequest.MAX_NAME );
+            String minParam = request.getParameter( MessageHeadersRequest.MIN_NUM_NAME );
+            String maxParam = request.getParameter( MessageHeadersRequest.MAX_NUM_NAME );
             if (minParam != null || maxParam != null) {
                 var start = minParam != null ? Integer.parseInt( minParam ) : 1;
                 var end = maxParam != null ? Integer.parseInt( maxParam ) : folder.getMessageCount();
                 msgs = folder.getMessages( start, end );
             }
-            // date ...
+            // date
+            minParam = request.getParameter( MessageHeadersRequest.MIN_DATE_NAME );
+            maxParam = request.getParameter( MessageHeadersRequest.MAX_DATE_NAME );
+            if (minParam != null || maxParam != null) {
+                var term = new AndTerm(
+                        new ReceivedDateTerm( ComparisonTerm.GE, new Date( Long.parseLong( minParam ) ) ),
+                        new ReceivedDateTerm( ComparisonTerm.LE, new Date( Long.parseLong( maxParam ) ) ) );
+                msgs = folder.search( term );
+            }
+            // all
             if (msgs == null) {
+                //msgs = folder.getMessages();
                 throw new MessagingException( "Wrong query: " + request.getParameterMap() );
             }
 

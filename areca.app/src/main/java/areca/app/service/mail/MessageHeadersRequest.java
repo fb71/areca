@@ -36,19 +36,26 @@ public class MessageHeadersRequest
     private static final Log LOG = LogFactory.getLog( MessageHeadersRequest.class );
 
     public static final String  FILE_NAME = "message.headers";
-    public static final String  MIN_NAME = "start";
-    public static final String  MAX_NAME = "end";
+    public static final String  MIN_NUM_NAME = "minNum";
+    public static final String  MAX_NUM_NAME = "maxNum";
+    public static final String  MIN_DATE_NAME = "minDate";
+    public static final String  MAX_DATE_NAME = "maxDate";
 
-    protected Range<Integer> msgNums;
 
     protected MessageHeadersRequest( RequestParams params, String folderName, Range<Integer> msgNums ) {
         super( params );
-        this.msgNums = msgNums;
         setPath( folderName, FILE_NAME );
         if (msgNums != null) {
-            addQuery( MIN_NAME, msgNums.getMinimum().toString() );
-            addQuery( MAX_NAME, msgNums.getMaximum().toString() );
+            addQuery( MIN_NUM_NAME, msgNums.getMinimum().toString() );
+            addQuery( MAX_NUM_NAME, msgNums.getMaximum().toString() );
         }
+    }
+
+    protected MessageHeadersRequest( RequestParams params, String folderName, Date min, Date max ) {
+        super( params );
+        setPath( folderName, FILE_NAME );
+        addQuery( MIN_DATE_NAME, String.valueOf( min != null ? min.getTime() : 0 ) );
+        addQuery( MAX_DATE_NAME, String.valueOf( max != null ? max.getTime() : new Date().getTime() ) );
     }
 
     /**

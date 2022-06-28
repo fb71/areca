@@ -16,10 +16,12 @@ package areca.app.service.mail;
 import static java.util.Arrays.asList;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 
 import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.time.DateUtils;
 
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.store.tidbstore.IDBStore;
@@ -66,6 +68,7 @@ public class MailTest {
 
 
     @Test
+    @Skip
     public Promise<?> accountInfoTest() {
         return new AccountInfoRequest( defaultParams() ).submit()
                 .onSuccess( accountInfo -> {
@@ -75,6 +78,7 @@ public class MailTest {
 
 
     @Test
+    @Skip
     public Promise<?> folderInfoTest() {
         return new FolderInfoRequest( defaultParams(), "Test1/subtest" ).submit()
                 .onSuccess( folderInfo -> {
@@ -89,7 +93,7 @@ public class MailTest {
     public Promise<?> syncFolderTest() {
         return initRepo( "syncFolder" ).then( repo -> {
             var uow = repo.newUnitOfWork();
-            return new MailFolderSynchronizer( "Test1", uow, defaultParams() )
+            return new MailFolderSynchronizer( "Test1", uow, defaultParams(), 36 )
                     .onMessageCount( msgCount -> LOG.info( "fetching: %s", msgCount ) )
                     .start()
                     .reduce( new MutableInt(), (r,msg) -> r.increment())
@@ -104,7 +108,7 @@ public class MailTest {
 
     @Test
     @Skip
-    public Promise<?> MessageContentTest() {
+    public Promise<?> messageContentTest() {
         HashSet<Integer> msgNums = Sequence.ofInts( 1, 47 ).toSet();
         return new MessageContentRequest( defaultParams(), "Test1", msgNums ).submit()
                 .onSuccess( response -> {
@@ -123,6 +127,7 @@ public class MailTest {
 
 
     @Test
+    @Skip
     public Promise<?> messageHeadersTest() {
         return new MessageHeadersRequest( defaultParams(), "Test1", Range.between( 1, 47 ) ).submit()
                 .onSuccess( response -> {
@@ -141,6 +146,22 @@ public class MailTest {
                     });
                 });
     }
+
+
+    @Test
+    public Promise<?> messagesDateQueryTest() {
+        var min = DateUtils.addYears( new Date(), -2 );
+        return new MessageHeadersRequest( defaultParams(), "Test1", min, null ).submit()
+                .onSuccess( response -> {
+                    MessageHeaders[] messageHeaders = response.messageHeaders();
+                    Assert.that( messageHeaders.length > 0 );
+                    Sequence.of( messageHeaders ).forEach( msg -> {
+                        Assert.notNull( msg.receivedDate().compareTo( min ) >= 0 );
+                        LOG.info( "Received: %s", msg.receivedDate() );
+                    });
+                });
+    }
+
 
 
     @Test

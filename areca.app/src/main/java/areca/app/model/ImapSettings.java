@@ -38,4 +38,6 @@ public class ImapSettings
 
     public Property<String>         pwd;
 
+    public Property<Integer>        monthsToSync;
+
 }

@@ -57,6 +57,7 @@ public class ImapSettingsPage2
             //proto.username.set( String.format( "%s%s%s", "falko", "@", "polymap.de" ) );
             proto.username.set( CarddavTest.ARECA_USERNAME );
             proto.pwd.set( "..." );
+            proto.monthsToSync.set( 1 );
         });
     }
 
@@ -106,6 +107,11 @@ public class ImapSettingsPage2
                     .viewer( new TextFieldViewer() )
                     .transformer( new Number2StringTransformer() )
                     .adapter( new PropertyAdapter<>( () -> settings.port ) )
+                    .create() );
+            add( form.newField().label( "Months to sync" )
+                    .viewer( new TextFieldViewer() )
+                    .transformer( new Number2StringTransformer() )
+                    .adapter( new PropertyAdapter<>( () -> settings.monthsToSync ) )
                     .create() );
         }
 
