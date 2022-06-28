@@ -19,11 +19,14 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.regex.Pattern;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -38,15 +41,26 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.time.StopWatch;
+import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.codec.DecodeMonitor;
 import org.apache.james.mime4j.codec.DecoderUtil;
+import org.apache.james.mime4j.message.DefaultBodyDescriptorBuilder;
+import org.apache.james.mime4j.parser.MimeStreamParser;
+import org.apache.james.mime4j.stream.BodyDescriptorBuilder;
+import org.apache.james.mime4j.stream.MimeConfig;
+
+import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import areca.app.service.http.SSLUtils;
 import areca.app.service.imap.ImapForwardServlet.SocketPool.PooledSocket;
 import areca.app.service.imap.ImapRequestData.CommandData;
-import areca.common.Timer;
+import tech.blueglacier.email.Attachment;
+import tech.blueglacier.email.Email;
+import tech.blueglacier.parser.CustomContentHandler;
 
 /**
  *
@@ -94,7 +108,7 @@ public class ImapForwardServlet extends HttpServlet {
     @Override
     public void doPost( HttpServletRequest request, HttpServletResponse response ) throws ServletException, IOException {
         debug( "\n\nREQUEST: length=" + request.getContentLength() );
-        var timer = Timer.start();
+        var timer = StopWatch.createStarted();
         var imapRequest = gson.fromJson( request.getReader(), ImapRequestData.class );
 
         response.setCharacterEncoding( "UTF-8" );
@@ -104,7 +118,7 @@ public class ImapForwardServlet extends HttpServlet {
         try {
             imap.ifCreated( s -> {
                 debug( "<< " + imap.in.readLine() );
-                debug( "####################################### First line: read. (" + timer.elapsedHumanReadable() + ")" );
+                debug( "####################################### First line: read. (" + timer + ")" );
                 performCommand( imapRequest.loginCommand, imap, null );
             });
 
@@ -125,36 +139,86 @@ public class ImapForwardServlet extends HttpServlet {
     }
 
 
-    protected <E extends Exception> void performCommand( CommandData command, PooledSocket imap, Consumer<String,E> sink ) throws E, IOException {
-        Timer timer = Timer.start();
+    public static final Pattern SIZE = Pattern.compile( "\\{([0-9]+)\\}" );
+
+
+    protected void performCommand( CommandData command, PooledSocket imap, Consumer<String,Exception> sink ) throws Exception {
+        var timer = StopWatch.createStarted();
         debug( "> " + command.command );
         //debug( ":: " + EncoderUtil.encodeEncodedWord( command.command, Usage.TEXT_TOKEN ) );
         imap.out.write( command.command );
         imap.out.write( "\r\n" );
         imap.out.flush();
 
-        for (String line = imap.in.readLine(); line != null; line = imap.in.readLine()) {
-            //debug( "< " + line );
-            if (sink != null) {
-                sink.accept( line );
-            }
-            if (containsIgnoreCase( line, command.expected )) {
-                break;
+        if (command.command.contains( "RFC822" )) {
+            var line = imap.in.readLine();
+            debug( "< %s", line );
+            var matcher = SIZE.matcher( line );
+            matcher.find();
+            var size = Integer.valueOf( matcher.group( 1 ) );
+            parseMime( imap, size );
+        }
+        else {
+            for (String line = imap.in.readLine(); line != null; line = imap.in.readLine()) {
+                debug( "< %s", line );
+                if (sink != null) {
+                    sink.accept( line );
+                }
+                if (containsIgnoreCase( line, command.expected )) {
+                    break;
+                }
             }
         }
-        debug( "####################################### Command: done. (" + timer.elapsedHumanReadable() + ")\n" );
+        debug( "####################################### Command: done. (" + timer + ")\n" );
+    }
+
+
+    protected void parseMime( PooledSocket imap, int size ) throws MimeException, IOException {
+        var contentHandler = new CustomContentHandler();
+//        var contentHandler = new SimpleContentHandler() {
+//            @Override
+//            public void headers( Header header ) {
+//                debug( "HEADERS: %s", header );
+//            }
+//        };
+
+        MimeConfig mime4jParserConfig = MimeConfig.DEFAULT;
+        BodyDescriptorBuilder bodyDescriptorBuilder = new DefaultBodyDescriptorBuilder();
+        MimeStreamParser mime4jParser = new MimeStreamParser( mime4jParserConfig, DecodeMonitor.STRICT, bodyDescriptorBuilder );
+        mime4jParser.setContentDecoding( true );
+        mime4jParser.setContentHandler( contentHandler );
+
+        debug( "MIME: start parsing... (%d)", size );
+        mime4jParser.parse( ByteStreams.limit( imap.i, size ) );
+
+        Email email = contentHandler.getEmail();
+
+//        List<Attachment> attachments = email.getAttachments();
+//
+//        Attachment calendar = email.getCalendarBody();
+//        Attachment htmlBody = email.getHTMLEmailBody();
+//        Attachment plainText = email.getPlainTextEmailBody();
+//
+//        String to = email.getToEmailHeaderValue();
+//        String cc = email.getCCEmailHeaderValue();
+//        String from = email.getFromEmailHeaderValue();
+
+        Attachment body = email.getPlainTextEmailBody();
+        debug( "Body: %s", body.getBd().getCharset() );
+        var content = IOUtils.toString( body.getIs(), body.getBd().getCharset() );
+        debug( "Content: %s", content );
     }
 
 
     protected SSLSocket createSSLSocket( ImapRequestData imapRequest ) throws IOException {
-        Timer timer = Timer.start();
+        var timer = StopWatch.createStarted();
         debug( "trying %s:%s ...", imapRequest.host, imapRequest.port );
         SSLSocketFactory factory = sslContext.getSocketFactory();
         SSLSocket socket = (SSLSocket)factory.createSocket();
         socket.connect( new InetSocketAddress( imapRequest.host, imapRequest.port ), 5000 );
         socket.setSoTimeout( 7000 );
         socket.startHandshake();
-        debug( "####################################### SSL connection: established. (" + timer.elapsedHumanReadable() + ")" );
+        debug( "####################################### SSL connection: established. (" + timer + ")" );
         return socket;
     }
 
@@ -231,23 +295,32 @@ public class ImapForwardServlet extends HttpServlet {
         }
 
 
+        /**
+         *
+         */
         class PooledSocket {
 
             private String          poolkey;
 
             private Socket          socket;
 
-            private BufferedWriter  out;
+            public BufferedWriter   out;
 
-            private BufferedReader  in;
+            public BufferedReader   in;
 
             private Instant         lastUsed;
+
+            public OutputStream     o;
+
+            public InputStream      i;
 
             public PooledSocket( Socket socket, String poolkey ) throws IOException {
                 this.poolkey = poolkey;
                 this.socket = socket;
-                this.out = new BufferedWriter( new OutputStreamWriter( socket.getOutputStream(), DEFAULT_ENCODING ) ); //XXX SMTP hack
-                this.in = new BufferedReader( new InputStreamReader( socket.getInputStream(), DEFAULT_ENCODING ) ); //UTF8" ) );
+                this.o = socket.getOutputStream();
+                this.i = socket.getInputStream();
+                this.out = new BufferedWriter( new OutputStreamWriter( o, DEFAULT_ENCODING ) ); //XXX SMTP hack
+                this.in = new BufferedReader( new InputStreamReader( i, DEFAULT_ENCODING ) ); //UTF8" ) );
             }
 
             public <E extends Exception> void ifCreated( Consumer<Socket,E> block ) throws E {

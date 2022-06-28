@@ -24,13 +24,6 @@ import areca.common.base.Sequence;
  */
 public class ImapRequestData {
 
-    // public static final String RESPONSE_COMMAND_DELIMITER = "### command-end ########################################\n";
-
-
-//    public <E extends Exception> ImapRequestData( Consumer<ImapRequestData,E> initializer ) throws E {
-//        initializer.accept( this );
-//    }
-
     public String               host;
 
     public int                  port;

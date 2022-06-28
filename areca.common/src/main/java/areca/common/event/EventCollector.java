@@ -45,11 +45,16 @@ public class EventCollector<T extends EventObject> {
     }
 
 
+    public void setDelay( int delay ) {
+        this.delay = delay;
+    }
+
+
     public void collect( T ev, RConsumer<List<T>> handler ) {
         events.add( ev );
         if (async == null) {
             async = Platform.schedule( delay, () -> {
-                LOG.info( "Publishing: %s events", events.size() );
+                LOG.debug( "Publishing: %s events", events.size() );
                 handler.accept( events );
                 events = new ArrayList<>( 128 );
                 async = null;

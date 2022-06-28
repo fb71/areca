@@ -61,8 +61,6 @@ public class ImapTest {
 
     public static final ImapTestClassInfo info = ImapTestClassInfo.instance();
 
-    private static int          dbCount = 0;
-
     protected Promise<EntityRepository> initRepo( String name ) {
         return EntityRepository.newConfiguration()
                 .entities.set( asList( Message.info, Contact.info, Anchor.info) )
@@ -96,6 +94,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public void completablePromiseTest() {
         var promise = new Promise.Completable<String>();
 
@@ -148,6 +147,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> selectEmptyFolderTest() {
         request.commands.add( new FolderSelectCommand( "Drafts" ) );
         return request.submit().onSuccess( command -> {
@@ -161,6 +161,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> listFoldersTest() {
         //request.commands.add( new FolderSelectCommand( "INBOX" ) );
         request.commands.add( new FolderListCommand() );
@@ -190,6 +191,19 @@ public class ImapTest {
 
 
     @Test
+    public Promise<?> fetchMimeMessageTest() {
+        request.commands.add( new FolderSelectCommand( "INBOX" ) );
+        request.commands.add( new MessageFetchMimeCommand( 2 ) );
+        return request.submit().onSuccess( command -> {
+            with( command ).instanceOf( MessageFetchMimeCommand.class, fetchCommand -> {
+                var text = fetchCommand.text.toString();
+                Assert.that( text.length() > 0 );
+            });
+        });
+    }
+
+
+    @Test
     @Skip
     public Promise<?> fetchMessageHeadersTest() {
         request.commands.add( new FolderSelectCommand( "INBOX" ) );
@@ -210,6 +224,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> fetchMessageHeadersTest2() {
         request.commands.add( new FolderSelectCommand( "Test1" ) );
         request.commands.add( new MessageFetchHeadersCommand( between( 1, 40 ), MESSAGE_ID ) );
@@ -250,6 +265,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> syncFolderTest() {
         return initRepo( "syncFolder" ).then( repo -> {
             var uow = repo.newUnitOfWork();
@@ -268,6 +284,7 @@ public class ImapTest {
 
 
     @Test
+    @Skip
     public Promise<?> syncServiceTest() {
         return initRepo( "syncService" ).then( repo -> {
             var ctx = new SyncContext() {{

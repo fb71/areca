@@ -53,7 +53,7 @@ public class ScrollableCompositeRenderer
         var throttle = new EventCollector<>( 300 );
         div.addEventListener( "scroll", htmlEv -> {
             throttle.collect( new EventObject( c ), l -> {
-                LOG.info( "Throttle: " + l.size() );
+                LOG.debug( "Throttle: " + l.size() );
                 c.scrollLeft.set( div.getScrollLeft() );
                 c.scrollTop.set( div.getScrollTop() );
             });

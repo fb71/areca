@@ -22,7 +22,7 @@ import areca.app.model.Address;
 import areca.app.model.SmtpSettings;
 import areca.app.service.Service;
 import areca.app.service.TransportService;
-import areca.app.service.imap.EmailAddress;
+import areca.app.service.mail.EmailAddress;
 import areca.app.service.smtp.SmtpRequest.AuthPlainCommand;
 import areca.app.service.smtp.SmtpRequest.DataCommand;
 import areca.app.service.smtp.SmtpRequest.DataContentCommand;

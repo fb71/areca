@@ -32,6 +32,7 @@ import org.polymap.model2.runtime.UnitOfWork;
 import areca.app.model.Anchor;
 import areca.app.model.Message;
 import areca.app.service.imap.MessageFetchHeadersCommand.Flag;
+import areca.app.service.mail.EmailAddress;
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.base.Consumer.RConsumer;

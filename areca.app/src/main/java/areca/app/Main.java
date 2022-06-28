@@ -87,6 +87,16 @@ public class Main {
                         .run();
             });
         }
+        // #mail
+        else if (hash.equals( "#mail" )) {
+            catchAll( __ -> {
+                LogFactory.setPackageLevel( areca.app.service.mail.MailRequest.class, DEBUG );
+                new AsyncAwareTestRunner()
+                        .addTests( areca.app.service.mail.MailTest.info )
+                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
+                        .run();
+            });
+        }
         // #imap
         else if (hash.equals( "#imap" )) {
             catchAll( __ -> {

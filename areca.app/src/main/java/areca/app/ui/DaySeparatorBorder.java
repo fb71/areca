@@ -51,6 +51,8 @@ class DaySeparatorBorder {
         borders.add( new DaySeparatorBorder( "7 days ago", addDays( today, -7 ).getTime() ) );
         borders.add( new DaySeparatorBorder( "2 weeks ago", addDays( today, -14 ).getTime() ) );
         borders.add( new DaySeparatorBorder( "1 month ago", addDays( today, -30 ).getTime() ) );
+        borders.add( new DaySeparatorBorder( "2 month ago", addDays( today, -60 ).getTime() ) );
+        borders.add( new DaySeparatorBorder( "3 month ago", addDays( today, -90 ).getTime() ) );
         borders.add( new DaySeparatorBorder( "Older", addYears( today, -30 ).getTime() ) );
         LOG.debug( "Intervals: %s", Sequence.of( borders ).map( b -> df.format( b.start ) ) );
     }

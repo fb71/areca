@@ -93,7 +93,7 @@ public class Promise<T> {
 
         protected BiConsumer<HandlerSite,R,Exception> onSuccessHandler() {
             return (self,result) -> {
-                LOG.debug( "JOIN: c = %s, self.complete = %s", completeCount, self.isComplete() );
+                LOG.info( "JOIN: num = %d, c = %d, supplied.complete = %s", num, completeCount, self.isComplete() );
                 if (!self.isComplete()) {
                     LOG.debug( "JOIN: consume: %s", result );
                     consumeResult( result );

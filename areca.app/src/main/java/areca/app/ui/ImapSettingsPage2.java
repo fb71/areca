@@ -15,9 +15,8 @@ package areca.app.ui;
 
 import areca.app.model.ImapSettings;
 import areca.app.service.carddav.CarddavTest;
-import areca.app.service.imap.FolderListCommand;
-import areca.app.service.imap.ImapRequest;
-import areca.app.service.imap.ImapRequest.LoginCommand;
+import areca.app.service.mail.AccountInfoRequest;
+import areca.app.service.mail.RequestParams;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -45,7 +44,7 @@ public class ImapSettingsPage2
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         var result = super.doInit( parent );
-        ui.title.set( "Email Settings" );
+        ui.title.set( "Mail Settings" );
         return result;
     }
 
@@ -63,13 +62,13 @@ public class ImapSettingsPage2
 
 
     protected Promise<?> checkSettings( ImapSettings settings ) {
-        var request = new ImapRequest( self -> {
-            self.host = settings.host.get();
-            self.port = settings.port.get();
-            self.loginCommand = new LoginCommand( settings.username.get(), settings.pwd.get() );
-            self.commands.add( new FolderListCommand() );
-        });
-        return request.submit();
+        var params = new RequestParams() {{
+            this.host.value = settings.host.get();
+            //this.port.value = settings.port.get();
+            this.username.value = settings.username.get();
+            this.password.value = settings.pwd.get();
+        }};
+        return new AccountInfoRequest( params ).submit();
     }
 
 

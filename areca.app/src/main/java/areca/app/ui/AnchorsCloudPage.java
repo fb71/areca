@@ -14,8 +14,6 @@
 package areca.app.ui;
 
 import static org.apache.commons.lang3.StringUtils.abbreviate;
-import static org.polymap.model2.runtime.Lifecycle.State.AFTER_REFRESH;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,7 +28,6 @@ import org.polymap.model2.query.Query.Order;
 
 import areca.app.ArecaApp;
 import areca.app.model.Anchor;
-import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.Message;
 import areca.app.model.ModelUpdateEvent;
 import areca.app.ui.AnchorsCloudPage.CloudRaster.CloudComponent;
@@ -38,7 +35,6 @@ import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Sequence;
-import areca.common.event.EventCollector;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -124,7 +120,10 @@ public class AnchorsCloudPage
 
         // listen to model updates
         EventManager.instance()
-                .subscribe( (ModelUpdateEvent ev) -> body.layout())
+                .subscribe( (ModelUpdateEvent ev) -> {
+                    LOG.info( "JOIN: update layout..." );
+                    body.layout();
+                })
                 .performIf( ModelUpdateEvent.class::isInstance )
                 .unsubscribeIf( () -> body.isDisposed() );
     }
@@ -171,22 +170,21 @@ public class AnchorsCloudPage
         Platform.schedule( 1250, updateTag );
 
         // Anchor/Messages updates
-        var throttle = new EventCollector<>( 250 );
         EventManager.instance()
-                .subscribe( ev -> {
-                    LOG.info( "Entity AFTER_REFRESH: %s", ev.getSource().getClass().getSimpleName() );
-                    // probably a message was added
-                    if (ev.getSource() == anchor) {
+                .subscribe( (ModelUpdateEvent modified) -> {
+                    if (modified.entities( Anchor.class ).contains( anchor.id() )) {
+                        LOG.info( "Anchor: modified: %s", anchor.id() );
+                        // probably a message was added
                         updateBtn.run();
                         updateTag.run();
                     }
                     // maybe Message.unread has changed
-                    else if (ev.getSource() instanceof Message) {
-                        throttle.collect( ev, evs -> updateTag.run() );
+                    if (!modified.entities( Message.class ).isEmpty()) {
+                        LOG.debug( "Anchor: message unread update: %s", anchor.id() );
+                        updateTag.run();
                     }
                 })
-                .performIf( ev -> ev instanceof EntityLifecycleEvent
-                        && ((EntityLifecycleEvent)ev).state == AFTER_REFRESH )
+                .performIf( ev -> ev instanceof ModelUpdateEvent )
                 .unsubscribeIf( () -> btn.isDisposed() );
 
         // click
@@ -226,6 +224,8 @@ public class AnchorsCloudPage
 
         protected Interval              currentInterval;
 
+        protected boolean               isRunning;
+
 
         @Override
         public void componentHasChanged( Component changed ) {
@@ -235,6 +235,12 @@ public class AnchorsCloudPage
 
         @Override
         public void layout( UIComposite composite ) {
+            if (isRunning) {
+                LOG.info( "Skipping concurrent layout()" );
+                return;
+            }
+            isRunning = true;
+
             LOG.debug( "layout(): clientSize=%s", composite.clientSize.opt().orElse( Size.of( -1, -1 ) ) );
             boolean isFirstRun = scrollable == null;
             super.layout( composite );
@@ -287,8 +293,14 @@ public class AnchorsCloudPage
                         if (hasMore) {
                             checkVisibleLines();
                         }
+                        else {
+                            isRunning = false;
+                        }
                     });
                 }
+            }
+            else {
+                isRunning = false;
             }
         }
 
