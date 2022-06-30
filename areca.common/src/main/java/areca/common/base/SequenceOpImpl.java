@@ -88,9 +88,9 @@ public class SequenceOpImpl<T,E extends Exception>
 
 
     @Override
-    public <RE extends E> Sequence<T,E> filter( Predicate<T,RE> condition ) throws RE {
+    public <R extends T, RE extends E> Sequence<R,E> filter( Predicate<T,RE> condition ) throws RE {
         ops[opsCount++] = condition;
-        return this;
+        return (Sequence<R,E>)this;
     }
 
 

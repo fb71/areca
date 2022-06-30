@@ -112,7 +112,7 @@ public abstract class ProgressMonitor {
             var scaled = work * parentFactor;
             parentWorkDone += Math.round( scaled );
             parent.worked( Math.round( scaled ) ); // XXX cumulating error
-            LOG.info( "SUB: work: %s (%s), parent: %s, factor: %s", workDone, scaled, parentWorkDone, parentFactor );
+            LOG.debug( "SUB: work: %s (%s), parent: %s, factor: %s", workDone, scaled, parentWorkDone, parentFactor );
             return this;
         }
 
@@ -120,7 +120,7 @@ public abstract class ProgressMonitor {
         public ProgressMonitor done() {
             int workLeft = Math.max( 0, parentWorkFaction - workDone );
             parent.worked( workLeft );
-            LOG.info( "SUB: done: %s / %s ", workLeft, workTotal );
+            LOG.debug( "SUB: done: %s / %s ", workLeft, workTotal );
             return this;
         }
 

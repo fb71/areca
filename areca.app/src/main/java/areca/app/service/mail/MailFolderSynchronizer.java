@@ -46,7 +46,7 @@ public class MailFolderSynchronizer {
 
     private static final Log LOG = LogFactory.getLog( MailFolderSynchronizer.class );
 
-    public static final int             MAX_PER_FOLDER = 40;
+    //public static final int             MAX_PER_FOLDER = 40;
 
     protected RequestParams             params;
 
@@ -83,7 +83,7 @@ public class MailFolderSynchronizer {
                     onMessageCount.accept( msgs.length );
                     if (msgs.length == 0
                             || folderName.equalsIgnoreCase( "INBOX" ) || folderName.equalsIgnoreCase( "Sent" )) {
-                        LOG.debug( "%s: no messages to sync -> skipping Anchor" );
+                        LOG.debug( "%s: no messages to sync -> skipping Anchor", folderName );
                         return Promise.completed( msgs );
                     }
                     return checkCreateFolderAnchor().map( anchor -> {

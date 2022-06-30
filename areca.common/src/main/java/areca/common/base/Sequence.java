@@ -210,13 +210,13 @@ public abstract class Sequence<T, E extends Exception> {
     }
 
 
-    public <RE extends E> Sequence<T,E> filter( Predicate<T,RE> condition ) throws RE {
-        return new Sequence<T,E>( this ) {
+    public <R extends T, RE extends E> Sequence<R,E> filter( Predicate<T,RE> condition ) throws RE {
+        return new Sequence<R,E>( this ) {
             @Override
             @SuppressWarnings("unchecked")
-            protected SequenceIterator<T,E> iterator() {
-                return new DelegatingIterator<T,T,E>( (SequenceIterator<T,E>)parent.iterator() ) {
-                    private T nextElm = null;
+            protected SequenceIterator<R,E> iterator() {
+                return new DelegatingIterator<T,R,E>( (SequenceIterator<T,E>)parent.iterator() ) {
+                    private R nextElm = null;
 
                     @Override
                     public boolean hasNext() throws E {
@@ -227,18 +227,18 @@ public abstract class Sequence<T, E extends Exception> {
                         while (delegate.hasNext()) {
                             T candidate = delegate.next();
                             if (condition.test( candidate )) {
-                                nextElm = candidate;
+                                nextElm = (R)candidate;
                                 return true;
                             }
                         }
                         return false;
                     }
                     @Override
-                    public T next() throws E {
+                    public R next() throws E {
                         if (!hasNext()) {
                             throw new NoSuchElementException();
                         }
-                        T result = Assert.notNull( nextElm );
+                        R result = Assert.notNull( nextElm );
                         nextElm = null;
                         return result;
                     }

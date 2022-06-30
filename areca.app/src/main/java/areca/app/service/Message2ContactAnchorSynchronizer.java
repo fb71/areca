@@ -17,16 +17,13 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.model.Address;
-import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.common.Assert;
-import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.base.Opt;
 import areca.common.log.LogFactory;
@@ -41,8 +38,6 @@ public class Message2ContactAnchorSynchronizer {
     private static final Log LOG = LogFactory.getLog( Message2ContactAnchorSynchronizer.class );
 
     private UnitOfWork              uow;
-
-    private HashMap<String,Contact> seen = new HashMap<>( 512 );
 
 
     public Message2ContactAnchorSynchronizer( UnitOfWork uow ) {
@@ -61,46 +56,27 @@ public class Message2ContactAnchorSynchronizer {
                 : message.fromAddress.get() );
 
         return uow.query( Contact.class )
-                // query Contact
                 .where( Expressions.eq( Contact.TYPE.email, address.content ) )
                 .executeCollect()
-                .map( results -> {
-                    if (!results.isEmpty()) {
+                .map( rs -> {
+                    if (rs.isEmpty()) {
+                        return Promise.completed( message );
+                    }
+                    return Promise.serial( rs.size(), i -> {
+                        var contact = rs.get( i );
                         LOG.debug( "Contact found for: %s", address.content );
-                        return results.get( 0 );
-                        //return seen.computeIfAbsent( address.pure, __ -> results.get( 0 ) );
-                    }
-                    return null;
-//                        return seen.computeIfAbsent( address.pure, __ -> uow.createEntity( Contact.class, proto -> {
-//                            LOG.debug( "Contact create: %s -> '%s' '%s' '%s'", message.from.get(), address.first, address.last, address.pure );
-//                            proto.firstname.set( address.first );
-//                            proto.lastname.set( address.last );
-//                            proto.email.set( address.pure );
-//                        }));
-//                    }
+                        return contact.anchor
+                                .ensure( proto -> {
+                                    proto.name.set( anchorName( message, contact ) );
+                                    proto.storeRef.set( "contact:" + contact.id() );
+                                })
+                                .map( anchor -> {
+                                    anchor.messages.add( message );
+                                    return anchor;
+                                });
+                    });
                 })
-                // fetch anchor
-                .then( (Contact contact) -> {
-                    return contact != null
-                            ? contact.anchor.fetch().map( anchor -> Pair.of( contact, anchor ) )
-                            : Platform.async( () -> Pair.of( (Contact)null, (Anchor)null ) );
-                })
-                // create anchor + attach message
-                .map( (Pair<Contact,Anchor> contactAnchor) -> {
-                    var contact = contactAnchor.getLeft();
-                    if (contact != null) {
-                        var anchor = contactAnchor.getRight();
-                        if (anchor == null) {
-                            anchor = uow.createEntity( Anchor.class, proto -> {
-                                proto.name.set( anchorName( message, contactAnchor.getLeft() ) );
-                                proto.storeRef.set( "contact:" + contactAnchor.getLeft().id() );
-                            });
-                            contact.anchor.set( anchor );
-                        }
-                        anchor.messages.add( message );
-                    }
-                    return message;
-                });
+                .reduce( message, (result,anchor) -> {} );
     }
 
 

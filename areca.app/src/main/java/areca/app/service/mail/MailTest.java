@@ -28,9 +28,12 @@ import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
+import areca.app.model.ImapSettings;
 import areca.app.model.Message;
+import areca.app.service.SyncableService;
 import areca.app.service.mail.MessageHeadersRequest.MessageHeadersResponse.MessageHeaders;
 import areca.common.Assert;
+import areca.common.NullProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -61,7 +64,7 @@ public class MailTest {
 
     protected Promise<EntityRepository> initRepo( String name ) {
         return EntityRepository.newConfiguration()
-                .entities.set( asList( Message.info, Contact.info, Anchor.info) )
+                .entities.set( asList( Message.info, Contact.info, Anchor.info, ImapSettings.info ) )
                 .store.set( new IDBStore( "MailTest-" + name, IDBStore.nextDbVersion(), true ) )
                 .create();
     }
@@ -105,6 +108,27 @@ public class MailTest {
                     });
         });
     }
+
+
+    @Test
+    public Promise<?> syncServiceTest() {
+        return initRepo( "syncService" ).then( repo -> {
+            var uow = repo.newUnitOfWork();
+            var settings = uow.createEntity( ImapSettings.class, proto -> {
+                var params = defaultParams();
+                proto.username.set( params.username.value );
+                proto.pwd.set( params.password.value );
+                proto.host.set( params.host.value );
+                proto.monthsToSync.set( 36 );
+            });
+            var ctx = new SyncableService.SyncContext() {{
+                monitor = new NullProgressMonitor();
+                uowFactory = () -> repo.newUnitOfWork();
+            }};
+            return new MailService.FullSync( settings, ctx ).start();
+        });
+    }
+
 
     @Test
     @Skip
