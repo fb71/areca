@@ -43,7 +43,7 @@ public class NullProgressMonitor
     }
 
     @Override
-    public void updateTotalWork( int toAdd ) {
+    public void setTotalWork( int toAdd ) {
     }
 
 }

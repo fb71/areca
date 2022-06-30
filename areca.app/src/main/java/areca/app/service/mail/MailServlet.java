@@ -417,7 +417,7 @@ public class MailServlet extends HttpServlet {
             var now = System.currentTimeMillis();
             for (var folderName : new HashSet<>( openFolders.keySet() )) {
                 var folder = openFolders.get( folderName );
-                if (folder.lastUsed < (now-5000)) {
+                if (folder.lastUsed < (now-30000)) {
                     openFolders.remove( folderName );
                     if (folder.folder.isOpen()) {
                         folder.folder.close();

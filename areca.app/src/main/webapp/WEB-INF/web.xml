@@ -15,16 +15,6 @@
         <url-pattern>/mail/*</url-pattern>
       </servlet-mapping>      
 
-      <!-- IMAP -->
-      <servlet>
-        <servlet-name>ImapForwardServlet</servlet-name>
-        <servlet-class>areca.app.service.imap.ImapForwardServlet</servlet-class>
-      </servlet>
-      <servlet-mapping>
-         <servlet-name>ImapForwardServlet</servlet-name>
-        <url-pattern>/imap/*</url-pattern>
-      </servlet-mapping>      
-
       <!-- HTTP -->
       <servlet>
         <servlet-name>HttpForwardServlet</servlet-name>

@@ -148,6 +148,7 @@ public class MailService
                         folderNames.remove( "Junk" );
                         folderNames.remove( "Drafts" );
 
+                        ctx.monitor.setTotalWork( folderNames.size() * 100 );
                         return Promise.serial( folderNames.size(), i -> {
                             return syncFolder( folderNames.get( i ) )
                                     .then( __ -> uow.submit() )
@@ -163,21 +164,18 @@ public class MailService
 
 
         protected Promise<Integer> syncFolder( String folderName ) {
-            var subMonitor = ctx.monitor.subMonitor();
+            var subMonitor = ctx.monitor.subMonitor( 100 );
             return new MailFolderSynchronizer( folderName, uow, params, settings.monthsToSync.get() )
-                    .onMessageCount( msgCount -> subMonitor.beginTask( abbreviate( folderName, 5 ), msgCount*3 ) )
+                    .onMessageCount( msgCount -> subMonitor.beginTask( abbreviate( folderName, 5 ), msgCount ) )
                     .start()
                     .onSuccess( msg -> {
                         LOG.debug( "%s: pre sync: %s", folderName, msg.getClass() );
-                        subMonitor.worked( 1 );
                     })
 
                     .thenOpt( msg -> messages2ContactAnchor.perform( msg.get() ) )
-                    .onSuccess( msg -> subMonitor.worked( 1 ) )
-
                     .thenOpt( msg -> messages2PseudoAnchor.perform( msg.get() ) )
-                    .onSuccess( msg -> subMonitor.worked( 1 ) )
 
+                    .onSuccess( msg -> subMonitor.worked( 1 ) )
                     .reduce( new MutableInt(), (r,msg) -> msg.ifPresent( m -> r.increment() ) )
                     .map( mutableInt -> {
                         LOG.info( "%s: synched messages: %s", folderName, mutableInt );

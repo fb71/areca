@@ -224,7 +224,7 @@ public class AnchorsCloudPage
 
         protected Interval              currentInterval;
 
-        protected boolean               isRunning;
+        protected boolean               isLayouting;
 
 
         @Override
@@ -235,12 +235,6 @@ public class AnchorsCloudPage
 
         @Override
         public void layout( UIComposite composite ) {
-            if (isRunning) {
-                LOG.info( "Skipping concurrent layout()" );
-                return;
-            }
-            isRunning = true;
-
             LOG.debug( "layout(): clientSize=%s", composite.clientSize.opt().orElse( Size.of( -1, -1 ) ) );
             boolean isFirstRun = scrollable == null;
             super.layout( composite );
@@ -266,6 +260,12 @@ public class AnchorsCloudPage
 
 
         protected void checkScroll() {
+            if (isLayouting) {
+                LOG.info( "Skipping concurrent layout()" );
+                return;
+            }
+            isLayouting = true;
+
             LOG.debug( "checkScroll(): scroll=%d, height=%d", scrollable.scrollTop.$(), viewSize.height() );
             timer.restart();
             checkVisibleLines();
@@ -282,7 +282,7 @@ public class AnchorsCloudPage
             //LOG.info( "checkScroll(): scroll=%d, height=%d", scrollable.scrollTop.$(), viewSize.height() );
             int viewTop = scrollable.scrollTop.value();
 
-            if (lines.isEmpty() || (lines.getLast().bottom() - (viewSize.height()/2)) < (viewTop + viewSize.height())) {
+            if (lines.isEmpty() || (lines.getLast().bottom() - (viewSize.height()/1)) < (viewTop + viewSize.height())) {
                 if (currentInterval.isComplete) {
                     LOG.debug( "Raster: interval: isComplete: %s", currentInterval.isComplete );
                     currentInterval = currentInterval.next();
@@ -294,13 +294,13 @@ public class AnchorsCloudPage
                             checkVisibleLines();
                         }
                         else {
-                            isRunning = false;
+                            isLayouting = false;
                         }
                     });
                 }
             }
             else {
-                isRunning = false;
+                isLayouting = false;
             }
         }
 
@@ -310,7 +310,8 @@ public class AnchorsCloudPage
 
 
         /**
-         * A line in the {@link CloudRaster}.
+         * A line of buttons in the {@link CloudRaster}. It does its layout relative to
+         * the {@link CloudRaster#lastLine()}.
          */
         protected class RasterLine {
 

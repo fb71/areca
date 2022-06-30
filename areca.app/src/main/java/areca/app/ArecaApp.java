@@ -279,16 +279,16 @@ public class ArecaApp extends App {
                 taskName = name;
                 progressText.content.set( name );
                 progressBody.layout();
-                updateTotalWork( totalWork );
+                setTotalWork( totalWork );
                 return this;
             }
 
             @Override
-            public void updateTotalWork( int toAdd ) {
+            public void setTotalWork( int workTotal ) {
                 Assert.that( !taskName.isEmpty() );
-                workTotal += toAdd;
+                this.workTotal = workTotal;
                 progress.max.set( (float)(workTotal) );
-                LOG.debug( "PROGRESS: update: +%s -> %s", toAdd, workTotal );
+                LOG.debug( "PROGRESS: update: %s", workTotal );
             }
 
             @Override

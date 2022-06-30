@@ -50,11 +50,11 @@ public abstract class ProgressMonitor {
 
     public abstract ProgressMonitor done();
 
-    public ProgressMonitor subMonitor() {
-        return new SubMonitor( this );
+    public ProgressMonitor subMonitor( int workOfParent ) {
+        return new SubMonitor( this, workOfParent );
     }
 
-    public abstract void updateTotalWork( int toAdd );
+    public abstract void setTotalWork( int totalWork );
 
 
 
@@ -66,26 +66,38 @@ public abstract class ProgressMonitor {
 
         protected ProgressMonitor   parent;
 
+        /** The amount of parent work we can consume. */
+        protected int               parentWorkFaction;
+
+        protected float             parentFactor;
+
         protected int               workTotal;
 
         protected int               workDone;
 
+        protected int               parentWorkDone;
+
         protected String            taskName;
 
 
-        public SubMonitor( ProgressMonitor parent ) {
+        public SubMonitor( ProgressMonitor parent, int parentWorkFraction ) {
             this.parent = parent;
+            this.parentWorkFaction = parentWorkFraction;
         }
 
         @Override
         public ProgressMonitor beginTask( String name, int totalWork ) {
             LOG.debug( "SUB: beginTask: %s / %s ", name, totalWork );
             this.taskName = name;
-            this.workTotal = totalWork;
-
             parent.subTask( name );
-            parent.updateTotalWork( totalWork );
+            setTotalWork( totalWork );
             return this;
+        }
+
+        @Override
+        public void setTotalWork( int totalWork ) {
+            this.workTotal = totalWork;
+            this.parentFactor = (float)parentWorkFaction / (float)totalWork;
         }
 
         @Override
@@ -97,22 +109,19 @@ public abstract class ProgressMonitor {
         @Override
         public ProgressMonitor worked( int work ) {
             workDone += work;
-            parent.worked( work );
+            var scaled = work * parentFactor;
+            parentWorkDone += Math.round( scaled );
+            parent.worked( Math.round( scaled ) ); // XXX cumulating error
+            LOG.info( "SUB: work: %s (%s), parent: %s, factor: %s", workDone, scaled, parentWorkDone, parentFactor );
             return this;
         }
 
         @Override
         public ProgressMonitor done() {
-            int workLeft = Math.max( 0, workTotal - workDone );
+            int workLeft = Math.max( 0, parentWorkFaction - workDone );
             parent.worked( workLeft );
-            workDone = workTotal;
-            LOG.debug( "SUB: done: %s / %s ", workLeft, workTotal );
+            LOG.info( "SUB: done: %s / %s ", workLeft, workTotal );
             return this;
-        }
-
-        @Override
-        public void updateTotalWork( int toAdd ) {
-            parent.updateTotalWork( toAdd );
         }
 
     }

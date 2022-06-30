@@ -80,6 +80,7 @@ public class MailFolderSynchronizer {
         return fetchMessageIds()
                 // check/create Anchor
                 .then( (MessageHeaders[] msgs) -> {
+                    onMessageCount.accept( msgs.length );
                     if (msgs.length == 0
                             || folderName.equalsIgnoreCase( "INBOX" ) || folderName.equalsIgnoreCase( "Sent" )) {
                         LOG.debug( "%s: no messages to sync -> skipping Anchor" );

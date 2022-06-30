@@ -67,7 +67,7 @@ public class CarddavSynchronizer {
                 // get vcf content
                 .then( res -> {
                     LOG.debug( "PROPFIND: %s", Arrays.asList( res ) );
-                    monitor.value().updateTotalWork( res.length );
+                    monitor.value().setTotalWork( res.length );
                     return Promise.joined( res.length, i -> {
                         return new GetResourceRequest( res[i] ).submit();
                     });
