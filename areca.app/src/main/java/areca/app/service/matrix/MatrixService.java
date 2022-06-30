@@ -160,7 +160,7 @@ public class MatrixService
                     else if (rs.size() == 1) {
                         switch (syncType) {
                             case FULL : return new FullSync( ctx );
-                            case INCREMENT : return null;
+                            case INCREMENTAL : return null;
                             case BACKGROUND : return new BackgroundSync( ctx );
                             default : return null;
                         }

@@ -45,7 +45,7 @@ public class ImapSettings
     public RequestParams toRequestParams() {
         return new RequestParams() {{
             this.host.value = ImapSettings.this.host.get();
-            //this.port.value = settings.port.get();
+            this.port.value = ImapSettings.this.port.get().toString();
             this.username.value = ImapSettings.this.username.get();
             this.password.value = ImapSettings.this.pwd.get();
         }};

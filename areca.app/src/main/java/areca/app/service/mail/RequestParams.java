@@ -28,19 +28,19 @@ public class RequestParams {
 
     public List<Param>       all = new ArrayList<>();
 
-    //public Param<Boolean>    debug = new Param<>( "mail.debug", true );
+    public Param            username = new Param( "username", null );
 
-    public Param<String>     username = new Param<>( "username", null );
+    public Param            password = new Param( "password", null );
 
-    public Param<String>     password = new Param<>( "password", null );
+    public Param            host = new Param( "host", null );
 
-    public Param<String>     host = new Param<>( "host", null );
+    public Param            port = new Param( "port", null );
 
 //    props.put( "mail.imap.ssl.enable", "true");
 //    props.put( "mail.imap.ssl.trust", "mail.polymap.de");
 
 
-    public <R> Optional<Param<R>> fromRequestHeader( String header ) {
+    public Optional<Param> fromRequestHeader( String header ) {
         for (var param : all) {
             if (header.equals( param.headerName() )) {
                 return Optional.of( param );
@@ -54,7 +54,8 @@ public class RequestParams {
     public String toString() {
         var result = new StringBuilder( 256 ).append( "RequestParams[" );
         for (var param : all) {
-            result.append( param.name ).append( "=" ).append( !param.name.equals( "password" ) ? param.value : "???" ).append( ", " );
+            result.append( param.name ).append( "=" )
+                    .append( !param.name.equals( "password" ) ? param.value : "???" ).append( ", " );
         }
         return result.append( "]" ).toString();
     }
@@ -90,11 +91,11 @@ public class RequestParams {
     /**
      *
      */
-    protected class Param<T> {
+    protected class Param {
         public String   name;
-        public T        value;
+        public String   value;
 
-        public Param( String name, T defaultValue ) {
+        public Param( String name, String defaultValue ) {
             this.name = name;
             this.value = defaultValue;
             RequestParams.this.all.add( this );

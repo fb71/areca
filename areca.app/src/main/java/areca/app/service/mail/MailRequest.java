@@ -45,7 +45,7 @@ public abstract class MailRequest<R extends MailRequest.Response> {
 
     private String              path;
 
-    private Map<String,Set<String>>   query = new HashMap<>();
+    private Map<String,Set<String>> query = new HashMap<>();
 
     public RequestParams        params;
 

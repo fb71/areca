@@ -59,6 +59,7 @@ public class MailTest {
         params.host.value = "mail.polymap.de";
         params.username.value = "areca@polymap.de";
         params.password.value = "dienstag";
+        params.port.value = "993";
         return params;
     }
 
@@ -119,6 +120,7 @@ public class MailTest {
                 proto.username.set( params.username.value );
                 proto.pwd.set( params.password.value );
                 proto.host.set( params.host.value );
+                proto.port.set( Integer.parseInt( params.port.value ) );
                 proto.monthsToSync.set( 36 );
             });
             var ctx = new SyncableService.SyncContext() {{

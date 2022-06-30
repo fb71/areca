@@ -26,7 +26,7 @@ import areca.common.base.Supplier.RSupplier;
 public interface SyncableService {
 
     public enum SyncType {
-        FULL, INCREMENT, BACKGROUND
+        FULL, INCREMENTAL, BACKGROUND
     }
 
     /**

@@ -15,6 +15,7 @@ package areca.app.service.mail;
 
 import static org.apache.commons.lang3.StringUtils.abbreviate;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -100,7 +101,7 @@ public class MailService
             }
             switch (syncType) {
                 case FULL : return new FullSync( settings, ctx );
-                case INCREMENT : return null;
+                case INCREMENTAL : return new IncrementalSync( settings, ctx );
                 case BACKGROUND : return null;
                 default: return null;
             }
@@ -112,6 +113,53 @@ public class MailService
      *
      */
     protected static class FullSync
+            extends SyncBase {
+
+        public FullSync( ImapSettings settings, SyncContext ctx ) {
+            super( settings, ctx );
+        }
+
+        @Override
+        protected List<String> folders( List<String> folderNames ) {
+            folderNames.remove( "Trash" );
+            folderNames.remove( "Junk" );
+            folderNames.remove( "Drafts" );
+            return folderNames;
+        }
+
+        @Override
+        protected int monthsToSync() {
+            return settings.monthsToSync.get();
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected static class IncrementalSync
+            extends SyncBase {
+
+        public IncrementalSync( ImapSettings settings, SyncContext ctx ) {
+            super( settings, ctx );
+        }
+
+        @Override
+        protected List<String> folders( List<String> folderNames ) {
+            return Arrays.asList( "INBOX", "Sent" );
+        }
+
+        @Override
+        protected int monthsToSync() {
+            return 1;  // XXX maybe to long, maybe to short! find proper solution
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected static abstract class SyncBase
             extends Sync {
 
         protected RequestParams params;
@@ -124,10 +172,10 @@ public class MailService
 
         protected Message2PseudoContactAnchorSynchronizer messages2PseudoAnchor;
 
-        protected ImapSettings settings;
+        protected ImapSettings  settings;
 
 
-        public FullSync( ImapSettings settings, SyncContext ctx ) {
+        public SyncBase( ImapSettings settings, SyncContext ctx ) {
             this.settings = settings;
             this.params = settings.toRequestParams();
             this.ctx = ctx;
@@ -137,16 +185,20 @@ public class MailService
         }
 
 
+        protected abstract List<String> folders( List<String> folderNames );
+
+
+        protected abstract int monthsToSync();
+
+
         @Override
         public Promise<?> start() {
             ctx.monitor.beginTask( "Mail", ProgressMonitor.UNKNOWN );
             return fetchFolders()
                     // sync + submit folders
-                    .then( folderNames -> {
+                    .then( allFolderNames -> {
+                        var folderNames = folders( allFolderNames );
                         LOG.info( "Folders: %s", folderNames );
-                        folderNames.remove( "Trash" );
-                        folderNames.remove( "Junk" );
-                        folderNames.remove( "Drafts" );
 
                         ctx.monitor.setTotalWork( folderNames.size() * 100 );
                         return Promise.serial( folderNames.size(), i -> {
@@ -165,7 +217,7 @@ public class MailService
 
         protected Promise<Integer> syncFolder( String folderName ) {
             var subMonitor = ctx.monitor.subMonitor( 100 );
-            return new MailFolderSynchronizer( folderName, uow, params, settings.monthsToSync.get() )
+            return new MailFolderSynchronizer( folderName, uow, params, monthsToSync() )
                     .onMessageCount( msgCount -> subMonitor.beginTask( abbreviate( folderName, 5 ), msgCount ) )
                     .start()
                     .onSuccess( msg -> {

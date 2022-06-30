@@ -383,7 +383,8 @@ public class MailServlet extends HttpServlet {
 
             // connects to the message store
             store = session.getStore( "imap" );
-            store.connect( params.host.value, 993, params.username.value, params.password.value );
+            store.connect( params.host.value, Integer.parseInt( params.port.value ),
+                    params.username.value, params.password.value );
         }
 
 
