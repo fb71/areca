@@ -28,6 +28,7 @@ import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.model.Anchor;
 import areca.app.model.Message;
+import areca.app.model.Message.ContentType;
 import areca.app.service.mail.MessageHeadersRequest.MessageHeadersResponse.MessageHeaders;
 import areca.common.Assert;
 import areca.common.Promise;
@@ -198,6 +199,7 @@ public class MailFolderSynchronizer {
                         var content = response.messageContent()[0];
                         content.bodyParts( "text/plain", "text/html" ).ifPresent( body -> {
                             proto.content.set( body.content() );
+                            proto.contentType.set( body.isType( "text/plain" ) ? ContentType.PLAIN : ContentType.HTML );
                         });
                     });
                 });

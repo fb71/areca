@@ -22,9 +22,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.text.DateFormat;
-
-import org.apache.commons.lang3.StringUtils;
 
 import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.query.Query.Order;
@@ -33,6 +34,7 @@ import org.polymap.model2.runtime.Lifecycle.State;
 import areca.app.ArecaApp;
 import areca.app.model.Address;
 import areca.app.model.Message;
+import areca.app.model.Message.ContentType;
 import areca.app.model.ModelUpdateEvent;
 import areca.app.service.MessageSentEvent;
 import areca.app.service.TransportService.TransportMessage;
@@ -416,7 +418,7 @@ public class MessagesPage extends Page {
         private static final int    MARGINS = 10;
         private static final int    HEADER = 12;
         private static final int    SPACING = 5;
-        private static final int    MAX_LINES = 5;
+        private static final int    MAX_LINES = 12;
 
         public Message          message;
 
@@ -447,7 +449,26 @@ public class MessagesPage extends Page {
             }});
             contentText = add( new Text() {{
                 var decoded = msg.content.get();
-                content.set( StringUtils.abbreviate( decoded, 250 ) );
+                if (msg.contentType.get().equals( ContentType.HTML )) {
+                    format.set( Format.HTML );
+                    content.set( decoded );
+                }
+                else {
+                    try {
+                        format.set( Format.HTML );
+                        var html = new StringBuilder( 4096 );
+                        var reader = new BufferedReader( new StringReader( decoded ) );
+                        var c = 0;
+                        for (var line = reader.readLine(); line != null && c++ < MAX_LINES; line = reader.readLine()) {
+                            html.append( line ).append( "<br/>" );
+                        }
+                        //LOG.info( "\nTEXT ---\n%s\nHTML ---\n%s", decoded, html.toString() );
+                        content.set( html.toString() );
+                    }
+                    catch (IOException e) {
+                        throw new RuntimeException( "Should never happen: " + e, e );
+                    }
+                }
             }});
 
             // layout
@@ -461,7 +482,7 @@ public class MessagesPage extends Page {
                     dateText.size.set( Size.of( s.width()/2, HEADER ) );
 
                     contentText.position.set( Position.of( MARGINS, MARGINS + HEADER + SPACING) );
-                    contentText.size.set( Size.of( s.width(), s.height() - HEADER - SPACING ) );
+                    contentText.size.set( Size.of( s.width(), s.height() - HEADER - SPACING - MARGINS ) );
                 }
             });
 
@@ -484,9 +505,9 @@ public class MessagesPage extends Page {
             LOG.debug( "WIDHT: %s, charsPerLine: %s, lines: %s", width, charsPerLine, lines );
             lines = Math.min( MAX_LINES, lines );
 
-            contentText.content.set( abbreviate( message.content.get(), lines * charsPerLine ) );
+            //contentText.content.set( abbreviate( message.content.get(), lines * charsPerLine ) );
 
-            return (MARGINS*2) + HEADER + SPACING + (lines * 16);
+            return (MARGINS*2) + HEADER + SPACING + (lines * 16) + (16/2); // half line displayed at the end
         }
 
 

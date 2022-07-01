@@ -56,6 +56,10 @@ $card_color: lighten($bg1_color, 4%);
     transform: scale(1.02);
 }
 
+.MessageCard span {
+    overflow: hidden;    
+}
+
 .MessageCard .FromText, 
 .MessageCard .DateText, 
 .MessagesPage .TypingText,

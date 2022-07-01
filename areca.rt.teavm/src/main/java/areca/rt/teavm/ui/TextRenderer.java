@@ -48,13 +48,36 @@ public class TextRenderer
     public void componentConstructed( ComponentConstructedEvent ev ) {
         Text c = (Text)ev.getSource();
 
-        c.htmlElm = (HTMLElement)doc().createElement( "div" );
-        var textNode = (HTMLElement)doc().createTextNode( c.content.opt().orElse( "" ) );
-        htmlElm( c ).appendChild( textNode );
-
-        c.content.onChange( (newValue, oldValue) -> {
-            textNode.setNodeValue( newValue );
-        });
+        switch (c.format.$()) {
+            case PLAIN : {
+                c.htmlElm = (HTMLElement)doc().createElement( "div" );
+                var textNode = (HTMLElement)doc().createTextNode( c.content.opt().orElse( "" ) );
+                htmlElm( c ).appendChild( textNode );
+                c.content.onChange( (newValue, oldValue) -> {
+                    textNode.setNodeValue( newValue );
+                });
+                break;
+            }
+            case HTML : {
+                c.htmlElm = (HTMLElement)doc().createElement( "span" );
+                htmlElm( c ).setInnerHTML( c.content.opt().orElse( "" ) );
+                c.content.onChange( (newValue, oldValue) -> {
+                    htmlElm( c ).setInnerHTML( newValue );
+                });
+                break;
+            }
+            case PREFORMATTED : {
+                c.htmlElm = (HTMLElement)doc().createElement( "pre" );
+                htmlElm( c ).setInnerText( c.content.opt().orElse( "" ) );
+                c.content.onChange( (newValue, oldValue) -> {
+                    htmlElm( c ).setInnerText( newValue );
+                });
+                break;
+            }
+            default: {
+                throw new UnsupportedOperationException( "No supported yet: " + c.format.$() );
+            }
+        }
     }
 
 }

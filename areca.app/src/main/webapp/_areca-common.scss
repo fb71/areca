@@ -114,6 +114,15 @@ body {
     color: darken($font_color, 35%);
 }
 
+//.Text {
+//    margin: 0px;    
+//}
+pre.Text {
+    margin: 0px;    
+    font-family: Roboto, arial, sans-serif;
+    font-size: 14px;
+}
+
 .TextField {
     font-family: inherit;
     font-size: inherit;

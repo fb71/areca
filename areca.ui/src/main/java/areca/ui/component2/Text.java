@@ -22,6 +22,15 @@ import areca.ui.component2.Property.ReadWrite;
 public class Text
         extends UIComponent {
 
+    public enum Format {
+        PLAIN, PREFORMATTED, HTML
+    }
+
     public ReadWrite<Text,String> content = Property.rw( this, "content" );
+
+    /**
+     * The format of the content, defaults to {@link Format#PLAIN}.
+     */
+    public ReadWrite<Text,Format> format = Property.rw( this, "format", Format.PLAIN );
 
 }

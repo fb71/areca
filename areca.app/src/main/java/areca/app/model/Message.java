@@ -13,6 +13,7 @@
  */
 package areca.app.model;
 
+import org.polymap.model2.DefaultValue;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
@@ -35,6 +36,10 @@ public class Message
     public static final String      NO_ADDRESS = "";
 
     public static Message           TYPE;
+
+    public enum ContentType {
+        PLAIN, HTML /*,MARKDOWN*/
+    }
 
     @Defaults
     @Queryable
@@ -62,24 +67,23 @@ public class Message
      * Service specific and intented way to reply to a message.
      */
     @Nullable
-    @Queryable
     public Property<String>         replyAddress;
 
     @Queryable
     public Property<Long>           date;
 
     @Nullable
-    @Queryable
     @Defaults
     public Property<String>         content;
 
     @Nullable
-    @Queryable
-    //@Defaults
+    @DefaultValue( "PLAIN" )
+    public Property<ContentType>    contentType;
+
+    @Nullable
     public Property<String>         threadSubject;
 
     @Defaults
-    @Queryable
     public Property<Boolean>        unread;
 
     /**

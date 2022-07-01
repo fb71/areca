@@ -30,6 +30,7 @@ import areca.app.model.Address;
 import areca.app.model.Anchor;
 import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
+import areca.app.model.Message.ContentType;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.TransportService;
@@ -243,6 +244,7 @@ public class MatrixService
                                     proto.storeRef.set( storeRef.toString() );
                                     proto.fromAddress.set( new MatrixAddress( event.sender(), event.roomId() ).encoded() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
+                                    proto.contentType.set( ContentType.PLAIN );
                                     proto.unread.set( true );
                                     proto.date.set( (long)event.date().getTime() );
                                     anchor.messages.add( proto );
@@ -343,6 +345,7 @@ public class MatrixService
                                     proto.storeRef.set( storeRef.toString() );
                                     proto.fromAddress.set( new MatrixAddress( event.sender(), roomAnchor.room.roomId() ).encoded() );
                                     proto.content.set( content.getBody().opt().orElse( "" ) );
+                                    proto.contentType.set( ContentType.PLAIN );
                                     proto.unread.set( false );
                                     proto.date.set( (long)event.date() );
                                     roomAnchor.anchor.messages.add( proto );
