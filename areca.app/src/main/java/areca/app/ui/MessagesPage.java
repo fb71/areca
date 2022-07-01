@@ -259,16 +259,9 @@ public class MessagesPage extends Page {
                     for (int i = 0; i < fetched.size(); i++) {
                         var msg = fetched.get( i );
                         var card = cards.computeIfAbsent( msg, __ -> new MessageCard( msg ) );
-                        result.add( new MessageComponent( card, i + startIndex ) );
+                        result.add( new MessageComponent( msg, card, i + startIndex ) );
                     }
                     return result;
-//                    return Sequence.of( fetched )
-//                            .map( (msg,i) -> {
-//                                var card = cards.computeIfAbsent( msg, __ -> new MessageCard( msg ) );
-//                                return new MessageComponent( card, i + startIndex );
-//                            })
-//                            .asCollection();
-                    //return Collections.emptyList();
                 });
     }
 
@@ -318,6 +311,8 @@ public class MessagesPage extends Page {
 
         protected boolean           hasMore = true;
 
+        protected boolean           isLayouting;
+
 
         @Override
         public void layout( UIComposite composite ) {
@@ -336,7 +331,12 @@ public class MessagesPage extends Page {
 
             if (isFirstRun) {
                 scrollable.scrollTop.onChange( (newValue,__) -> {
-                    checkVisibleMessages();
+                    if (!isLayouting) {
+                        checkVisibleMessages();
+                    }
+                    else {
+                        LOG.info( "Skipping concurrent layout()" );
+                    }
                 });
             }
             checkVisibleMessages();
@@ -356,6 +356,7 @@ public class MessagesPage extends Page {
             var startIndex = last != null ? last.index + 1 : 0;
 
             if (hasMore && lastBottom() - (viewSize.height()/2) < (viewTop + viewSize.height())) {
+                isLayouting = true;
                 provider.$().provide( startIndex, 5 ).onSuccess( loaded -> {
                     for (var c : loaded) {
                         var bottom = lastBottom();
@@ -364,8 +365,11 @@ public class MessagesPage extends Page {
                         if (card.parent() == null) {
                             scrollable.add( card );
                         }
-                        card.position.set( Position.of( MARGINS, bottom + SPACING ) );
-                        card.size.set( Size.of( viewSize.width() - (MARGINS*2), card.computeMinHeight( viewSize.width() ) ) );
+                        var isOutgoing = c.message.outgoing.get();
+                        card.position.set( Position.of(
+                                isOutgoing ? 3*MARGINS : MARGINS, bottom + SPACING ) );
+                        card.size.set( Size.of(
+                                viewSize.width() - (MARGINS*4), card.computeMinHeight( viewSize.width() ) ) );
                         card.layout();
                         if (last == null) {  // select very first
                             card.select( true );
@@ -375,6 +379,9 @@ public class MessagesPage extends Page {
                     hasMore = !loaded.isEmpty();
                     checkVisibleMessages();
                 });
+            }
+            else {
+                isLayouting = false;
             }
         }
 
@@ -399,8 +406,9 @@ public class MessagesPage extends Page {
 
         public Message      message;
 
-        public MessageComponent( UIComponent component, int index ) {
+        public MessageComponent( Message msg, UIComponent component, int index ) {
             super( component, index );
+            this.message = msg;
         }
     }
 
