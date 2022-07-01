@@ -13,9 +13,13 @@
  */
 package areca.app.service.carddav;
 
+import java.util.regex.Pattern;
+
 import areca.app.ArecaApp;
+import areca.app.model.CarddavSettings;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
+import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -30,6 +34,8 @@ public class CarddavService
 
     private static final Log LOG = LogFactory.getLog( CarddavService.class );
 
+    public static final Pattern URL = Pattern.compile( "(https?://[^/]+)(/.+)?", Pattern.CASE_INSENSITIVE );
+
     @Override
     public String label() {
         return "Carddav";
@@ -38,22 +44,30 @@ public class CarddavService
 
     @Override
     public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
-        if (syncType == SyncType.FULL) {
-            var sync = new Sync() {
-                @Override
-                public Promise<?> start() {
-                    var uow = ArecaApp.instance().repo().newUnitOfWork();
-                    var synchronizer = new CarddavSynchronizer( CarddavTest.ARECA_CONTACTS_ROOT, uow );
-                    synchronizer.monitor.set( ctx.monitor );
-                    return synchronizer.start()
-                            .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) );
-                }
-            };
-            return Promise.completed( sync );
-        }
-        else {
-            return SyncableService.super.newSync( syncType, ctx );
-        }
+        return ArecaApp.current().settings()
+                .then( uow -> uow.query( CarddavSettings.class ).executeCollect() )
+                .map( rs -> {
+                    if (rs.isEmpty() || syncType != SyncType.FULL) {
+                       return (Sync)null;
+                    }
+                    return new Sync() {
+                        @Override
+                        public Promise<?> start() {
+                            Assert.isEqual( 1, rs.size(), "Multiple CardDav accounts are not supported yet." );
+                            CarddavSettings settings = rs.get( 0 );
+                            var matcher = URL.matcher( settings.url.get() );
+                            if (!matcher.matches()) {
+                                throw new RuntimeException( "URL is not valid: " + settings.url.get() );
+                            }
+                            var res = DavResource.create( matcher.group( 1 ), matcher.group( 2 ) )
+                                    .auth( settings.username.get(), settings.pwd.get() );
+                            var synchronizer = new CarddavSynchronizer( res, ctx.uowFactory.get() );
+                            synchronizer.monitor.set( ctx.monitor );
+                            return synchronizer.start()
+                                    .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) );
+                        }
+                    };
+                });
     }
 
 }

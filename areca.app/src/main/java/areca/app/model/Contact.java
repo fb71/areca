@@ -46,6 +46,10 @@ public class Contact extends Entity {
 
     @Nullable
     @Queryable
+    public Property<String>         phone;
+
+    @Nullable
+    @Queryable
     public Property<String>         storeRef;
 
     @Nullable

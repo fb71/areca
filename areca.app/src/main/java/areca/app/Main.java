@@ -98,6 +98,16 @@ public class Main {
                         .run();
             });
         }
+        // #carddav
+        else if (hash.equals( "#carddav" )) {
+            catchAll( __ -> {
+                LogFactory.setPackageLevel( areca.app.service.carddav.CarddavService.class, DEBUG );
+                new AsyncAwareTestRunner()
+                        .addTests( areca.app.service.carddav.CarddavTest.info )
+                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
+                        .run();
+            });
+        }
         // #matrix
         else if (hash.equals( "#matrix" )) {
             catchAll( __ -> {

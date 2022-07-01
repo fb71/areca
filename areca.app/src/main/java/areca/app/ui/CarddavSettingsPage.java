@@ -13,9 +13,8 @@
  */
 package areca.app.ui;
 
-import java.util.regex.Pattern;
-
 import areca.app.model.CarddavSettings;
+import areca.app.service.carddav.CarddavService;
 import areca.app.service.carddav.CarddavTest;
 import areca.app.service.carddav.DavResource;
 import areca.app.service.carddav.GetResourceRequest;
@@ -38,9 +37,6 @@ public class CarddavSettingsPage
         extends ServiceSettingsPage<CarddavSettings> {
 
     private static final Log LOG = LogFactory.getLog( CarddavSettingsPage.class );
-
-    public static final Pattern URL = Pattern.compile( "(https?://[^/]+)(/.+)?", Pattern.CASE_INSENSITIVE );
-
 
     public CarddavSettingsPage() {
         super( CarddavSettings.class );
@@ -69,7 +65,7 @@ public class CarddavSettingsPage
         return Platform
                 // just catch Exceptions inside the Promise
                 .async( () -> {
-                    var matcher = URL.matcher( settings.url.get() );
+                    var matcher = CarddavService.URL.matcher( settings.url.get() );
                     if (!matcher.matches()) {
                         throw new RuntimeException( "URL is not valid: " + settings.url.get() );
                     }

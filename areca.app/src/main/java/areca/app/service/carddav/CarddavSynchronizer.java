@@ -108,7 +108,8 @@ public class CarddavSynchronizer {
         vcard.firstname.opt().ifPresent( v -> contact.firstname.set( v ) );
         vcard.lastname.opt().ifPresent( v -> contact.lastname.set( v ) );
         vcard.uid.opt().ifPresent( v -> contact.storeRef.set( v ) );
-        vcard.emails.values().first().ifPresent( v -> contact.email.set( v ) );
+        vcard.emails.values().first().ifPresent( v -> contact.email.set( v ) );  // XXX multiple
+        vcard.phones.values().first().ifPresent( v -> contact.phone.set( v ) );  // XXX multiple
         vcard.photo.opt().ifPresent( v -> contact.photo.set( v ) );
     }
 

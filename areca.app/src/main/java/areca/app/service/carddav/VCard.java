@@ -55,6 +55,8 @@ public class VCard {
 
     public ReadWrites<VCard,String> emails = Property.rws( this, "email", new ArrayList<>() );
 
+    public ReadWrites<VCard,String> phones = Property.rws( this, "phone", new ArrayList<>() );
+
     public ReadWrite<VCard,String>  photo = Property.rw( this, "photo", (String)null );
 
     public ReadOnly<VCard,String>   uid = Property.rw( this, "uid", (String)null );
@@ -68,7 +70,7 @@ public class VCard {
 
     @Override
     public String toString() {
-        return String.format( "VCard[%s]", joinWith( ", ", fn, lastname, firstname, emails, uid, rev ) );
+        return String.format( "VCard[%s]", joinWith( ", ", fn, lastname, firstname, emails, phones, uid, rev ) );
     }
 
 
@@ -103,6 +105,11 @@ public class VCard {
             else if (line.startsWith( "EMAIL" )) {
                 var parts = split( line.substring( 5 ), ';' );
                 Sequence.of( parts ).forEach( part -> emails.add( substringAfterLast( part, ":" ) ) );
+            }
+            // PHONE:
+            else if (line.startsWith( "TEL" )) {
+                var parts = split( line.substring( 3 ), ';' );
+                Sequence.of( parts ).forEach( part -> phones.add( substringAfterLast( part, ":" ) ) );
             }
             // UID:
             else if (line.startsWith( "UID:" )) {

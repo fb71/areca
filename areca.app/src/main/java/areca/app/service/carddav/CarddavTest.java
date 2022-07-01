@@ -89,12 +89,13 @@ public class CarddavTest {
                     LOG.info( "Status: %s", response.status() );
                     Assert.that( response.status() < 299, "Wrong status: " + response.status() );
                     Assert.that( response.text().length() > 0 );
-                    System.out.println( response.text() );
+                    //System.out.println( response.text() );
                 });
     }
 
 
     @Test
+    @Skip
     public Promise<?> spreadPromiseTest() {
         MutableInt count = new MutableInt( 0 );
         return Platform.async( () -> {
@@ -127,7 +128,7 @@ public class CarddavTest {
                     return Promise.joined( res.length, i -> new GetResourceRequest( res[i] ).submit() );
                 })
                 .map( vcf -> {
-                    // LOG.info( "vzf: %s", vcf.text() );
+                    LOG.info( "VCF: %s", vcf.text() );
                     var vcard = VCard.parse( vcf.text() );
                     LOG.info( "VCard: %s", vcard );
                     return vcard;
@@ -138,6 +139,7 @@ public class CarddavTest {
     UnitOfWork uow = null;
 
     @Test
+    @Skip
     public Promise<?> createContactsTest() {
         return initRepo( "createContacts" )
                 .then( repo -> {
@@ -159,7 +161,7 @@ public class CarddavTest {
 
 
     @Test
-    //@Skip
+    @Skip
     public Promise<?> synContactsTest() {
         return initRepo( "synContacts" ).then( repo -> {
             return new CarddavSynchronizer( ARECA_CONTACTS_ROOT, repo.newUnitOfWork() ).start();
