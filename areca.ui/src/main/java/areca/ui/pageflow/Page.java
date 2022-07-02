@@ -34,16 +34,29 @@ public abstract class Page {
     @SuppressWarnings("hiding")
     UIComponent init( UIComposite parent, PageSite site ) {
         this.site = site;
-        var result = Assert.notSame( parent, doInit( parent ), "A Page must create a UIComposite." );
+        var result = doInit( parent );
+        Assert.notSame( parent, result, "A Page must create a UIComposite." );
         result.cssClasses.add( getClass().getSimpleName() );
         return result;
     }
+
 
     void dispose() {
         doDispose();
         this.site = null;
     }
 
+
+    /**
+     * Creates and initializes the UI components of this page.
+     * <p>
+     * {@link UIComposite#layout()} is automatically triggered on the result.
+     * This method should/must not call layout() on the resulting component.
+     *
+     * @see PageContainer
+     * @param parent
+     * @return The root of the newly created components of this Page.
+     */
     protected abstract UIComponent doInit( UIComposite parent );
 
     protected void doDispose() {};

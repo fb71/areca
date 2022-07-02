@@ -241,7 +241,6 @@ public class MessagesPage extends Page {
                         && !((ModelUpdateEvent)ev).entities( Message.class ).isEmpty() )
                 .unsubscribeIf( () -> ui.isDisposed() );
 
-        ui.layout();
         return ui;
     }
 

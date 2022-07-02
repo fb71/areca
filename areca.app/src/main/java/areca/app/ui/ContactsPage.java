@@ -14,8 +14,11 @@
 package areca.app.ui;
 
 import static areca.ui.component2.Events.EventType.SELECT;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
+
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.Property;
 import org.polymap.model2.query.Query.Order;
@@ -29,6 +32,7 @@ import areca.ui.Action;
 import areca.ui.Size;
 import areca.ui.component2.Button;
 import areca.ui.component2.ScrollableComposite;
+import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.FillLayout;
@@ -45,8 +49,6 @@ public class ContactsPage extends Page {
     private static final Log LOG = LogFactory.getLog( ContactsPage.class );
 
     private PageContainer       ui;
-
-    protected long              lastLayout;
 
     protected long              timeout = 280;  // 300ms timeout before page animation starts
 
@@ -87,9 +89,12 @@ public class ContactsPage extends Page {
 
     protected void fetchContacts() {
         body.components.disposeAll();
-        lastLayout = System.currentTimeMillis();
+        body.add( new Text().content.set( "Loading..." ) );
+        body.layout();
+
         var timer = Timer.start();
         var chunk = new ArrayList<Button>();
+        var c  = new MutableInt( 0 );
 
         ArecaApp.instance().unitOfWork()
                 .query( Contact.class )
@@ -99,13 +104,14 @@ public class ContactsPage extends Page {
                     result.ifPresent( contact -> {
                         chunk.add( makeContactButton( contact ) );
                     });
-                    var now = System.currentTimeMillis();
-                    if (now > lastLayout + timeout || ctx.isComplete()) {
+                    if (timer.elapsed( MILLISECONDS ) > timeout || ctx.isComplete()) {
                         LOG.info( "" + timer.elapsedHumanReadable() );
                         timer.restart();
-                        lastLayout = now;
                         timeout = 1000;
 
+                        if (c.getAndIncrement() == 0) {
+                            body.components.disposeAll();
+                        }
                         chunk.forEach( btn -> body.add( btn ) );
                         chunk.clear();
                         body.layout();

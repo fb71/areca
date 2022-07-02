@@ -92,10 +92,13 @@ public class AnchorsCloudPage
     }
 
 
+    private int reentryCount = 0;
+
     protected void createBody() {
         // XXX wait for repo to show up
         if (ArecaApp.instance().repo() == null) {
             LOG.info( "waiting for repo..." );
+            reentryCount ++;
             Platform.schedule( 100, () -> createBody() );
             return;
         }
@@ -116,7 +119,9 @@ public class AnchorsCloudPage
                                         .toList();
                             }));
         }});
-        body.layout();
+        if (reentryCount > 0) {
+            body.layout();
+        }
 
         // listen to model updates
         EventManager.instance()

@@ -106,6 +106,7 @@ public class Pageflow {
 
         var layout = (PageStackLayout)rootContainer.layout.value();
         layout.layout( rootContainer ); // do NOT layout ALL child components
+
         if (_pageContainer instanceof UIComposite) {
             ((UIComposite)_pageContainer).layout();
         }

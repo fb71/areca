@@ -85,9 +85,11 @@ public class UIComposite
     public UIComposite layout() {
         layout.opt().ifPresent( lm -> lm.layout( this ) );
 
-        components.values()
-                .filter( UIComposite.class::isInstance )
-                .forEach( c -> ((UIComposite)c).layout() );
+        for (var child : components.value()) {
+            if (child instanceof UIComposite ) {
+                ((UIComposite)child).layout();
+            }
+        }
         return this;
     }
 

@@ -52,7 +52,7 @@ public class PageContainer
 
     protected Text              titleText;
 
-    protected UIComposite       toolbar;
+    //protected UIComposite       toolbar;
 
     protected Button            closeBtn;
 
@@ -101,7 +101,8 @@ public class PageContainer
                         });
                     }}));
                 }
-                PageContainer.this.layout();
+                // do not layout body and its children
+                PageContainer.this.layout.$().layout( PageContainer.this );
             });
         }});
 

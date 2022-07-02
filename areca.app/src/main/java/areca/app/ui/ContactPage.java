@@ -100,7 +100,6 @@ public class ContactPage extends Page {
 //            new FormRenderer( form ).render( this );
 //        }});
 
-        ui.body.layout();
         return ui;
     }
 
