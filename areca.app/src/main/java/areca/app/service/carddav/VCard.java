@@ -85,6 +85,10 @@ public class VCard {
             readline = in.readLine();
             while (readline.startsWith( " " ) || readline.startsWith( "\t" )) {
                 buf.append( readline.substring( 1 ) );
+                // preserve Base64 line breaks when PHOTO:
+                if (buf.length() >= 5 && buf.substring( 0, 5 ).equalsIgnoreCase( "PHOTO" )) {
+                    buf.append( "\n" );
+                }
                 readline = in.readLine();
             }
             var line = buf.toString();

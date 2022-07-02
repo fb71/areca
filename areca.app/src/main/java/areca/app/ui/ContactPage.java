@@ -15,15 +15,16 @@ package areca.app.ui;
 
 import static areca.ui.Orientation.VERTICAL;
 
+import org.apache.commons.lang3.StringUtils;
+
 import areca.app.model.Contact;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Size;
-import areca.ui.component2.Text;
+import areca.ui.component2.Button;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.form.Form;
-import areca.ui.form.FormRenderer;
 import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Page;
@@ -38,51 +39,66 @@ public class ContactPage extends Page {
 
     private static final Log LOG = LogFactory.getLog( ContactPage.class );
 
-    private PageContainer ui;
+    protected PageContainer ui;
+
+    protected Contact       contact;
+
+
+    public ContactPage( Contact contact ) {
+        this.contact = contact;
+    }
 
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
-        ui.title.set( "Contact" );
+        ui.title.set( StringUtils.abbreviate( contact.label(), 25 ) );
         ui.body.layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true ); spacing.set( 15 ); margins.set( Size.of( 10, 10 ) );}} );
 
-        var contact = site.data( Contact.class );
-        ui.body.add( new Text() {{
-            layoutConstraints.set( new RowConstraints() {{height.set( 20 ); }} );
-            content.set( "Contact: " + contact.label() );
+        ui.body.add( new Button() {{
+            layoutConstraints.set( new RowConstraints().height.set( 80 ) );
+            if (contact.photo.get() != null) {
+                imageData.set( contact.photo.get() );
+            }
+            else {
+                icon.set( "face" );
+            }
         }});
 
         // form
         ui.body.add( new UIComposite() {{
             layoutConstraints.set( new RowConstraints() {{height.set( 200 );}} );
-            layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true ); spacing.set( 10 ); margins.set( Size.of( 5, 5 ) );}} );
-            bordered.set( true );
+            layout.set( new RowLayout().orientation.set( VERTICAL ).fillWidth.set( true )
+                    .spacing.set( 25 ).margins.set( Size.of( 10, 15 ) ) );
 
             var form = new Form();
-            add( form.newField().label( "Firstname" )
+            add( form.newField().label( "First" )
                     .viewer( new TextFieldViewer() )
                     .adapter( new PropertyAdapter<>( () -> contact.firstname ) )
                     .create() );
-            add( form.newField().label( "Lastname" )
+            add( form.newField().label( "Last" )
                     .viewer( new TextFieldViewer() )
                     .adapter( new PropertyAdapter<>( () -> contact.lastname ) )
                     .create() );
-            add( form.newField().label( "EMail" )
+            add( form.newField().label( "Email" )
                     .viewer( new TextFieldViewer() )
                     .adapter( new PropertyAdapter<>( () -> contact.email ) )
                     .create() );
+            add( form.newField().label( "Phone" )
+                    .viewer( new TextFieldViewer() )
+                    .adapter( new PropertyAdapter<>( () -> contact.phone ) )
+                    .create() );
         }});
 
-        // form magic :)
-        ui.body.add( new UIComposite() {{
-            layoutConstraints.set( new RowConstraints() {{height.set( 200 );}} );
-            layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true ); spacing.set( 10 ); margins.set( Size.of( 5, 5 ) );}} );
-            bordered.set( true );
-
-            var form = new ContactForm( contact );
-            new FormRenderer( form ).render( this );
-        }});
+//        // form magic :)
+//        ui.body.add( new UIComposite() {{
+//            layoutConstraints.set( new RowConstraints() {{height.set( 200 );}} );
+//            layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true ); spacing.set( 10 ); margins.set( Size.of( 5, 5 ) );}} );
+//            bordered.set( true );
+//
+//            var form = new ContactForm( contact );
+//            new FormRenderer( form ).render( this );
+//        }});
 
         ui.body.layout();
         return ui;

@@ -29,7 +29,7 @@ import areca.ui.layout.RowConstraints;
 @SuppressWarnings("rawtypes")
 public class ViewerBuilder {
 
-    private static final Log log = LogFactory.getLog( ViewerBuilder.class );
+    private static final Log LOG = LogFactory.getLog( ViewerBuilder.class );
 
     public interface TransformerMapping<M>
             extends Function<SingleValueAdapter<M>, ModelValueTransformer<M,?>, RuntimeException> {

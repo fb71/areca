@@ -15,6 +15,7 @@ package areca.rt.teavm.ui;
 
 import org.teavm.jso.dom.html.HTMLButtonElement;
 import org.teavm.jso.dom.html.HTMLElement;
+import org.teavm.jso.dom.html.HTMLImageElement;
 
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
@@ -55,14 +56,22 @@ public class ButtonRenderer
         htmlButton.setAttribute( "type", "button" );
 
         // icon
-        htmlButton.appendChild( doc().createElement( "span", (HTMLElement span) -> {
-            span.setAttribute( "class", "material-icons" );
-            var textNode = doc().createTextNode( c.icon.opt().orElse( "" ) );
-            span.appendChild( textNode );
-            c.icon.onInitAndChange( (newValue,__) -> {
-                textNode.setNodeValue( newValue );
+        c.icon.onInitAndChange( (newValue, __) -> {
+            var span = c.data( "__icon__", () -> {
+                return (HTMLElement)htmlButton.appendChild( doc().createElement( "span" ) );
             });
-        }));
+            span.setAttribute( "class", "material-icons" );
+            span.setInnerText( newValue );
+        });
+
+        // imageData
+        c.imageData.onInitAndChange( (newValue, __) -> {
+            var img = c.data( "__imageData__", () -> {
+                return (HTMLImageElement)htmlButton.appendChild( doc().createElement( "img" ) );
+            });
+            img.setSrc( "data:;base64," + newValue );
+            img.getStyle().setProperty( "height", "100%" );
+        });
 
         // label
         var textNode = (HTMLElement)doc().createTextNode( c.label.opt().orElse( "" ) );

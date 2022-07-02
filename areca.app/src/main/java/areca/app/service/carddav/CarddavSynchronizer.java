@@ -68,7 +68,7 @@ public class CarddavSynchronizer {
                 .then( res -> {
                     LOG.debug( "PROPFIND: %s", Arrays.asList( res ) );
                     monitor.value().setTotalWork( res.length );
-                    return Promise.joined( res.length, i -> {
+                    return Promise.serial( res.length, i -> {
                         return new GetResourceRequest( res[i] ).submit();
                     });
                 })

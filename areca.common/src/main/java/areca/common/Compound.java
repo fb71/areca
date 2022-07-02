@@ -45,6 +45,7 @@ public class Compound {
             this.name = name;
         }
 
+        @SuppressWarnings("hiding")
         public boolean equals( String name, Object value ) {
             //!entry.name.equals( name ) || !entry.value.equals( value ) )
             throw new RuntimeException("...");

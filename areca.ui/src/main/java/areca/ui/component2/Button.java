@@ -24,10 +24,17 @@ public class Button
 
     public ReadWrite<Button,String> label = new ReadWrite<>( this, "label" );
 
-    /** A ligature or numeric character reference of a Material Icon. */
+    /**
+     * A ligature or numeric character reference of a
+     * <a href="https://fonts.google.com/icons">Material Icon</a>.
+     */
     public ReadWrite<Button,String> icon = new ReadWrite<>( this, "icon" );
 
-    // initializer
+    /**
+     * Base64 encoded image data.
+     */
+    public ReadWrite<Button,String> imageData = new ReadWrite<>( this, "imageData" );
+
     {
         bordered.set( true );
     }

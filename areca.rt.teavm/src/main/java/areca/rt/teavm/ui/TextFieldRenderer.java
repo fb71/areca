@@ -60,7 +60,7 @@ public class TextFieldRenderer
 
         c.content.onInitAndChange( (newValue, oldValue) -> {
             LOG.info( "Set: %s", newValue );
-            inputElm.setAttribute( "value", newValue );
+            inputElm.setAttribute( "value", newValue != null ? newValue : "" );
         });
 
 //        c.label.onInitAndChange( (newValue, oldValue) -> {

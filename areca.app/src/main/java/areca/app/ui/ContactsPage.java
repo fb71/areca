@@ -16,17 +16,22 @@ package areca.app.ui;
 import static areca.ui.component2.Events.EventType.SELECT;
 
 import java.util.ArrayList;
-import org.apache.commons.lang3.StringUtils;
+
+import org.polymap.model2.Property;
+import org.polymap.model2.query.Query.Order;
 
 import areca.app.ArecaApp;
 import areca.app.model.Contact;
 import areca.common.Timer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Action;
 import areca.ui.Size;
 import areca.ui.component2.Button;
+import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
+import areca.ui.layout.FillLayout;
 import areca.ui.layout.RasterLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageContainer;
@@ -41,37 +46,54 @@ public class ContactsPage extends Page {
 
     private PageContainer       ui;
 
+    protected long              lastLayout;
+
+    protected long              timeout = 280;  // 300ms timeout before page animation starts
+
+    protected Property<String>  orderBy = Contact.TYPE.firstname;
+
+    protected ScrollableComposite body;
+
 
     @Override
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Contacts" );
-        ui.body.layout.set( new RasterLayout() {{
-            spacing.set( 5 );
-            margins.set( Size.of( 5, 5 ) );
-            itemSize.set( Size.of( 74, 68 ) );
-            componentOrder.set( (b1, b2) -> StringUtils.compare( ((Button)b1).label.value(), ((Button)b2).label.value() ) );
+
+        // order-by
+        site.actions.add( new Action() {{
+            icon.set( "sort_by_alpha" );
+            description.set( "Order by first- or lastname" );
+            handler.set( ev ->  {
+                orderBy = orderBy == Contact.TYPE.lastname ? Contact.TYPE.firstname : Contact.TYPE.lastname;
+                LOG.info( "Order by: %s", orderBy );
+                fetchContacts();
+            });
+        }});
+
+        ui.body.layout.set( new FillLayout() );
+        body = ui.body.add( new ScrollableComposite() {{
+            layout.set( new RasterLayout() {{
+                spacing.set( 10 );
+                margins.set( Size.of( 10, 10 ) );
+                itemSize.set( Size.of( 80, 75 ) );
+            }});
         }});
 
         fetchContacts();
-
-//        ui.body.layout();
         return ui;
     }
 
 
-    protected long lastLayout;
-
-    protected long timeout = 280;  // 300ms timeout before page animation starts
-
     protected void fetchContacts() {
-        ui.body.components.disposeAll();
+        body.components.disposeAll();
         lastLayout = System.currentTimeMillis();
         var timer = Timer.start();
         var chunk = new ArrayList<Button>();
 
         ArecaApp.instance().unitOfWork()
                 .query( Contact.class )
+                .orderBy( orderBy, Order.ASC )
                 .execute()
                 .onSuccess( (ctx,result) -> {
                     result.ifPresent( contact -> {
@@ -84,9 +106,9 @@ public class ContactsPage extends Page {
                         lastLayout = now;
                         timeout = 1000;
 
-                        chunk.forEach( btn -> ui.body.add( btn ) );
+                        chunk.forEach( btn -> body.add( btn ) );
                         chunk.clear();
-                        ui.body.layout();
+                        body.layout();
                     }
                 });
     }
@@ -100,8 +122,8 @@ public class ContactsPage extends Page {
                 contact.lastname.opt().orElse( "" )) );
         btn.tooltip.set( contact.label() );
         btn.events.on( SELECT, ev -> {
-            site.put( contact );
-            site.pageflow().open( new ContactPage(), ContactsPage.this, ev.clientPos() );
+            //site.put( contact );
+            site.pageflow().open( new ContactPage( contact ), ContactsPage.this, ev.clientPos() );
         });
         return btn;
     }

@@ -17,6 +17,8 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 
+import java.io.IOException;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.runtime.EntityRepository;
@@ -133,6 +135,26 @@ public class CarddavTest {
                     LOG.info( "VCard: %s", vcard );
                     return vcard;
                 });
+    }
+
+
+    @Test
+    public void vcardGroupTest() throws IOException {
+        var vcf = "BEGIN:VCARD\n"
+                + "VERSION:3.0\n"
+                + "FN:Familiengruppe\n"
+                + "N:Familiengruppe;;;;\n"
+                + "REV:2018-12-05T22:51:31Z\n"
+                + "UID:2453cbff-b7e7-4eb0-b2ad-b626f648e202\n"
+                + "X-ADDRESSBOOKSERVER-MEMBER:urn:uuid:dc37e80a-2ebc-4e33-8fc2-716ac7c08c0d\n"
+                + "\n"
+                + " \n"
+                + "X-ADDRESSBOOKSERVER-MEMBER:urn:uuid:82ce5742-f0ed-4692-81ce-c6326dff5f69\n"
+                + "\n"
+                + " \n"
+                + "X-ADDRESSBOOKSERVER-KIND:group\n"
+                + "END:VCARD";
+        VCard.parse( vcf );
     }
 
 
