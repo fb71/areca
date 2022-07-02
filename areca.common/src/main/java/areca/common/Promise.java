@@ -405,6 +405,20 @@ public class Promise<T> {
 
 
     /**
+     * Schedule this Promise with the given priority. This gives the
+     * {@link Scheduler} control over the execution. Success handlers that are
+     * registered with the resulting {@link Promise} are called just when the
+     * Scheduler decides to do so based on time and priority.
+     *
+     * @param priority
+     * @return Newly created scheduled {@link Promise}.
+     */
+    public Promise<T> schedule( Scheduler.Priority priority ) {
+        return Scheduler.current().schedule( priority, this );
+    }
+
+
+    /**
      * Just for testing!
      */
     public <E extends Exception> void waitForResult( Consumer<T,E> consumer ) {
@@ -529,6 +543,7 @@ public class Promise<T> {
                         consumer.accept( site, value );
                     }
                     catch (Throwable e) {
+                        LOG.warn( e.getMessage(), e );
                         completeWithError( e );
                         break;
                     }
