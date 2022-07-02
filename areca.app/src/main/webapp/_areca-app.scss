@@ -44,20 +44,23 @@ $card_color: lighten($bg1_color, 4%);
     border-radius: 8px;
     cursor: pointer;
 }
-
 .MessageCard-outgoing {
     background-color: darken(desaturate($accent2_color, 10%), 0%);
 }
-
 .MessageCard-selected {
     color: lighten($font_color, 5%);
     background-color: lighten($card_color,10%);
     box-shadow: 0px 1px 8px rgba(0,0,0,0.5);
     transform: scale(1.02);
 }
-
 .MessageCard span {
-    overflow: hidden;    
+    overflow: hidden;
+}
+.MessageCard .Button {
+    border: none !important;
+    box-shadow: none;
+    background-color: inherit;
+    color: saturate(lighten($accent_color, 25%), 10%);
 }
 
 .MessageCard .FromText, 

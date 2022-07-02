@@ -22,9 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
 import java.text.DateFormat;
 
 import org.polymap.model2.ManyAssociation;
@@ -34,7 +31,6 @@ import org.polymap.model2.runtime.Lifecycle.State;
 import areca.app.ArecaApp;
 import areca.app.model.Address;
 import areca.app.model.Message;
-import areca.app.model.Message.ContentType;
 import areca.app.model.ModelUpdateEvent;
 import areca.app.service.MessageSentEvent;
 import areca.app.service.TransportService.TransportMessage;
@@ -455,27 +451,15 @@ public class MessagesPage extends Page {
                 cssClasses.add( "DateText" );
             }});
             contentText = add( new Text() {{
-                var decoded = msg.content.get();
-                if (msg.contentType.get().equals( ContentType.HTML )) {
-                    format.set( Format.HTML );
-                    content.set( decoded );
-                }
-                else {
-                    try {
-                        format.set( Format.HTML );
-                        var html = new StringBuilder( 4096 );
-                        var reader = new BufferedReader( new StringReader( decoded ) );
-                        var c = 0;
-                        for (var line = reader.readLine(); line != null && c++ < MAX_LINES; line = reader.readLine()) {
-                            html.append( line ).append( "<br/>" );
-                        }
-                        //LOG.info( "\nTEXT ---\n%s\nHTML ---\n%s", decoded, html.toString() );
-                        content.set( html.toString() );
-                    }
-                    catch (IOException e) {
-                        throw new RuntimeException( "Should never happen: " + e, e );
-                    }
-                }
+                format.set( Format.HTML );
+                content.set( MessagePage.format( msg, MAX_LINES ) );
+            }});
+            var fullBtn = add( new Button() {{
+                icon.set( "fullscreen" );
+                tooltip.set( "Open this message in fullscreen" );
+                events.on( EventType.SELECT, ev -> {
+                    site.pageflow().open( new MessagePage( message ), MessagesPage.this, ev.clientPos() );
+                });
             }});
 
             // layout
@@ -490,6 +474,9 @@ public class MessagesPage extends Page {
 
                     contentText.position.set( Position.of( MARGINS, MARGINS + HEADER + SPACING) );
                     contentText.size.set( Size.of( s.width(), s.height() - HEADER - SPACING - MARGINS ) );
+
+                    fullBtn.position.set( Position.of( s.width() - 50 + (MARGINS/2), s.height() - 40 + (MARGINS/2) ) );
+                    fullBtn.size.set( Size.of( 50, 40 ) );
                 }
             });
 
