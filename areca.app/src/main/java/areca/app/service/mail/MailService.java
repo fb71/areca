@@ -20,21 +20,27 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableObject;
 
+import org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
 import areca.app.model.Address;
 import areca.app.model.ImapSettings;
+import areca.app.model.Message;
+import areca.app.model.ModelUpdateEvent;
 import areca.app.model.SmtpSettings;
 import areca.app.service.Message2ContactAnchorSynchronizer;
 import areca.app.service.Message2PseudoContactAnchorSynchronizer;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.TransportService;
+import areca.common.Assert;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Sequence;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -50,6 +56,43 @@ public class MailService
 
 
     public MailService() {
+        // Model update: set SEEN flag on IMAP message
+        EventManager.instance().subscribe( (ModelUpdateEvent ev) -> {
+            LOG.info( "Message update: ..." );
+            var mySettings = new MutableObject<ImapSettings>( null );
+            loadImapSettings()
+                .then( settings -> {
+                    mySettings.setValue( settings );
+                    return settings != null
+                            ? ev.entities( Message.class, ArecaApp.current().unitOfWork() )
+                            : Promise.completed( null );
+                })
+                .then( entities -> {
+                    var message = entities.get( 0 );
+                    LOG.info( "Message update: %s", message.storeRef.get() );
+                    if (message.status() != EntityStatus.REMOVED) {
+                        Assert.isEqual( false, message.unread.get() );
+                        var msgId = message.storeRef.get();
+                        if (msgId.contains( "@" )) { // XXX super horrible; make a MessageStoreRef!
+                            return new MessageSetFlagRequest( mySettings.getValue().toRequestParams(), msgId )
+                                    .submit()
+                                    .onSuccess( command -> LOG.info( "Message update: SEEN flag set" ) );
+                        }
+                        else {
+                            LOG.info( "Message update: not a message: %s" + msgId );
+                        }
+                    }
+                    else {
+                        LOG.warn( "Message update: Message deleted!" );
+                    }
+                    return Promise.completed( null );
+                })
+                .onSuccess( command -> LOG.info( "Message update: OK" ) )
+                .onError( ArecaApp.current().defaultErrorHandler() );
+        })
+        // XXX horrible condition!
+        .performIf( ModelUpdateEvent.class, ev -> ev.entities( Message.class ).size() == 1 );
+
 //        // MessageSentEvent: append sent messages to Sent folder
 //        EventManager.instance()
 //                .subscribe( (MessageSentEvent ev) -> {

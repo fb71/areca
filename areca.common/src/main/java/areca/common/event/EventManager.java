@@ -187,10 +187,28 @@ public abstract class EventManager {
         }
 
 
+        /**
+         * For multiple invocations of this method the predicates are composed
+         * by logical AND.
+         *
+         * @param performIf
+         * @return this
+         */
         @SuppressWarnings("hiding")
         public EventHandlerInfo performIf( RPredicate<EventObject> performIf ) {
             Assert.notNull( performIf );
             this.performIf = this.performIf != null ? this.performIf.and( performIf ) : performIf;
+            return this;
+        }
+
+
+        @SuppressWarnings({"hiding", "unchecked"})
+        public <E extends EventObject> EventHandlerInfo performIf( Class<E> type, RPredicate<E> performIf ) {
+            Assert.notNull( performIf );
+            Assert.isNull( this.performIf );
+            this.performIf = (EventObject ev) ->
+                    type.isAssignableFrom( ev.getClass() ) &&
+                    performIf.test( (E)ev );
             return this;
         }
 

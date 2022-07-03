@@ -49,6 +49,8 @@ public abstract class MailRequest<R extends MailRequest.Response> {
 
     public RequestParams        params;
 
+    public String               method = "GET";
+
 
     protected MailRequest( RequestParams params ) {
         this.params = params;
@@ -77,7 +79,7 @@ public abstract class MailRequest<R extends MailRequest.Response> {
                 queryString.append( entry.getKey() ).append( "=" ).append( encode( value ) );
             }
         }
-        var xhr = Platform.xhr( "GET", "mail/" + path + queryString );
+        var xhr = Platform.xhr( method, "mail/" + path + queryString );
 
         for (var param : params.all) {
             if (param.value != null) {

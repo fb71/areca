@@ -112,6 +112,7 @@ public class MailTest {
 
 
     @Test
+    @Skip
     public Promise<?> syncServiceTest() {
         return initRepo( "syncService" ).then( repo -> {
             var uow = repo.newUnitOfWork();
@@ -188,6 +189,19 @@ public class MailTest {
                 });
     }
 
+
+    @Test
+    public Promise<?> setFlagTest() {
+        return new MessageHeadersRequest( defaultParams(), "Test1", Range.between( 1, 1 ) )
+                .submit()
+                .then( response -> {
+                    var msgId = response.messageHeaders()[0].messageId();
+                    return new MessageSetFlagRequest( defaultParams(), msgId ).submit();
+                })
+                .onSuccess( response -> {
+                    Assert.isEqual( 1, response.count() );
+                });
+    }
 
 
     @Test

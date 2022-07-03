@@ -13,6 +13,8 @@
  */
 package areca.app.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EventObject;
 import java.util.List;
 import java.util.Set;
@@ -55,9 +57,12 @@ public class ModelUpdateEvent
     }
 
 
-    public <R extends Entity> Promise<Set<R>> entities( Class<R> type, UnitOfWork uow ) {
-        throw new RuntimeException( "..." );
-        //return Sequence.of( entities( type ) ).map( id -> uow.entity( type, id ) ).asCollection();
+    public <R extends Entity> Promise<List<R>> entities( Class<R> type, UnitOfWork uow ) {
+        var ids = new ArrayList<>( entities( type ) );
+        return ids.isEmpty()
+                ? Promise.completed( Collections.emptyList() )
+                : Promise.joined( ids.size(), i -> uow.entity( type, ids.get( i ) ) )
+                        .reduce( new ArrayList<>( ids.size() ), (result,entity) -> result.add( entity ) );
     }
 
 }

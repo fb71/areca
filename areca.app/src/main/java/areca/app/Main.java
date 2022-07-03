@@ -18,7 +18,6 @@ import static areca.common.log.LogFactory.Level.INFO;
 
 import org.teavm.jso.browser.Window;
 
-import org.polymap.model2.test2.AssociationsModelTest;
 import areca.common.Platform;
 import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
@@ -79,10 +78,11 @@ public class Main {
         // #m2
         else if (hash.equals( "#m2" )) {
             catchAll( __ -> {
-                LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
+                //LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
                 new AsyncAwareTestRunner()
-                        //.addTests( SimpleQueryTest.info )
-                        .addTests( AssociationsModelTest.info )
+                        .addTests( org.polymap.model2.test2.SimpleQueryTest.info )
+                        .addTests( org.polymap.model2.test2.RuntimeTest.info )
+                        .addTests( org.polymap.model2.test2.AssociationsModelTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                         .run();
             });

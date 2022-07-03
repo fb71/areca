@@ -34,13 +34,11 @@ public class MessageContentRequest
 
     public static final String  FILE_NAME = "message.content";
     public static final String  NUM_NAME = "num";
-    public static final String  ID_NAME = "id";
+    //public static final String  ID_NAME = "id";
 
-    protected Set<Integer> msgNums;
 
     protected MessageContentRequest( RequestParams params, String folderName, Set<Integer> msgNums ) {
         super( params );
-        this.msgNums = msgNums;
         setPath( folderName, FILE_NAME );
         if (msgNums != null) {
             for (var msgNum : msgNums) {

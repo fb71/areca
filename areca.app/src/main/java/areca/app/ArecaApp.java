@@ -190,9 +190,9 @@ public class ArecaApp extends App {
                         });
                     });
                 })
-                .performIf( ev -> With.$( ev ).instanceOf( EntityLifecycleEvent.class )
-                        .map( lev -> lev.state == State.AFTER_SUBMIT && appEntities.contains( lev.getSource().getClass() ) )
-                        .orElse( false ))
+                .performIf( ev -> ev instanceof EntityLifecycleEvent
+                            && ((EntityLifecycleEvent)ev).state == State.AFTER_SUBMIT
+                            && appEntities.contains( ev.getSource().getClass() ))
                 .unsubscribeIf( () -> !uow.isOpen() );
 
         // settings model updates

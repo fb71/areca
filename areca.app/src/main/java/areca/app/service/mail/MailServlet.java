@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.io.IOException;
@@ -50,6 +51,7 @@ import jakarta.activation.MimeTypeParseException;
 import jakarta.mail.Address;
 import jakarta.mail.FetchProfile;
 import jakarta.mail.Flags;
+import jakarta.mail.Flags.Flag;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.Message.RecipientType;
@@ -62,6 +64,7 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.ComparisonTerm;
+import jakarta.mail.search.MessageIDTerm;
 import jakarta.mail.search.ReceivedDateTerm;
 
 /**
@@ -114,6 +117,7 @@ public class MailServlet extends HttpServlet {
                 case FolderInfoRequest.FILE_NAME: result = new FolderInfo( conn, path ); break;
                 case MessageHeadersRequest.FILE_NAME: result = new MessageHeaders( conn, path, request ); break;
                 case MessageContentRequest.FILE_NAME: result = new MessageContent( conn, path, request ); break;
+                case MessageSetFlagRequest.FILE_NAME: result = new MessageSetFlag( conn, path, request ); break;
                 default: throw new RuntimeException( "Unknown file name: " + file );
             }
         }
@@ -361,6 +365,38 @@ public class MailServlet extends HttpServlet {
     /**
      *
      */
+    protected static class MessageSetFlag {
+
+        public int count;
+
+        protected MessageSetFlag( ImapConnection conn, String path, HttpServletRequest request ) throws MessagingException {
+            var msgId = request.getParameter( MessageSetFlagRequest.ID_NAME );
+
+            var folderNames = Arrays.stream( new AccountInfo( conn, path ).folderNames ).collect( Collectors.toList() );
+            folderNames.remove( "INBOX" );
+            folderNames.add( 0, "INBOX" );
+
+            for (var folderName : folderNames) {
+                var folder = conn.openFolder( folderName );
+                var rs = folder.search( new MessageIDTerm( msgId ) );
+                if (rs.length > 0) {
+                    folder.close();
+                    folder.open( Folder.READ_WRITE );
+                    count = rs.length;
+                    for (var msg : rs) {
+                        msg.setFlag( Flag.SEEN, true );
+                    }
+                    folder.close( false );
+                    break;
+                }
+            }
+        }
+    }
+
+
+    /**
+     *
+     */
     class ImapConnection {
 
         private Session                 session;
@@ -401,13 +437,15 @@ public class MailServlet extends HttpServlet {
                 }
             }).touch().folder;
 
-            if (!result.isOpen()) {
-                try {
-                    debug( "POOL: Folder (re-)opened (%s)", folderName );
-                    result.open( Folder.READ_ONLY );
-                }
-                catch (MessagingException e) {
-                    throw new RuntimeException( e );
+            synchronized (result) {
+                if (!result.isOpen()) {
+                    try {
+                        debug( "POOL: Folder (re-)opened (%s)", folderName );
+                        result.open( Folder.READ_ONLY );
+                    }
+                    catch (MessagingException e) {
+                        throw new RuntimeException( e );
+                    }
                 }
             }
             return result;
