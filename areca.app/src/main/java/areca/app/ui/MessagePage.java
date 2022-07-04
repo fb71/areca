@@ -20,11 +20,14 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableObject;
 
+import areca.app.ArecaApp;
 import areca.app.model.Message;
 import areca.app.model.Message.ContentType;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Action;
 import areca.ui.Size;
 import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
@@ -59,6 +62,7 @@ public class MessagePage
     protected UIComponent doInit( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( StringUtils.abbreviate( "Message...", 25 ) );
+
         ui.body.layout.set( new RowLayout().orientation.set( VERTICAL ).fillWidth.set( true ).fillHeight.set( true )
                 .spacing.set( 15 ).margins.set( Size.of( 10, 10 ) ) );
 
@@ -68,6 +72,30 @@ public class MessagePage
                 format.set( Format.HTML );
                 content.set( format( msg, Integer.MAX_VALUE ) );
             }});
+        }});
+
+        site.actions.add( new Action() {{
+            icon.set( "delete" );
+            description.set( "Delete this message" );
+            handler.set( ev -> {
+                var uow = ArecaApp.current().repo().newUnitOfWork();
+                var _msg = new MutableObject<Message>();
+                uow.entity( msg )
+                        .then( loaded -> {
+                            _msg.setValue( loaded );
+                            return loaded.anchors();
+                        })
+                        .then( anchors -> {
+                            for (var anchor : anchors) {
+                                LOG.info( "Message: remove from Anchor: %s", anchor );
+                                anchor.messages.remove( msg );
+                            }
+                            uow.removeEntity( _msg.getValue() );
+                            return uow.submit();
+                        })
+                        .onSuccess( __ -> site.pageflow().close( MessagePage.this ) )
+                        .onError( ArecaApp.current().defaultErrorHandler() );
+            });
         }});
         return ui;
     }

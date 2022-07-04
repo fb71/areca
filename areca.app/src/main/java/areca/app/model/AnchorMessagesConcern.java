@@ -57,6 +57,13 @@ public class AnchorMessagesConcern
 
 
     @Override
+    public boolean remove( Message elm ) {
+        // ignore, so that Anchor does not change prio
+        return delegate().remove( elm );
+    }
+
+
+    @Override
     public boolean addAll( Collection<? extends Message> c ) {
         throw new RuntimeException( "not yet implemented." );
     }

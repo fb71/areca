@@ -21,6 +21,7 @@ import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
+
 import areca.common.Promise;
 import areca.common.reflect.RuntimeInfo;
 
@@ -39,7 +40,8 @@ public class Anchor
     @Queryable
     public Property<String>         name;
 
-    @Concerns(AnchorMessagesConcern.class)
+    @Queryable
+    @Concerns( AnchorMessagesConcern.class )
     public ManyAssociation<Message> messages;
 
     @Defaults

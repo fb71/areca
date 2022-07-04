@@ -16,6 +16,7 @@ package areca.app.model;
 import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
+import org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.model2.runtime.Lifecycle;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
@@ -37,7 +38,7 @@ public abstract class Common
 
     @Override
     public void onLifecycleChange( State state ) {
-        if (state == State.BEFORE_SUBMIT) {
+        if (state == State.BEFORE_SUBMIT && status() != EntityStatus.REMOVED ) {
             lastModified.set( System.currentTimeMillis() );
         }
         EventManager.instance().publish( new EntityLifecycleEvent( this, state ) );

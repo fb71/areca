@@ -13,14 +13,17 @@
  */
 package areca.app.model;
 
+import java.util.List;
+
 import org.polymap.model2.DefaultValue;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
-
+import org.polymap.model2.query.Expressions;
 import areca.app.service.Service;
 import areca.app.service.TransportService;
+import areca.common.Promise;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -42,7 +45,6 @@ public class Message
     }
 
     @Defaults
-    @Queryable
     public Property<Boolean>        outgoing;
 
     /**
@@ -93,5 +95,14 @@ public class Message
     @Nullable
     @Queryable
     public Property<String>         storeRef;
+
+    /**
+     * Computed bidi association {@link Anchor#messages}.
+     */
+    public Promise<List<Anchor>> anchors() {
+        return context.getUnitOfWork().query( Anchor.class )
+                .where( Expressions.anyOf( Anchor.TYPE.messages, Expressions.id( id() ) ) )
+                .executeCollect();
+    }
 
 }

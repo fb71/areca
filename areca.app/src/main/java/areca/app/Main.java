@@ -82,7 +82,7 @@ public class Main {
                 new AsyncAwareTestRunner()
                         .addTests( org.polymap.model2.test2.SimpleQueryTest.info )
                         .addTests( org.polymap.model2.test2.RuntimeTest.info )
-                        .addTests( org.polymap.model2.test2.AssociationsModelTest.info )
+                        .addTests( org.polymap.model2.test2.AssociationsTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                         .run();
             });

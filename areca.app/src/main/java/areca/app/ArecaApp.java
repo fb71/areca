@@ -155,7 +155,7 @@ public class ArecaApp extends App {
         var appEntities = Sequence.of( appEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
                 .entities.set( appEntityTypes )
-                .store.set( new IDBStore( "areca.app", 22, true ) )
+                .store.set( new IDBStore( "areca.app", 25, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
@@ -246,7 +246,7 @@ public class ArecaApp extends App {
             Pageflow.start( mainBody ).open( new StartPage(), null, null );
 
             // start background sync services (after we have the monitor UI)
-            Platform.schedule( 1000, () -> startSync( SyncType.BACKGROUND ) );
+            Platform.schedule( 5000, () -> startSync( SyncType.BACKGROUND ) );
         });
     }
 
