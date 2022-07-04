@@ -13,8 +13,6 @@
  */
 package areca.app.model;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.ManyAssociation;
@@ -22,7 +20,8 @@ import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
 
-import areca.common.Promise;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -32,6 +31,8 @@ import areca.common.reflect.RuntimeInfo;
 @RuntimeInfo
 public class Anchor
         extends Common {
+
+    private static final Log LOG = LogFactory.getLog( Anchor.class );
 
     public static final AnchorClassInfo info = AnchorClassInfo.instance();
 
@@ -52,12 +53,22 @@ public class Anchor
     @Queryable
     public Property<String>         storeRef;
 
+    @Queryable
+    @Defaults
+    public Property<Integer>        unreadMessagesCount;
 
-    public Promise<Integer> unreadMessagesCount() {
-        // XXX a ComputedProperty would cache?!
-        return messages.fetch()
-                .reduce( new MutableInt(), (count,opt) -> opt.ifPresent( msg -> count.add( msg.unread.get() ? 1 : 0 ) ) )
-                .map( count -> count.getValue() );
+
+//    public Promise<Integer> unreadMessagesCount() {
+//        // XXX a ComputedProperty would cache?!
+//        return messages.fetch()
+//                .reduce( new MutableInt(), (count,opt) -> opt.ifPresent( msg -> count.add( msg.unread.get() ? 1 : 0 ) ) )
+//                .map( count -> count.getValue() );
+//    }
+
+
+    public void updateUnreadMessagesCount( int update ) {
+        LOG.info( "UnreadMessagesCount: %d %d", unreadMessagesCount.get(), update );
+        unreadMessagesCount.set( unreadMessagesCount.get() + update );
     }
 
 }

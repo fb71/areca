@@ -28,7 +28,6 @@ import org.polymap.model2.query.Query.Order;
 
 import areca.app.ArecaApp;
 import areca.app.model.Anchor;
-import areca.app.model.Message;
 import areca.app.model.ModelUpdateEvent;
 import areca.app.ui.AnchorsCloudPage.CloudRaster.CloudComponent;
 import areca.common.Platform;
@@ -168,24 +167,20 @@ public class AnchorsCloudPage
             tag.icons.add( "3p" );
         }
         Runnable updateTag = () -> {
-            anchor.unreadMessagesCount().onSuccess( unread -> {
-                btn.cssClasses.modify( "HasUnreadMessages", unread > 0 );
-            });
+            var unread = anchor.unreadMessagesCount.get();
+            btn.cssClasses.modify( "HasUnreadMessages", unread > 0 );
         };
         Platform.schedule( 1250, updateTag );
 
-        // Anchor/Messages updates
+        // Anchor updates: 
+        //   - message added on sync
+        //   - unread flag of Message changed
+        //   - message removed
         EventManager.instance()
                 .subscribe( (ModelUpdateEvent modified) -> {
                     if (modified.entities( Anchor.class ).contains( anchor.id() )) {
                         LOG.info( "Anchor: modified: %s", anchor.id() );
-                        // probably a message was added
                         updateBtn.run();
-                        updateTag.run();
-                    }
-                    // maybe Message.unread has changed
-                    if (!modified.entities( Message.class ).isEmpty()) {
-                        LOG.debug( "Anchor: message unread update: %s", anchor.id() );
                         updateTag.run();
                     }
                 })

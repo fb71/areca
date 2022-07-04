@@ -13,6 +13,7 @@
  */
 package areca.app.model;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.polymap.model2.DefaultValue;
@@ -24,6 +25,8 @@ import org.polymap.model2.query.Expressions;
 import areca.app.service.Service;
 import areca.app.service.TransportService;
 import areca.common.Promise;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -33,6 +36,8 @@ import areca.common.reflect.RuntimeInfo;
 @RuntimeInfo
 public class Message
         extends Common {
+
+    private static final Log LOG = LogFactory.getLog( Message.class );
 
     public static final MessageClassInfo info = MessageClassInfo.instance();
 
@@ -85,6 +90,9 @@ public class Message
     @Nullable
     public Property<String>         threadSubject;
 
+    /**
+     * @see #setUnreadAndUpdateAnchors(boolean)
+     */
     @Defaults
     public Property<Boolean>        unread;
 
@@ -96,6 +104,7 @@ public class Message
     @Queryable
     public Property<String>         storeRef;
 
+
     /**
      * Computed bidi association {@link Anchor#messages}.
      */
@@ -104,5 +113,53 @@ public class Message
                 .where( Expressions.anyOf( Anchor.TYPE.messages, Expressions.id( id() ) ) )
                 .executeCollect();
     }
+
+
+    /**
+     * Remove this Message from all Achors.
+     * <p>
+     * Cannot be done automatically AFTER_REMOVED because of race cond
+     * with subsequent submit.
+     */
+    public Promise<List<Anchor>> removeFromAnchors() {
+        return anchors().map( anchors -> {
+            for (var anchor : anchors) {
+                LOG.info( "Message: remove from Anchor: %s", anchor );
+                anchor.messages.remove( Message.this );
+            }
+            return anchors;
+        });
+    }
+
+
+    /**
+     * Sets {@link #unread} and updates {@link Anchor#unreadMessagesCount}.
+     * <p>
+     * Cannot be done automatically by an Concern because of race cond with
+     * subsequent submit.
+     */
+    public Promise<List<Anchor>> setUnreadAndUpdateAnchors( boolean unread ) {
+        var hasChanged = this.unread.get() != unread;
+        this.unread.set( unread );
+        if (hasChanged) {
+            return anchors().map( anchors -> {
+                for (var anchor : anchors) {
+                    anchor.updateUnreadMessagesCount( unread ? 1 : -1 );
+                }
+                return anchors;
+            });
+        }
+        else {
+            return Promise.completed( Collections.emptyList() );
+        }
+    }
+
+//    @Override
+//    public void onLifecycleChange( State state ) {
+//        super.onLifecycleChange( state );
+//        if (state == State.AFTER_REMOVED) {
+//            removeFromAnchors();
+//        }
+//    }
 
 }

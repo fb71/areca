@@ -49,17 +49,26 @@ public class AnchorMessagesConcern
     @Override
     public boolean add( Message msg ) {
         var anchor = context.<Anchor>getEntity();
+
         if (msg.date.get() > anchor.lastMessageDate.get()) {
             anchor.lastMessageDate.set( msg.date.get() );
+        }
+
+        if (msg.unread.get()) {
+            anchor.updateUnreadMessagesCount( 1 );
         }
         return delegate().add( msg );
     }
 
 
     @Override
-    public boolean remove( Message elm ) {
-        // ignore, so that Anchor does not change prio
-        return delegate().remove( elm );
+    public boolean remove( Message msg ) {
+        var anchor = context.<Anchor>getEntity();
+        if (msg.unread.get()) {
+            anchor.updateUnreadMessagesCount( -1 );
+        }
+        // ignore lastMessageDate, so that Anchor does not change prio
+        return delegate().remove( msg );
     }
 
 

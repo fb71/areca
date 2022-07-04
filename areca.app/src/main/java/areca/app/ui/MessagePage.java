@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableObject;
-
 import areca.app.ArecaApp;
 import areca.app.model.Message;
 import areca.app.model.Message.ContentType;
@@ -79,19 +77,13 @@ public class MessagePage
             description.set( "Delete this message" );
             handler.set( ev -> {
                 var uow = ArecaApp.current().repo().newUnitOfWork();
-                var _msg = new MutableObject<Message>();
                 uow.entity( msg )
                         .then( loaded -> {
-                            _msg.setValue( loaded );
-                            return loaded.anchors();
+                            return loaded.removeFromAnchors().map( __ -> loaded );
                         })
-                        .then( anchors -> {
-                            for (var anchor : anchors) {
-                                LOG.info( "Message: remove from Anchor: %s", anchor );
-                                anchor.messages.remove( msg );
-                            }
-                            uow.removeEntity( _msg.getValue() );
-                            return uow.submit();
+                        .then( loaded -> {
+                            uow.removeEntity( loaded );
+                            return uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) );
                         })
                         .onSuccess( __ -> site.pageflow().close( MessagePage.this ) )
                         .onError( ArecaApp.current().defaultErrorHandler() );
