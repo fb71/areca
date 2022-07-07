@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.polymap.model2.runtime.UnitOfWork;
 
+import areca.app.model.ModelUpdateEvent;
 import areca.app.service.SyncableService;
 import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.SyncableService.SyncType;
@@ -24,6 +25,8 @@ import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.Timer;
+import areca.common.base.Sequence;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -51,11 +54,24 @@ class Synchronization {
     public Synchronization( ArecaApp app ) {
         this.app = app;
 
-        // start sync services after we have the monitor UI
+        // start INCREMENTAL/BACKGROUND services (after we have the monitor UI)
         Platform.schedule( 5000, () -> {
             incremental();
             start( SyncType.BACKGROUND );
         });
+
+        // FULL sync after settings have been changed
+        var settingsEntities = Sequence.of( ArecaApp.SETTINGS_ENTITY_TYPES ).map( info -> info.type() ).toSet();
+        EventManager.instance()
+                .subscribe( (ModelUpdateEvent ev) -> {
+                    for (var entityType : settingsEntities) {
+                        if (!ev.entities( entityType ).isEmpty()) {
+                            LOG.info( "Settings: %s changed", entityType.getSimpleName() );
+                            start( SyncType.FULL );
+                        }
+                    }
+                })
+                .performIf( ModelUpdateEvent.class::isInstance );
     }
 
 

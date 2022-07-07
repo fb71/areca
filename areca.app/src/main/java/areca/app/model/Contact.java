@@ -14,7 +14,6 @@
 package areca.app.model;
 
 import org.polymap.model2.Association;
-import org.polymap.model2.Entity;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
@@ -26,7 +25,7 @@ import areca.common.reflect.RuntimeInfo;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class Contact extends Entity {
+public class Contact extends Common {
 
     public static final ContactClassInfo info = ContactClassInfo.instance();
 

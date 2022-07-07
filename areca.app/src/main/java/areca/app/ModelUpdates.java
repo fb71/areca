@@ -83,11 +83,11 @@ class ModelUpdates {
 
 
     protected void startNextUpdate() {
-        LOG.info( "Model: Starting (next) update operation..." );
         timer.restart();
         var first = modelUpdates.peekFirst();
         if (first != null) {
             try {
+                LOG.info( "Model: Starting (next) update operation..." );
                 first.apply( app.repo.newUnitOfWork() )
                         .onSuccess( __ -> modelUpdateCompleted( first ) )
                         //.onError( defaultErrorHandler() )
@@ -112,11 +112,11 @@ class ModelUpdates {
                         return;
                     }
                     modelUpdateEventCollector.collect( ev, collected -> {
-                        var mse = new ModelUpdateEvent( app, collected );
-                        var ids = mse.entities( Entity.class );
-                        LOG.info( "Refreshing: %s", ids );
+                        var mue = new ModelUpdateEvent( app, collected );
+                        var ids = mue.entities( Entity.class );
+                        LOG.info( "Refreshing: %s entities ...", ids.size() );
                         app.uow.refresh( ids ).onSuccess( __ -> {
-                            EventManager.instance().publish( mse );
+                            EventManager.instance().publish( mue );
                         });
                     });
                 })
@@ -126,18 +126,21 @@ class ModelUpdates {
                 .unsubscribeIf( () -> !app.uow.isOpen() );
 
         // settings model updates
-        var collector2 = new EventCollector<EntityLifecycleEvent>( 250 );
+        var collector2 = new EventCollector<EntityLifecycleEvent>( DEFAULT_MODEL_UPDATE_EVENT_DELAY );
         var settingsEntities = Sequence.of( ArecaApp.SETTINGS_ENTITY_TYPES ).map( info -> info.type() ).toList();
         EventManager.instance()
                 .subscribe( (EntityLifecycleEvent ev) -> {
                     // no refresh needed if main UoW was submitted
                     if (ev.getSource().context.getUnitOfWork() == app.settingsUow) {
+                        LOG.info( "Mist!" );
                         return;
                     }
                     collector2.collect( ev, collected -> {
-                        var ids = Sequence.of( collected ).map( _ev -> _ev.getSource().id() ).toSet();
+                        var mue = new ModelUpdateEvent( app, collected );
+                        var ids = mue.entities( Entity.class );
+                        LOG.info( "Refreshing: %s entities ...", ids.size() );
                         app.settingsUow.refresh( ids ).onSuccess( __ -> {
-                            EventManager.instance().publish( new ModelUpdateEvent( app, collected ) );
+                            EventManager.instance().publish( mue );
                         });
                     });
                 })
@@ -145,6 +148,5 @@ class ModelUpdates {
                         && ((EntityLifecycleEvent)ev).state == State.AFTER_SUBMIT
                         && settingsEntities.contains( ev.getSource().getClass() ))
                 .unsubscribeIf( () -> !app.settingsUow.isOpen() );
-
     }
 }

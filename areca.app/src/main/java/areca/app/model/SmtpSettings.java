@@ -13,7 +13,6 @@
  */
 package areca.app.model;
 
-import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 
 import areca.app.service.mail.RequestParams;
@@ -25,8 +24,7 @@ import areca.common.reflect.RuntimeInfo;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class SmtpSettings
-        extends Entity {
+public class SmtpSettings extends Common {
 
     public static final ClassInfo<SmtpSettings> info = SmtpSettingsClassInfo.instance();
 

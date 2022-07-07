@@ -13,7 +13,6 @@
  */
 package areca.app.model;
 
-import org.polymap.model2.Entity;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 
@@ -25,8 +24,7 @@ import areca.common.reflect.RuntimeInfo;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class MatrixSettings
-        extends Entity {
+public class MatrixSettings extends Common {
 
     public static final ClassInfo<MatrixSettings> info = MatrixSettingsClassInfo.instance();
 

@@ -125,8 +125,10 @@ public class AnchorsCloudPage
         // listen to model updates
         EventManager.instance()
                 .subscribe( (ModelUpdateEvent ev) -> {
-                    LOG.info( "JOIN: update layout..." );
-                    body.layout();
+                    if (!ev.entities( Anchor.class ).isEmpty()) {
+                        LOG.info( "JOIN: update layout..." );
+                        body.layout();
+                    }
                 })
                 .performIf( ModelUpdateEvent.class::isInstance )
                 .unsubscribeIf( () -> body.isDisposed() );
@@ -172,7 +174,7 @@ public class AnchorsCloudPage
         };
         Platform.schedule( 1250, updateTag );
 
-        // Anchor updates: 
+        // Anchor updates:
         //   - message added on sync
         //   - unread flag of Message changed
         //   - message removed

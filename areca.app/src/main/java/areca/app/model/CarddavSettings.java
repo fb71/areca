@@ -13,7 +13,6 @@
  */
 package areca.app.model;
 
-import org.polymap.model2.Entity;
 import org.polymap.model2.Property;
 
 import areca.common.reflect.ClassInfo;
@@ -24,8 +23,7 @@ import areca.common.reflect.RuntimeInfo;
  * @author Falko Bräutigam
  */
 @RuntimeInfo
-public class CarddavSettings
-        extends Entity {
+public class CarddavSettings extends Common {
 
     public static final ClassInfo<CarddavSettings> info = CarddavSettingsClassInfo.instance();
 

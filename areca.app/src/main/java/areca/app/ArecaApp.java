@@ -128,7 +128,7 @@ public class ArecaApp extends App {
 
     // instance *******************************************
 
-    private List<? extends Service> services = Arrays.asList(  // XXX from DB?
+    private List<? extends Service> services = Arrays.asList(
             new CarddavService(),
             new MailService(),
             new MatrixService());
@@ -336,6 +336,7 @@ public class ArecaApp extends App {
     public void scheduleModelUpdate( RFunction<UnitOfWork,Promise<?>> update ) {
         modelUpdates.schedule( update );
     }
+
 
     public EntityRepository repo() {
         return repo;

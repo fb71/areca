@@ -190,7 +190,7 @@ public abstract class ServiceSettingsPage<S extends Entity>
                     uow.waitForResult().get().submit().onSuccess( submitted -> {
                         LOG.info( "Submitted: %s", submitted );
                         badge.content.set( "OK" );
-                        Platform.schedule( 3000, () -> site.pageflow().close( ServiceSettingsPage.this ) );
+                        Platform.schedule( 750, () -> site.pageflow().close( ServiceSettingsPage.this ) );
                     });
                 });
             }};
