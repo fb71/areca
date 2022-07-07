@@ -531,11 +531,12 @@ public class MessagesPage extends Page {
             if (message.unread.get()) {
                 Platform.schedule( MESSAGE_MARK_READ_DELAY, () -> {
                     if (selectedCard.$() == this && message.unread.get()) {
-                        var uow = ArecaApp.current().repo().newUnitOfWork();
-                        uow.entity( message )
-                            .then( _msg -> _msg.setUnreadAndUpdateAnchors( false ) )
-                            .then( __ -> uow.submit() )
-                            .onSuccess( __ -> LOG.info( "Submitted." ) );
+                        ArecaApp.current().scheduleModelUpdate( uow -> {
+                            return uow.entity( message )
+                                    .then( _msg -> _msg.setUnreadAndUpdateAnchors( false ) )
+                                    .then( __ -> uow.submit() )
+                                    .onSuccess( __ -> LOG.info( "Submitted." ) );
+                        });
                     }
                 });
             }

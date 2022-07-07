@@ -28,7 +28,6 @@ import org.teavm.jso.browser.Window;
 
 import org.polymap.model2.Entity;
 import org.polymap.model2.runtime.EntityRepository;
-import org.polymap.model2.runtime.Lifecycle.State;
 import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
@@ -36,16 +35,11 @@ import areca.app.model.Address;
 import areca.app.model.Anchor;
 import areca.app.model.CarddavSettings;
 import areca.app.model.Contact;
-import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.ImapSettings;
 import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
-import areca.app.model.ModelUpdateEvent;
 import areca.app.model.SmtpSettings;
 import areca.app.service.Service;
-import areca.app.service.SyncableService;
-import areca.app.service.SyncableService.SyncContext;
-import areca.app.service.SyncableService.SyncType;
 import areca.app.service.TransportService;
 import areca.app.service.TransportService.Transport;
 import areca.app.service.TransportService.TransportContext;
@@ -60,14 +54,14 @@ import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.WaitFor;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Function.RFunction;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
-import areca.common.base.With;
 import areca.common.event.AsyncEventManager;
-import areca.common.event.EventCollector;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.common.reflect.ClassInfo;
 import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.App;
 import areca.ui.Size;
@@ -125,7 +119,12 @@ public class ArecaApp extends App {
         EventManager.setInstance( new AsyncEventManager() );
     }
 
-    public static final int DEFAULT_MODEL_UPDATE_EVENT_DELAY = 1000;
+    public static final List<ClassInfo<? extends Entity>> APP_ENTITY_TYPES = asList(
+            Message.info, Contact.info, Anchor.info );
+
+    public static final List<ClassInfo<? extends Entity>> SETTINGS_ENTITY_TYPES = asList(
+            ImapSettings.info, MatrixSettings.info, SmtpSettings.info, CarddavSettings.info );
+
 
     // instance *******************************************
 
@@ -134,27 +133,29 @@ public class ArecaApp extends App {
             new MailService(),
             new MatrixService());
 
-    private EntityRepository        repo;
+    protected EntityRepository      repo;
 
-    private UnitOfWork              uow;
+    protected UnitOfWork            uow;
 
-    private EntityRepository        settingsRepo;
+    protected EntityRepository      settingsRepo;
 
-    private UnitOfWork              settingsUow;
+    protected UnitOfWork            settingsUow;
 
     private UIComposite             mainBody;
 
     private UIComposite             progressBody;
 
-    private EventCollector<EntityLifecycleEvent> modelUpdateEventCollector =
-            new EventCollector<EntityLifecycleEvent>( DEFAULT_MODEL_UPDATE_EVENT_DELAY );
+    private ModelUpdates            modelUpdates;
+
+    private Synchronization         synchronization;
 
 
     protected ArecaApp() {
-        var appEntityTypes = asList( Message.info, Contact.info, Anchor.info);
-        var appEntities = Sequence.of( appEntityTypes ).map( info -> info.type() ).toList();
+        modelUpdates = new ModelUpdates( this );
+        synchronization = new Synchronization( this );
+
         EntityRepository.newConfiguration()
-                .entities.set( appEntityTypes )
+                .entities.set( APP_ENTITY_TYPES )
                 .store.set( new IDBStore( "areca.app", 26, true ) )
                 .create()
                 .onSuccess( result -> {
@@ -163,10 +164,8 @@ public class ArecaApp extends App {
                     LOG.info( "Database and model repo initialized." );
                 });
 
-        var settingsEntityTypes = asList( ImapSettings.info, MatrixSettings.info, SmtpSettings.info, CarddavSettings.info );
-        var settingsEntities = Sequence.of( settingsEntityTypes ).map( info -> info.type() ).toList();
         EntityRepository.newConfiguration()
-                .entities.set( settingsEntityTypes )
+                .entities.set( SETTINGS_ENTITY_TYPES )
                 .store.set( new IDBStore( "areca.app.settings", 5, true ) )
                 .create()
                 .onSuccess( result -> {
@@ -174,46 +173,6 @@ public class ArecaApp extends App {
                     settingsUow = settingsRepo.newUnitOfWork();
                     LOG.info( "Settings database and model repo initialized." );
                 });
-
-        EventManager.instance()
-                .subscribe( (EntityLifecycleEvent ev) -> {
-                    // no refresh needed if main UoW was submitted
-                    if (ev.getSource().context.getUnitOfWork() == uow) {
-                        return;
-                    }
-                    modelUpdateEventCollector.collect( ev, collected -> {
-                        var mse = new ModelUpdateEvent( this, collected );
-                        var ids = mse.entities( Entity.class );
-                        LOG.info( "Refreshing: %s", ids );
-                        uow.refresh( ids ).onSuccess( __ -> {
-                            EventManager.instance().publish( mse );
-                        });
-                    });
-                })
-                .performIf( ev -> ev instanceof EntityLifecycleEvent
-                            && ((EntityLifecycleEvent)ev).state == State.AFTER_SUBMIT
-                            && appEntities.contains( ev.getSource().getClass() ))
-                .unsubscribeIf( () -> !uow.isOpen() );
-
-        // settings model updates
-        var collector2 = new EventCollector<EntityLifecycleEvent>( 250 );
-        EventManager.instance()
-                .subscribe( (EntityLifecycleEvent ev) -> {
-                    // no refresh needed if main UoW was submitted
-                    if (ev.getSource().context.getUnitOfWork() == settingsUow) {
-                        return;
-                    }
-                    collector2.collect( ev, collected -> {
-                        var ids = Sequence.of( collected ).map( _ev -> _ev.getSource().id() ).toSet();
-                        settingsUow.refresh( ids ).onSuccess( __ -> {
-                            EventManager.instance().publish( new ModelUpdateEvent( this, collected ) );
-                        });
-                    });
-                })
-                .performIf( ev -> With.$( ev ).instanceOf( EntityLifecycleEvent.class )
-                        .map( lev -> lev.state == State.AFTER_SUBMIT && settingsEntities.contains( lev.getSource().getClass() ) )
-                        .orElse( false ))
-                .unsubscribeIf( () -> !settingsUow.isOpen() );
     }
 
 
@@ -244,9 +203,6 @@ public class ArecaApp extends App {
             rootWindow.layout();
 
             Pageflow.start( mainBody ).open( new StartPage(), null, null );
-
-            // start background sync services (after we have the monitor UI)
-            Platform.schedule( 5000, () -> startSync( SyncType.BACKGROUND ) );
         });
     }
 
@@ -280,6 +236,7 @@ public class ArecaApp extends App {
                 progressText.content.set( name );
                 progressBody.layout();
                 setTotalWork( totalWork );
+                LOG.info( "Task: '%s' started", name );
                 return this;
             }
 
@@ -336,36 +293,12 @@ public class ArecaApp extends App {
 
     @SuppressWarnings("unchecked")
     public <R> Sequence<R,RuntimeException> services( Class<R> type ) {
-        return Sequence.of( services )
-                .filter( s -> type.isInstance( s ) )
-                .map( s -> (R)s );
+        return Sequence.of( services ).filter( type::isInstance ).map( s -> (R)s );
     }
 
 
-    public void startSync( SyncType type ) {
-        modelUpdateEventCollector.setDelay( 30000 );
-        var syncables = services( SyncableService.class ).toList();
-        Promise.serial( syncables.size(), i -> {
-            var ctx = new SyncContext() {{
-                monitor = newAsyncOperation();
-                uowFactory = () -> repo().newUnitOfWork();
-            }};
-            return syncables.get( i ).newSync( type, ctx )
-                    .onSuccess( sync -> {
-                        if (sync != null) {
-                            sync.start()
-                                    .onSuccess( __ -> ctx.monitor.done() )
-                                    .onError( defaultErrorHandler() );
-                        }
-                        else {
-                            LOG.info( "%s: nothing to sync or no settings.", syncables.get( i ).getClass().getSimpleName() );
-                            ctx.monitor.done();
-                        }
-                    })
-                    .onError( defaultErrorHandler() );
-        })
-        .onError( e -> modelUpdateEventCollector.setDelay( DEFAULT_MODEL_UPDATE_EVENT_DELAY ) )
-        .onSuccess( __ -> modelUpdateEventCollector.setDelay( DEFAULT_MODEL_UPDATE_EVENT_DELAY ) );
+    public void forceIncrementalSync( int delay ) {
+        synchronization.forceIncremental( delay );
     }
 
 
@@ -392,20 +325,17 @@ public class ArecaApp extends App {
                 .onSuccess( l -> LOG.info( "Transports: %s", l ) )
                 .reduce( new ArrayList<Transport>(), (r,transports) -> r.addAll( transports ) )
                 .map( l -> l.isEmpty() ? Opt.absent() : Opt.of( l.get( 0 ) ) );
-
-//        return Promise
-//                .joined( s.size(), i -> s.get( i ).newTransport( receipient, ctx ) )
-//                .reduce2( Opt.<Transport>absent(), (r,opt) -> opt.isPresent() ? opt : r );
-
-//        services( TransportService.class )
-//                .map( service -> service.newTransport( receipient, ctx ) )
-//                .reduce( (result,next) -> result.join( next ) )
-//                .orElse( Promise.absent() )
-//                .reduce( Promise.<Transport>absent(), (r,next) -> next.orElse( r ));
-//
-//        }
     }
 
+
+    /**
+     * Schedule the given model update operation.
+     *
+     * @see ModelUpdates
+     */
+    public void scheduleModelUpdate( RFunction<UnitOfWork,Promise<?>> update ) {
+        modelUpdates.schedule( update );
+    }
 
     public EntityRepository repo() {
         return repo;

@@ -397,16 +397,53 @@ public class MailServlet extends HttpServlet {
     /**
      *
      */
+    protected static class MessageMove {
+
+        public int count;
+
+        protected MessageMove( ImapConnection conn, String path, HttpServletRequest request ) throws MessagingException {
+            var msgId = request.getParameter( MessageSetFlagRequest.ID_NAME );
+
+            var folderNames = Arrays.stream( new AccountInfo( conn, path ).folderNames ).collect( Collectors.toList() );
+            folderNames.remove( "INBOX" );
+            folderNames.add( 0, "INBOX" );
+
+            for (var folderName : folderNames) {
+                var folder = conn.openFolder( folderName );
+                var rs = folder.search( new MessageIDTerm( msgId ) );
+                if (rs.length > 0) {
+                    folder.close();
+                    folder.open( Folder.READ_WRITE );
+                    count = rs.length;
+                    for (var msg : rs) {
+                        msg.setFlag( Flag.SEEN, true );
+                    }
+                    folder.close( false );
+                    break;
+                }
+            }
+        }
+    }
+
+
+    /**
+     *
+     */
     class ImapConnection {
+
+        private RequestParams           params;
 
         private Session                 session;
 
         protected Store                 store;
 
+        protected long                  lastUsed = System.currentTimeMillis();
+
         protected Map<String,OpenFolder> openFolders = new ConcurrentHashMap<>();
 
 
         public ImapConnection( RequestParams params ) throws MessagingException {
+            this.params = params;
             Properties props = new Properties();
             props.put( "mail.imap.ssl.enable", "true");
             props.put( "mail.imap.ssl.trust", params.host.value);
@@ -419,15 +456,24 @@ public class MailServlet extends HttpServlet {
 
             // connects to the message store
             store = session.getStore( "imap" );
-            store.connect( params.host.value, Integer.parseInt( params.port.value ),
-                    params.username.value, params.password.value );
         }
 
 
-        public Folder openFolder( String folderName ) {
+        public ImapConnection checkOpen() throws MessagingException {
+            if (!store.isConnected()) {
+                debug( "POOL: Store opened" );
+                store.connect( params.host.value, Integer.parseInt( params.port.value ),
+                        params.username.value, params.password.value );
+            }
+            lastUsed = System.currentTimeMillis();
+            return this;
+        }
+
+
+        public IMAPFolder openFolder( String folderName ) throws MessagingException {
             var result = openFolders.computeIfAbsent( folderName, __ -> {
                 try {
-                    debug( "POOL: Folder opened (%s)", folderName );
+                    debug( "POOL: created (%s)", folderName );
                     return new OpenFolder() {{
                         folder = store.getFolder( folderName );
                     }};
@@ -437,18 +483,11 @@ public class MailServlet extends HttpServlet {
                 }
             }).touch().folder;
 
-            synchronized (result) {
-                if (!result.isOpen()) {
-                    try {
-                        debug( "POOL: Folder (re-)opened (%s)", folderName );
-                        result.open( Folder.READ_ONLY );
-                    }
-                    catch (MessagingException e) {
-                        throw new RuntimeException( e );
-                    }
-                }
+            if (!result.isOpen()) {
+                debug( "POOL: Folder (re-)opened (%s)", folderName );
+                result.open( Folder.READ_ONLY );
             }
-            return result;
+            return (IMAPFolder)result;
         }
 
 
@@ -467,7 +506,12 @@ public class MailServlet extends HttpServlet {
                     }
                 }
             }
+            if (openFolders.isEmpty() && store.isConnected() && lastUsed < (now-30000)) {
+                debug( "POOL: Store closed." );
+                store.close();
+            }
         }
+
 
         class OpenFolder {
             public Folder   folder;
@@ -517,7 +561,7 @@ public class MailServlet extends HttpServlet {
         }
 
 
-        public ImapConnection aquire( RequestParams params ) {
+        public ImapConnection aquire( RequestParams params ) throws MessagingException {
             return all.computeIfAbsent( params, __ -> {
                 try {
                     debug( "POOL: New connection (size: %d)", all.size() );
@@ -526,7 +570,7 @@ public class MailServlet extends HttpServlet {
                 catch (MessagingException e) {
                     throw new RuntimeException( e );
                 }
-            });
+            }).checkOpen();
         }
     }
 

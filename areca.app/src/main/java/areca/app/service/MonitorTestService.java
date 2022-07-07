@@ -41,17 +41,17 @@ public class MonitorTestService
 
             @Override
             public Promise<?> start() {
-                ctx.monitor.beginTask( "EMail", 10 );
+                ctx.monitor().beginTask( "EMail", 10 );
                 pseudoWork();
                 return null;
             }
 
             private void pseudoWork() {
-                ctx.monitor.worked( 1 );
+                ctx.monitor().worked( 1 );
                 if ((work -= 1) > 0) {
                     Platform.schedule( 1000, () -> pseudoWork() );
                 } else {
-                    ctx.monitor.done();
+                    ctx.monitor().done();
                 }
             }
         });

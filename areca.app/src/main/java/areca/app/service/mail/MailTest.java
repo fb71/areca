@@ -24,6 +24,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.time.DateUtils;
 
 import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
@@ -34,6 +35,7 @@ import areca.app.service.SyncableService;
 import areca.app.service.mail.MessageHeadersRequest.MessageHeadersResponse.MessageHeaders;
 import areca.common.Assert;
 import areca.common.NullProgressMonitor;
+import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -124,10 +126,14 @@ public class MailTest {
                 proto.port.set( Integer.parseInt( params.port.value ) );
                 proto.monthsToSync.set( 36 );
             });
-            var ctx = new SyncableService.SyncContext() {{
-                monitor = new NullProgressMonitor();
-                uowFactory = () -> repo.newUnitOfWork();
-            }};
+            var ctx = new SyncableService.SyncContext() {
+                @Override public ProgressMonitor monitor() {
+                    return new NullProgressMonitor();
+                }
+                @Override public UnitOfWork unitOfWork() {
+                    return repo.newUnitOfWork();
+                }
+            };
             return new MailService.FullSync( settings, ctx ).start();
         });
     }

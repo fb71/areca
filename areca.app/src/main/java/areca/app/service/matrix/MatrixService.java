@@ -187,11 +187,10 @@ public class MatrixService
 
         @Override
         public Promise<?> start() {
-            return initMatrixClient()
-                    .onSuccess( count -> {
-                        startListenEvents();
-                        LOG.info( "Start listening..." );
-                    });
+            return initMatrixClient().onSuccess( count -> {
+                startListenEvents();
+                LOG.info( "Start event handling..." );
+            });
         }
 
 
@@ -211,54 +210,51 @@ public class MatrixService
 
                 if (M_ROOM_MESSAGE.equals( event.type() ) || M_ROOM_ENCRYPTED.equals( event.type() )) {
                     MatrixClient.console( event );
+                    ArecaApp.current().scheduleModelUpdate( uow -> {
+                        var monitor = ArecaApp.instance().newAsyncOperation();
+                        monitor.beginTask( "Matrix event", 3 );
 
-                    var monitor = ArecaApp.instance().newAsyncOperation();
-                    monitor.beginTask( "Matrix event", 3 );
-
-                    var uow = ctx.uowFactory.supply();
-
-                    // decrypt
-                    Completable<JSCommon> decrypted = new Completable<>();
-                    matrix.decryptEventIfNeeded( event ).then( _decrypted -> {
-                        monitor.worked( 1 );
-                        MatrixClient.console( _decrypted );
-                        MatrixClient.console( event.content() );
-                        decrypted.complete( _decrypted );
+                        // decrypt
+                        Completable<JSCommon> decrypted = new Completable<>();
+                        matrix.decryptEventIfNeeded( event ).then( _decrypted -> {
+                            monitor.worked( 1 );
+                            MatrixClient.console( _decrypted );
+                            MatrixClient.console( event.content() );
+                            decrypted.complete( _decrypted );
+                        });
+                        return decrypted
+                                // ensure room Anchor
+                                .then( __ -> {
+                                    return uow.ensureEntity( Anchor.class,
+                                            Expressions.eq( Anchor.TYPE.storeRef, anchorStoreRef( event.roomId() ) ),
+                                            proto -> {
+                                                proto.name.set( "New: " + event.sender() );
+                                                proto.storeRef.set( anchorStoreRef( event.roomId() ) );
+                                            });
+                                })
+                                // create message
+                                .map( anchor -> {
+                                    monitor.worked( 1 );
+                                    JSMessage content = event.content().cast();
+                                    return uow.createEntity( Message.class, proto -> {
+                                        MessageStoreRef storeRef = MessageStoreRef.of( event.roomId(), event.eventId() );
+                                        proto.storeRef.set( storeRef.toString() );
+                                        proto.fromAddress.set( new MatrixAddress( event.sender(), event.roomId() ).encoded() );
+                                        proto.content.set( content.getBody().opt().orElse( "" ) );
+                                        proto.contentType.set( ContentType.PLAIN );
+                                        proto.unread.set( true );
+                                        proto.date.set( (long)event.date().getTime() );
+                                        anchor.messages.add( proto );
+                                    });
+                                })
+                                // submit
+                                .then( message -> {
+                                    monitor.worked( 1 );
+                                    return uow.submit();
+                                })
+                                .onSuccess( submitted -> monitor.done() )
+                                .onError( e -> monitor.done() );
                     });
-                    decrypted
-                            // ensure room Anchor
-                            .then( __ -> {
-                                return uow.ensureEntity( Anchor.class,
-                                        Expressions.eq( Anchor.TYPE.storeRef, anchorStoreRef( event.roomId() ) ),
-                                        proto -> {
-                                            proto.name.set( "New: " + event.sender() );
-                                            proto.storeRef.set( anchorStoreRef( event.roomId() ) );
-                                        });
-                            })
-                            // create message
-                            .map( anchor -> {
-                                monitor.worked( 1 );
-                                JSMessage content = event.content().cast();
-                                return uow.createEntity( Message.class, proto -> {
-                                    MessageStoreRef storeRef = MessageStoreRef.of( event.roomId(), event.eventId() );
-                                    proto.storeRef.set( storeRef.toString() );
-                                    proto.fromAddress.set( new MatrixAddress( event.sender(), event.roomId() ).encoded() );
-                                    proto.content.set( content.getBody().opt().orElse( "" ) );
-                                    proto.contentType.set( ContentType.PLAIN );
-                                    proto.unread.set( true );
-                                    proto.date.set( (long)event.date().getTime() );
-                                    anchor.messages.add( proto );
-                                });
-                            })
-                            // submit
-                            .then( message -> {
-                                monitor.worked( 1 );
-                                return uow.submit();
-                            })
-                            .onSuccess( submitted -> monitor.done() )
-                            .onError( ArecaApp.instance().defaultErrorHandler() )
-                            .onError( e -> monitor.done() );
-
                 }
             });
         }
@@ -277,7 +273,7 @@ public class MatrixService
 
         public FullSync( SyncContext ctx ) {
             this.ctx = ctx;
-            this.uow = ctx.uowFactory.supply();
+            this.uow = ctx.unitOfWork();
         }
 
 

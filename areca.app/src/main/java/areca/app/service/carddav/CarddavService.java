@@ -38,7 +38,7 @@ public class CarddavService
 
     @Override
     public String label() {
-        return "Carddav";
+        return "CardDav";
     }
 
 
@@ -47,7 +47,7 @@ public class CarddavService
         return ArecaApp.current().settings()
                 .then( uow -> uow.query( CarddavSettings.class ).executeCollect() )
                 .map( rs -> {
-                    if (rs.isEmpty() || syncType != SyncType.FULL) {
+                    if (rs.isEmpty() || syncType == SyncType.BACKGROUND) {
                        return (Sync)null;
                     }
                     return new Sync() {
@@ -61,8 +61,8 @@ public class CarddavService
                             }
                             var res = DavResource.create( matcher.group( 1 ), matcher.group( 2 ) )
                                     .auth( settings.username.get(), settings.pwd.get() );
-                            var synchronizer = new CarddavSynchronizer( res, ctx.uowFactory.get() );
-                            synchronizer.monitor.set( ctx.monitor );
+                            var synchronizer = new CarddavSynchronizer( res, ctx.unitOfWork() );
+                            synchronizer.monitor.set( ctx.monitor() );
                             return synchronizer.start()
                                     .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) );
                         }

@@ -17,7 +17,6 @@ import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
-import areca.common.base.Supplier.RSupplier;
 
 /**
  *
@@ -32,9 +31,9 @@ public interface SyncableService {
     /**
      *
      */
-    public static class SyncContext {
-        public ProgressMonitor          monitor;
-        public RSupplier<UnitOfWork>    uowFactory;
+    public interface SyncContext {
+        public ProgressMonitor monitor();
+        public UnitOfWork unitOfWork();
     }
 
     /**

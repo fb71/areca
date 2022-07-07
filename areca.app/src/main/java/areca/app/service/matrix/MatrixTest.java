@@ -18,6 +18,7 @@ import java.util.Arrays;
 import org.teavm.jso.core.JSString;
 
 import org.polymap.model2.runtime.EntityRepository;
+import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
 import areca.app.model.Anchor;
@@ -27,6 +28,7 @@ import areca.app.service.SyncableService;
 import areca.app.service.SyncableService.SyncType;
 import areca.common.Assert;
 import areca.common.NullProgressMonitor;
+import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -107,10 +109,14 @@ public class MatrixTest {
         };
         return initRepo( "syncService" )
                 .then( repo -> {
-                    var ctx = new SyncableService.SyncContext() {{
-                        monitor = new NullProgressMonitor();
-                        uowFactory = () -> repo.newUnitOfWork();
-                    }};
+                    var ctx = new SyncableService.SyncContext() {
+                        @Override public ProgressMonitor monitor() {
+                            return new NullProgressMonitor();
+                        }
+                        @Override public UnitOfWork unitOfWork() {
+                            return repo.newUnitOfWork();
+                        }
+                    };
                     return service.newSync( SyncType.FULL, ctx );
                 })
                 .then( sync -> Assert.notNull( sync, "No settings in app DB!" ).start() )

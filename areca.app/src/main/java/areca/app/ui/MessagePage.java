@@ -76,17 +76,17 @@ public class MessagePage
             icon.set( "delete" );
             description.set( "Delete this message" );
             handler.set( ev -> {
-                var uow = ArecaApp.current().repo().newUnitOfWork();
-                uow.entity( msg )
-                        .then( loaded -> {
-                            return loaded.removeFromAnchors().map( __ -> loaded );
-                        })
-                        .then( loaded -> {
-                            uow.removeEntity( loaded );
-                            return uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) );
-                        })
-                        .onSuccess( __ -> site.pageflow().close( MessagePage.this ) )
-                        .onError( ArecaApp.current().defaultErrorHandler() );
+                ArecaApp.current().scheduleModelUpdate( uow -> {
+                    return uow.entity( msg )
+                            .then( loaded -> {
+                                return loaded.removeFromAnchors().map( __ -> loaded );
+                            })
+                            .then( loaded -> {
+                                uow.removeEntity( loaded );
+                                return uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) );
+                            })
+                            .onSuccess( __ -> site.pageflow().close( MessagePage.this ) );
+                });
             });
         }});
         return ui;

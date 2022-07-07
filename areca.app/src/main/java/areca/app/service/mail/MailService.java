@@ -222,7 +222,7 @@ public class MailService
             this.settings = settings;
             this.params = settings.toRequestParams();
             this.ctx = ctx;
-            uow = ctx.uowFactory.supply();
+            uow = ctx.unitOfWork();
             messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow );
             messages2PseudoAnchor = new Message2PseudoContactAnchorSynchronizer( uow );
         }
@@ -236,14 +236,14 @@ public class MailService
 
         @Override
         public Promise<?> start() {
-            ctx.monitor.beginTask( "Mail", ProgressMonitor.UNKNOWN );
+            ctx.monitor().beginTask( "Mail", ProgressMonitor.UNKNOWN );
             return fetchFolders()
                     // sync + submit folders
                     .then( allFolderNames -> {
                         var folderNames = folders( allFolderNames );
                         LOG.info( "Folders: %s", folderNames );
 
-                        ctx.monitor.setTotalWork( folderNames.size() * 100 );
+                        ctx.monitor().setTotalWork( folderNames.size() * 100 );
                         return Promise.serial( folderNames.size(), i -> {
                             return syncFolder( folderNames.get( i ) )
                                     .then( __ -> uow.submit() )
@@ -252,14 +252,14 @@ public class MailService
                     })
                     .reduce2( 0, (result,submitted) -> result + 1 )
                     .onSuccess( totalFolders -> {
-                        ctx.monitor.done();
+                        ctx.monitor().done();
                         LOG.info( "Done: %d folders", totalFolders );
                     });
         }
 
 
         protected Promise<Integer> syncFolder( String folderName ) {
-            var subMonitor = ctx.monitor.subMonitor( 100 );
+            var subMonitor = ctx.monitor().subMonitor( 100 );
             return new MailFolderSynchronizer( folderName, uow, params, monthsToSync() )
                     .onMessageCount( msgCount -> subMonitor.beginTask( abbreviate( folderName, 5 ), msgCount ) )
                     .start()
