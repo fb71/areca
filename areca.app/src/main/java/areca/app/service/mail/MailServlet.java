@@ -118,6 +118,7 @@ public class MailServlet extends HttpServlet {
                 case MessageHeadersRequest.FILE_NAME: result = new MessageHeaders( conn, path, request ); break;
                 case MessageContentRequest.FILE_NAME: result = new MessageContent( conn, path, request ); break;
                 case MessageSetFlagRequest.FILE_NAME: result = new MessageSetFlag( conn, path, request ); break;
+                case MessageDeleteRequest.FILE_NAME: result = new MessageDelete( conn, path, request ); break;
                 default: throw new RuntimeException( "Unknown file name: " + file );
             }
         }
@@ -397,12 +398,12 @@ public class MailServlet extends HttpServlet {
     /**
      *
      */
-    protected static class MessageMove {
+    protected static class MessageDelete {
 
-        public int count;
+        public int count = 0;
 
-        protected MessageMove( ImapConnection conn, String path, HttpServletRequest request ) throws MessagingException {
-            var msgId = request.getParameter( MessageSetFlagRequest.ID_NAME );
+        protected MessageDelete( ImapConnection conn, String path, HttpServletRequest request ) throws MessagingException {
+            var msgId = request.getParameter( MessageDeleteRequest.ID_NAME );
 
             var folderNames = Arrays.stream( new AccountInfo( conn, path ).folderNames ).collect( Collectors.toList() );
             folderNames.remove( "INBOX" );
@@ -415,10 +416,12 @@ public class MailServlet extends HttpServlet {
                     folder.close();
                     folder.open( Folder.READ_WRITE );
                     count = rs.length;
+                    var trash = conn.openFolder( "Trash" );
                     for (var msg : rs) {
-                        msg.setFlag( Flag.SEEN, true );
+                        folder.copyMessages( new Message[] {msg}, trash );
+                        msg.setFlag( Flag.DELETED, true );
                     }
-                    folder.close( false );
+                    folder.close( true );
                     break;
                 }
             }
@@ -429,7 +432,7 @@ public class MailServlet extends HttpServlet {
     /**
      *
      */
-    class ImapConnection {
+    protected static class ImapConnection {
 
         private RequestParams           params;
 
@@ -461,9 +464,13 @@ public class MailServlet extends HttpServlet {
 
         public ImapConnection checkOpen() throws MessagingException {
             if (!store.isConnected()) {
-                debug( "POOL: Store opened" );
-                store.connect( params.host.value, Integer.parseInt( params.port.value ),
-                        params.username.value, params.password.value );
+                synchronized (store) {
+                    if (!store.isConnected()) {
+                        debug( "POOL: Store opened" );
+                        store.connect( params.host.value, Integer.parseInt( params.port.value ),
+                                params.username.value, params.password.value );
+                    }
+                }
             }
             lastUsed = System.currentTimeMillis();
             return this;
@@ -484,8 +491,12 @@ public class MailServlet extends HttpServlet {
             }).touch().folder;
 
             if (!result.isOpen()) {
-                debug( "POOL: Folder (re-)opened (%s)", folderName );
-                result.open( Folder.READ_ONLY );
+                synchronized (result) {
+                    if (!result.isOpen()) {
+                        debug( "POOL: Folder (re-)opened (%s)", folderName );
+                        result.open( Folder.READ_ONLY );
+                    }
+                }
             }
             return (IMAPFolder)result;
         }
@@ -507,13 +518,17 @@ public class MailServlet extends HttpServlet {
                 }
             }
             if (openFolders.isEmpty() && store.isConnected() && lastUsed < (now-30000)) {
-                debug( "POOL: Store closed." );
-                store.close();
+                synchronized (store) {
+                    if (store.isConnected()) {
+                        debug( "POOL: Store closed." );
+                        store.close();
+                    }
+                }
             }
         }
 
 
-        class OpenFolder {
+        protected static class OpenFolder {
             public Folder   folder;
             public long     lastUsed = System.currentTimeMillis();
 

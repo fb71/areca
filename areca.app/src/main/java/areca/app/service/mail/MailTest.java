@@ -197,12 +197,26 @@ public class MailTest {
 
 
     @Test
+    @Skip
     public Promise<?> setFlagTest() {
-        return new MessageHeadersRequest( defaultParams(), "Test1", Range.between( 1, 1 ) )
-                .submit()
+        return new MessageHeadersRequest( defaultParams(), "Test1", Range.between( 1, 1 ) ).submit()
                 .then( response -> {
                     var msgId = response.messageHeaders()[0].messageId();
                     return new MessageSetFlagRequest( defaultParams(), msgId ).submit();
+                })
+                .onSuccess( response -> {
+                    Assert.isEqual( 1, response.count() );
+                });
+    }
+
+
+    @Test
+    @Skip
+    public Promise<?> messageDeleteTest() {
+        return new MessageHeadersRequest( defaultParams(), "Test1", Range.between( 1, 1 ) ).submit()
+                .then( response -> {
+                    var msgId = response.messageHeaders()[0].messageId();
+                    return new MessageDeleteRequest( defaultParams(), msgId ).submit();
                 })
                 .onSuccess( response -> {
                     Assert.isEqual( 1, response.count() );

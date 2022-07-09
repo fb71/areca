@@ -14,6 +14,8 @@
 package areca.app.service.mail;
 
 import static org.apache.commons.lang3.StringUtils.abbreviate;
+import static org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus.REMOVED;
+import static org.polymap.model2.runtime.Lifecycle.State.AFTER_SUBMIT;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,11 +24,11 @@ import java.util.List;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
 
-import org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
 import areca.app.model.Address;
+import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.ImapSettings;
 import areca.app.model.Message;
 import areca.app.model.ModelUpdateEvent;
@@ -56,67 +58,9 @@ public class MailService
 
 
     public MailService() {
-        // Model update: set SEEN flag on IMAP message
-        EventManager.instance().subscribe( (ModelUpdateEvent ev) -> {
-            LOG.info( "Message update: ..." );
-            var mySettings = new MutableObject<ImapSettings>( null );
-            loadImapSettings()
-                .then( settings -> {
-                    mySettings.setValue( settings );
-                    return settings != null
-                            ? ev.entities( Message.class, ArecaApp.current().unitOfWork() )
-                            : Promise.completed( null );
-                })
-                .then( entities -> {
-                    var message = entities.get( 0 );
-                    LOG.info( "Message update: %s", message.storeRef.get() );
-                    if (message.status() != EntityStatus.REMOVED) {
-                        Assert.isEqual( false, message.unread.get() );
-                        var msgId = message.storeRef.get();
-                        if (msgId.contains( "@" )) { // XXX super horrible; make a MessageStoreRef!
-                            return new MessageSetFlagRequest( mySettings.getValue().toRequestParams(), msgId )
-                                    .submit()
-                                    .onSuccess( command -> LOG.info( "Message update: SEEN flag set" ) );
-                        }
-                        else {
-                            LOG.info( "Message update: not a message: %s" + msgId );
-                        }
-                    }
-                    else {
-                        LOG.warn( "Message update: Message deleted!" );
-                    }
-                    return Promise.completed( null );
-                })
-                .onSuccess( command -> LOG.info( "Message update: OK" ) )
-                .onError( ArecaApp.current().defaultErrorHandler() );
-        })
-        // XXX horrible condition!
-        .performIf( ModelUpdateEvent.class, ev -> ev.entities( Message.class ).size() == 1 );
-
-//        // MessageSentEvent: append sent messages to Sent folder
-//        EventManager.instance()
-//                .subscribe( (MessageSentEvent ev) -> {
-//                    LOG.info( "Message sent: attaching to Sent folder..." );
-//                    loadImapSettings()
-//                            .then( settings -> {
-//                                if (settings != null) {
-//                                    ImapRequest request = new ImapRequest( self -> {
-//                                        self.host = settings.host.get();
-//                                        self.port = settings.port.get();
-//                                        self.loginCommand = new LoginCommand( settings.username.get(), settings.pwd.get() );
-//                                    });
-//                                    request.commands.addAll( new AppendCommand( "Sent", ev.sent.message, ev.sent.from ).commands );
-//                                    return request.submit();
-//                                }
-//                                else {
-//                                    return Promise.completed( null );
-//                                }
-//                            })
-//                            .onSuccess( command -> LOG.info( "OK" ))
-//                            .onError( ArecaApp.current().defaultErrorHandler() );
-//
-//                })
-//                .performIf( MessageSentEvent.class::isInstance );  // FIXME sender was email :)
+        onMessageUnreadSet();
+        onMessageDeleted();
+        onMessageSent();
     }
 
 
@@ -126,7 +70,97 @@ public class MailService
     }
 
 
-    /** Default: load from ArecaApp */
+    protected void onMessageDeleted() {
+        EventManager.instance().subscribe( (EntityLifecycleEvent ev) -> {
+            if (ev.state == AFTER_SUBMIT
+                    && ev.getSource().status() == REMOVED
+                    && ev.getSource() instanceof Message) {
+
+                var msg = (Message)ev.getSource();
+                LOG.info( "On REMOVED: message: %s", msg.storeRef );
+                if (msg.storeRef.get().contains( "@" )) { // XXX make a MessageStoreRef
+                    loadImapSettings().then( settings -> {
+                        if (settings != null) {
+                            return new MessageDeleteRequest( settings.toRequestParams(), msg.storeRef.get() ).submit()
+                                    .onSuccess( command -> LOG.info( "On REMOVED: deleted (%s)", command.count() ) );
+                        }
+                        else {
+                            return Promise.completed( null );
+                        }
+                    })
+                    .onError( ArecaApp.current().defaultErrorHandler() );
+                }
+            }
+        })
+        .performIf( EntityLifecycleEvent.class::isInstance );
+    }
+
+
+    /**
+     * Model update: set SEEN flag
+     */
+    protected void onMessageUnreadSet() {
+        EventManager.instance().subscribe( (ModelUpdateEvent ev) -> {
+            var mySettings = new MutableObject<ImapSettings>( null );
+            loadImapSettings()
+                .then( settings -> {
+                    mySettings.setValue( settings );
+                    UnitOfWork uow = ArecaApp.current().unitOfWork();
+                    return settings != null ? ev.entities( Message.class, uow ) : Promise.completed( null );
+                })
+                .then( entities -> {
+                    if (entities == null || entities.isEmpty()) {
+                        LOG.info( "On UNREAD: Message/Entity removed or no IMAP settings" );
+                    }
+                    else {
+                        var message = entities.get( 0 );
+                        Assert.isEqual( false, message.unread.get() );
+                        var msgId = message.storeRef.get();
+                        if (msgId.contains( "@" )) { // XXX super horrible; make a MessageStoreRef!
+                            return new MessageSetFlagRequest( mySettings.getValue().toRequestParams(), msgId ).submit()
+                                    .onSuccess( command -> LOG.info( "On UNREAD: SEEN flag set (%s)", command.count() ) );
+                        }
+                    }
+                    return Promise.completed( null );
+                })
+                .onError( ArecaApp.current().defaultErrorHandler() );
+        })
+        // XXX horrible condition!
+        .performIf( ModelUpdateEvent.class, ev -> ev.entities( Message.class ).size() == 1 );
+    }
+
+
+    protected void onMessageSent() {
+//      // MessageSentEvent: append sent messages to Sent folder
+//      EventManager.instance()
+//              .subscribe( (MessageSentEvent ev) -> {
+//                  LOG.info( "Message sent: attaching to Sent folder..." );
+//                  loadImapSettings()
+//                          .then( settings -> {
+//                              if (settings != null) {
+//                                  ImapRequest request = new ImapRequest( self -> {
+//                                      self.host = settings.host.get();
+//                                      self.port = settings.port.get();
+//                                      self.loginCommand = new LoginCommand( settings.username.get(), settings.pwd.get() );
+//                                  });
+//                                  request.commands.addAll( new AppendCommand( "Sent", ev.sent.message, ev.sent.from ).commands );
+//                                  return request.submit();
+//                              }
+//                              else {
+//                                  return Promise.completed( null );
+//                              }
+//                          })
+//                          .onSuccess( command -> LOG.info( "OK" ))
+//                          .onError( ArecaApp.current().defaultErrorHandler() );
+//
+//              })
+//              .performIf( MessageSentEvent.class::isInstance );  // FIXME sender was email :)
+    }
+
+
+    /**
+     * Default: load from ArecaApp
+     */
     protected Promise<ImapSettings> loadImapSettings() {
         return ArecaApp.instance().settings().then( uow -> {
             return uow.query( ImapSettings.class )

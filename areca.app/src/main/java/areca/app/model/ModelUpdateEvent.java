@@ -62,7 +62,11 @@ public class ModelUpdateEvent
         return ids.isEmpty()
                 ? Promise.completed( Collections.emptyList() )
                 : Promise.joined( ids.size(), i -> uow.entity( type, ids.get( i ) ) )
-                        .reduce( new ArrayList<>( ids.size() ), (result,entity) -> result.add( entity ) );
+                        .reduce( new ArrayList<>( ids.size() ), (result,entity) -> {
+                            if (entity != null) {  // REMOVED Entity
+                                result.add( entity );
+                            }
+                        });
     }
 
 }
