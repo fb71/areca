@@ -232,12 +232,17 @@ public class ReflectAnnotationProcessor
                     .returns( ParameterizedTypeName.get( ClassName.get( List.class ), ClassName.get( FieldInfo.class ) ) )
                     .addStatement( "List<FieldInfo> result = new ArrayList<>()" );
 
-            for (Element element : type.getEnclosedElements()) { // XXX all vs. declared
+            outer:
+            for (Element element : type.getEnclosedElements()) {
                 if (element instanceof VariableElement) {
                     var modifiers = element.getModifiers();
                     VariableElement varElm = (VariableElement)element;
                     log( "    Field: ", varElm.getSimpleName(), " -> ", varElm.asType() );
 
+                    if (varElm.getAnnotation( NoRuntimeInfo.class ) != null) {
+                        log( "        skipped. (@NoRuntimeInfo) " );
+                        continue outer;
+                    }
                     String methodName = varElm.getSimpleName().toString() + "FieldInfo";
                     MethodSpec.Builder m = MethodSpec.methodBuilder( methodName )
                             .addModifiers( Modifier.PUBLIC )
@@ -309,13 +314,18 @@ public class ReflectAnnotationProcessor
                     .returns( ParameterizedTypeName.get( ClassName.get( List.class ), ClassName.get( MethodInfo.class ) ) )
                     .addStatement( "List<MethodInfo> result = new ArrayList<>()" );
 
-            for (Element element : type.getEnclosedElements()) { // XXX all vs. declared
+            outer:
+            for (Element element : type.getEnclosedElements()) {
                 if (element instanceof ExecutableElement) {
                     ExecutableElement methodElm = (ExecutableElement)element;
                     log( "    Method: ", methodElm.getSimpleName(), "() -> ", methodElm.getReturnType() );
 
+                    if (methodElm.getAnnotation( NoRuntimeInfo.class ) != null) {
+                        log( "        skipped. (@NoRuntimeInfo) " );
+                        continue outer;
+                    }
                     if (methodElm.getSimpleName().toString().equals( "<init>" )) {
-                        continue;
+                        continue outer;
                     }
                     //                if (methodElm.getAnnotationMirrors().isEmpty()) {
                     //                    log( "        no annotation.");

@@ -27,6 +27,7 @@ import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.model.Anchor;
+import areca.app.model.ImapSettings;
 import areca.app.model.Message;
 import areca.app.model.Message.ContentType;
 import areca.app.service.mail.MessageHeadersRequest.MessageHeadersResponse.MessageHeaders;
@@ -34,7 +35,6 @@ import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Opt;
-import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -47,12 +47,6 @@ public class MailFolderSynchronizer {
 
     private static final Log LOG = LogFactory.getLog( MailFolderSynchronizer.class );
 
-    //public static final int             MAX_PER_FOLDER = 40;
-
-    protected RequestParams             params;
-
-    protected int                       monthsToSync;
-
     protected UnitOfWork                uow;
 
     protected String                    folderName;
@@ -61,12 +55,13 @@ public class MailFolderSynchronizer {
 
     private RConsumer<Integer>          onMessageCount;
 
+    private ImapSettings                settings;
 
-    public MailFolderSynchronizer( String folderName, UnitOfWork uow, RequestParams params, int months ) {
+
+    public MailFolderSynchronizer( String folderName, UnitOfWork uow, ImapSettings settings ) {
         this.uow = uow;
-        this.params = params;
+        this.settings = settings;
         this.folderName = folderName;
-        this.monthsToSync = months;
     }
 
 
@@ -95,12 +90,12 @@ public class MailFolderSynchronizer {
                 // find missing Message entities
                 .then( (MessageHeaders[] msgs) -> {
                     LOG.debug( "%s: Ids: %s", folderName, msgs.length );
-                    var msgIds = Sequence.of( msgs ).reduce( new HashMap<String,MessageHeaders>(), (map,msg) -> {
-                        if (map.putIfAbsent( msg.messageId(), msg ) != null) {
+                    var msgIds = new HashMap<String,MessageHeaders>();
+                    for (var msg : msgs) {
+                        if (msgIds.putIfAbsent( new MessageStoreRef( settings, msg ).encoded(), msg ) != null) {
                             LOG.info( "Message-ID: %s already exists!", msg.messageId() );
                         }
-                        return map;
-                    });
+                    }
                     // query Messages that are in the store
                     return uow.query( Message.class )
                             .where( eqAny( Message.TYPE.storeRef, msgIds.keySet() ) )
@@ -135,55 +130,44 @@ public class MailFolderSynchronizer {
 
 
     protected Promise<Anchor> checkCreateFolderAnchor() {
-        var storeRef = "imap-folder:" + folderName;
-        return uow.query( Anchor.class )
-                .where( Expressions.eq( Anchor.TYPE.storeRef, storeRef ) )
-                .executeCollect()
-                .map( anchors -> {
-                    if (anchors.isEmpty()) {
-                        return uow.createEntity( Anchor.class, proto -> {
-                            proto.storeRef.set( storeRef );
-                            proto.name.set( folderName.replace( "/", " " ) );
-                        });
-                    }
-                    else {
-                        Assert.isEqual( 1, anchors.size() );
-                        return anchors.get( 0 );
-                    }
+        var storeRef = new FolderAnchorStoreRef( settings, folderName );
+        return uow.ensureEntity( Anchor.class,
+                Expressions.eq( Anchor.TYPE.storeRef, storeRef.encoded() ),
+                proto -> {
+                    proto.setStoreRef( storeRef );
+                    proto.name.set( folderName.replace( "/", " " ) );
                 });
     }
 
 
     protected Promise<Integer> fetchMessageCount() {
-        return new FolderInfoRequest( params, folderName ).submit()
+        return new FolderInfoRequest( settings.toRequestParams(), folderName ).submit()
                 .map( folderInfo -> folderInfo.count() );
     }
 
 
     protected Promise<MessageHeaders[]> fetchMessageIds( int start, int end ) {
-        return new MessageHeadersRequest( params, folderName, Range.between( start, end ) )
-                .submit()
+        return new MessageHeadersRequest( settings.toRequestParams(), folderName, Range.between( start, end ) ).submit()
                 .map( response -> response.messageHeaders() );
     }
 
 
     protected Promise<MessageHeaders[]> fetchMessageIds() {
-        var minDate = DateUtils.addMonths( new Date(), -monthsToSync );
+        var minDate = DateUtils.addMonths( new Date(), -settings.monthsToSync.get() );
         LOG.debug( "MIN. DATE: %s", minDate );
-        return new MessageHeadersRequest( params, folderName, minDate, null )
-                .submit()
+        return new MessageHeadersRequest( settings.toRequestParams(), folderName, minDate, null ).submit()
                 .map( response -> response.messageHeaders() );
     }
 
 
     protected Promise<Message> fetchMessage( MessageHeaders msg ) {
         LOG.info( "%s: Fetching: %s", folderName, msg.messageNum() );
-        return new MessageContentRequest( params, folderName, Collections.singleton( msg.messageNum() ) )
+        return new MessageContentRequest( settings.toRequestParams(), folderName, Collections.singleton( msg.messageNum() ) )
                 .submit()
                 .map( response -> {
                     Assert.isEqual( 1, response.messageContent().length );
                     return uow.createEntity( Message.class, proto -> {
-                        proto.storeRef.set( msg.messageId() );
+                        proto.setStoreRef( new MessageStoreRef( settings, msg ) );
                         if (msg.from().length > 0) { // XXX skip message without From: ?
                             proto.fromAddress.set( new EmailAddress( msg.from()[0].address() ).encoded() );
                             proto.replyAddress.set( new EmailAddress( msg.from()[0].address() ).encoded() );  // XXX ReplyTo:
@@ -221,4 +205,55 @@ public class MailFolderSynchronizer {
         }
         return prefixed.substring( start );
     }
+
+
+    /**
+     *
+     */
+    public static class FolderAnchorStoreRef
+            extends MailStoreRef {
+
+        /** Decode */
+        public FolderAnchorStoreRef() { }
+
+        public FolderAnchorStoreRef( ImapSettings settings, String folderName ) {
+            super( settings );
+            parts.add( folderName );
+        }
+
+        @Override
+        public String prefix() {
+            return super.prefix() + "folder";
+        }
+
+        public String foldername() {
+            return parts.get( 1 );
+        }
+    }
+
+
+    /**
+     *
+     */
+    public static class MessageStoreRef
+            extends MailStoreRef {
+
+        /** Decode */
+        public MessageStoreRef() { }
+
+        public MessageStoreRef( ImapSettings settings, MessageHeaders msg ) {
+            super( settings );
+            this.parts.add( msg.messageId() );
+        }
+
+        @Override
+        public String prefix() {
+            return super.prefix() + "msg";
+        }
+
+        public String msgId() {
+            return parts.get( 1 );
+        }
+    }
+
 }

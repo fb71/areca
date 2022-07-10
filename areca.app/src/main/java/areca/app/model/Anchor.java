@@ -16,12 +16,13 @@ package areca.app.model;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.ManyAssociation;
-import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
 
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.common.reflect.NoRuntimeInfo;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -49,26 +50,37 @@ public class Anchor
     @Queryable
     public Property<Long>           lastMessageDate;
 
-    @Nullable
-    @Queryable
-    public Property<String>         storeRef;
-
     @Queryable
     @Defaults
     public Property<Integer>        unreadMessagesCount;
 
-
-//    public Promise<Integer> unreadMessagesCount() {
-//        // XXX a ComputedProperty would cache?!
-//        return messages.fetch()
-//                .reduce( new MutableInt(), (count,opt) -> opt.ifPresent( msg -> count.add( msg.unread.get() ? 1 : 0 ) ) )
-//                .map( count -> count.getValue() );
-//    }
+    /**
+     * A {@link Service} specific reference that is used to identify the origin of
+     * this message in the backend store.
+     *
+     * @see {@link #storeRef(Class)}
+     * @see #setStoreRef(StoreRef)
+     * @see StoreRef
+     */
+    @Queryable
+    public Property<String>         storeRef;
 
 
     public void updateUnreadMessagesCount( int update ) {
         LOG.info( "UnreadMessagesCount: %d %d", unreadMessagesCount.get(), update );
         unreadMessagesCount.set( unreadMessagesCount.get() + update );
+    }
+
+    @NoRuntimeInfo
+    public <R extends StoreRef> Opt<R> storeRef( Class<R> type ) {
+        return StoreRef.decode( type, storeRef.get() );
+    }
+
+
+    @NoRuntimeInfo
+    public Anchor setStoreRef( StoreRef ref ) {
+        this.storeRef.set( ref.encoded() );
+        return this;
     }
 
 }

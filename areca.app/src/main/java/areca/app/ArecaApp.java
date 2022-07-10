@@ -156,7 +156,7 @@ public class ArecaApp extends App {
 
         EntityRepository.newConfiguration()
                 .entities.set( APP_ENTITY_TYPES )
-                .store.set( new IDBStore( "areca.app", 26, true ) )
+                .store.set( new IDBStore( "areca.app", 27, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;

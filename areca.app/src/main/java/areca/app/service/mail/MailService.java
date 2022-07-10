@@ -33,11 +33,11 @@ import areca.app.model.ImapSettings;
 import areca.app.model.Message;
 import areca.app.model.ModelUpdateEvent;
 import areca.app.model.SmtpSettings;
-import areca.app.service.Message2ContactAnchorSynchronizer;
-import areca.app.service.Message2PseudoContactAnchorSynchronizer;
+import areca.app.service.ContactAnchorSynchronizer;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.TransportService;
+import areca.app.service.mail.MailFolderSynchronizer.MessageStoreRef;
 import areca.common.Assert;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
@@ -78,10 +78,10 @@ public class MailService
 
                 var msg = (Message)ev.getSource();
                 LOG.info( "On REMOVED: message: %s", msg.storeRef );
-                if (msg.storeRef.get().contains( "@" )) { // XXX make a MessageStoreRef
+                msg.storeRef( MessageStoreRef.class ).ifPresent( storeRef -> {
                     loadImapSettings().then( settings -> {
                         if (settings != null) {
-                            return new MessageDeleteRequest( settings.toRequestParams(), msg.storeRef.get() ).submit()
+                            return new MessageDeleteRequest( settings.toRequestParams(), storeRef.msgId() ).submit()
                                     .onSuccess( command -> LOG.info( "On REMOVED: deleted (%s)", command.count() ) );
                         }
                         else {
@@ -89,7 +89,7 @@ public class MailService
                         }
                     })
                     .onError( ArecaApp.current().defaultErrorHandler() );
-                }
+                });
             }
         })
         .performIf( EntityLifecycleEvent.class::isInstance );
@@ -111,17 +111,19 @@ public class MailService
                 .then( entities -> {
                     if (entities == null || entities.isEmpty()) {
                         LOG.info( "On UNREAD: Message/Entity removed or no IMAP settings" );
+                        return Promise.completed( null );
                     }
                     else {
                         var message = entities.get( 0 );
                         Assert.isEqual( false, message.unread.get() );
-                        var msgId = message.storeRef.get();
-                        if (msgId.contains( "@" )) { // XXX super horrible; make a MessageStoreRef!
-                            return new MessageSetFlagRequest( mySettings.getValue().toRequestParams(), msgId ).submit()
-                                    .onSuccess( command -> LOG.info( "On UNREAD: SEEN flag set (%s)", command.count() ) );
-                        }
+                        return message.storeRef( MessageStoreRef.class )
+                                .map( storeRef -> {
+                                    RequestParams params = mySettings.getValue().toRequestParams();
+                                    return new MessageSetFlagRequest( params, storeRef.msgId() ).submit()
+                                            .onSuccess( command -> LOG.info( "On UNREAD: SEEN flag set (%s)", command.count() ) );
+                                })
+                                .orElse( Promise.completed( null ) );
                     }
-                    return Promise.completed( null );
                 })
                 .onError( ArecaApp.current().defaultErrorHandler() );
         })
@@ -239,26 +241,23 @@ public class MailService
     protected static abstract class SyncBase
             extends Sync {
 
-        protected RequestParams params;
-
         protected SyncContext   ctx;
 
         protected UnitOfWork    uow;
 
-        protected Message2ContactAnchorSynchronizer messages2ContactAnchor;
+        protected ContactAnchorSynchronizer contactAnchorSync;
 
-        protected Message2PseudoContactAnchorSynchronizer messages2PseudoAnchor;
+        protected PseudoContactSynchronizer pseudoContactSync;
 
         protected ImapSettings  settings;
 
 
         public SyncBase( ImapSettings settings, SyncContext ctx ) {
             this.settings = settings;
-            this.params = settings.toRequestParams();
             this.ctx = ctx;
             uow = ctx.unitOfWork();
-            messages2ContactAnchor = new Message2ContactAnchorSynchronizer( uow );
-            messages2PseudoAnchor = new Message2PseudoContactAnchorSynchronizer( uow );
+            contactAnchorSync = new ContactAnchorSynchronizer( uow );
+            pseudoContactSync = new PseudoContactSynchronizer( uow, settings );
         }
 
 
@@ -294,15 +293,15 @@ public class MailService
 
         protected Promise<Integer> syncFolder( String folderName ) {
             var subMonitor = ctx.monitor().subMonitor( 100 );
-            return new MailFolderSynchronizer( folderName, uow, params, monthsToSync() )
+            return new MailFolderSynchronizer( folderName, uow, settings )
                     .onMessageCount( msgCount -> subMonitor.beginTask( abbreviate( folderName, 5 ), msgCount ) )
                     .start()
                     .onSuccess( msg -> {
                         LOG.debug( "%s: pre sync: %s", folderName, msg.getClass() );
                     })
 
-                    .thenOpt( msg -> messages2ContactAnchor.perform( msg.get() ) )
-                    .thenOpt( msg -> messages2PseudoAnchor.perform( msg.get() ) )
+                    .thenOpt( msg -> contactAnchorSync.perform( msg.get() ) )
+                    .thenOpt( msg -> pseudoContactSync.perform( msg.get() ) )
 
                     .onSuccess( msg -> subMonitor.worked( 1 ) )
                     .reduce( new MutableInt(), (r,msg) -> msg.ifPresent( m -> r.increment() ) )
@@ -315,7 +314,7 @@ public class MailService
 
 
         protected Promise<List<String>> fetchFolders() {
-            return new AccountInfoRequest( params ).submit()
+            return new AccountInfoRequest( settings.toRequestParams() ).submit()
                     .map( accountInfo -> Sequence.of( accountInfo.folderNames() ).toList() );
         }
     }

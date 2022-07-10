@@ -99,7 +99,15 @@ public class MailTest {
     public Promise<?> syncFolderTest() {
         return initRepo( "syncFolder" ).then( repo -> {
             var uow = repo.newUnitOfWork();
-            return new MailFolderSynchronizer( "Test1", uow, defaultParams(), 36 )
+            var settings = uow.createEntity( ImapSettings.class, proto -> {
+                var params = defaultParams();
+                proto.username.set( params.username.value );
+                proto.pwd.set( params.password.value );
+                proto.host.set( params.host.value );
+                proto.port.set( Integer.parseInt( params.port.value ) );
+                proto.monthsToSync.set( 36 );
+            });
+            return new MailFolderSynchronizer( "Test1", uow, settings )
                     .onMessageCount( msgCount -> LOG.info( "fetching: %s", msgCount ) )
                     .start()
                     .reduce( new MutableInt(), (r,msg) -> r.increment())

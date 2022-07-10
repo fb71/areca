@@ -13,7 +13,6 @@
  */
 package areca.app.service;
 
-import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,8 +20,10 @@ import org.polymap.model2.query.Expressions;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.model.Address;
+import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
+import areca.app.model.StoreRef;
 import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.base.Opt;
@@ -30,17 +31,19 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
+ * Checks if a given {@link Message} belongs to a {@link Contact} and its associated
+ * {@link Anchor}.
  *
  * @author Falko Bräutigam
  */
-public class Message2ContactAnchorSynchronizer {
+public class ContactAnchorSynchronizer {
 
-    private static final Log LOG = LogFactory.getLog( Message2ContactAnchorSynchronizer.class );
+    private static final Log LOG = LogFactory.getLog( ContactAnchorSynchronizer.class );
 
-    private UnitOfWork              uow;
+    private UnitOfWork      uow;
 
 
-    public Message2ContactAnchorSynchronizer( UnitOfWork uow ) {
+    public ContactAnchorSynchronizer( UnitOfWork uow ) {
         this.uow = uow;
     }
 
@@ -68,7 +71,7 @@ public class Message2ContactAnchorSynchronizer {
                         return contact.anchor
                                 .ensure( proto -> {
                                     proto.name.set( anchorName( message, contact ) );
-                                    proto.storeRef.set( "contact:" + contact.id() );
+                                    proto.setStoreRef( new ContactAnchorStoreRef( contact ) );
                                 })
                                 .map( anchor -> {
                                     anchor.messages.add( message );
@@ -89,4 +92,28 @@ public class Message2ContactAnchorSynchronizer {
         var matcher = p.matcher( s );
         return Opt.of( matcher.matches() ? matcher : null );
     }
+
+
+    /**
+     *
+     */
+    public static class ContactAnchorStoreRef extends StoreRef {
+
+        /** Decode */
+        public ContactAnchorStoreRef() { }
+
+        public ContactAnchorStoreRef( Contact contact ) {
+            parts.add( contact.id().toString() );
+        }
+
+        public String contactId() {
+            return parts.get( 0 );
+        }
+
+        @Override
+        public String prefix() {
+            return "contact";
+        }
+    }
+
 }

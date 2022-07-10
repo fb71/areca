@@ -29,6 +29,10 @@ import org.polymap.model2.query.Query.Order;
 import areca.app.ArecaApp;
 import areca.app.model.Anchor;
 import areca.app.model.ModelUpdateEvent;
+import areca.app.service.ContactAnchorSynchronizer;
+import areca.app.service.mail.MailFolderSynchronizer.FolderAnchorStoreRef;
+import areca.app.service.mail.PseudoContactSynchronizer;
+import areca.app.service.matrix.MatrixService;
 import areca.app.ui.AnchorsCloudPage.CloudRaster.CloudComponent;
 import areca.common.Platform;
 import areca.common.Promise;
@@ -156,18 +160,18 @@ public class AnchorsCloudPage
 
         // tag
         var tag = new Tag( btn );
-        if (anchor.storeRef.get().startsWith( "contact:" )) {
+        anchor.storeRef( ContactAnchorSynchronizer.ContactAnchorStoreRef.class ).ifPresent( __ -> {
             tag.icons.add( "face" );
-        }
-        else if (anchor.storeRef.get().startsWith( "pseudo-contact:" )) {
+        });
+        anchor.storeRef( PseudoContactSynchronizer.AnchorStoreRef.class ).ifPresent( __ -> {
             tag.icons.add( "alternate_email" );
-        }
-        else if (anchor.storeRef.get().startsWith( "imap-folder:" )) {
+        });
+        anchor.storeRef( FolderAnchorStoreRef.class ).ifPresent( __ -> {
             tag.icons.add( "folder" );
-        }
-        else if (anchor.storeRef.get().startsWith( "matrix-room:" )) {
+        });
+        anchor.storeRef( MatrixService.RoomAnchorStoreRef.class ).ifPresent( __ -> {
             tag.icons.add( "3p" );
-        }
+        });
         Runnable updateTag = () -> {
             var unread = anchor.unreadMessagesCount.get();
             btn.cssClasses.modify( "HasUnreadMessages", unread > 0 );

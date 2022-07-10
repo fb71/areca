@@ -68,7 +68,7 @@ public class CarddavSynchronizer {
                 .then( res -> {
                     LOG.debug( "PROPFIND: %s", Arrays.asList( res ) );
                     monitor.value().setTotalWork( res.length );
-                    return Promise.serial( res.length, i -> {
+                    return Promise.joined( res.length, i -> {
                         return new GetResourceRequest( res[i] ).submit();
                     });
                 })
@@ -77,7 +77,7 @@ public class CarddavSynchronizer {
                     var vcard = VCard.parse( vcf.text() );
                     LOG.info( "VCard fetched: %s", vcard.fn.value() );
                     return uow.query( Contact.class )
-                            .where( eq( Contact.TYPE.storeRef, vcard.uid.value() ) )
+                            .where( eq( Contact.TYPE.storeRef, vcard.uid.value() ) )  // XXX StoreRef
                             .executeCollect()
                             .map( contacts -> Pair.of( vcard, contacts ) );
                 })
@@ -107,7 +107,7 @@ public class CarddavSynchronizer {
     protected void fillContact( Contact contact, VCard vcard ) {
         vcard.firstname.opt().ifPresent( v -> contact.firstname.set( v ) );
         vcard.lastname.opt().ifPresent( v -> contact.lastname.set( v ) );
-        vcard.uid.opt().ifPresent( v -> contact.storeRef.set( v ) );
+        vcard.uid.opt().ifPresent( v -> contact.storeRef.set( v ) );  // XXX StoreRef
         vcard.emails.values().first().ifPresent( v -> contact.email.set( v ) );  // XXX multiple
         vcard.phones.values().first().ifPresent( v -> contact.phone.set( v ) );  // XXX multiple
         vcard.photo.opt().ifPresent( v -> contact.photo.set( v ) );

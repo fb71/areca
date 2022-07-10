@@ -113,7 +113,8 @@ class Synchronization {
                             return sync != null ? sync.start() : Promise.completed( null );
                         })
                         .onSuccess( __ -> { if (ctx.monitor != null) ctx.monitor.done(); } )
-                        .onError( __ -> { if (ctx.monitor != null) ctx.monitor.done(); } );
+                        .onError( __ -> { if (ctx.monitor != null) ctx.monitor.done(); } )
+                        .onError( ArecaApp.current().defaultErrorHandler() );
             });
         }
     }

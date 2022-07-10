@@ -14,40 +14,28 @@
 package areca.app.service.matrix;
 
 import areca.app.model.MatrixSettings;
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
+import areca.app.model.StoreRef;
 
 /**
  *
+ * @author Falko Bräutigam
  */
-class MessageStoreRef
-        extends MatrixStoreRef {
-
-    private static final Log LOG = LogFactory.getLog( MessageStoreRef.class );
+abstract class MatrixStoreRef
+        extends StoreRef {
 
     /** Decode */
-    public MessageStoreRef() { }
+    public MatrixStoreRef() { }
 
-    public MessageStoreRef( MatrixSettings settings, JSEvent event ) {
-        this( settings, event.roomId(), event.eventId() );
-    }
-
-    public MessageStoreRef( MatrixSettings settings, String roomId, String eventId ) {
-        super( settings );
-        parts.add( roomId );
-        parts.add( eventId );
+    public MatrixStoreRef( MatrixSettings settings ) {
+        this.parts.add( settings.username.get() );
     }
 
     @Override
     public String prefix() {
-        return super.prefix() + "msg";
+        return "matrix-";
     }
 
-    public String roomId() {
-        return parts.get( 1 );
-    }
-
-    public String eventId() {
-        return parts.get( 2 );
+    public String serviceUsername() {
+        return parts.get( 0 );
     }
 }

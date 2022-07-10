@@ -25,8 +25,10 @@ import org.polymap.model2.query.Expressions;
 import areca.app.service.Service;
 import areca.app.service.TransportService;
 import areca.common.Promise;
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.common.reflect.NoRuntimeInfo;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -37,6 +39,7 @@ import areca.common.reflect.RuntimeInfo;
 public class Message
         extends Common {
 
+    @NoRuntimeInfo
     private static final Log LOG = LogFactory.getLog( Message.class );
 
     public static final MessageClassInfo info = MessageClassInfo.instance();
@@ -99,15 +102,35 @@ public class Message
     /**
      * A {@link Service} specific reference that is used to identify the origin of
      * this message in the backend store.
+     *
+     * @see {@link #storeRef(Class)}
+     * @see #setStoreRef(StoreRef)
+     * @see StoreRef
      */
-    @Nullable
     @Queryable
     public Property<String>         storeRef;
 
 
     /**
+     * Checks if the {@link #storeRef} of this {@link Message} is of the given type.
+     */
+    @NoRuntimeInfo
+    public <R extends StoreRef> Opt<R> storeRef( Class<R> type ) {
+        return StoreRef.decode( type, storeRef.get() );
+    }
+
+
+    @NoRuntimeInfo
+    public Message setStoreRef( StoreRef ref ) {
+        this.storeRef.set( ref.encoded() );
+        return this;
+    }
+
+
+    /**
      * Computed bidi association {@link Anchor#messages}.
      */
+    @NoRuntimeInfo
     public Promise<List<Anchor>> anchors() {
         return context.getUnitOfWork().query( Anchor.class )
                 .where( Expressions.anyOf( Anchor.TYPE.messages, Expressions.id( id() ) ) )

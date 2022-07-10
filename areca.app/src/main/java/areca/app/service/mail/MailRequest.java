@@ -24,6 +24,7 @@ import java.net.URLEncoder;
 
 import org.teavm.jso.json.JSON;
 
+import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Timer;
@@ -53,7 +54,7 @@ public abstract class MailRequest<R extends MailRequest.Response> {
 
 
     protected MailRequest( RequestParams params ) {
-        this.params = params;
+        this.params = Assert.notNull( params );
     }
 
 
