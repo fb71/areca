@@ -13,13 +13,14 @@
  */
 package areca.app.service.carddav;
 
+import static areca.app.service.SyncableService.SyncType.FULL;
+import static areca.app.service.SyncableService.SyncType.INCREMENTAL;
+
 import java.util.regex.Pattern;
 
-import areca.app.ArecaApp;
 import areca.app.model.CarddavSettings;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
-import areca.common.Assert;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -30,7 +31,7 @@ import areca.common.log.LogFactory.Log;
  */
 public class CarddavService
         extends Service
-        implements SyncableService {
+        implements SyncableService<CarddavSettings> {
 
     private static final Log LOG = LogFactory.getLog( CarddavService.class );
 
@@ -43,31 +44,34 @@ public class CarddavService
 
 
     @Override
-    public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
-        return ArecaApp.current().settings()
-                .then( uow -> uow.query( CarddavSettings.class ).executeCollect() )
-                .map( rs -> {
-                    if (rs.isEmpty() || syncType == SyncType.BACKGROUND) {
-                       return (Sync)null;
+    public Sync newSync( SyncType syncType, SyncContext ctx, CarddavSettings settings ) {
+        LOG.info( "Sync: %s", syncType );
+        if (syncType == FULL || syncType == INCREMENTAL) {
+            return new Sync() {
+                @Override
+                public Promise<?> start() {
+                    var matcher = URL.matcher( settings.url.get() );
+                    if (!matcher.matches()) {
+                        throw new RuntimeException( "URL is not valid: " + settings.url.get() );
                     }
-                    return new Sync() {
-                        @Override
-                        public Promise<?> start() {
-                            Assert.isEqual( 1, rs.size(), "Multiple CardDav accounts are not supported yet." );
-                            CarddavSettings settings = rs.get( 0 );
-                            var matcher = URL.matcher( settings.url.get() );
-                            if (!matcher.matches()) {
-                                throw new RuntimeException( "URL is not valid: " + settings.url.get() );
-                            }
-                            var res = DavResource.create( matcher.group( 1 ), matcher.group( 2 ) )
-                                    .auth( settings.username.get(), settings.pwd.get() );
-                            var synchronizer = new CarddavSynchronizer( res, ctx.unitOfWork() );
-                            synchronizer.monitor.set( ctx.monitor() );
-                            return synchronizer.start()
-                                    .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) );
-                        }
-                    };
-                });
+                    var res = DavResource.create( matcher.group( 1 ), matcher.group( 2 ) )
+                            .auth( settings.username.get(), settings.pwd.get() );
+                    var synchronizer = new CarddavSynchronizer( res, ctx.unitOfWork() );
+                    synchronizer.monitor.set( ctx.monitor() );
+                    return synchronizer.start()
+                            .onSuccess( contacts -> LOG.info( "Contacts: %s", contacts.size() ) );
+                }
+            };
+        }
+        else {
+            return (Sync)null;
+        }
+    }
+
+
+    @Override
+    public Class<CarddavSettings> syncSettingsType() {
+        return CarddavSettings.class;
     }
 
 }

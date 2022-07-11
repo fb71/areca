@@ -15,35 +15,50 @@ package areca.app.service;
 
 import org.polymap.model2.runtime.UnitOfWork;
 
+import areca.app.model.ModelUpdateEvent;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 
 /**
  *
+ * @param <S> The settings type.
  * @author Falko Bräutigam
  */
-public interface SyncableService {
+public interface SyncableService<S> {
 
     public enum SyncType {
-        FULL, INCREMENTAL, BACKGROUND
+        /** Sync "everything", but check existing. */
+        FULL,
+        /** Periodic, fast check for "new" messages. */
+        INCREMENTAL,
+        /** Permanently run in background Re-started when settings have been changed. */
+        BACKGROUND,
+        /** Executed when the model has changed. */
+        OUTGOING
     }
 
     /**
      *
      */
     public interface SyncContext {
+
         public ProgressMonitor monitor();
+
         public UnitOfWork unitOfWork();
+
+        public ModelUpdateEvent outgoing();
     }
+
+
+    // instance *******************************************
+
+    public Class<S> syncSettingsType();
+
 
     /**
      * A new Sync object, or null if there is nothing to sync.
-     * <p/>
-     * The default implementation signals that there is nothing to sync.
      */
-    public default Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
-        return Promise.completed( null );
-    }
+    public Sync newSync( SyncType syncType, SyncContext ctx, S settings );
 
 
     public abstract static class Sync {
@@ -54,5 +69,9 @@ public interface SyncableService {
          * Default error handlers are attached by caller.
          */
         public abstract Promise<?> start();
+
+        public void dispose() {
+            throw new RuntimeException( "Implement this for BACKGROUND sync!" );
+        }
     }
 }

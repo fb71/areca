@@ -53,7 +53,7 @@ public class StartPage
             icon.set( "sync" );
             description.set( "Start synchronization" );
             handler.set( (UIEvent ev) -> {
-                ArecaApp.current().forceIncrementalSync( 0 );
+                ArecaApp.current().synchronization.triggerIncremental( 0 );
             });
         }});
         // Settings

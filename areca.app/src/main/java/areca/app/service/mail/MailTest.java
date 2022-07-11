@@ -31,6 +31,7 @@ import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.ImapSettings;
 import areca.app.model.Message;
+import areca.app.model.ModelUpdateEvent;
 import areca.app.service.SyncableService;
 import areca.app.service.mail.MessageHeadersRequest.MessageHeadersResponse.MessageHeaders;
 import areca.common.Assert;
@@ -140,6 +141,10 @@ public class MailTest {
                 }
                 @Override public UnitOfWork unitOfWork() {
                     return repo.newUnitOfWork();
+                }
+                @Override
+                public ModelUpdateEvent outgoing() {
+                    throw new RuntimeException( "must not be called" );
                 }
             };
             return new MailService.FullSync( settings, ctx ).start();

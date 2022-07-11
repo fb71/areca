@@ -17,7 +17,6 @@ import static areca.ui.Orientation.VERTICAL;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -31,7 +30,6 @@ import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
 
-import areca.app.model.Address;
 import areca.app.model.Anchor;
 import areca.app.model.CarddavSettings;
 import areca.app.model.Contact;
@@ -40,12 +38,7 @@ import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
 import areca.app.model.SmtpSettings;
 import areca.app.service.Service;
-import areca.app.service.TransportService;
-import areca.app.service.TransportService.Transport;
-import areca.app.service.TransportService.TransportContext;
-import areca.app.service.carddav.CarddavService;
-import areca.app.service.mail.MailService;
-import areca.app.service.matrix.MatrixService;
+import areca.app.service.SyncableService;
 import areca.app.ui.StartPage;
 import areca.common.Assert;
 import areca.common.Platform;
@@ -54,9 +47,6 @@ import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.WaitFor;
 import areca.common.base.Consumer.RConsumer;
-import areca.common.base.Function.RFunction;
-import areca.common.base.Opt;
-import areca.common.base.Sequence;
 import areca.common.event.AsyncEventManager;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
@@ -128,32 +118,27 @@ public class ArecaApp extends App {
 
     // instance *******************************************
 
-    private List<? extends Service> services = Arrays.asList(
-            new CarddavService(),
-            new MailService(),
-            new MatrixService());
-
     protected EntityRepository      repo;
 
     protected UnitOfWork            uow;
 
     protected EntityRepository      settingsRepo;
 
-    protected UnitOfWork            settingsUow;
+    /** {@link Services API} to work with {@link Service}s. */
+    public Services                 services = new Services( this );
+
+    /** {@link Synchronization API} for {@link SyncableService}s. */
+    public Synchronization          synchronization = new Synchronization( this );
+
+    /** {@link ModelUpdates API} for model update operations. */
+    public ModelUpdates             modelUpdates = new ModelUpdates( this );
 
     private UIComposite             mainBody;
 
     private UIComposite             progressBody;
 
-    private ModelUpdates            modelUpdates;
-
-    private Synchronization         synchronization;
-
 
     protected ArecaApp() {
-        modelUpdates = new ModelUpdates( this );
-        synchronization = new Synchronization( this );
-
         EntityRepository.newConfiguration()
                 .entities.set( APP_ENTITY_TYPES )
                 .store.set( new IDBStore( "areca.app", 27, true ) )
@@ -170,7 +155,7 @@ public class ArecaApp extends App {
                 .create()
                 .onSuccess( result -> {
                     settingsRepo = result;
-                    settingsUow = settingsRepo.newUnitOfWork();
+                    //settingsUow = settingsRepo.newUnitOfWork();
                     LOG.info( "Settings database and model repo initialized." );
                 });
     }
@@ -291,53 +276,6 @@ public class ArecaApp extends App {
     }
 
 
-    @SuppressWarnings("unchecked")
-    public <R> Sequence<R,RuntimeException> services( Class<R> type ) {
-        return Sequence.of( services ).filter( type::isInstance ).map( s -> (R)s );
-    }
-
-
-    public void forceIncrementalSync( int delay ) {
-        synchronization.forceIncremental( delay );
-    }
-
-
-    /**
-     * One Transport that can be used for the given receipient, or {@link Promise#absent()}
-     * if there is no Transport that can handle the receipient.
-     *
-     * @return One or {@link Promise#absent()}
-     */
-    public Promise<Opt<Transport>> transportFor( Address receipient ) {
-        var ctx = new TransportContext() {
-            @Override public ProgressMonitor newMonitor() {
-                return ArecaApp.instance().newAsyncOperation();
-            }
-        };
-
-        LOG.info( "Transports for: %s ", receipient );
-        var s = services( TransportService.class ).toList();
-        if (s.isEmpty()) {
-            return Promise.absent();
-        }
-        return Promise
-                .joined( s.size(), i -> s.get( i ).newTransport( receipient, ctx ) )
-                .onSuccess( l -> LOG.info( "Transports: %s", l ) )
-                .reduce( new ArrayList<Transport>(), (r,transports) -> r.addAll( transports ) )
-                .map( l -> l.isEmpty() ? Opt.absent() : Opt.of( l.get( 0 ) ) );
-    }
-
-
-    /**
-     * Schedule the given model update operation.
-     *
-     * @see ModelUpdates
-     */
-    public void scheduleModelUpdate( RFunction<UnitOfWork,Promise<?>> update ) {
-        modelUpdates.schedule( update );
-    }
-
-
     public EntityRepository repo() {
         return repo;
     }
@@ -348,9 +286,9 @@ public class ArecaApp extends App {
     }
 
 
-    public Promise<UnitOfWork> settings() {
-        return new WaitFor<UnitOfWork>( () -> settingsUow != null ).thenSupply( () -> settingsUow ).start();
-    }
+//    public Promise<UnitOfWork> settings() {
+//        return new WaitFor<UnitOfWork>( () -> settingsUow != null ).thenSupply( () -> settingsUow ).start();
+//    }
 
     public Promise<UnitOfWork> modifiableSettings() {
         return new WaitFor<UnitOfWork>( () -> settingsRepo != null ).thenSupply( () -> settingsRepo.newUnitOfWork() ).start();

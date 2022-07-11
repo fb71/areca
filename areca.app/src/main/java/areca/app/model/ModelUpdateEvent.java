@@ -14,6 +14,7 @@
 package areca.app.model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EventObject;
 import java.util.List;
@@ -45,6 +46,22 @@ public class ModelUpdateEvent
     public ModelUpdateEvent( ArecaApp source, List<EntityLifecycleEvent> collected ) {
         super( source );
         this.events = collected;
+    }
+
+
+    /**
+     * Raw access to the underlying events.
+     */
+    public List<EntityLifecycleEvent> events(){
+        return events;
+    }
+
+
+    /**
+     * True if this events contains updates for the given {@link Entity} type.
+     */
+    public <R extends Entity> boolean contains( Collection<Class<Entity>> types ) {
+        return Sequence.of( events ).anyMatches( ev -> types.contains( ev.getSource().getClass() ) );
     }
 
 

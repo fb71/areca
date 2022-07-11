@@ -16,6 +16,7 @@ package areca.app.model;
 import java.util.EventObject;
 
 import org.polymap.model2.Entity;
+import org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.model2.runtime.Lifecycle.State;
 import org.polymap.model2.runtime.UnitOfWork;
 
@@ -31,11 +32,14 @@ public class EntityLifecycleEvent
 
     private static final Log LOG = LogFactory.getLog( EntityLifecycleEvent.class );
 
-    public State state;
+    public State            state;
+
+    public EntityStatus     entityStatus;
 
     public EntityLifecycleEvent( Entity source, State state ) {
         super( source );
         this.state = state;
+        this.entityStatus = source.status();
     }
 
     /**

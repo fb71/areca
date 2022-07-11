@@ -15,11 +15,6 @@ package areca.app.service.matrix;
 
 import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_ENCRYPTED;
 import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_MESSAGE;
-import static java.util.Collections.singletonList;
-
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.query.Expressions;
@@ -49,13 +44,13 @@ import areca.common.log.LogFactory.Log;
  */
 public class MatrixService
         extends Service
-        implements SyncableService, TransportService {
+        implements SyncableService<MatrixSettings>, TransportService<MatrixSettings> {
 
     private static final Log LOG = LogFactory.getLog( MatrixService.class );
 
-    protected MatrixSettings    settings;
+    protected MatrixSettings    _settings;
 
-    protected MatrixClient      matrix;  // XXX reload if MatrixSettings are modified
+    protected MatrixClient      matrix;
 
     protected String            clientSyncState;
 
@@ -68,46 +63,43 @@ public class MatrixService
     /**
      * Override to provide another configured client (for testing).
      */
-    protected Promise<MatrixClient> initMatrixClient() {
-        if (matrix != null) {  // FIXME race cond!
+    protected Promise<MatrixClient> initMatrixClient( MatrixSettings settings ) {
+        if (matrix != null) {
             return Promise.completed( matrix );
         }
         else {
-            return ArecaApp.instance().settings()
-                    .then( uow -> uow.query( MatrixSettings.class ).executeCollect() )
-                    .then( rs -> {
-                        Assert.isEqual( 1, rs.size() );
-                        settings = rs.get( 0 );
-                        var result = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ),
-                                settings.accessToken.get(), settings.username.get(), settings.deviceId.get() );
+            // FIXME check if settings are still...
+            matrix = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ),
+                    settings.accessToken.get(), settings.username.get(), settings.deviceId.get() );
 
-                        result.initCrypto().then( cryptoResult -> {
-                            LOG.info( "CRYPTO INIT :)" );
-                            MatrixClient.console( cryptoResult );
-                            result.setGlobalErrorOnUnknownDevices( false );
-                        });
+            matrix.initCrypto().then( cryptoResult -> {
+                LOG.info( "CRYPTO INIT :)" );
+                MatrixClient.console( cryptoResult );
+                matrix.setGlobalErrorOnUnknownDevices( false );
+            });
 
-                        result.startClient( 57000 );
-                        return result.waitForStartup()
-                                .onSuccess( __ -> {
-                                    result.uploadKeys().then( ___ -> LOG.info( "Keys uploaded." ) );
-                                    result.exportRoomKeys().then( ___ -> LOG.info( "Room keys exported." ) );
-                                    matrix = result;
-                                })
-                                .onError( e -> LOG.warn( "ERROR while starting matrix client.", e ) ); // FIXME UI!
-                    });
+            matrix.startClient( 57000 );
+            return matrix.waitForStartup()
+                    .onSuccess( __ -> {
+                        matrix.uploadKeys().then( ___ -> LOG.info( "Keys uploaded." ) );
+                        matrix.exportRoomKeys().then( ___ -> LOG.info( "Room keys exported." ) );
+                    })
+                    .onError( e -> LOG.warn( "ERROR while starting matrix client.", e ) ); // FIXME UI!
         }
     }
 
+    // Transport ******************************************
 
     @Override
-    public Promise<List<Transport>> newTransport( Address receipient, TransportContext ctx ) {
-        var address = MatrixAddress.check( receipient );
-        return Promise.completed( address.isPresent()
-                ? singletonList( new MatrixTransport( address.get(), ctx ) )
-                : Collections.emptyList() );
+    public Opt<Transport> newTransport( Address receipient, TransportContext ctx, MatrixSettings settings ) {
+        return MatrixAddress.check( receipient )
+                .map( address -> new MatrixTransport( address, ctx ) );
     }
 
+    @Override
+    public Class<MatrixSettings> transportSettingsType() {
+        return MatrixSettings.class;
+    }
 
     /**
      *
@@ -148,28 +140,21 @@ public class MatrixService
     }
 
 
+    // Sync ***********************************************
+
     @Override
-    public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
-        return ArecaApp.instance().settings()
-                .then( uow -> uow.query( MatrixSettings.class ).executeCollect() )
-                .map( rs -> {
-                    if (rs.size() > 1) {
-                        throw new IllegalStateException( "To many MatrixSettings: " + rs.size() );
-                    }
-                    else if (rs.size() == 1) {
-                        switch (syncType) {
-                            case FULL : return new FullSync( ctx );
-                            case INCREMENTAL : return null;
-                            case BACKGROUND : return new BackgroundSync( ctx );
-                            default : return null;
-                        }
-                    }
-                    else {
-                        return null;
-                    }
-                });
+    public Sync newSync( SyncType syncType, SyncContext ctx, MatrixSettings settings ) {
+        switch (syncType) {
+            case FULL : return new FullSync( ctx, settings );
+            case BACKGROUND : return new BackgroundSync( ctx, settings );
+            default : return null;
+        }
     }
 
+    @Override
+    public Class<MatrixSettings> syncSettingsType() {
+        return MatrixSettings.class;
+    }
 
     /**
      *
@@ -179,13 +164,23 @@ public class MatrixService
 
         private SyncContext ctx;
 
-        public BackgroundSync( SyncContext ctx ) {
+        private MatrixSettings settings;
+
+        public BackgroundSync( SyncContext ctx, MatrixSettings settings ) {
             this.ctx = ctx;
+            this.settings = settings;
         }
+
+
+        @Override
+        public void dispose() {
+            LOG.info( "Dispose: keeping Matrix client" );
+        }
+
 
         @Override
         public Promise<?> start() {
-            return initMatrixClient().onSuccess( count -> {
+            return initMatrixClient( settings ).onSuccess( count -> {
                 startListenEvents();
                 LOG.info( "Start event handling..." );
             });
@@ -208,7 +203,7 @@ public class MatrixService
 
                 if (M_ROOM_MESSAGE.equals( event.type() ) || M_ROOM_ENCRYPTED.equals( event.type() )) {
                     MatrixClient.console( event );
-                    ArecaApp.current().scheduleModelUpdate( uow -> {
+                    ArecaApp.current().modelUpdates.schedule( uow -> {
                         var monitor = ArecaApp.instance().newAsyncOperation();
                         monitor.beginTask( "Matrix event", 3 );
 
@@ -269,15 +264,18 @@ public class MatrixService
 
         private UnitOfWork          uow;
 
-        public FullSync( SyncContext ctx ) {
+        private MatrixSettings      settings;
+
+        public FullSync( SyncContext ctx, MatrixSettings settings ) {
             this.ctx = ctx;
             this.uow = ctx.unitOfWork();
+            this.settings = settings;
         }
 
 
         @Override
         public Promise<?> start() {
-            return initMatrixClient()
+            return initMatrixClient( settings )
                     .then( __ -> syncRooms() )
                     .reduce( new MutableInt(0), (r,__) -> r.increment() )
                     .then( count -> uow.submit().map( submitted -> count ) )

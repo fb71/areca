@@ -41,6 +41,9 @@ public abstract class Common
         if (state == State.BEFORE_SUBMIT && status() != EntityStatus.REMOVED ) {
             lastModified.set( System.currentTimeMillis() );
         }
+        // XXX this send ALL lifecycle events - although we are just using AFTER_SUBMIT;
+        // except for REMOVE, which we need because there is no other way to find out (after submit);
+        // would be cool to have a good way to check actual modifications/remove/create
         EventManager.instance().publish( new EntityLifecycleEvent( this, state ) );
     }
 

@@ -38,7 +38,7 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-class ModelUpdates {
+public class ModelUpdates {
 
     private static final Log LOG = LogFactory.getLog( ModelUpdates.class );
 
@@ -63,6 +63,10 @@ class ModelUpdates {
     }
 
 
+    /**
+     * Schedules the given update operation to be executed as soon as possible. The
+     * update operation receives its own {@link UnitOfWork}.
+     */
     public void schedule( RFunction<UnitOfWork,Promise<?>> update ) {
         modelUpdates.addLast( update );
 
@@ -74,9 +78,10 @@ class ModelUpdates {
 
 
     protected void modelUpdateCompleted( RFunction<UnitOfWork,Promise<?>> expected ) {
-        LOG.info( "Model: Update completed (%s)", timer.elapsedHumanReadable() );
+        LOG.info( "Update done. (%s)", timer.elapsedHumanReadable() );
         timer.restart();
         var first = modelUpdates.pollFirst();
+        Assert.notNull( first, "Model update operations MUST produce exactly ONE result in the Promise!" );
         Assert.isSame( first, expected );
         startNextUpdate( );
     }
@@ -87,10 +92,10 @@ class ModelUpdates {
         var first = modelUpdates.peekFirst();
         if (first != null) {
             try {
-                LOG.info( "Model: Starting (next) update operation..." );
+                LOG.info( "Starting (next) update operation..." );
                 first.apply( app.repo.newUnitOfWork() )
                         .onSuccess( __ -> modelUpdateCompleted( first ) )
-                        //.onError( defaultErrorHandler() )
+                        .onError( app.defaultErrorHandler() )
                         .onError( __ -> modelUpdateCompleted( first ) );
             }
             // first.apply() error (?!?)
@@ -114,39 +119,29 @@ class ModelUpdates {
                     modelUpdateEventCollector.collect( ev, collected -> {
                         var mue = new ModelUpdateEvent( app, collected );
                         var ids = mue.entities( Entity.class );
-                        LOG.info( "Refreshing: %s entities ...", ids.size() );
+                        LOG.info( "Refreshing: %s entities", ids.size() );
                         app.uow.refresh( ids ).onSuccess( __ -> {
                             EventManager.instance().publish( mue );
                         });
                     });
                 })
-                .performIf( ev -> ev instanceof EntityLifecycleEvent
-                            && ((EntityLifecycleEvent)ev).state == State.AFTER_SUBMIT
-                            && appEntities.contains( ev.getSource().getClass() ))
+                .performIf( EntityLifecycleEvent.class, ev ->
+                            ev.state == State.AFTER_SUBMIT &&
+                            appEntities.contains( ev.getSource().getClass() ))
                 .unsubscribeIf( () -> !app.uow.isOpen() );
 
-        // settings model updates
+        // settings updates
         var collector2 = new EventCollector<EntityLifecycleEvent>( DEFAULT_MODEL_UPDATE_EVENT_DELAY );
         var settingsEntities = Sequence.of( ArecaApp.SETTINGS_ENTITY_TYPES ).map( info -> info.type() ).toList();
         EventManager.instance()
                 .subscribe( (EntityLifecycleEvent ev) -> {
-                    // no refresh needed if main UoW was submitted
-                    if (ev.getSource().context.getUnitOfWork() == app.settingsUow) {
-                        LOG.info( "Mist!" );
-                        return;
-                    }
                     collector2.collect( ev, collected -> {
                         var mue = new ModelUpdateEvent( app, collected );
-                        var ids = mue.entities( Entity.class );
-                        LOG.info( "Refreshing: %s entities ...", ids.size() );
-                        app.settingsUow.refresh( ids ).onSuccess( __ -> {
-                            EventManager.instance().publish( mue );
-                        });
+                        EventManager.instance().publish( mue );
                     });
                 })
                 .performIf( ev -> ev instanceof EntityLifecycleEvent
                         && ((EntityLifecycleEvent)ev).state == State.AFTER_SUBMIT
-                        && settingsEntities.contains( ev.getSource().getClass() ))
-                .unsubscribeIf( () -> !app.settingsUow.isOpen() );
+                        && settingsEntities.contains( ev.getSource().getClass() ));
     }
 }

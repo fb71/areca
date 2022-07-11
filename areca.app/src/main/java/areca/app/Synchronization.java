@@ -13,12 +13,18 @@
  */
 package areca.app;
 
+import static areca.app.service.SyncableService.SyncType.BACKGROUND;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.polymap.model2.Entity;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.model.ModelUpdateEvent;
 import areca.app.service.SyncableService;
+import areca.app.service.SyncableService.Sync;
 import areca.app.service.SyncableService.SyncContext;
 import areca.app.service.SyncableService.SyncType;
 import areca.common.Platform;
@@ -36,7 +42,7 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-class Synchronization {
+public class Synchronization {
 
     private static final Log LOG = LogFactory.getLog( Synchronization.class );
 
@@ -44,44 +50,58 @@ class Synchronization {
 
     protected static final int  MIN_INCREMENTAL_DELAY = 1 * 60 * 1000;
 
-    protected ArecaApp   app;
+    protected ArecaApp      app;
 
-    protected int        incrementalDelay = MAX_INCREMENTAL_DELAY;
+    protected int           incrementalDelay = MAX_INCREMENTAL_DELAY;
 
-    protected Timer      lastIncrementalRun = Timer.start();
+    protected Timer         lastIncrementalRun = Timer.start();
+
+    protected List<Sync>    background = new ArrayList<>();
 
 
+    @SuppressWarnings("unchecked")
     public Synchronization( ArecaApp app ) {
         this.app = app;
 
-        // start INCREMENTAL/BACKGROUND services (after we have the monitor UI)
+        // start INCREMENTAL and BACKGROUND services (after we have the monitor UI)
         Platform.schedule( 5000, () -> {
             incremental();
-            start( SyncType.BACKGROUND );
+            restartBackground();
         });
 
-        // FULL sync after settings have been changed
-        var settingsEntities = Sequence.of( ArecaApp.SETTINGS_ENTITY_TYPES ).map( info -> info.type() ).toSet();
+        // settings have been changed
+        var settingsTypes = Sequence.of( ArecaApp.SETTINGS_ENTITY_TYPES ).map( info -> (Class<Entity>)info.type() ).toSet();
         EventManager.instance()
                 .subscribe( (ModelUpdateEvent ev) -> {
-                    for (var entityType : settingsEntities) {
-                        if (!ev.entities( entityType ).isEmpty()) {
-                            LOG.info( "Settings: %s changed", entityType.getSimpleName() );
-                            start( SyncType.FULL );
-                        }
-                    }
+                    // FULL
+                    LOG.info( "Settings changed -> FULL sync" );
+                    startFull();
+
+                    // BACKGROUND
+                    restartBackground();
                 })
-                .performIf( ModelUpdateEvent.class::isInstance );
+                .performIf( ModelUpdateEvent.class, ev -> ev.contains( settingsTypes ) );
+
+        // model have been changed
+        var entityTypes = Sequence.of( ArecaApp.APP_ENTITY_TYPES ).map( info -> (Class<Entity>)info.type() ).toSet();
+        EventManager.instance()
+                .subscribe( (ModelUpdateEvent ev) -> {
+                    LOG.info( "Model changed -> OUTGOING sync" );
+                    start( SyncType.OUTGOING, ev );
+                })
+                .performIf( ModelUpdateEvent.class, ev -> ev.contains( entityTypes ) );
     }
 
 
+    /**
+     * Periodically check/start {@link SyncType#INCREMENTAL} sync.
+     */
     protected void incremental() {
         if (lastIncrementalRun.elapsed( TimeUnit.MILLISECONDS ) > incrementalDelay) {
-            start( SyncType.INCREMENTAL );
+            start( SyncType.INCREMENTAL, null );
             lastIncrementalRun.restart();
             incrementalDelay = MAX_INCREMENTAL_DELAY;
         }
-
         Platform.schedule( 5*1000, () -> {
             incremental();
         });
@@ -91,33 +111,95 @@ class Synchronization {
     /**
      * Force next {@link SyncType#INCREMENTAL} sync to run within the given delay.
      */
-    public void forceIncremental( int delay ) {
+    public void triggerIncremental( int delay ) {
         incrementalDelay = Math.min( MAX_INCREMENTAL_DELAY, delay );
     }
 
 
-    public void start( SyncType type ) {
-        for (var service : app.services( SyncableService.class ).asCollection()) {
-            app.scheduleModelUpdate( uow -> {
-                var ctx = new SyncContext() {
-                    ProgressMonitor monitor;
-                    @Override public ProgressMonitor monitor() {
-                        return monitor != null ? monitor : (monitor = app.newAsyncOperation());
-                    }
-                    @Override public UnitOfWork unitOfWork() {
-                        return uow;
-                    }
-                };
-                return service.newSync( type, ctx )
-                        .then( sync -> {
-                            return sync != null ? sync.start() : Promise.completed( null );
-                        })
-                        .onSuccess( __ -> { if (ctx.monitor != null) ctx.monitor.done(); } )
-                        .onError( __ -> { if (ctx.monitor != null) ctx.monitor.done(); } )
-                        .onError( ArecaApp.current().defaultErrorHandler() );
-            });
+    public void startFull() {
+        start( SyncType.FULL, null );
+    }
+
+
+    public void startOutgoing( ModelUpdateEvent outgoing ) {
+        start( SyncType.OUTGOING, outgoing );
+    }
+
+
+    @SuppressWarnings("unchecked")
+    protected void start( SyncType type, ModelUpdateEvent outgoing ) {
+        // all services
+        for (var service : app.services.ofType( SyncableService.class ).asCollection()) {
+            var suow = app.settingsRepo.newUnitOfWork();
+            Class<Entity> settingsType = service.syncSettingsType();
+            suow.query( settingsType ).executeCollect()
+                    .onSuccess( settingss -> {
+                        // all settings
+                        for (var settings : settingss) {
+                            app.modelUpdates.schedule( uow -> {
+                                var ctx = new SyncContext() {
+                                    ProgressMonitor monitor;
+                                    @Override public ProgressMonitor monitor() {
+                                        return monitor != null ? monitor : (monitor = app.newAsyncOperation());
+                                    }
+                                    @Override public UnitOfWork unitOfWork() {
+                                        return uow;
+                                    }
+                                    @Override
+                                    public ModelUpdateEvent outgoing() {
+                                        return outgoing;
+                                    }
+                                };
+                                var sync = service.newSync( type, ctx, settings );
+                                if (sync != null) {
+                                    return sync.start()
+                                            .onSuccess( __ -> { if (ctx.monitor != null) ctx.monitor.done(); } )
+                                            .onError( __ -> { if (ctx.monitor != null) ctx.monitor.done(); } );
+                                }
+                                else {
+                                    return Promise.completed( null );
+                                }
+                            });
+                        }
+                    });
         }
     }
 
+
+    @SuppressWarnings("unchecked")
+    protected void restartBackground() {
+        for (var sync : background) {
+            sync.dispose();
+        }
+        background.clear();
+
+        // all services
+        for (var service : app.services.ofType( SyncableService.class ).asCollection()) {
+            var suow = app.settingsRepo.newUnitOfWork();
+            Class<Entity> settingsType = service.syncSettingsType();
+            suow.query( settingsType ).executeCollect()
+                    .onSuccess( settingss -> {
+                        // all settings
+                        for (var settings : settingss) {
+                            var ctx = new SyncContext() {
+                                @Override public ProgressMonitor monitor() {
+                                    return app.newAsyncOperation();
+                                }
+                                @Override public UnitOfWork unitOfWork() {
+                                    throw new RuntimeException( "No default UoW in BACKGROUND Sync." );
+                                }
+                                @Override public ModelUpdateEvent outgoing() {
+                                    throw new RuntimeException( "No outgoing in BACKGROUND Sync." );
+                                }
+                            };
+                            var sync = service.newSync( BACKGROUND, ctx, settings );
+                            if (sync != null) {
+                                background.add( sync );
+                                sync.start();
+                            }
+                        }
+                    });
+        }
+    }
 
 }

@@ -76,7 +76,7 @@ public class MessagePage
             icon.set( "delete" );
             description.set( "Delete this message" );
             handler.set( ev -> {
-                ArecaApp.current().scheduleModelUpdate( uow -> {
+                ArecaApp.current().modelUpdates.schedule( uow -> {
                     return uow.entity( msg )
                             .then( loaded -> {
                                 return loaded.removeFromAnchors().map( __ -> loaded );

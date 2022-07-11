@@ -12,8 +12,7 @@
  */
 package areca.app.service;
 
-import java.util.Collections;
-import java.util.List;
+import org.polymap.model2.Entity;
 
 import areca.app.model.Address;
 import areca.app.model.Message;
@@ -25,7 +24,7 @@ import areca.common.base.Opt;
  *
  * @author Falko Bräutigam
  */
-public interface TransportService {
+public interface TransportService<S extends Entity> {
 
     /** */
     public interface TransportContext {
@@ -33,15 +32,13 @@ public interface TransportService {
         //public RSupplier<UnitOfWork> uowFactory;
     }
 
+    public Class<S> transportSettingsType();
+
     /**
-     * A new {@link Transport} object, or null if this service cannot handle the
-     * given receipients.
-     * <p/>
-     * The default implementation signals that there is no transport.
+     * A new {@link Transport} object, or {@link Opt#absent()} if this service cannot
+     * handle the given receipients.
      */
-    public default Promise<List<Transport>> newTransport( Address address, TransportContext ctx ) {
-        return Promise.completed( Collections.emptyList() );
-    }
+    public Opt<Transport> newTransport( Address address, TransportContext ctx, S settings );
 
     /**
      *

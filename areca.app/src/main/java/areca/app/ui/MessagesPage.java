@@ -230,7 +230,7 @@ public class MessagesPage extends Page {
         // update
         EventManager.instance()
                 .subscribe( (ModelUpdateEvent ev) -> {
-                    LOG.info( "Updating ..." );
+                    LOG.info( "Model update: -> layout()" );
                     messagesContainer.layout();
                 })
                 .performIf( ev -> ev instanceof ModelUpdateEvent
@@ -248,7 +248,7 @@ public class MessagesPage extends Page {
                 .orderBy( Message.TYPE.date, Order.DESC )
                 .executeCollect()
                 .map( fetched -> {
-                    LOG.info( "fetchMessages(): %d / %d -> %d (%s)", startIndex, num, fetched.size(), timer.elapsedHumanReadable() );
+                    LOG.debug( "fetchMessages(): %d / %d -> %d (%s)", startIndex, num, fetched.size(), timer.elapsedHumanReadable() );
                     //LOG.info( "%s", Sequence.of( fetched ) );
                     var result = new ArrayList<MessageComponent>();
                     for (int i = 0; i < fetched.size(); i++) {
@@ -261,7 +261,7 @@ public class MessagesPage extends Page {
     }
 
 
-    protected Promise<?> send() {
+    protected void send() {
         Assert.that( selectedCard.opt().isPresent(), "selectedCard == null" );
         var msg = new TransportMessage() {{
             receipient = Address.parseEncoded( selectedCard.$().message.fromAddress.get() );
@@ -269,23 +269,16 @@ public class MessagesPage extends Page {
             threadSubject = Opt.of( subject.get() );
             followUp = Opt.of( selectedCard.$().message );
         }};
-        return ArecaApp.current()
-                .transportFor( msg.receipient )
-                .thenOpt( transport -> {
-                    LOG.info( "Transport found for: %s - %s", msg.receipient, transport );
-                    return transport.get().send( msg );
-                })
-                .onSuccess( result -> result
-                        .ifPresent( sent -> {
-                            LOG.info( "Transport sent! :) - %s", sent );
-                            messageTextInput.content.set( "" );
-                            EventManager.instance().publish( new MessageSentEvent( sent ) );
-                        })
-                        .ifAbsent( __ -> {
-                            LOG.info( "No Transport!" );
-                        })
-                )
-                .onError( ArecaApp.current().defaultErrorHandler() ); // XXX UI
+        ArecaApp.current().services.transportFor( msg.receipient, transport -> {
+            LOG.info( "Transport found for: %s - %s", msg.receipient, transport );
+            transport.send( msg )
+                    .onSuccess( sent -> {
+                        LOG.info( "Transport sent! :) - %s", sent );
+                        messageTextInput.content.set( "" );
+                        EventManager.instance().publish( new MessageSentEvent( sent ) );
+                    })
+                   .onError( ArecaApp.current().defaultErrorHandler() ); // XXX UI
+        });
     }
 
 
@@ -345,7 +338,7 @@ public class MessagesPage extends Page {
          * its predecessor.
          */
         protected void checkVisibleMessages() {
-            LOG.info( "checkScroll(): scroll=%d, height=%d", scrollable.scrollTop.$(), viewSize.height() );
+            LOG.debug( "checkScroll(): scroll=%d, height=%d", scrollable.scrollTop.$(), viewSize.height() );
             int viewTop = scrollable.scrollTop.value();
 
             var startIndex = last != null ? last.index + 1 : 0;
@@ -531,7 +524,7 @@ public class MessagesPage extends Page {
             if (message.unread.get()) {
                 Platform.schedule( MESSAGE_MARK_READ_DELAY, () -> {
                     if (selectedCard.$() == this && message.unread.get()) {
-                        ArecaApp.current().scheduleModelUpdate( uow -> {
+                        ArecaApp.current().modelUpdates.schedule( uow -> {
                             return uow.entity( message )
                                     .then( _msg -> _msg.setUnreadAndUpdateAnchors( false ) )
                                     .then( __ -> uow.submit() )

@@ -13,6 +13,7 @@
  */
 package areca.app.service;
 
+import areca.app.model.ImapSettings;
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
@@ -24,7 +25,7 @@ import areca.common.log.LogFactory.Log;
  */
 public class MonitorTestService
         extends Service
-        implements SyncableService {
+        implements SyncableService<ImapSettings> {
 
     private static final Log LOG = LogFactory.getLog( MonitorTestService.class );
 
@@ -35,8 +36,8 @@ public class MonitorTestService
 
 
     @Override
-    public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
-        return Promise.completed( new Sync() {
+    public Sync newSync( SyncType syncType, SyncContext ctx, ImapSettings settings ) {
+        return new Sync() {
             int work = 10;
 
             @Override
@@ -54,6 +55,13 @@ public class MonitorTestService
                     ctx.monitor().done();
                 }
             }
-        });
+        };
     }
+
+
+    @Override
+    public Class<ImapSettings> syncSettingsType() {
+        return ImapSettings.class;
+    }
+
 }

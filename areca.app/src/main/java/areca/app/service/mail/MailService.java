@@ -15,34 +15,29 @@ package areca.app.service.mail;
 
 import static org.apache.commons.lang3.StringUtils.abbreviate;
 import static org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus.REMOVED;
-import static org.polymap.model2.runtime.Lifecycle.State.AFTER_SUBMIT;
+import static org.polymap.model2.runtime.Lifecycle.State.AFTER_MODIFIED;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.lang3.mutable.MutableObject;
 
 import org.polymap.model2.runtime.UnitOfWork;
 
-import areca.app.ArecaApp;
 import areca.app.model.Address;
 import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.ImapSettings;
 import areca.app.model.Message;
-import areca.app.model.ModelUpdateEvent;
 import areca.app.model.SmtpSettings;
 import areca.app.service.ContactAnchorSynchronizer;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.TransportService;
 import areca.app.service.mail.MailFolderSynchronizer.MessageStoreRef;
-import areca.common.Assert;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
+import areca.common.base.Opt;
 import areca.common.base.Sequence;
-import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -52,85 +47,19 @@ import areca.common.log.LogFactory.Log;
  */
 public class MailService
         extends Service
-        implements SyncableService, TransportService {
+        implements SyncableService<ImapSettings>, TransportService<SmtpSettings> {
 
     private static final Log LOG = LogFactory.getLog( MailService.class );
 
 
     public MailService() {
-        onMessageUnreadSet();
-        onMessageDeleted();
         onMessageSent();
     }
-
 
     @Override
     public String label() {
         return "Mail";
     }
-
-
-    protected void onMessageDeleted() {
-        EventManager.instance().subscribe( (EntityLifecycleEvent ev) -> {
-            if (ev.state == AFTER_SUBMIT
-                    && ev.getSource().status() == REMOVED
-                    && ev.getSource() instanceof Message) {
-
-                var msg = (Message)ev.getSource();
-                LOG.info( "On REMOVED: message: %s", msg.storeRef );
-                msg.storeRef( MessageStoreRef.class ).ifPresent( storeRef -> {
-                    loadImapSettings().then( settings -> {
-                        if (settings != null) {
-                            return new MessageDeleteRequest( settings.toRequestParams(), storeRef.msgId() ).submit()
-                                    .onSuccess( command -> LOG.info( "On REMOVED: deleted (%s)", command.count() ) );
-                        }
-                        else {
-                            return Promise.completed( null );
-                        }
-                    })
-                    .onError( ArecaApp.current().defaultErrorHandler() );
-                });
-            }
-        })
-        .performIf( EntityLifecycleEvent.class::isInstance );
-    }
-
-
-    /**
-     * Model update: set SEEN flag
-     */
-    protected void onMessageUnreadSet() {
-        EventManager.instance().subscribe( (ModelUpdateEvent ev) -> {
-            var mySettings = new MutableObject<ImapSettings>( null );
-            loadImapSettings()
-                .then( settings -> {
-                    mySettings.setValue( settings );
-                    UnitOfWork uow = ArecaApp.current().unitOfWork();
-                    return settings != null ? ev.entities( Message.class, uow ) : Promise.completed( null );
-                })
-                .then( entities -> {
-                    if (entities == null || entities.isEmpty()) {
-                        LOG.info( "On UNREAD: Message/Entity removed or no IMAP settings" );
-                        return Promise.completed( null );
-                    }
-                    else {
-                        var message = entities.get( 0 );
-                        Assert.isEqual( false, message.unread.get() );
-                        return message.storeRef( MessageStoreRef.class )
-                                .map( storeRef -> {
-                                    RequestParams params = mySettings.getValue().toRequestParams();
-                                    return new MessageSetFlagRequest( params, storeRef.msgId() ).submit()
-                                            .onSuccess( command -> LOG.info( "On UNREAD: SEEN flag set (%s)", command.count() ) );
-                                })
-                                .orElse( Promise.completed( null ) );
-                    }
-                })
-                .onError( ArecaApp.current().defaultErrorHandler() );
-        })
-        // XXX horrible condition!
-        .performIf( ModelUpdateEvent.class, ev -> ev.entities( Message.class ).size() == 1 );
-    }
-
 
     protected void onMessageSent() {
 //      // MessageSentEvent: append sent messages to Sent folder
@@ -160,31 +89,91 @@ public class MailService
     }
 
 
-    /**
-     * Default: load from ArecaApp
-     */
-    protected Promise<ImapSettings> loadImapSettings() {
-        return ArecaApp.instance().settings().then( uow -> {
-            return uow.query( ImapSettings.class )
-                    .executeCollect()
-                    .map( list -> !list.isEmpty() ? list.get( 0 ) : null );
-        });
+    @Override
+    public Class<ImapSettings> syncSettingsType() {
+        return ImapSettings.class;
     }
 
 
     @Override
-    public Promise<Sync> newSync( SyncType syncType, SyncContext ctx ) {
-        return loadImapSettings().map( settings -> {
-            if (settings == null) {
-                return null;
+    public Sync newSync( SyncType syncType, SyncContext ctx, ImapSettings settings ) {
+        switch (syncType) {
+            case FULL : return new FullSync( settings, ctx );
+            case INCREMENTAL : return new IncrementalSync( settings, ctx );
+            case OUTGOING : return new OutgoingSync( settings, ctx );
+            default: return null;
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected static class OutgoingSync extends Sync {
+
+        private ImapSettings settings;
+
+        private SyncContext ctx;
+
+        public OutgoingSync( ImapSettings settings, SyncContext ctx ) {
+            this.settings = settings;
+            this.ctx = ctx;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Promise<?> start() {
+            return checkMessageDeleted( ctx.outgoing().events() ).then( __ ->
+                    checkMessageUnreadSet( ctx.outgoing().events() ) );
+        }
+
+        protected Promise checkMessageDeleted( List<EntityLifecycleEvent> evs ) {
+            var removedStoreRefs = Sequence.of( evs )
+                    .filter( ev -> ev.getSource().status() == REMOVED && ev.getSource() instanceof Message)
+                    .map( ev -> ((Message)ev.getSource()).storeRef( MessageStoreRef.class  ) )
+                    .filter( opt -> opt.isPresent() )
+                    .map( opt -> opt.get() )
+                    .toList();
+
+            if (removedStoreRefs.isEmpty()) {
+                return Promise.completed( null );
             }
-            switch (syncType) {
-                case FULL : return new FullSync( settings, ctx );
-                case INCREMENTAL : return new IncrementalSync( settings, ctx );
-                case BACKGROUND : return null;
-                default: return null;
+            else {
+                return Promise.serial( removedStoreRefs.size(), i -> {
+                    var storeRef = removedStoreRefs.get( i );
+                    return new MessageDeleteRequest( settings.toRequestParams(), storeRef.msgId() ).submit()
+                            .onSuccess( command -> LOG.info( "REMOVED: deleted (%s)", command.count() ) );
+                });
             }
-        });
+        }
+
+        protected Promise checkMessageUnreadSet( List<EntityLifecycleEvent> evs ) {
+            var modified = Sequence.of( evs )
+//                    .map( ev -> {
+//                        LOG.info( "Event: %s, %s (%s)", ev.state, ev.entityStatus, ev.getSource().getClass().getSimpleName() );
+//                        return ev;
+//                    })
+                    // FIXME will never work! MODIFIED is not catched be ModelUpdates
+                    .filter( ev -> ev.state == AFTER_MODIFIED && ev.getSource() instanceof Message)
+                    .map( ev -> (Message)ev.getSource() )
+                    .filter( msg -> !msg.unread.get() )
+                    .map( msg -> msg.storeRef( MessageStoreRef.class  ) )
+                    .filter( opt -> opt.isPresent() )
+                    .map( opt -> opt.get() )
+                    .toList();
+
+            // XXX there is no way currently to find out if the unread Property was changed,
+            // so this horrible checks if just one Message was changed
+            if (modified.size() != 1 ) {
+                LOG.info( "FLAGS: to much Messages changed (%d)", modified.size() );
+                return Promise.completed( null );
+            }
+            else {
+                var storeRef = modified.get( 0 );
+                return new MessageSetFlagRequest( settings.toRequestParams(), storeRef.msgId() ).submit()
+                        .onSuccess( command -> LOG.info( "On UNREAD: SEEN flag set (%s)", command.count() ) );
+            }
+        }
     }
 
 
@@ -238,8 +227,7 @@ public class MailService
     /**
      *
      */
-    protected static abstract class SyncBase
-            extends Sync {
+    protected static abstract class SyncBase  extends Sync {
 
         protected SyncContext   ctx;
 
@@ -260,9 +248,7 @@ public class MailService
             pseudoContactSync = new PseudoContactSynchronizer( uow, settings );
         }
 
-
         protected abstract List<String> folders( List<String> folderNames );
-
 
         protected abstract int monthsToSync();
 
@@ -323,18 +309,15 @@ public class MailService
     // TransportService ***********************************
 
     @Override
-    public Promise<List<Transport>> newTransport( Address receipient, TransportContext ctx ) {
-        var email = EmailAddress.check( receipient );
-        if (email.isPresent()) {
-            return ArecaApp.current().settings()
-                    .then( uow -> uow.query( SmtpSettings.class ).executeCollect() )
-                    .map( rs -> Sequence.of( rs )
-                            .map( settings -> (Transport)new MailTransport( settings, email.get(), ctx ) )
-                            .toList() );
-        }
-        else {
-            return Promise.completed( Collections.emptyList() );
-        }
+    public Class<SmtpSettings> transportSettingsType() {
+        return SmtpSettings.class;
+    }
+
+
+    @Override
+    public Opt<Transport> newTransport( Address receipient, TransportContext ctx, SmtpSettings settings ) {
+        return EmailAddress.check( receipient )
+                .map( email -> new MailTransport( settings, email, ctx ) );
     }
 
 
