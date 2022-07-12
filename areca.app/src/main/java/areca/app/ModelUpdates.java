@@ -65,7 +65,10 @@ public class ModelUpdates {
 
     /**
      * Schedules the given update operation to be executed as soon as possible. The
-     * update operation receives its own {@link UnitOfWork}.
+     * update operation receives its own {@link UnitOfWork}. The resulting {@link Promise}
+     * MUST produce just ONE result.
+     *
+     * @param update The operation. Must produce just one result.
      */
     public void schedule( RFunction<UnitOfWork,Promise<?>> update ) {
         modelUpdates.addLast( update );

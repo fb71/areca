@@ -135,16 +135,13 @@ public class MailService
                     .map( opt -> opt.get() )
                     .toList();
 
-            if (removedStoreRefs.isEmpty()) {
-                return Promise.completed( null );
-            }
-            else {
-                return Promise.serial( removedStoreRefs.size(), i -> {
-                    var storeRef = removedStoreRefs.get( i );
-                    return new MessageDeleteRequest( settings.toRequestParams(), storeRef.msgId() ).submit()
-                            .onSuccess( command -> LOG.info( "REMOVED: deleted (%s)", command.count() ) );
-                });
-            }
+            return Promise
+                    .serial( removedStoreRefs.size(), null, i -> {
+                        var storeRef = removedStoreRefs.get( i );
+                        return new MessageDeleteRequest( settings.toRequestParams(), storeRef.msgId() ).submit()
+                                .onSuccess( command -> LOG.info( "REMOVED: deleted (%s)", command.count() ) );
+                    })
+                    .reduce2( 0, (result,next) -> result++ );
         }
 
         protected Promise checkMessageUnreadSet( List<EntityLifecycleEvent> evs ) {

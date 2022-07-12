@@ -19,6 +19,8 @@ import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
 
+import areca.common.Assert;
+import areca.common.Promise;
 import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -81,6 +83,26 @@ public class Anchor
     public Anchor setStoreRef( StoreRef ref ) {
         this.storeRef.set( ref.encoded() );
         return this;
+    }
+
+
+    public Promise<?> delete( boolean deleteMessages ) {
+        if (deleteMessages) {
+            return messages.fetchCollect()
+                    .then( msgs -> Promise.serial( msgs.size(), false, i -> msgs.get( i ).delete() ) )
+                    .reduce2( 0, (result,next) -> next ? result++ : result )
+                    .map( c -> {
+                        LOG.info( "%s messages deleted.", c );
+                        Assert.isEqual( 0, messages.size() );
+                        context.getUnitOfWork().removeEntity( this );
+                        return true;
+                    });
+        }
+        else {
+            // XXX dangling messages!?
+            context.getUnitOfWork().removeEntity( this );
+            return Promise.completed( null );
+        }
     }
 
 }

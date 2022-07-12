@@ -78,13 +78,8 @@ public class MessagePage
             handler.set( ev -> {
                 ArecaApp.current().modelUpdates.schedule( uow -> {
                     return uow.entity( msg )
-                            .then( loaded -> {
-                                return loaded.removeFromAnchors().map( __ -> loaded );
-                            })
-                            .then( loaded -> {
-                                uow.removeEntity( loaded );
-                                return uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) );
-                            })
+                            .then( loaded -> loaded.delete() )
+                            .then( loaded -> uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) ) )
                             .onSuccess( __ -> site.pageflow().close( MessagePage.this ) );
                 });
             });

@@ -15,6 +15,7 @@ package areca.app.service;
 
 import org.polymap.model2.runtime.UnitOfWork;
 
+import areca.app.ModelUpdates;
 import areca.app.model.ModelUpdateEvent;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
@@ -65,6 +66,10 @@ public interface SyncableService<S> {
 
         /**
          * Start this sync.
+         * <p/>
+         * Most sync types are started inside an
+         * {@link ModelUpdates#schedule(RFunction) model update operation}. The resulting
+         * {@link Promise} *must* produce just *one* result.
          * <p/>
          * Default error handlers are attached by caller.
          */

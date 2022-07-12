@@ -24,12 +24,12 @@ import java.util.Map;
 
 import java.text.DateFormat;
 
-import org.polymap.model2.ManyAssociation;
 import org.polymap.model2.query.Query.Order;
 import org.polymap.model2.runtime.Lifecycle.State;
 
 import areca.app.ArecaApp;
 import areca.app.model.Address;
+import areca.app.model.Anchor;
 import areca.app.model.Message;
 import areca.app.model.ModelUpdateEvent;
 import areca.app.service.MessageSentEvent;
@@ -44,6 +44,7 @@ import areca.common.base.Sequence;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Action;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Badge;
@@ -77,7 +78,7 @@ public class MessagesPage extends Page {
 
     public static final int         MESSAGE_MARK_READ_DELAY = 3000;
 
-    protected ManyAssociation<Message>  src;
+    protected Anchor                anchor;
 
     protected ReadWrite<?,MessageCard>  selectedCard;  // create when UI is there in doInit()
 
@@ -100,8 +101,8 @@ public class MessagesPage extends Page {
     protected Map<Message,MessageCard> cards = new HashMap<>();
 
 
-    protected MessagesPage( ManyAssociation<Message> src, String title ) {
-        this.src = src;
+    protected MessagesPage( Anchor anchor, String title ) {
+        this.anchor = anchor;
         this.title = title;
     }
 
@@ -121,6 +122,20 @@ public class MessagesPage extends Page {
 
         selectedCard = Property.rw( ui, "selectedCard" );
         subject = Property.rw( ui, "subject" );
+
+        site.actions.add( new Action() {{
+            icon.set( "delete" );
+            description.set( "Delete this anchor and all messages" );
+            handler.set( ev -> {
+                ArecaApp.current().modelUpdates.schedule( uow -> {
+                    return uow.entity( anchor )
+                            .then( loaded -> loaded.delete( true ) )
+                            .then( loaded -> uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) ) )
+                            .onSuccess( __ -> site.pageflow().close( MessagesPage.this ) );
+                });
+            });
+        }});
+
 
         ui.body.layout.set( new RowLayout().orientation.set( VERTICAL )
                 .fillHeight.set( true )
@@ -243,7 +258,7 @@ public class MessagesPage extends Page {
 
     protected Promise<List<MessageComponent>> fetchMessages( int startIndex, int num ) {
         var timer = Timer.start();
-        return src.query()
+        return anchor.messages.query()
                 .firstResult( startIndex ).maxResults( num )
                 .orderBy( Message.TYPE.date, Order.DESC )
                 .executeCollect()

@@ -58,6 +58,14 @@ public class Promise<T> {
     }
 
 
+    public static <R> Promise<R> joined( int num, R emptyValue, RFunction<Integer,Promise<R>> supplier ) {
+        Assert.that( num >= 0 );
+        return num == 0
+                ? Promise.completed( emptyValue )
+                : joined( num, supplier );
+    }
+
+
     /**
      * Joins a number of Promises.
      * <p/>
@@ -71,6 +79,14 @@ public class Promise<T> {
      */
     public static <R> Promise<R> serial( int num, RFunction<Integer,Promise<R>> supplier ) {
         return new JoinedSerial<>( num, supplier );
+    }
+
+
+    public static <R> Promise<R> serial( int num, R emptyValue, RFunction<Integer,Promise<R>> supplier ) {
+        Assert.that( num >= 0 );
+        return num == 0
+                ? Promise.completed( emptyValue )
+                : serial( num, supplier );
     }
 
     /**

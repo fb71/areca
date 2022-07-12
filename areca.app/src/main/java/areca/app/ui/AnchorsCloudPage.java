@@ -130,7 +130,7 @@ public class AnchorsCloudPage
         EventManager.instance()
                 .subscribe( (ModelUpdateEvent ev) -> {
                     if (!ev.entities( Anchor.class ).isEmpty()) {
-                        LOG.info( "JOIN: update layout..." );
+                        LOG.info( "Updating layout..." );
                         body.layout();
                     }
                 })
@@ -185,7 +185,7 @@ public class AnchorsCloudPage
         EventManager.instance()
                 .subscribe( (ModelUpdateEvent modified) -> {
                     if (modified.entities( Anchor.class ).contains( anchor.id() )) {
-                        LOG.info( "Anchor: modified: %s", anchor.id() );
+                        LOG.info( "Anchor modified: %s", anchor.id() );
                         updateBtn.run();
                         updateTag.run();
                     }
@@ -196,7 +196,7 @@ public class AnchorsCloudPage
         // click
         btn.events.on( EventType.SELECT, ev -> {
             site.put( anchor );
-            site.pageflow().open( new MessagesPage( anchor.messages, anchor.name.get() ), page, ev.clientPos() );
+            site.pageflow().open( new MessagesPage( anchor, anchor.name.get() ), page, ev.clientPos() );
         });
         return btn;
     }

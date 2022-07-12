@@ -138,16 +138,24 @@ public class Message
     }
 
 
+    public Promise<Boolean> delete() {
+        return removeFromAnchors().map( __ -> {
+            context.getUnitOfWork().removeEntity( Message.this );
+            return true;
+        });
+    }
+
+
     /**
      * Remove this Message from all Achors.
      * <p>
-     * Cannot be done automatically AFTER_REMOVED because of race cond
-     * with subsequent submit.
+     * Cannot be done automatically AFTER_REMOVED or by a concern because of race
+     * cond with subsequent submit.
      */
-    public Promise<List<Anchor>> removeFromAnchors() {
+    protected Promise<List<Anchor>> removeFromAnchors() {
         return anchors().map( anchors -> {
             for (var anchor : anchors) {
-                LOG.info( "Message: remove from Anchor: %s", anchor );
+                LOG.info( "Message: removing from Anchor: %s", anchor );
                 anchor.messages.remove( Message.this );
             }
             return anchors;
