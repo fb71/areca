@@ -28,10 +28,6 @@ class MessageStoreRef
     /** Decode */
     public MessageStoreRef() { }
 
-    public MessageStoreRef( MatrixSettings settings, JSEvent event ) {
-        this( settings, event.roomId(), event.eventId() );
-    }
-
     public MessageStoreRef( MatrixSettings settings, String roomId, String eventId ) {
         super( settings );
         parts.add( roomId );
