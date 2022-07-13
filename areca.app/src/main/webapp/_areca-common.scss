@@ -76,15 +76,15 @@ body {
     overflow: visible;    
 }
 
-.Link {
+a, .Link {
     color: $link_color;
     text-decoration: none;
 }
-.Link:hover {
+a:hover, .Link:hover {
     color: lighten($link_color, 10%);
     text-decoration: underline;
 }
-.Link:active {
+a:active, .Link:active {
     margin-top: 1px;
     color: lighten($link_color, 15%);
 }

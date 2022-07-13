@@ -15,14 +15,18 @@ package areca.app.ui;
 
 import static areca.ui.Orientation.VERTICAL;
 
+import java.util.regex.Pattern;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 
 import org.apache.commons.lang3.StringUtils;
+
 import areca.app.ArecaApp;
 import areca.app.model.Message;
 import areca.app.model.Message.ContentType;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Action;
@@ -88,6 +92,9 @@ public class MessagePage
     }
 
 
+    public static final Pattern URL = Pattern.compile( "https?://([^?\\s]+)(\\?[^\\s]+)?", Pattern.CASE_INSENSITIVE );
+    public static final Pattern SPACES = Pattern.compile( "^[\\s]+" );
+
     /**
      * Formats the content of the given {@link Message} as HTML.
      *
@@ -99,13 +106,27 @@ public class MessagePage
         }
         else {
             try {
-                // XXX format links
                 // XXX format quotes
 
                 var html = new StringBuilder( 4096 );
                 var reader = new BufferedReader( new StringReader( msg.content.get() ) );
                 var c = 0;
                 for (var line = reader.readLine(); line != null && c++ < maxLines; line = reader.readLine()) {
+                    LOG.info( "> %s", line );
+                    // URL
+                    var url = URL.matcher( line );
+                    if (url.find()) {
+                        line = line.replace( url.group( 0 ),
+                                String.format( "<a href=\"%s\" target=\"_blank\" rel=\"noopener\">%s</a>", url.group( 0 ), url.group( 1 ) ) );
+                    }
+                    // spaces
+                    var spaces = SPACES.matcher( line );
+                    if (spaces.find()) {
+                        var s = Sequence.ofInts( 1, spaces.group().length()*2 ).reduce( "", (r,i) -> r + "&nbsp;" );
+                        line = s + line.substring( spaces.group().length() );
+                    }
+
+                    // line break
                     html.append( line ).append( "<br/>" );
                 }
                 return html.toString();
