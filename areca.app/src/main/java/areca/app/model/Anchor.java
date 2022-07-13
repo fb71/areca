@@ -69,7 +69,7 @@ public class Anchor
 
 
     public void updateUnreadMessagesCount( int update ) {
-        LOG.debug( "UnreadMessagesCount: %d %d", unreadMessagesCount.get(), update );
+        LOG.info( "UnreadMessagesCount: %d %d", unreadMessagesCount.get(), update );
         unreadMessagesCount.set( unreadMessagesCount.get() + update );
     }
 

@@ -15,9 +15,10 @@ package areca.app.service.matrix;
 
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSProperty;
+import areca.common.base.Opt;
 
 /**
- * Timeline event. Result when accessing the store.
+ * Result when accessing the store.
  */
 public interface JSStoredEvent
         extends JSCommon<JSStoredEvent> {
@@ -25,52 +26,30 @@ public interface JSStoredEvent
     @JSProperty("event_id")
     public String eventId();
 
-    @JSProperty("room_id")
-    public String roomId();
-
-    /** Like "m.room.message" or "m.room.encrypted" */
     @JSProperty("type")
     public String type();
 
-    /** The Matrix address of the sender. */
-    @JSProperty("sender")
-    public String sender();
-
-//    @Override
     @JSBody(params = {}, script = "return Date.now() - this.unsigned.age;")
     public double date();
 
     @JSBody(params = {}, script = "return this.unsigned.age;")
     public int age();
 
+    @JSProperty("sender")
+    public String sender();
+
     @JSProperty("content")
     public JSCommon content();
+
+    public default Opt<JSMessage> messageContent()  {
+        return type().equals( "m.room.message" ) ? Opt.of( content().cast() ) : Opt.absent();
+    }
+
+    public default Opt<JSEncrypted> encryptedContent()  {
+        return type().equals( "m.room.encrypted" ) ? Opt.of( content().cast() ) : Opt.absent();
+    }
 
     public default String toString2() {
         return String.format( "Event[type=%s, sender=%s]", type(), sender() );
     }
-
-    public default ContentEvent asContentEvent() {
-        return new ContentEvent() {
-            @Override public String eventId() {
-                return JSStoredEvent.this.eventId();
-            }
-            @Override public String roomId() {
-                return JSStoredEvent.this.roomId();
-            }
-            @Override public String type() {
-                return JSStoredEvent.this.type();
-            }
-            @Override public String sender() {
-                return JSStoredEvent.this.sender();
-            }
-            @Override public JSCommon content() {
-                return JSStoredEvent.this.content();
-            }
-            @Override public long date() {
-                return (long)JSStoredEvent.this.date();
-            }
-        };
-    }
-
 }

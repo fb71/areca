@@ -16,8 +16,10 @@ package areca.app.service.matrix;
 import org.teavm.jso.JSMethod;
 import org.teavm.jso.core.JSDate;
 
+import areca.common.base.Opt;
+
 /**
- * Fired by the main event loop of the {@link MatrixClient Matrix client}.
+ *
  */
 public interface JSEvent
         extends JSCommon<JSEvent> {
@@ -48,7 +50,6 @@ public interface JSEvent
     @JSMethod("getType")
     public String type();
 
-//    @Override
     @JSMethod("getDate")
     public JSDate date();
 
@@ -64,30 +65,15 @@ public interface JSEvent
     @JSMethod("getWiredContent")
     public JSCommon wiredContent();
 
-    public default String toString2() {
-        return String.format( "Event[type=%s, sender=%s]", type(), sender() );
+    public default Opt<JSMessage> messageContent()  {
+        return type().equals( "m.room.message" ) ? Opt.of( content().cast() ) : Opt.absent();
     }
 
-    public default ContentEvent asContentEvent() {
-        return new ContentEvent() {
-            @Override public String eventId() {
-                return JSEvent.this.eventId();
-            }
-            @Override public String roomId() {
-                return JSEvent.this.roomId();
-            }
-            @Override public String type() {
-                return JSEvent.this.type();
-            }
-            @Override public String sender() {
-                return JSEvent.this.sender();
-            }
-            @Override public JSCommon content() {
-                return JSEvent.this.content();
-            }
-            @Override public long date() {
-                return (long)JSEvent.this.date().getTime();
-            }
-        };
+    public default Opt<JSEncrypted> encryptedContent()  {
+        return type().equals( "m.room.encrypted" ) ? Opt.of( content().cast() ) : Opt.absent();
+    }
+
+    public default String toString2() {
+        return String.format( "Event[type=%s, sender=%s]", type(), sender() );
     }
 }
