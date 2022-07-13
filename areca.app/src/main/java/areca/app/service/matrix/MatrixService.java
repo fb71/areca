@@ -13,11 +13,12 @@
  */
 package areca.app.service.matrix;
 
-import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_ENCRYPTED;
 import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_MESSAGE;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.query.Expressions;
+import org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
@@ -31,9 +32,10 @@ import areca.app.service.SyncableService;
 import areca.app.service.TransportService;
 import areca.app.service.TypingEvent;
 import areca.common.Assert;
+import areca.common.ProgressMonitor;
 import areca.common.Promise;
-import areca.common.Promise.Completable;
 import areca.common.base.Opt;
+import areca.common.base.Sequence;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -68,13 +70,13 @@ public class MatrixService
             return Promise.completed( matrix );
         }
         else {
-            // FIXME check if settings are still...
+            // FIXME check if settings have been chaged since last call
             matrix = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ),
                     settings.accessToken.get(), settings.username.get(), settings.deviceId.get() );
 
             matrix.initCrypto().then( cryptoResult -> {
                 LOG.info( "CRYPTO INIT :)" );
-                MatrixClient.console( cryptoResult );
+                //MatrixClient.console( cryptoResult );
                 matrix.setGlobalErrorOnUnknownDevices( false );
             });
 
@@ -146,6 +148,7 @@ public class MatrixService
     public Sync newSync( SyncType syncType, SyncContext ctx, MatrixSettings settings ) {
         switch (syncType) {
             case FULL : return new FullSync( ctx, settings );
+            case INCREMENTAL : return new FullSync( ctx, settings );
             case BACKGROUND : return new BackgroundSync( ctx, settings );
             default : return null;
         }
@@ -160,15 +163,10 @@ public class MatrixService
      *
      */
     protected class BackgroundSync
-            extends Sync {
-
-        private SyncContext ctx;
-
-        private MatrixSettings settings;
+            extends SyncBase {
 
         public BackgroundSync( SyncContext ctx, MatrixSettings settings ) {
-            this.ctx = ctx;
-            this.settings = settings;
+            super( ctx, settings );
         }
 
 
@@ -188,6 +186,18 @@ public class MatrixService
 
 
         protected void startListenEvents() {
+            // decrypted event/message
+            matrix.on( "Event.decrypted", _event -> {
+                JSEvent event = _event.cast();
+                LOG.info( "Decrypted: %s: %s - %s", event.type(), event.eventId(), event.sender() );
+                MatrixClient.console( _event );
+                ArecaApp.current().modelUpdates.schedule( uow -> {
+                    return ensureMessageAndAnchors( event.asContentEvent(), true, uow ).then( msg -> {
+                        return uow.submit();
+                    });
+                });
+            });
+
             // typing...
             matrix.on("RoomMember.typing", (_event, _member) -> {
                 MatrixClient.console( _event );
@@ -201,52 +211,25 @@ public class MatrixService
                 JSEvent event = _event.cast();
                 LOG.info( "Event: %s - %s", event.eventId(), event.sender() );
 
-                if (M_ROOM_MESSAGE.equals( event.type() ) || M_ROOM_ENCRYPTED.equals( event.type() )) {
+                if (M_ROOM_MESSAGE.equals( event.type() ) /*|| M_ROOM_ENCRYPTED.equals( event.type() )*/) {
                     MatrixClient.console( event );
                     ArecaApp.current().modelUpdates.schedule( uow -> {
                         var monitor = ArecaApp.instance().newAsyncOperation();
-                        monitor.beginTask( "Matrix event", 3 );
+                        monitor.beginTask( "Matrix event", 2 );
+                        monitor.worked( 1 );
+                        return ensureMessage( event.asContentEvent(), true, uow ).then( msg -> {
+                            return uow.submit();
+                        })
+                        .onSuccess( __ -> monitor.done() )
+                        .onError( __ -> monitor.done() );
 
-                        // decrypt
-                        Completable<JSCommon> decrypted = new Completable<>();
-                        matrix.decryptEventIfNeeded( event ).then( _decrypted -> {
-                            monitor.worked( 1 );
-                            MatrixClient.console( _decrypted );
-                            MatrixClient.console( event.content() );
-                            decrypted.complete( _decrypted );
-                        });
-                        return decrypted
-                                // ensure room Anchor
-                                .then( __ -> {
-                                    var storeRef = new RoomAnchorStoreRef( settings, event );
-                                    return uow.ensureEntity( Anchor.class,
-                                            Expressions.eq( Anchor.TYPE.storeRef, storeRef.encoded() ),
-                                            proto -> {
-                                                proto.name.set( "New: " + event.sender() );
-                                                proto.setStoreRef( storeRef );
-                                            });
-                                })
-                                // create message
-                                .map( anchor -> {
-                                    monitor.worked( 1 );
-                                    JSMessage content = event.content().cast();
-                                    return uow.createEntity( Message.class, proto -> {
-                                        proto.setStoreRef( new MessageStoreRef( settings, event ) );
-                                        proto.fromAddress.set( new MatrixAddress( event.sender(), event.roomId() ).encoded() );
-                                        proto.content.set( content.getBody().opt().orElse( "" ) );
-                                        proto.contentType.set( ContentType.PLAIN );
-                                        proto.unread.set( true );
-                                        proto.date.set( (long)event.date().getTime() );
-                                        anchor.messages.add( proto );
-                                    });
-                                })
-                                // submit
-                                .then( message -> {
-                                    monitor.worked( 1 );
-                                    return uow.submit();
-                                })
-                                .onSuccess( submitted -> monitor.done() )
-                                .onError( e -> monitor.done() );
+//                        // decrypt
+//                        Completable<JSCommon> decrypted = new Completable<>();
+//                        matrix.decryptEventIfNeeded( event ).then( _decrypted -> {
+//                            monitor.worked( 1 );
+//                            MatrixClient.console( event );
+//                            decrypted.complete( _decrypted );
+//                        });
                     });
                 }
             });
@@ -255,26 +238,23 @@ public class MatrixService
 
 
     /**
-     *
+     * Sync un-encrypted messages.
      */
-    protected class FullSync
-            extends Sync {
+    protected class FullSync extends SyncBase {
 
-        protected SyncContext       ctx;
+        protected UnitOfWork        uow;
 
-        private UnitOfWork          uow;
-
-        private MatrixSettings      settings;
+        protected ProgressMonitor   monitor;
 
         public FullSync( SyncContext ctx, MatrixSettings settings ) {
-            this.ctx = ctx;
+            super( ctx, settings );
             this.uow = ctx.unitOfWork();
-            this.settings = settings;
         }
 
 
         @Override
         public Promise<?> start() {
+            monitor = ctx.monitor();
             return initMatrixClient( settings )
                     .then( __ -> syncRooms() )
                     .reduce( new MutableInt(0), (r,__) -> r.increment() )
@@ -285,24 +265,90 @@ public class MatrixService
         }
 
 
-        protected Promise<Opt<Message>> syncRooms() {
+        protected Promise<Message> syncRooms() {
             JSRoom[] rooms = matrix.getRooms();
-            LOG.debug( "Rooms: %s", rooms.length );
+            monitor.beginTask( "Matrix sync", rooms.length * 100 );
 
-            // ensure room Anchor
-            return Promise.serial( rooms.length, i -> {
-                LOG.debug( "room: %s", rooms[i].toString2() );
-                return ensureRoomAnchor( rooms[i] );
-            })
-            // timeline/event -> Message
-            .then( roomAnchor -> {
-                var timeline = roomAnchor.room.timeline();
-                return Promise.joined( timeline.length, i -> ensureMessage( roomAnchor, timeline[i].event() ) );
+            return Promise.serial( rooms.length, (Message)null, i -> {
+                var room = rooms[i];
+                var timeline = Sequence.of( room.timeline() )
+                        .map( tl -> tl.event() )
+                        .filter( event -> M_ROOM_MESSAGE.equals( event.type() ) )
+                        .toList();
+
+                var submon = monitor.subMonitor( 100 ).beginTask( room.name(), timeline.size() );
+                LOG.info( "### Room: %s ##########################################", room.name() );
+                return Promise.serial( timeline, (Message)null, event -> {
+                    return ensureMessageAndAnchors( event.asContentEvent(), false, uow )
+                            .onSuccess( __ -> submon.worked( 1 ) );
+                });
+            });
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected abstract class SyncBase extends Sync {
+
+        protected SyncContext       ctx;
+
+        protected MatrixSettings    settings;
+
+
+        public SyncBase( SyncContext ctx, MatrixSettings settings ) {
+            this.ctx = ctx;
+            this.settings = settings;
+        }
+
+
+        protected Promise<Message> ensureMessageAndAnchors( ContentEvent event, boolean unread, UnitOfWork uow ) {
+            LOG.info( "Event: eventId=%s, roomId=%s", event.eventId(), event.roomId() );
+            //MatrixClient.console( event );
+            //return Promise.<Message>absent();
+
+            return ensureMessage( event, unread, uow ).then( msg -> {
+                if (msg.status() == EntityStatus.CREATED) {
+                    return checkContactAnchor( event.sender(), uow ).then( contactAnchor -> {
+                        if (contactAnchor != null) {
+                            contactAnchor.messages.add( msg );
+                            return Promise.completed( msg );
+                        }
+                        else {
+                            return ensureRoomAnchor( event.roomId(), uow ).map( roomAnchor -> {
+                                roomAnchor.messages.add( msg );
+                                return msg;
+                            });
+                        }
+                    });
+                }
+                else {
+                    return Promise.completed( msg );
+                }
             });
         }
 
 
-        protected Promise<RoomAndAnchor> ensureRoomAnchor( JSRoom room ) {
+        protected Promise<Message> ensureMessage( ContentEvent event, boolean unread, UnitOfWork uow ) {
+            JSMessage content = event.content().cast();
+            var storeRef = new MessageStoreRef( settings, event.roomId(), event.eventId() );
+            return uow.ensureEntity( Message.class,
+                    Expressions.eq( Message.TYPE.storeRef, storeRef.encoded() ),
+                    proto -> {
+                        proto.setStoreRef( new MessageStoreRef( settings, event.roomId(), event.eventId() ) );
+                        proto.fromAddress.set( new MatrixAddress( event.sender(), event.roomId() ).encoded() );
+                        proto.content.set( content.getBody().opt().orElse( "" ) );
+                        proto.contentType.set( ContentType.PLAIN );
+                        proto.unread.set( unread );
+                        proto.date.set( event.date() );
+                        //anchor.messages.add( proto );
+                    });
+        }
+
+
+        protected Promise<Anchor> ensureRoomAnchor( String roomId, UnitOfWork uow ) {
+            var room = matrix.getRoom( roomId );
             LOG.debug( "room: %s", room.toString2() );
             var storeRef = new RoomAnchorStoreRef( settings, room );
             return uow.ensureEntity( Anchor.class,
@@ -310,57 +356,15 @@ public class MatrixService
                     proto -> {
                         proto.name.set( room.name() );
                         proto.setStoreRef( storeRef );
-                    })
-                    .map( anchor -> new RoomAndAnchor( room, anchor ) );
+                    });
         }
 
 
-        protected Promise<Opt<Message>> ensureMessage( RoomAndAnchor roomAnchor, JSStoredEvent event ) {
-            LOG.debug( "    timeline: %s", event.toString2() );
-            // encrypted
-            event.encryptedContent().ifPresent( encrypted -> {
-                //MatrixClient.console( event );
-                matrix.decryptEventIfNeeded( event ).then( decrypted -> {
-                    LOG.debug( "Decrypted:" );
-                    //MatrixClient.console( decrypted );
-                });
-            });
-            // plain
-            MatrixClient.console( event );
-            return event.messageContent()
-                    .ifPresentMap( content -> {
-                        LOG.debug( "        content: %s", content.getBody().opt().orElse( "???" ) );
-                        var storeRef = new MessageStoreRef( settings, roomAnchor.room.roomId(), event.eventId() );
-                        return uow.ensureEntity( Message.class,
-                                Expressions.eq( Message.TYPE.storeRef, storeRef.encoded() ),
-                                proto -> {
-                                    proto.setStoreRef( storeRef );
-                                    proto.fromAddress.set( new MatrixAddress( event.sender(), roomAnchor.room.roomId() ).encoded() );
-                                    proto.content.set( content.getBody().opt().orElse( "" ) );
-                                    proto.contentType.set( ContentType.PLAIN );
-                                    proto.unread.set( false );
-                                    proto.date.set( (long)event.date() );
-                                    roomAnchor.anchor.messages.add( proto );
-                                })
-                                .map( message -> Opt.of( message ) );
-                    })
-                    .orElse( Promise.<Message>absent() );
-        }
-
-        /**
-         *
-         */
-        protected class RoomAndAnchor {
-            public JSRoom   room;
-            public Anchor   anchor;
-
-            public RoomAndAnchor( JSRoom _room, Anchor _anchor ) {
-                this.room = _room;
-                this.anchor = _anchor;
-            }
+        protected Promise<Anchor> checkContactAnchor( String userId, UnitOfWork uow ) {
+            LOG.info( "Contact: userId=%s - NOT YET", userId );
+            return Promise.completed( null );
         }
     }
-
 
     /**
      *
@@ -417,5 +421,4 @@ public class MatrixService
             return parts.get( 1 );
         }
     }
-
 }

@@ -92,10 +92,8 @@ public abstract class MatrixClient
     @JSBody(params = {"pollTimeout"}, script = "return this.startClient({'pollTimeout':pollTimeout});")
     public abstract void startClient( int pollTimeout );
 
-
     @JSMethod
     public abstract void stopClient();
-
 
     public Promise<MatrixClient> waitForStartup() {
         once( "sync", (_state, prevState, res) -> {
@@ -109,15 +107,36 @@ public abstract class MatrixClient
                 .start();
     }
 
-
     @JSMethod
     public abstract JSPromise<JSWhoami> whoami();
 
     @JSMethod
     public abstract void publicRooms( Callback2 callback );
 
+    /**
+     * Retrieve all known rooms.
+     * <p>
+     * <a href="http://matrix-org.github.io/matrix-js-sdk/18.0.0/module-client.MatrixClient.html#getRooms">SDK Doc</a>
+     *
+     * @return A list of rooms, or an empty list if there is no data store.
+     */
     @JSMethod
     public abstract JSRoom[] getRooms();
+
+    /**
+     * Get the room for the given room ID. This function will return a valid room for
+     * any room for which a Room event has been emitted. Note in particular that
+     * other events, eg. RoomState.members will be emitted for a room before this
+     * function will return the given room.
+     * <p>
+     * <a href=
+     * "http://matrix-org.github.io/matrix-js-sdk/18.0.0/module-client.MatrixClient.html#getRoom">SDK
+     * Doc</a>
+     *
+     * @return The Room or null if it doesn't exist or there is no data store.
+     */
+    @JSMethod
+    public abstract JSRoom getRoom( String roomId );
 
     @JSMethod // client.once('sync', function(state, prevState, res) {
     public abstract void once( String type, Callback3 callback );
@@ -127,6 +146,9 @@ public abstract class MatrixClient
 
     @JSMethod
     public abstract void on( String type, Callback2 callback );
+
+    @JSMethod
+    public abstract void on( String type, Callback1 callback );
 
     @JSBody(params = {"content"}, script = "return this.crypto.decryptEvent(content);")
     public abstract JSPromise<JSCommon> decrypt( JSCommon content );

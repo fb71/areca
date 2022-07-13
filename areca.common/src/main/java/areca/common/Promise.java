@@ -14,6 +14,7 @@
 package areca.common;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -87,6 +88,14 @@ public class Promise<T> {
         return num == 0
                 ? Promise.completed( emptyValue )
                 : serial( num, supplier );
+    }
+
+    public static <S,R> Promise<R> serial( Collection<S> elms, R emptyValue, RFunction<S,Promise<R>> supplier ) {
+        var it = elms.iterator();
+        return serial( elms.size(), emptyValue, i -> {
+            Assert.that( it.hasNext() );
+            return supplier.apply( it.next() );
+        });
     }
 
     /**

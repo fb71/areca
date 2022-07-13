@@ -28,9 +28,9 @@ import areca.common.Promise;
 public interface SyncableService<S> {
 
     public enum SyncType {
-        /** Sync "everything", but check existing. */
+        /** Sync "everything" (but check existing) after settings have changed or created. */
         FULL,
-        /** Periodic, fast check for "new" messages. */
+        /** Periodic, fast check for "new" messages. And after startup. */
         INCREMENTAL,
         /** Permanently run in background Re-started when settings have been changed. */
         BACKGROUND,
