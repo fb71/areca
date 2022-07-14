@@ -14,6 +14,7 @@
 package areca.app.model;
 
 import org.polymap.model2.Association;
+import org.polymap.model2.CollectionProperty;
 import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
@@ -46,6 +47,8 @@ public class Contact extends Common {
     @Nullable
     @Queryable
     public Property<String>         phone;
+
+    public CollectionProperty<IM>   im;
 
     @Nullable
     @Queryable

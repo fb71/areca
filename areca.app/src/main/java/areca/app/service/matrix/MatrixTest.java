@@ -24,9 +24,9 @@ import org.polymap.model2.store.tidbstore.IDBStore;
 import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
+import areca.app.model.ModelUpdateEvent;
 import areca.app.service.SyncableService;
 import areca.app.service.SyncableService.SyncType;
-import areca.common.Assert;
 import areca.common.NullProgressMonitor;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
@@ -116,10 +116,12 @@ public class MatrixTest {
                         @Override public UnitOfWork unitOfWork() {
                             return repo.newUnitOfWork();
                         }
+                        @Override public ModelUpdateEvent outgoing() {
+                            throw new RuntimeException( "do not call" );
+                        }
                     };
-                    return service.newSync( SyncType.FULL, ctx );
+                    return service.newSync( SyncType.FULL, ctx, null ).start();
                 })
-                .then( sync -> Assert.notNull( sync, "No settings in app DB!" ).start() )
                 .onSuccess( __ -> {
                     //Platform.schedule( 3000, () -> service.matrix.stopClient() );
                 });

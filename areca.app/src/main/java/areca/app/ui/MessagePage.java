@@ -112,7 +112,7 @@ public class MessagePage
                 var reader = new BufferedReader( new StringReader( msg.content.get() ) );
                 var c = 0;
                 for (var line = reader.readLine(); line != null && c++ < maxLines; line = reader.readLine()) {
-                    LOG.info( "> %s", line );
+                    //LOG.info( "> %s", line );
                     // URL
                     var url = URL.matcher( line );
                     if (url.find()) {

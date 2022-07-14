@@ -138,7 +138,44 @@ public abstract class MatrixClient
     @JSMethod
     public abstract JSRoom getRoom( String roomId );
 
-    @JSMethod // client.once('sync', function(state, prevState, res) {
+    /**
+     * <a href="http://matrix-org.github.io/matrix-js-sdk/18.0.0/module-client.MatrixClient.html#getUser">SDK Doc</a>
+     */
+    @JSMethod
+    public abstract JSUser getUser( String userId );
+
+    /**
+     * <a href="http://matrix-org.github.io/matrix-js-sdk/18.0.0/module-client.MatrixClient.html#getUsers">SDK Doc</a>
+     */
+    @JSMethod
+    public abstract JSUser[] getUsers();
+
+    /**
+     * <a href="http://matrix-org.github.io/matrix-js-sdk/18.0.0/module-client.MatrixClient.html#getUsers">SDK Doc</a>
+     *
+     * @param info The kind of info to retrieve: 'displayname' or 'avatar_url' or null.
+     */
+    @JSMethod
+    public abstract JSPromise<JSCommon> getProfileInfo( String userId, String info );
+
+
+    /**
+     * Turn an MXC URL into an HTTP one. This method is experimental and may change.
+     *
+     * @param mxc The MXC URL.
+     * @param width The desired width of the thumbnail.
+     * @param height The desired height of the thumbnail.
+     * @param resizeMethod The thumbnail resize method to use, either "crop" or
+     *        "scale".
+     * @param allowDirectLinks If true, return any non-mxc URLs directly. Fetching
+     *        such URLs will leak information about the user to anyone they share a
+     *        room with. If false, will return null for such URLs.
+     * @return The HTTP URL, or null.
+     */
+    @JSMethod
+    public abstract String mxcUrlToHttp( String mxc, int width, int height, String resizeMethod, boolean allowDirectLinks );
+
+    @JSMethod
     public abstract void once( String type, Callback3 callback );
 
     @JSMethod
@@ -150,14 +187,14 @@ public abstract class MatrixClient
     @JSMethod
     public abstract void on( String type, Callback1 callback );
 
-    @JSBody(params = {"content"}, script = "return this.crypto.decryptEvent(content);")
-    public abstract JSPromise<JSCommon> decrypt( JSCommon content );
-
-    @JSBody(params = {"event"}, script = "return this.crypto.decryptEvent(new window.matrixcs.MatrixEvent(event));")
-    public abstract JSPromise<JSCommon> decryptEvent( JSStoredEvent event );
-
-    @JSBody(params = {"event"}, script = "return this.decryptEventIfNeeded(new window.matrixcs.MatrixEvent(event));")
-    public abstract JSPromise<JSCommon> decryptEventIfNeeded( JSStoredEvent event );
+//    @JSBody(params = {"content"}, script = "return this.crypto.decryptEvent(content);")
+//    public abstract JSPromise<JSCommon> decrypt( JSCommon content );
+//
+//    @JSBody(params = {"event"}, script = "return this.crypto.decryptEvent(new window.matrixcs.MatrixEvent(event));")
+//    public abstract JSPromise<JSCommon> decryptEvent( JSStoredEvent event );
+//
+//    @JSBody(params = {"event"}, script = "return this.decryptEventIfNeeded(new window.matrixcs.MatrixEvent(event));")
+//    public abstract JSPromise<JSCommon> decryptEventIfNeeded( JSStoredEvent event );
 
     @JSMethod
     public abstract JSPromise<JSCommon> decryptEventIfNeeded( JSEvent event );

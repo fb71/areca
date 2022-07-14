@@ -16,7 +16,10 @@ package areca.app.service.carddav;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.apache.commons.lang3.StringUtils.substringBefore;
+
 import java.util.ArrayList;
 
 import java.io.BufferedReader;
@@ -45,6 +48,13 @@ public class VCard {
         return new VCard().parse( new BufferedReader( new StringReader( text ) ) );
     }
 
+    public static class IMPP {
+
+        public ReadWrite<IMPP,String>   name = Property.rw( this, "name", (String)null );
+
+        public ReadWrite<IMPP,String>   type = Property.rw( this, "type", (String)null );
+    }
+
     // instance *******************************************
 
     public ReadWrite<VCard,String>  fn = Property.rw( this, "fn", (String)null );
@@ -56,6 +66,8 @@ public class VCard {
     public ReadWrites<VCard,String> emails = Property.rws( this, "email", new ArrayList<>() );
 
     public ReadWrites<VCard,String> phones = Property.rws( this, "phone", new ArrayList<>() );
+
+    public ReadWrites<VCard,IMPP>   impp = Property.rws( this, "impp", new ArrayList<>() );
 
     public ReadWrite<VCard,String>  photo = Property.rw( this, "photo", (String)null );
 
@@ -114,6 +126,14 @@ public class VCard {
             else if (line.startsWith( "TEL" )) {
                 var parts = split( line.substring( 3 ), ';' );
                 Sequence.of( parts ).forEach( part -> phones.add( substringAfterLast( part, ":" ) ) );
+            }
+            // IMPP:
+            else if (line.startsWith( "IMPP" )) {
+                LOG.info( "IMPP: %s", line );
+                var content = line.substring( 5 );
+                impp.add( new IMPP()
+                        .type.set( substringBefore( content, ":" ) )
+                        .name.set( substringAfter( content, ":" ) ) );
             }
             // UID:
             else if (line.startsWith( "UID:" )) {

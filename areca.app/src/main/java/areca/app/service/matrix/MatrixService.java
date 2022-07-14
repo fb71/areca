@@ -13,8 +13,14 @@
  */
 package areca.app.service.matrix;
 
+import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_ENCRYPTED;
 import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_MESSAGE;
+import static org.polymap.model2.query.Expressions.and;
+import static org.polymap.model2.query.Expressions.anyOf;
+import static org.polymap.model2.query.Expressions.eq;
+import static org.polymap.model2.query.Expressions.or;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.query.Expressions;
@@ -24,16 +30,21 @@ import org.polymap.model2.runtime.UnitOfWork;
 import areca.app.ArecaApp;
 import areca.app.model.Address;
 import areca.app.model.Anchor;
+import areca.app.model.Contact;
+import areca.app.model.IM;
 import areca.app.model.MatrixSettings;
 import areca.app.model.Message;
 import areca.app.model.Message.ContentType;
+import areca.app.service.ContactAnchorSynchronizer.ContactAnchorStoreRef;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
 import areca.app.service.TransportService;
 import areca.app.service.TypingEvent;
 import areca.common.Assert;
+import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
+import areca.common.Promise.Completable;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.event.EventManager;
@@ -181,6 +192,19 @@ public class MatrixService
             return initMatrixClient( settings ).onSuccess( count -> {
                 startListenEvents();
                 LOG.info( "Start event handling..." );
+
+                Platform.schedule( 3000, () -> {
+                    for (var user : matrix.getUsers()) {
+//                        LOG.info( "Profile: %s (%s)", user.displayName(), user.userId() );
+//                        matrix.getProfileInfo( user.userId(), "avatar_url" ).then( info -> {
+//                            MatrixClient.console( info );
+//                            info.ifPresent( url -> {
+//                                var http = matrix.mxcUrlToHttp( (String)url, 100, 100, "scale", true );
+//                                LOG.info( "Avatar: %s", http );
+//                            });
+//                        });
+                    }
+                });
             });
         }
 
@@ -211,7 +235,16 @@ public class MatrixService
                 JSEvent event = _event.cast();
                 LOG.info( "Event: %s - %s", event.eventId(), event.sender() );
 
-                if (M_ROOM_MESSAGE.equals( event.type() ) /*|| M_ROOM_ENCRYPTED.equals( event.type() )*/) {
+                if (M_ROOM_ENCRYPTED.equals( event.type() )) {
+                    // force decrypted messages to decrypt (???)
+                    Completable<JSCommon> decrypted = new Completable<>();
+                    matrix.decryptEventIfNeeded( event ).then( _decrypted -> {
+                        MatrixClient.console( event );
+                        decrypted.complete( _decrypted );
+                    });
+                }
+
+                if (M_ROOM_MESSAGE.equals( event.type() )) {
                     MatrixClient.console( event );
                     ArecaApp.current().modelUpdates.schedule( uow -> {
                         var monitor = ArecaApp.instance().newAsyncOperation();
@@ -222,14 +255,6 @@ public class MatrixService
                         })
                         .onSuccess( __ -> monitor.done() )
                         .onError( __ -> monitor.done() );
-
-//                        // decrypt
-//                        Completable<JSCommon> decrypted = new Completable<>();
-//                        matrix.decryptEventIfNeeded( event ).then( _decrypted -> {
-//                            monitor.worked( 1 );
-//                            MatrixClient.console( event );
-//                            decrypted.complete( _decrypted );
-//                        });
                     });
                 }
             });
@@ -342,7 +367,6 @@ public class MatrixService
                         proto.contentType.set( ContentType.PLAIN );
                         proto.unread.set( unread );
                         proto.date.set( event.date() );
-                        //anchor.messages.add( proto );
                     });
         }
 
@@ -361,8 +385,55 @@ public class MatrixService
 
 
         protected Promise<Anchor> checkContactAnchor( String userId, UnitOfWork uow ) {
-            LOG.info( "Contact: userId=%s - NOT YET", userId );
-            return Promise.completed( null );
+            LOG.info( "Contact: userId=%s", userId );
+            var user = matrix.getUser( userId );
+            MatrixClient.console( user );
+            var parts = StringUtils.split( user.displayName(), ' ' );
+
+            var first = "";
+            var last = "";
+            var imType = "";
+
+            var search = Expressions.TRUE;
+
+            for (int i = 0; i < parts.length; i++) {
+                if (parts[i].startsWith( "(" ) && parts[i].endsWith( ")" )) {
+                    imType = parts[i].substring( 1, parts[i].length() - 1 );
+                    var name = first + " " + last;
+                    search = or( search, anyOf( Contact.TYPE.im, and(
+                            eq( IM.TYPE.type, imType.toLowerCase() ),
+                            eq( IM.TYPE.name, name ) ) ) );
+                }
+                else if (i == 0) {
+                    first = parts[i];
+                    search = eq( Contact.TYPE.firstname, first );
+                }
+                else {
+                    last += parts[i];
+                    search = and( search, eq( Contact.TYPE.lastname, last ) );
+                }
+            }
+
+            search = or( search, anyOf( Contact.TYPE.im, and(
+                    eq( IM.TYPE.type, "matrix" ),
+                    eq( IM.TYPE.name, userId ) ) ) );
+
+            var finalSearch = search;
+            LOG.info( "Search: %s", search );
+
+            return uow.query( Contact.class ).executeCollect().then( contacts -> {
+                return Sequence.of( contacts )
+                        .filter( it -> finalSearch.evaluate( it ) ) // Contact.im[].type/name is not supported by IDB
+                        .first()
+                        .map( found -> {
+                            LOG.info( "Contact: found!" );
+                            return found.anchor.ensure( proto -> {
+                                proto.name.set( found.label() );
+                                proto.setStoreRef( new ContactAnchorStoreRef( found ) );
+                            });
+                        })
+                        .orElse( Promise.completed( (Anchor)null ) );
+            });
         }
     }
 

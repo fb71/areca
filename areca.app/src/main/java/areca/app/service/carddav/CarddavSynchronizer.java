@@ -111,6 +111,11 @@ public class CarddavSynchronizer {
         vcard.emails.values().first().ifPresent( v -> contact.email.set( v ) );  // XXX multiple
         vcard.phones.values().first().ifPresent( v -> contact.phone.set( v ) );  // XXX multiple
         vcard.photo.opt().ifPresent( v -> contact.photo.set( v ) );
+        contact.im.clear();
+        vcard.impp.values().forEach( impp -> contact.im.createElement( proto -> {
+            proto.type.set( impp.type.get().toLowerCase() );
+            proto.name.set( impp.name.get() );
+        }));
     }
 
 }
