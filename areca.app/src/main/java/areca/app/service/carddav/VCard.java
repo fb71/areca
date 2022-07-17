@@ -13,7 +13,6 @@
  */
 package areca.app.service.carddav;
 
-import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
@@ -36,6 +35,7 @@ import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Property.ReadWrites;
 
 /**
+ * https://de.wikipedia.org/wiki/VCard#vCard_3.0
  * https://www.evenx.com/vcard-3-0-format-specification
  *
  * @author Falko Bräutigam
@@ -82,7 +82,7 @@ public class VCard {
 
     @Override
     public String toString() {
-        return String.format( "VCard[%s]", joinWith( ", ", fn, lastname, firstname, emails, phones, uid, rev ) );
+        return String.format( "VCard[%s, %s, %s, %s, %s, %s, %s]", fn, lastname, firstname, emails, phones, uid, rev );
     }
 
 

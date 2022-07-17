@@ -18,13 +18,12 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import org.polymap.model2.Property;
 import org.polymap.model2.query.Query.Order;
 
 import areca.app.ArecaApp;
 import areca.app.model.Contact;
+import areca.common.MutableInt;
 import areca.common.Timer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -127,6 +126,8 @@ public class ContactsPage extends Page {
                 contact.firstname.opt().orElse( "" ),
                 contact.lastname.opt().orElse( "" )) );
         btn.tooltip.set( contact.label() );
+        contact.photo.opt().ifPresent( image -> btn.imageData.set( image ) );
+
         btn.events.on( SELECT, ev -> {
             //site.put( contact );
             site.pageflow().open( new ContactPage( contact ), ContactsPage.this, ev.clientPos() );

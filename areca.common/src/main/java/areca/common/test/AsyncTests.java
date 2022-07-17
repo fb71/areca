@@ -15,10 +15,9 @@ package areca.common.test;
 
 import static areca.common.Platform.async;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import areca.common.Assert;
 import areca.common.AssertionException;
+import areca.common.MutableInt;
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.base.Sequence;

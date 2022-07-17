@@ -123,6 +123,8 @@
                             <goal>compile</goal>
                         </goals>
                         <configuration>
+                            <debug>true</debug>
+                            <debuglevel>lines,vars,source</debuglevel>
                             <annotationProcessors>
                                 <annotationProcessor>areca.common.reflect.ReflectAnnotationProcessor</annotationProcessor>
                             </annotationProcessors>

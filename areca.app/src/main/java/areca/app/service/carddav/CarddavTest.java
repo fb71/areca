@@ -19,8 +19,6 @@ import java.util.ArrayList;
 
 import java.io.IOException;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
 import org.polymap.model2.store.tidbstore.IDBStore;
@@ -29,6 +27,7 @@ import areca.app.model.Anchor;
 import areca.app.model.Contact;
 import areca.app.model.Message;
 import areca.common.Assert;
+import areca.common.MutableInt;
 import areca.common.Platform;
 import areca.common.Platform.HttpResponse;
 import areca.common.Promise;
