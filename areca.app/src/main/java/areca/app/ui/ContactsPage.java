@@ -101,7 +101,7 @@ public class ContactsPage extends Page {
                 .execute()
                 .onSuccess( (ctx,result) -> {
                     result.ifPresent( contact -> {
-                        chunk.add( makeContactButton( contact ) );
+                        chunk.add( createContactButton( contact ) );
                     });
                     if (timer.elapsed( MILLISECONDS ) > timeout || ctx.isComplete()) {
                         LOG.info( "" + timer.elapsedHumanReadable() );
@@ -119,14 +119,18 @@ public class ContactsPage extends Page {
     }
 
 
-    protected Button makeContactButton( Contact contact ) {
+    protected Button createContactButton( Contact contact ) {
         var btn = new Button();
         btn.cssClasses.add( "ContactButton" );
-        btn.label.set( String.format( "%.7s %.7s",
-                contact.firstname.opt().orElse( "" ),
-                contact.lastname.opt().orElse( "" )) );
+        if (contact.photo.opt().isPresent()) {
+            btn.bgImage.set( contact.photo.get() );
+        }
+        else {
+            btn.label.set( String.format( "%.7s %.7s",
+                    contact.firstname.opt().orElse( "" ),
+                    contact.lastname.opt().orElse( "" )) );
+        }
         btn.tooltip.set( contact.label() );
-        contact.photo.opt().ifPresent( image -> btn.imageData.set( image ) );
 
         btn.events.on( SELECT, ev -> {
             //site.put( contact );

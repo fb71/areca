@@ -58,7 +58,7 @@ public class ContactPage extends Page {
         ui.body.add( new Button() {{
             layoutConstraints.set( new RowConstraints().height.set( 80 ) );
             if (contact.photo.get() != null) {
-                imageData.set( contact.photo.get() );
+                image.set( contact.photo.get() );
             }
             else {
                 icon.set( "face" );

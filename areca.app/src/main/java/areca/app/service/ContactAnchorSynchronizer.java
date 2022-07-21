@@ -72,6 +72,7 @@ public class ContactAnchorSynchronizer {
                                 .ensure( proto -> {
                                     proto.name.set( anchorName( message, contact ) );
                                     proto.setStoreRef( new ContactAnchorStoreRef( contact ) );
+                                    proto.image.set( contact.photo.get() );
                                 })
                                 .map( anchor -> {
                                     anchor.messages.add( message );

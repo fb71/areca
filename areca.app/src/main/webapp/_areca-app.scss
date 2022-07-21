@@ -19,10 +19,14 @@ $card_color: lighten($bg1_color, 4%);
     font-size: 12px;
     border-radius: 20px;
     padding: 5px 5px;
+    box-shadow: 0px 1px 7px rgba(0,0,0,0.5);
     background-color: $card_color;
-    //border-color: saturate(lighten($bg1_color, 8%), 0%) !important;
-    border: none !important;
+    border: 1px solid lighten($card_color, 3%) !important;
+    //border: none !important;
 }
+//.ContactButton .label, .AnchorButton .label {
+//    text-shadow: 0px 1px 3px rgba(0,0,0,0.7);
+//}
 // Tag
 .AnchorButton:after {
     color: lighten($card_color, 17%);

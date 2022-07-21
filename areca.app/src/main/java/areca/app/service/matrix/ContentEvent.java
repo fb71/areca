@@ -13,6 +13,7 @@
  */
 package areca.app.service.matrix;
 
+import areca.app.service.matrix.JSEvent.EventType;
 import areca.common.base.Opt;
 
 /**
@@ -33,6 +34,10 @@ public interface ContentEvent {
     public String sender();
 
     public JSCommon content();
+
+    public default boolean isType( EventType check ) {
+        return check.equals( type() );
+    }
 
     public default Opt<JSMessage> messageContent()  {
         return type().equals( "m.room.message" ) ? Opt.of( content().cast() ) : Opt.absent();

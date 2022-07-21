@@ -103,6 +103,20 @@ public class UIComponentRenderer
                 //    return Color.ofHex( htmlElm.getStyle().getPropertyValue( "background-color" ) );
                 //});
 
+        // bgImage
+        c.bgImage.onInitAndChange( (newValue,oldValue) -> {
+            if (newValue != null) {
+                var dataUrl = String.format( "url(data:;base64,%s)", newValue.replace( "\r", "" ).replace( "\n", "" ) );
+                htmlElm.getStyle().setProperty( "background-image", dataUrl ); // position, repeat, size in CSS
+//                htmlElm.getStyle().setProperty( "background-position", "center" );
+//                htmlElm.getStyle().setProperty( "background-size", "100%" );
+//                htmlElm.getStyle().setProperty( "background-repeat", "no-repeat" );
+                //htmlElm.getStyle().setProperty( "background", String.format( "url(data:;base64,%s) no-repeat center", newValue ) );
+            } else {
+                htmlElm.getStyle().removeProperty( "background-image" );
+            }
+        });
+
         // opacity
         c.opacity
                 .onInitAndChange( (newValue, oldValue) -> {

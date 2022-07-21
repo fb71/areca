@@ -17,8 +17,12 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSMethod;
 import org.teavm.jso.JSObject;
+import org.teavm.jso.JSProperty;
+import org.teavm.jso.core.JSArray;
 
+import areca.app.ArecaApp;
 import areca.common.Promise;
+import areca.common.Promise.Completable;
 import areca.common.WaitFor;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -150,14 +154,36 @@ public abstract class MatrixClient
     @JSMethod
     public abstract JSUser[] getUsers();
 
+    @JSMethod
+    public abstract JSPromise<JSArray<JSCommon>> getJoinedRoomMembers( String roomId );
+
     /**
      * <a href="http://matrix-org.github.io/matrix-js-sdk/18.0.0/module-client.MatrixClient.html#getUsers">SDK Doc</a>
      *
      * @param info The kind of info to retrieve: 'displayname' or 'avatar_url' or null.
      */
     @JSMethod
-    public abstract JSPromise<JSCommon> getProfileInfo( String userId, String info );
+    public abstract JSPromise<JSProfileInfo> getProfileInfo( String userId, String info );
 
+    public Promise<JSProfileInfo> getProfileInfoNoError( String userId ) {
+        var result = new Completable<JSProfileInfo>();
+        getProfileInfo( userId, null )
+                .then( (JSProfileInfo value) -> result.complete( value ) )
+                .catch_( err -> result.complete( err.cast() ) );
+        return result;
+    }
+
+    public interface JSProfileInfo extends JSObject {
+
+        @JSProperty( "errcode" )
+        public OptString errorCode();
+
+        @JSProperty( "displayname" )
+        public String displayName();
+
+        @JSProperty( "avatar_url" )
+        public String avatarUrl();
+    }
 
     /**
      * Turn an MXC URL into an HTTP one. This method is experimental and may change.
@@ -170,7 +196,7 @@ public abstract class MatrixClient
      * @param allowDirectLinks If true, return any non-mxc URLs directly. Fetching
      *        such URLs will leak information about the user to anyone they share a
      *        room with. If false, will return null for such URLs.
-     * @return The HTTP URL, or null.
+     * @return The (wrong {@link ArecaApp#proxiedUrl(String) proxied}) HTTP URL, or null.
      */
     @JSMethod
     public abstract String mxcUrlToHttp( String mxc, int width, int height, String resizeMethod, boolean allowDirectLinks );

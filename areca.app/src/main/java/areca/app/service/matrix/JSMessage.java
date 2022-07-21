@@ -16,6 +16,8 @@ package areca.app.service.matrix;
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSProperty;
 
+import areca.app.service.matrix.JSEvent.EventType;
+
 /**
  *
  */
@@ -32,14 +34,18 @@ public abstract class JSMessage
         return result;
     }
 
-    @JSProperty
-    public abstract OptString getMsgtype();
+    @JSProperty( "msgtype" )
+    public abstract OptString msgtype();
+
+    public boolean isMsgtype( EventType check ) {
+        return check.equals( msgtype().opt().orElse( null ) );
+    }
 
     @JSProperty
     public abstract void setMsgtype( String type );
 
-    @JSProperty
-    public abstract OptString getBody();
+    @JSProperty( "body" )
+    public abstract OptString body();
 
     @JSProperty
     public abstract void setBody( String body );

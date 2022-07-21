@@ -26,7 +26,7 @@ public interface JSEvent
      *
      */
     enum EventType {
-        M_ROOM_MESSAGE, M_ROOM_ENCRYPTED;
+        M_ROOM_MESSAGE, M_ROOM_ENCRYPTED, M_BAD_ENCRYPTED;
 
         //@Override
         public boolean equals( String other ) {
@@ -66,6 +66,10 @@ public interface JSEvent
 
     public default String toString2() {
         return String.format( "Event[type=%s, sender=%s]", type(), sender() );
+    }
+
+    public default boolean isType( EventType check ) {
+        return check.equals( type() );
     }
 
     public default ContentEvent asContentEvent() {

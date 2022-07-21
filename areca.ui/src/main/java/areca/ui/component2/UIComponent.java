@@ -63,24 +63,41 @@ public abstract class UIComponent {
 
     public Object                       htmlElm;
 
-    /** The tooltip of this component. */
+    /**
+     * The tooltip of this component.
+     */
     public ReadWrite<UIComponent,String>    tooltip = Property.rw( this, "tooltip" );
 
-    /** The styling classes of this component. */
+    /**
+     * The styling classes of this component.
+     */
     public ReadWrites<UIComponent,String>   cssClasses = Property.rws( this, PROP_CSS_CLASSES );
 
-    /** Background color. */
+    /**
+     * Background color.
+     */
     public ReadWrite<UIComponent,Color>     bgColor = Property.rw( this, PROP_BG_COLOR );
 
-    /** The size of the component. Usually this is set by a {@link LayoutManager} only. */
+    /**
+     * Base64 encoded image data to be displayed as the background of this component.
+     */
+    public ReadWrite<UIComponent,String>    bgImage = new ReadWrite<>( this, "bgImage" );
+
+    /**
+     * The size of the component. Usually this is set by a {@link LayoutManager} only.
+     * */
     public ReadWrite<UIComponent,Size>      size = Property.rw( this, PROP_SIZE );
 
     public ReadOnly<UIComponent,Size>       clientSize = Property.rw( this, "clientSize" );
 
-    /** The position of the component. Usually this is set by a {@link LayoutManager} only. */
+    /**
+     * The position of the component. Usually this is set by a {@link LayoutManager} only.
+     */
     public ReadWrite<UIComponent,Position>  position = Property.rw( this, PROP_POSITION );
 
-    /** Implemented via CSS class "Bordered". */
+    /**
+     * Implemented via CSS class "Bordered".
+     */
     public ReadWrite<UIComponent,Boolean>   bordered = Property.rw( this, "bordered" );
 
     /**  */
@@ -92,10 +109,14 @@ public abstract class UIComponent {
     /** */
     public ReadWrite<UIComponent,LayoutConstraints> layoutConstraints = Property.rw( this, "lc" );
 
-    /** Pseudo property that allows to scroll this component. */
+    /**
+     * Pseudo property that allows to scroll this component.
+     */
     public ReadWrite<?,Align.Vertical>      scrollIntoView = Property.rw( this, "scrollIntoView" );
 
-    /** Pseudo property that allows to set the focus on this component. */
+    /**
+     * Pseudo property that allows to set the focus on this component.
+     */
     public ReadWrite<?,Boolean>             focus = Property.rw( this, "focus" );
 
     /** */

@@ -16,6 +16,7 @@ package areca.app.model;
 import org.polymap.model2.Concerns;
 import org.polymap.model2.Defaults;
 import org.polymap.model2.ManyAssociation;
+import org.polymap.model2.Nullable;
 import org.polymap.model2.Property;
 import org.polymap.model2.Queryable;
 
@@ -43,6 +44,9 @@ public class Anchor
 
     @Queryable
     public Property<String>         name;
+
+    @Nullable
+    public Property<String>         image;
 
     @Queryable
     @Concerns( AnchorMessagesConcern.class )

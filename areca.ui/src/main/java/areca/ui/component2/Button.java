@@ -31,9 +31,9 @@ public class Button
     public ReadWrite<Button,String> icon = new ReadWrite<>( this, "icon" );
 
     /**
-     * Base64 encoded image data.
+     * Base64 encoded image.
      */
-    public ReadWrite<Button,String> imageData = new ReadWrite<>( this, "imageData" );
+    public ReadWrite<Button,String> image = new ReadWrite<>( this, "imageData" );
 
     {
         bordered.set( true );

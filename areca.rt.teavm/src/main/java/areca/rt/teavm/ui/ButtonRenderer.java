@@ -55,29 +55,43 @@ public class ButtonRenderer
 
         htmlButton.setAttribute( "type", "button" );
 
+        // imageData
+        c.image.onInitAndChange( (newValue, __) -> {
+            if (newValue != null) {
+                var img = c.data( "__imageData__", () -> {
+                    return (HTMLImageElement)htmlButton.appendChild( doc().createElement( "img" ) );
+                });
+                img.setSrc( "data:;base64," + newValue );
+                //img.getStyle().setProperty( "height", "100%" );
+            }
+            else {
+                c.<HTMLImageElement>optData( "__imageData__" ).ifPresent( img -> img.delete() );
+            }
+        });
+
+        // label
+        c.label.onInitAndChange( (newValue, __) -> {
+            var span = c.data( "__label__", () -> {
+                return (HTMLElement)htmlButton.appendChild( doc().createElement( "span" ) );
+            });
+            span.setAttribute( "class", "label" );
+            span.setInnerText( newValue );
+        });
+
         // icon
         c.icon.onInitAndChange( (newValue, __) -> {
             var span = c.data( "__icon__", () -> {
                 return (HTMLElement)htmlButton.appendChild( doc().createElement( "span" ) );
             });
-            span.setAttribute( "class", "material-icons" );
+            span.setAttribute( "class", "material-icons icon" );
             span.setInnerText( newValue );
         });
 
-        // imageData
-        c.imageData.onInitAndChange( (newValue, __) -> {
-            var img = c.data( "__imageData__", () -> {
-                return (HTMLImageElement)htmlButton.appendChild( doc().createElement( "img" ) );
-            });
-            img.setSrc( "data:;base64," + newValue );
-            img.getStyle().setProperty( "height", "100%" );
-        });
-
-        // label
-        var textNode = (HTMLElement)doc().createTextNode( c.label.opt().orElse( "" ) );
-        htmlButton.appendChild( textNode );
-        c.label.onChange( (newValue, oldValue) -> {
-            textNode.setNodeValue( newValue );
-        });
+//        // label
+//        var textNode = (HTMLElement)doc().createTextNode( c.label.opt().orElse( "" ) );
+//        htmlButton.appendChild( textNode );
+//        c.label.onChange( (newValue, oldValue) -> {
+//            textNode.setNodeValue( newValue );
+//        });
     }
 }

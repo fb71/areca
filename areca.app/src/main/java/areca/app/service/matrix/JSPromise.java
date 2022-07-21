@@ -16,6 +16,9 @@ package areca.app.service.matrix;
 import org.teavm.jso.JSMethod;
 import org.teavm.jso.JSObject;
 
+import areca.common.Promise;
+import areca.common.Promise.Completable;
+
 /**
  *
  */
@@ -27,4 +30,14 @@ public interface JSPromise<T extends JSObject>
 
     @JSMethod("catch")
     public JSPromise<T> catch_( Callback1<JSCommon> err );
+
+    public default Promise<T> asPromise() {
+        var result = new Completable<T>();
+        then( (T value) -> result.complete( value ) );
+        catch_( err -> {
+            MatrixClient.console( err );
+            result.completeWithError( new RuntimeException( "Error in JSPromise. See above for error." ) );
+        });
+        return result;
+    }
 }

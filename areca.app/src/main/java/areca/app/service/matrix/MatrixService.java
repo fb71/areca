@@ -13,6 +13,7 @@
  */
 package areca.app.service.matrix;
 
+import static areca.app.service.matrix.JSEvent.EventType.M_BAD_ENCRYPTED;
 import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_ENCRYPTED;
 import static areca.app.service.matrix.JSEvent.EventType.M_ROOM_MESSAGE;
 import static org.polymap.model2.query.Expressions.and;
@@ -81,7 +82,7 @@ public class MatrixService
             return Promise.completed( matrix );
         }
         else {
-            // FIXME check if settings have been chaged since last call
+            // FIXME check if settings have been changed since last call
             matrix = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ),
                     settings.accessToken.get(), settings.username.get(), settings.deviceId.get() );
 
@@ -213,13 +214,22 @@ public class MatrixService
             // decrypted event/message
             matrix.on( "Event.decrypted", _event -> {
                 JSEvent event = _event.cast();
-                LOG.info( "Decrypted: %s: %s - %s", event.type(), event.eventId(), event.sender() );
+                LOG.info( "Decrypted: %s", event.type() );
                 MatrixClient.console( _event );
-                ArecaApp.current().modelUpdates.schedule( uow -> {
-                    return ensureMessageAndAnchors( event.asContentEvent(), true, uow ).then( msg -> {
-                        return uow.submit();
+                var content = event.asContentEvent();
+
+                if (((JSMessage)content.content()).isMsgtype( M_BAD_ENCRYPTED )) { // XXX UI
+                    LOG.info( "Decrypt: %s", content.messageContent()
+                            .orElseThrow( () -> new RuntimeException( "No content message on BAD ENCRYPTED event." ) )
+                            .body().stringValue() );
+                }
+                else {
+                    ArecaApp.current().modelUpdates.schedule( uow -> {
+                        return ensureMessageAndAnchors( content, true, uow ).then( msg -> {
+                            return uow.submit();
+                        });
                     });
-                });
+                }
             });
 
             // typing...
@@ -363,7 +373,7 @@ public class MatrixService
                     proto -> {
                         proto.setStoreRef( new MessageStoreRef( settings, event.roomId(), event.eventId() ) );
                         proto.fromAddress.set( new MatrixAddress( event.sender(), event.roomId() ).encoded() );
-                        proto.content.set( content.getBody().opt().orElse( "" ) );
+                        proto.content.set( content.body().opt().orElse( "" ) );
                         proto.contentType.set( ContentType.PLAIN );
                         proto.unread.set( unread );
                         proto.date.set( event.date() );
@@ -380,6 +390,15 @@ public class MatrixService
                     proto -> {
                         proto.name.set( room.name() );
                         proto.setStoreRef( storeRef );
+                    })
+                    .then( anchor -> {
+                        matrix.getJoinedRoomMembers( roomId ).asPromise().onSuccess( members -> {
+                            MatrixClient.console( members );
+                        });
+//                        return anchor.image.get() != null
+//                                ? Promise.completed( anchor )
+//                                : updateAvatarImage( anchor, userId );
+                        return Promise.completed( anchor );
                     });
         }
 
@@ -430,10 +449,64 @@ public class MatrixService
                             return found.anchor.ensure( proto -> {
                                 proto.name.set( found.label() );
                                 proto.setStoreRef( new ContactAnchorStoreRef( found ) );
+                                proto.image.set( found.photo.get() );
+                            })
+                            .then( anchor -> {
+                                return anchor.image.get() != null
+                                        ? Promise.completed( anchor )
+                                        : updateAvatarImage( anchor, userId );
                             });
                         })
                         .orElse( Promise.completed( (Anchor)null ) );
             });
+        }
+
+
+        protected Promise<Anchor> updateAvatarImage( Anchor anchor, String userId ) {
+            LOG.info( "Profile: %s ", userId );
+            return matrix.getProfileInfoNoError( userId )
+                    .then( info -> {
+                        //MatrixClient.console( info );
+                        if (!info.errorCode().isUndefined()) {
+                            LOG.info( "No profile: error=%s", info.errorCode().stringValue() );
+                            return Promise.completed( anchor );
+                        }
+                        else {
+                            var url = matrix.mxcUrlToHttp( info.avatarUrl(), 50, 50, "scale", false );
+                            url = url.replace( "?width", "&width" ) // Matrix SDK does not know about HTTP proxy
+                                    + "&_encode_=BASE64";           // encoding in HttpForwardServlet
+                            LOG.info( "Avatar: %s", url );
+                            return Platform.xhr( "GET", url )
+                                    .overrideMimeType( "text/plain; charset=x-user-defined" )
+                                    .submit()
+                                    .map( response -> {
+                                        anchor.image.set( response.text() );
+                                        return anchor;
+                                    });
+                        }
+                    });
+        }
+
+        private final static String BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+        public String encode(String s) {
+            String r = "", p = "";
+            int c = s.length() % 3;
+            if (c > 0) {
+                for (; c < 3; c++) {
+                    p += "=";
+                    s += "\0";
+                }
+            }
+            for (c = 0; c < s.length(); c += 3) {
+                if (c > 0 && (c / 3 * 4) % 76 == 0) {
+                    r += "\r\n";
+                }
+                int n = (s.charAt(c) << 16) + (s.charAt(c + 1) << 8) + (s.charAt(c + 2));
+                int n1 = (n >> 18) & 63, n2 = (n >> 12) & 63, n3 = (n >> 6) & 63, n4 = n & 63;
+                r += "" + BASE64_CHARS.charAt(n1) + BASE64_CHARS.charAt(n2) + BASE64_CHARS.charAt(n3) + BASE64_CHARS.charAt(n4);
+            }
+            return r.substring(0, r.length() - p.length()) + p;
         }
     }
 

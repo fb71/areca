@@ -116,7 +116,7 @@ public class AnchorsCloudPage
                             .map( anchors -> {
                                 return Sequence.of( anchors )
                                         .map( (anchor,i) -> {
-                                            var btn = btns.computeIfAbsent( anchor, __ -> makeAnchorButton( anchor ) );
+                                            var btn = btns.computeIfAbsent( anchor, __ -> createAnchorButton( anchor ) );
                                             return new CloudComponent( btn, i + start, anchor.lastMessageDate.get() );
                                         })
                                         .toList();
@@ -139,14 +139,19 @@ public class AnchorsCloudPage
     }
 
 
-    protected Button makeAnchorButton( Anchor anchor ) {
+    protected Button createAnchorButton( Anchor anchor ) {
         var btn = new Button();
         btn.cssClasses.add( "AnchorButton" );
 
         // btn
         Runnable updateBtn = () -> {
-            btn.label.set( abbreviate( anchor.name.opt().orElse( "..." ), 17 ) );
             btn.tooltip.set( anchor.name.opt().orElse( "" ) );
+            if (anchor.image.opt().isPresent()) {
+                btn.bgImage.set( anchor.image.opt().orElse( null ) );
+            }
+            else {
+                btn.label.set( abbreviate( anchor.name.opt().orElse( "..." ), 17 ) );
+            }
         };
         updateBtn.run();
 
