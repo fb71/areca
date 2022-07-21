@@ -17,14 +17,19 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Objects;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URI;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.servlet.ServletException;
@@ -62,10 +67,14 @@ public class HttpForwardServlet2 extends HttpServlet {
             c = 0;
             req.getParameterMap().forEach( (key,values) -> {
                 if (!key.equals( "uri" )) {
-                    uri.append( c++==0 ? "?" : "&").append( String.format( "%s=%s", key, values[0] ) );
+                    uri.append( c++ == 0 ? "?" : "&" ).append( String.format( "%s=%s", key, values[0] ) );
                 }
             });
             debug( "URI: %s %s", req.getMethod(), uri );
+
+            for (var header : Collections.list( req.getHeaderNames() )) {
+                debug( "    Header: %s: %s", header, req.getHeader( header ) );
+            }
 
             // connection
             HttpURLConnection conn = (HttpURLConnection)URI.create( uri.toString() ).toURL().openConnection();
@@ -103,7 +112,20 @@ public class HttpForwardServlet2 extends HttpServlet {
                 }
             });
             if (conn.getResponseCode() < 299) {
-                copyAndClose( conn.getInputStream(), resp.getOutputStream() );
+                if ("BASE64".equals( req.getParameter( "_encode_" ) )) {
+                    debug( "Encode: BASE64..." );
+                    var bytes = new ByteArrayOutputStream( 4*4096 );
+                    var in = new BufferedInputStream( req.getInputStream() );
+                    for (var b = in.read(); b > -1; b = in.read()) {
+                        bytes.write( b );
+                    }
+                    copyAndClose(
+                            new ByteArrayInputStream( Base64.getEncoder().encode( bytes.toByteArray() ) ),
+                            resp.getOutputStream() );
+                }
+                else {
+                    copyAndClose( conn.getInputStream(), resp.getOutputStream() );
+                }
             }
             else {
                 copyAndClose( conn.getErrorStream(), resp.getOutputStream() );
