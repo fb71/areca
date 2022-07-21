@@ -97,6 +97,8 @@ public abstract class Platform {
 
         public abstract HttpRequest addHeader( String name, String value );
 
+        public abstract HttpRequest overrideMimeType( String mimeType );
+
         protected abstract Promise<HttpResponse> doSubmit( Object jsonOrStringData );
 
         public Promise<HttpResponse> submit() {
@@ -114,6 +116,8 @@ public abstract class Platform {
     public static abstract class HttpResponse {
 
         public abstract int status();
+
+        public abstract /*JSObject*/ Object content();
 
         public abstract String text();
 
