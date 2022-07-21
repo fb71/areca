@@ -80,8 +80,8 @@ public class HttpForwardServlet2 extends HttpServlet {
             HttpURLConnection conn = (HttpURLConnection)URI.create( uri.toString() ).toURL().openConnection();
 
             // authentication
-            if (req.getHeader( "X_Auth_Username" ) != null) {
-                String auth = req.getHeader( "X_Auth_Username" ) + ":" + req.getHeader( "X_Auth_Password" );
+            if (req.getHeader( "X-auth-username" ) != null) {
+                String auth = req.getHeader( "X-auth-username" ) + ":" + req.getHeader( "X-auth-password" );
                 byte[] encodedAuth = Base64.getEncoder().encode( auth.getBytes( UTF_8 ) );
                 String basic = "Basic " + new String( encodedAuth );
                 conn.setRequestProperty( "Authorization", basic );

@@ -63,6 +63,7 @@ public class TeaPlatform
             private Opt<String> username = Opt.absent();
             private Opt<String> password = Opt.absent();
             private Map<String,String> headers = new HashMap<>();
+            private Opt<String> overrideMimeType = Opt.absent();
             private Timer timer;
 
             @Override
@@ -90,17 +91,28 @@ public class TeaPlatform
             }
 
             @Override
+            public HttpRequest overrideMimeType( String mimeType ) {
+                overrideMimeType = Opt.of( mimeType );
+                return this;
+            }
+
+            @Override
             protected Promise<HttpResponse> doSubmit( Object jsonOrStringData ) {
                 var promise = new Promise.Completable<HttpResponse>();
                 request.open( method, url, true ); //, username, password );
-                username.ifPresent( v -> request.setRequestHeader( "X_Auth_Username", v ) );
-                password.ifPresent( v -> request.setRequestHeader( "X_Auth_Password", v ) );
+                username.ifPresent( v -> request.setRequestHeader( "X-auth-username", v ) );
+                password.ifPresent( v -> request.setRequestHeader( "X-auth-password", v ) );
                 headers.forEach( (n,v) -> request.setRequestHeader( n, v ) );
+                overrideMimeType.ifPresent( mimeType -> request.overrideMimeType( mimeType ) );
                 request.onComplete( () -> {
                     promise.complete( new HttpResponse() {
                         @Override
                         public int status() {
                             return request.getStatus();
+                        }
+                        @Override
+                        public Object content() {
+                            return request.getResponse();
                         }
                         @Override
                         public String text() {
