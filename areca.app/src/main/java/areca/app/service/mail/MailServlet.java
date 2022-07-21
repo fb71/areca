@@ -127,7 +127,7 @@ public class MailServlet extends HttpServlet {
             throw new ServletException( e );
         }
         // response
-        response.setContentType( "application/json" ); //charset=UTF-8" );
+        response.setContentType( "application/json" ); // charset=UTF-8" );
         response.setCharacterEncoding( "UTF-8" );
         gson.toJson( result, response.getWriter() );
         response.flushBuffer();
