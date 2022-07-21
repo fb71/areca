@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021, the @authors. All rights reserved.
+ * Copyright (C) 2022, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -127,6 +127,7 @@ public class MailServlet extends HttpServlet {
             throw new ServletException( e );
         }
         // response
+        response.setContentType( "application/json" ); //charset=UTF-8" );
         response.setCharacterEncoding( "UTF-8" );
         gson.toJson( result, response.getWriter() );
         response.flushBuffer();
