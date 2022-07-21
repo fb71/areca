@@ -17,7 +17,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Objects;
 
 import java.io.BufferedInputStream;
@@ -72,10 +71,6 @@ public class HttpForwardServlet2 extends HttpServlet {
             });
             debug( "URI: %s %s", req.getMethod(), uri );
 
-            for (var header : Collections.list( req.getHeaderNames() )) {
-                debug( "    Header: %s: %s", header, req.getHeader( header ) );
-            }
-
             // connection
             HttpURLConnection conn = (HttpURLConnection)URI.create( uri.toString() ).toURL().openConnection();
 
@@ -85,7 +80,6 @@ public class HttpForwardServlet2 extends HttpServlet {
                 byte[] encodedAuth = Base64.getEncoder().encode( auth.getBytes( UTF_8 ) );
                 String basic = "Basic " + new String( encodedAuth );
                 conn.setRequestProperty( "Authorization", basic );
-                debug( "Authorization: %s", basic );
             }
 
             // headers
