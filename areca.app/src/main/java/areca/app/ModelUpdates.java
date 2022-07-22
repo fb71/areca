@@ -42,7 +42,7 @@ public class ModelUpdates {
 
     private static final Log LOG = LogFactory.getLog( ModelUpdates.class );
 
-    public static final int DEFAULT_MODEL_UPDATE_EVENT_DELAY = 1000;
+    public static final int DEFAULT_MODEL_UPDATE_EVENT_DELAY = 3000;
 
     private ArecaApp        app;
 
