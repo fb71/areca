@@ -13,8 +13,10 @@
  */
 package areca.app.service.mail;
 
+import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
+import org.teavm.jso.json.JSON;
 
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
@@ -30,11 +32,12 @@ public class MessageSendRequest
 
     private static final Log LOG = LogFactory.getLog( MessageSendRequest.class );
 
-    public static final String  FILE_NAME = "send";
+    public static final String  FILE_NAME = "message.send";
 
-    protected MessageSendRequest( RequestParams params, MessageContent msg ) {
+    public MessageSendRequest( RequestParams params, Message msg ) {
         super( params );
         setPath( FILE_NAME );
+        this.content = JSON.stringify( msg );
     }
 
     /**
@@ -42,16 +45,36 @@ public class MessageSendRequest
      */
     public interface MessageSendResponse
             extends MailRequest.Response, JSObject {
+
+        @JSProperty( "count" )
+        public int count();
     }
+
 
     /**
      *
      */
-    public interface MessageContent extends JSObject {
-        @JSProperty("parts")
-        public MessagePart[] parts();
+    public static abstract class Message implements JSObject {
 
-        public default Opt<MessagePart> bodyParts( String... mimeTypes ) {
+        @JSBody( script = "return {};" )
+        public static native Message create();
+
+        @JSProperty("subject")
+        public abstract void setSubject( String value );
+
+        @JSProperty("from")
+        public abstract void setFrom( String value );
+
+        @JSProperty("to")
+        public abstract void setTo( String value );
+
+        @JSProperty("text")
+        public abstract void setText( String value );
+
+        @JSProperty("parts")
+        public abstract MessagePart[] parts();
+
+        public Opt<MessagePart> bodyParts( String... mimeTypes ) {
             for (var mimeType : mimeTypes) {
                 var found = Sequence.of( parts() ).first( part -> part.isType( mimeType ) ).orElse( null );
                 if (found != null) {

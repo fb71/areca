@@ -56,6 +56,7 @@ public class MessageContentRequest
         @JSProperty("messageContent")
         public MessageContent[] messageContent();
 
+
         public interface MessageContent extends JSObject {
             @JSProperty("messageId")
             public String messageId();
@@ -76,6 +77,7 @@ public class MessageContentRequest
                 return Opt.absent();
             }
         }
+
 
         public interface MessagePart extends JSObject {
             @JSProperty("type")

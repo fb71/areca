@@ -339,34 +339,25 @@ public class MailService
 
         @Override
         public Promise<Sent> send( TransportMessage msg ) {
-            var monitor = ctx.newMonitor().beginTask( "Send", 9 ).worked( 1 );
-            throw new RuntimeException( "..." );
-//            var request = new SmtpRequest( self -> {
-//                self.host = settings.host.get();
-//                self.port = settings.port.get();
-//                LOG.info( "Hostname: ", ArecaApp.hostname() );
-//                self.loginCommand = new HeloCommand( ArecaApp.hostname() );
-//                self.commands.add( new AuthPlainCommand( settings.username.get(), settings.pwd.get() ) );
-//                self.commands.add( new MailFromCommand( settings.from.get() ) );
-//                self.commands.add( new RcptToCommand( receipient.content ) );
-//                self.commands.add( new DataCommand() );
-//                self.commands.add( new DataContentCommand( msg.threadSubject.orElse( "" ), msg.text ) );
-//                self.commands.add( new QuitCommand() );
-//            });
-//            return request.submit()
-//                    .onSuccess( command -> {
-//                        LOG.info( "Response: %s", command );
-//                        monitor.worked( 1 );
-//                    })
-//                    .onError( e -> {
-//                        LOG.info( "Error: %s", e );
-//                    })
-//                    .reduce( new ArrayList<>(), (r,c) -> r.add( c ) )
-//                    .map( l -> new Sent() {{
-//                        message = msg;
-//                        from = settings.from.get();
-//                        monitor.done();
-//                    }});
+            var monitor = ctx.newMonitor().beginTask( "Send", 3 ).worked( 1 );
+            var out = MessageSendRequest.Message.create();
+            out.setSubject( msg.threadSubject.orElse( "" ) );
+            out.setText( msg.text );
+            out.setTo( msg.receipient.content );
+            out.setFrom( settings.from.get() );
+
+            var request = new MessageSendRequest( settings.toRequestParams(), out );
+            return request.submit()
+                    .onSuccess( response -> {
+                        monitor.done();
+                    })
+                    .onError( e -> {
+                        monitor.done();
+                    })
+                    .map( response -> new Sent() {{
+                        message = msg;
+                        from = settings.from.get();
+                    }});
         }
     }
 

@@ -44,7 +44,7 @@ public class SmtpSettings extends Common {
     public RequestParams toRequestParams() {
         return new RequestParams() {{
             this.host.value = SmtpSettings.this.host.get();
-            //this.port.value = settings.port.get();
+            this.port.value = SmtpSettings.this.port.get().toString();
             this.username.value = SmtpSettings.this.username.get();
             this.password.value = SmtpSettings.this.pwd.get();
         }};

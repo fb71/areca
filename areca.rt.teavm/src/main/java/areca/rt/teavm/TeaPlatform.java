@@ -136,7 +136,7 @@ public class TeaPlatform
                 else if (jsonOrStringData instanceof String) {
                     request.send( (String)jsonOrStringData );
                 }
-                else if (jsonOrStringData instanceof JSObject) {
+                else { //if (jsonOrStringData instanceof JSObject) {
                     request.send( (JSObject)jsonOrStringData );
                 }
                 return promise;

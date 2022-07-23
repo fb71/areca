@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -49,6 +48,7 @@ import com.sun.mail.imap.IMAPMessage;
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
 import jakarta.mail.Address;
+import jakarta.mail.Authenticator;
 import jakarta.mail.FetchProfile;
 import jakarta.mail.Flags;
 import jakarta.mail.Flags.Flag;
@@ -58,8 +58,10 @@ import jakarta.mail.Message.RecipientType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
+import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
+import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.AndTerm;
@@ -93,15 +95,15 @@ public class MailServlet extends HttpServlet {
 
 
     @Override
-    public void doGet( HttpServletRequest request, HttpServletResponse response ) throws ServletException, IOException {
-        debug( "\n\nREQUEST: %s - %s", request.getPathInfo(), request.getParameterMap() );
+    protected void service( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
+        debug( "\n\n%s: %s - %s", req.getMethod(), req.getPathInfo(), req.getParameterMap() );
         var timer = StopWatch.createStarted();
 
         // headers
         var params = new RequestParams();
-        for (var header : Collections.list( request.getHeaderNames() )) {
+        for (var header : Collections.list( req.getHeaderNames() )) {
             params.fromRequestHeader( header ).ifPresent( param -> {
-                param.value = decode( request.getHeader( header ) );
+                param.value = decode( req.getHeader( header ) );
             });
         }
         debug( "Headers: %s", params );
@@ -109,16 +111,30 @@ public class MailServlet extends HttpServlet {
         // perform
         Object result = null;
         try {
-            var file = decode( StringUtils.substringAfterLast( request.getPathInfo(), "/" ) );
-            var path = decode( StringUtils.substringBeforeLast( request.getPathInfo(), "/" ) );
-            var conn = connections.aquire( params );
+            var file = decode( StringUtils.substringAfterLast( req.getPathInfo(), "/" ) );
+            var path = decode( StringUtils.substringBeforeLast( req.getPathInfo(), "/" ) );
             switch (file) {
-                case AccountInfoRequest.FILE_NAME: result = new AccountInfo( conn, path ); break;
-                case FolderInfoRequest.FILE_NAME: result = new FolderInfo( conn, path ); break;
-                case MessageHeadersRequest.FILE_NAME: result = new MessageHeaders( conn, path, request ); break;
-                case MessageContentRequest.FILE_NAME: result = new MessageContent( conn, path, request ); break;
-                case MessageSetFlagRequest.FILE_NAME: result = new MessageSetFlag( conn, path, request ); break;
-                case MessageDeleteRequest.FILE_NAME: result = new MessageDelete( conn, path, request ); break;
+                case AccountInfoRequest.FILE_NAME:
+                    result = new AccountInfo( connections.aquire( params ), path );
+                    break;
+                case FolderInfoRequest.FILE_NAME:
+                    result = new FolderInfo( connections.aquire( params ), path );
+                    break;
+                case MessageHeadersRequest.FILE_NAME:
+                    result = new MessageHeaders( connections.aquire( params ), path, req );
+                    break;
+                case MessageContentRequest.FILE_NAME:
+                    result = new MessageContent( connections.aquire( params ), path, req );
+                    break;
+                case MessageSetFlagRequest.FILE_NAME:
+                    result = new MessageSetFlag( connections.aquire( params ), path, req );
+                    break;
+                case MessageDeleteRequest.FILE_NAME:
+                    result = new MessageDelete( connections.aquire( params ), path, req );
+                    break;
+                case MessageSendRequest.FILE_NAME:
+                    result = new MessageSend( params, path, req );
+                    break;
                 default: throw new RuntimeException( "Unknown file name: " + file );
             }
         }
@@ -127,10 +143,10 @@ public class MailServlet extends HttpServlet {
             throw new ServletException( e );
         }
         // response
-        response.setContentType( "application/json" ); // charset=UTF-8" );
-        response.setCharacterEncoding( "UTF-8" );
-        gson.toJson( result, response.getWriter() );
-        response.flushBuffer();
+        resp.setContentType( "application/json" ); // charset=UTF-8" );
+        resp.setCharacterEncoding( "UTF-8" );
+        gson.toJson( result, resp.getWriter() );
+        resp.flushBuffer();
         debug( "REQUEST: done. (%s ms)", timer.getTime() );
     }
 
@@ -426,6 +442,59 @@ public class MailServlet extends HttpServlet {
                     break;
                 }
             }
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected static class MessageSend {
+
+        public int count = 0;
+
+        protected MessageSend( RequestParams params, String path, HttpServletRequest request ) throws Exception {
+            Properties props = new Properties();
+
+            var sf = new com.sun.mail.util.MailSSLSocketFactory();
+            sf.setTrustAllHosts( true );
+            //sf.setTrustedHosts(new String[] { "my-server" });
+
+            props.put("mail.smtp.ssl.enable", "true");
+            props.put("mail.smtp.ssl.checkserveridentity", "false" );
+            props.put("mail.smtp.ssl.socketFactory", sf );
+            //props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", params.host.value );
+            props.put("mail.smtp.port", params.port.value );
+
+            props.put( "mail.smtp.timeout", "7000");
+            props.put( "mail.smtp.connectiontimeout", "5000");
+            props.put( "mail.smtp.auth", "true" );
+
+            var auth = new Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication( params.username.value, params.password.value );
+                }
+            };
+
+            var session = Session.getInstance( props, auth );
+            //session.setDebug( true );
+
+            var msg = gson.fromJson( request.getReader(), Message.class );
+            MimeMessage out = new MimeMessage( session );
+            out.setSubject( msg.subject );
+            out.setFrom( msg.from );
+            out.setRecipients( MimeMessage.RecipientType.TO, InternetAddress.parse( msg.to ) );
+            out.setText( msg.text, "UTF-8" );
+            Transport.send( out );
+            count = 1;
+        }
+
+        protected static class Message {
+            public String subject;
+            public String from;
+            public String to;
+            public String text;
         }
     }
 

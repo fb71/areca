@@ -14,6 +14,7 @@
 package areca.app.ui;
 
 import areca.app.model.SmtpSettings;
+import areca.app.service.mail.MessageSendRequest;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -54,15 +55,23 @@ public class SmtpSettingsPage
             //proto.from.set( CardDavTest.ARECA_USERNAME );
             proto.from.set( String.format( "%s%s%s", "areca", "@", "polymap.de" ) );
             proto.username.set( proto.from.get() );
-            proto.pwd.set( "..." );
+            proto.pwd.set( "dienstag" );
         });
     }
 
 
     protected Promise<?> checkSettings( SmtpSettings settings ) {
-        settings.toRequestParams();
-        throw new RuntimeException( "hier mussde wo noochema ran!" );
-        //return new AccountInfoRequest( params ).submit();
+        var out = MessageSendRequest.Message.create();
+        out.setSubject( "Checking SMTP settings" );
+        out.setText( "This is a test message to check your SMTP settings. Everything seems to be ok :) You may delete this message." );
+        out.setTo( settings.from.get() );
+        out.setFrom( settings.from.get() );
+
+        var request = new MessageSendRequest( settings.toRequestParams(), out );
+        return request.submit()
+                .onError( e -> {
+                    LOG.warn( e.toString(), e );
+                });
     }
 
     @Override

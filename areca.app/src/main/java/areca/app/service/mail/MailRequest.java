@@ -50,7 +50,7 @@ public abstract class MailRequest<R extends MailRequest.Response> {
 
     public RequestParams        params;
 
-    public String               method = "GET";
+    public String               content;
 
 
     protected MailRequest( RequestParams params ) {
@@ -80,6 +80,7 @@ public abstract class MailRequest<R extends MailRequest.Response> {
                 queryString.append( entry.getKey() ).append( "=" ).append( encode( value ) );
             }
         }
+        var method = content != null ? "POST" : "GET";
         var xhr = Platform.xhr( method, "mail/" + path + queryString );
 
         for (var param : params.all) {
@@ -87,7 +88,7 @@ public abstract class MailRequest<R extends MailRequest.Response> {
                 xhr.addHeader( param.headerName(), encode( param.value.toString() ) );
             }
         }
-        return xhr.submit()
+        return xhr.submit( content )
                 .map( response -> {
                     LOG.debug( "Status: " + response.status() + " (" + timer.elapsedHumanReadable() + ")" );
                     if (response.status() > 299) {
