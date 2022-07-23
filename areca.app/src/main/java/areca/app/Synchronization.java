@@ -98,11 +98,11 @@ public class Synchronization {
      */
     protected void incremental() {
         if (lastIncrementalRun.elapsed( TimeUnit.MILLISECONDS ) > incrementalDelay) {
-            start( SyncType.INCREMENTAL, null );
             lastIncrementalRun.restart();
             incrementalDelay = MAX_INCREMENTAL_DELAY;
+            start( SyncType.INCREMENTAL, null );
         }
-        Platform.schedule( 5*1000, () -> {
+        Platform.schedule( 3*1000, () -> {
             incremental();
         });
     }
