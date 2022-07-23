@@ -76,7 +76,7 @@ public class MessagesPage extends Page {
 
     public static final DateFormat  df = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT, ArecaApp.locale() );
 
-    public static final int         MESSAGE_MARK_READ_DELAY = 3000;
+    public static final int         MESSAGE_MARK_READ_DELAY = 1000;
 
     protected Anchor                anchor;
 
