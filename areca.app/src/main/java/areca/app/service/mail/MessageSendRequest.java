@@ -48,6 +48,9 @@ public class MessageSendRequest
 
         @JSProperty( "count" )
         public int count();
+
+        @JSProperty( "messageId" )
+        public String messageId();
     }
 
 
@@ -70,6 +73,13 @@ public class MessageSendRequest
 
         @JSProperty("text")
         public abstract void setText( String value );
+
+        /**
+         * This is recognized for {@link MessageAppendRequest}.
+         * Do not set this for sending.
+         */
+        @JSProperty("messageId")
+        public abstract void setMessageId( String messageId );
 
         @JSProperty("parts")
         public abstract MessagePart[] parts();

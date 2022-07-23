@@ -24,6 +24,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import org.polymap.model2.runtime.UnitOfWork;
 
+import areca.app.ArecaApp;
 import areca.app.model.Address;
 import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.ImapSettings;
@@ -348,6 +349,11 @@ public class MailService
 
             var request = new MessageSendRequest( settings.toRequestParams(), out );
             return request.submit()
+                    .then( response -> {
+                        monitor.worked( 1 );
+                        out.setMessageId( response.messageId() );
+                        return copyToSent( out );
+                    })
                     .onSuccess( response -> {
                         monitor.done();
                     })
@@ -359,6 +365,21 @@ public class MailService
                         from = settings.from.get();
                     }});
         }
+
+
+        protected Promise<?> copyToSent( MessageSendRequest.Message msg ) {
+            return ArecaApp.current().modifiableSettings()
+                    .then( uow -> {
+                        return uow.query( ImapSettings.class ).execute();
+                    })
+                    .then( imap -> {
+                        return imap
+                                .map( it -> new MessageAppendRequest( it.toRequestParams(), "Sent", msg ).submit() )
+                                .orElse( Promise.completed( null ) );
+                    })
+                    .reduce2( 0, (result, next) -> result++ );
+        }
+
     }
 
 }

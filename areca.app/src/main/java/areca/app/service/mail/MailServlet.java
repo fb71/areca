@@ -62,6 +62,7 @@ import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
 import jakarta.mail.Transport;
+import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.search.AndTerm;
@@ -131,6 +132,9 @@ public class MailServlet extends HttpServlet {
                     break;
                 case MessageDeleteRequest.FILE_NAME:
                     result = new MessageDelete( connections.aquire( params ), path, req );
+                    break;
+                case MessageAppendRequest.FILE_NAME:
+                    result = new MessageAppend( connections.aquire( params ), path, req );
                     break;
                 case MessageSendRequest.FILE_NAME:
                     result = new MessageSend( params, path, req );
@@ -449,9 +453,27 @@ public class MailServlet extends HttpServlet {
     /**
      *
      */
+    protected static class MessageAppend {
+
+        public int count = 0;
+
+        protected MessageAppend( ImapConnection conn, String path, HttpServletRequest request ) throws MessagingException, IOException {
+            IMAPFolder folder = conn.openFolder( path );
+            var msg = MessageSend.createMimeMessage( request, conn.session );
+            folder.appendMessages( new MimeMessage[] {msg} );
+            count = 1;
+        }
+    }
+
+
+    /**
+     *
+     */
     protected static class MessageSend {
 
         public int count = 0;
+
+        public String messageId;
 
         protected MessageSend( RequestParams params, String path, HttpServletRequest request ) throws Exception {
             Properties props = new Properties();
@@ -480,14 +502,24 @@ public class MailServlet extends HttpServlet {
             var session = Session.getInstance( props, auth );
             //session.setDebug( true );
 
+            MimeMessage out = createMimeMessage( request, session );
+            Transport.send( out );
+            messageId = out.getMessageID();
+            count = 1;
+        }
+
+        public static MimeMessage createMimeMessage( HttpServletRequest request, Session session )
+                throws IOException, MessagingException, AddressException {
             var msg = gson.fromJson( request.getReader(), Message.class );
             MimeMessage out = new MimeMessage( session );
             out.setSubject( msg.subject );
             out.setFrom( msg.from );
             out.setRecipients( MimeMessage.RecipientType.TO, InternetAddress.parse( msg.to ) );
             out.setText( msg.text, "UTF-8" );
-            Transport.send( out );
-            count = 1;
+            if (msg.messageId != null) {
+                out.setHeader( "Message-ID", msg.messageId );
+            }
+            return out;
         }
 
         protected static class Message {
@@ -495,6 +527,7 @@ public class MailServlet extends HttpServlet {
             public String from;
             public String to;
             public String text;
+            public String messageId;
         }
     }
 
