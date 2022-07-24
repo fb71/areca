@@ -15,6 +15,9 @@ package areca.app.ui;
 
 import static areca.ui.Orientation.VERTICAL;
 
+import org.teavm.jso.browser.Location;
+import org.teavm.jso.browser.Window;
+
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -51,6 +54,13 @@ public class SettingsPage
         ui.body.add( createBtn( "Matrix", "", "chat", () -> new MatrixSettingsPage2() ) );
         ui.body.add( createBtn( "Contacts / CardDav", "", "faces", () -> new CarddavSettingsPage() ) );
 
+        ui.body.add( new Button() {{
+            label.set( "RELOAD" );
+            events.on( EventType.SELECT, ev -> {
+                LOG.info( "Location: %s", Window.current().getLocation().getPathName() );
+                Location.current().setSearch( "v=" + (byte)System.currentTimeMillis() );
+            });
+        }});
         return ui;
     }
 
