@@ -291,8 +291,7 @@ public class MessagesPage extends Page {
                         LOG.info( "Transport sent! :) - %s", sent );
                         messageTextInput.content.set( "" );
                         EventManager.instance().publish( new MessageSentEvent( sent ) );
-                    })
-                   .onError( ArecaApp.current().defaultErrorHandler() ); // XXX UI
+                    });
         });
     }
 

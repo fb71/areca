@@ -78,8 +78,10 @@ public class Pageflow {
     }
 
 
-    public void open( Page _page, Page parent, Position origin ) {
-        Assert.that( pages.isEmpty() || parent == pages.peek().page, "Adding other than top page is not supported yet." );
+    /**
+     * Opens the given {@link Page} on top of the current page stack.
+     */
+    public void open( Page _page, Position origin ) {
         var _pageSite = new PageSite( _page ) {
             @Override
             @SuppressWarnings("unchecked")
@@ -111,6 +113,17 @@ public class Pageflow {
             ((UIComposite)_pageContainer).layout();
         }
         layout.openLast( origin );
+    }
+
+
+    /**
+     * Opens the given {@link Page} at any position of the current stack of pages. If
+     * the given parent is not the top page then this page and all of its children
+     * are closed.
+     */
+    public void open( Page _page, Page parent, Position origin ) {
+        Assert.that( pages.isEmpty() || parent == pages.peek().page, "Adding other than top page is not supported yet." );
+        open( _page, origin );
     }
 
 

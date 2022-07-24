@@ -13,9 +13,9 @@
  */
 package areca.app.service.carddav;
 
-import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Platform.HttpResponse;
+import areca.common.Platform.HttpServerException;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -44,7 +44,9 @@ public class GetResourceRequest {
 
         return xhr.submit()
                 .map( response -> {
-                    Assert.that( response.status() < 299, "Wrong status: " + response.status() );
+                    if (response.status() > 299) {
+                        throw new HttpServerException( response.status(), response.text() );
+                    }
                     return response;
                 });
     }

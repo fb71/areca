@@ -154,7 +154,8 @@ public class Main {
 //                LogFactory.setClassLevel( areca.app.service.Message2ContactAnchorSynchronizer.class, DEBUG );
 //                LogFactory.setClassLevel( areca.app.service.Message2PseudoContactAnchorSynchronizer.class, DEBUG );
 
-                ArecaApp.instance().createUI();
+                var debug = Window.current().getLocation().getSearch().contains( "debug" );
+                ArecaApp.instance().createUI( debug );
             });
         }
     }

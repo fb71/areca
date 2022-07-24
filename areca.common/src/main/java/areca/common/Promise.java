@@ -41,6 +41,18 @@ public class Promise<T> {
 
     private static final Log LOG = LogFactory.getLog( Promise.class );
 
+    public static RConsumer<Throwable> defaultErrorHandler = e -> {
+        LOG.warn( "No onError handler for: " + e, e );
+        // XXX on teavm this helps to see a proper stacktrace
+        throw (RuntimeException)Platform.rootCause( e );
+    };
+
+
+    public static void setDefaultErrorHandler( RConsumer<Throwable> defaultErrorHandler ) {
+        Promise.defaultErrorHandler = defaultErrorHandler;
+    }
+
+
     /**
      * Joins a number of promises into one Promise.
      * <p/>
@@ -587,12 +599,12 @@ public class Promise<T> {
             // already done with error
             else if (error != null) {
                 LOG.debug( "SKIPPING error after error: " + e );
-                throw (RuntimeException)Platform.rootCause( e );
+                //throw (RuntimeException)Platform.rootCause( e );
             }
             // done without error -> programming error
             else if (isDone()) {
                 LOG.warn( "ERROR after COMPLETE:" + e );
-                throw (RuntimeException)Platform.rootCause( e );
+                //throw (RuntimeException)Platform.rootCause( e );
             }
             // not done, not cancelled -> normal
             else {
@@ -600,9 +612,7 @@ public class Promise<T> {
                     complete = true;
                     error = e;
                     if (onError.isEmpty()) {
-                        LOG.warn( "No onError handler for: " + e, e );
-                        // XXX on teavm this helps to see a proper stacktrace
-                        throw (RuntimeException)Platform.rootCause( e );
+                        defaultErrorHandler.accept( e );
                     }
                     else {
                         for (var consumer : onError) {

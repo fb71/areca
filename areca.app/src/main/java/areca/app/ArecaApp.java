@@ -39,6 +39,7 @@ import areca.app.model.Message;
 import areca.app.model.SmtpSettings;
 import areca.app.service.Service;
 import areca.app.service.SyncableService;
+import areca.app.ui.GeneralErrorPage;
 import areca.app.ui.StartPage;
 import areca.common.Assert;
 import areca.common.Platform;
@@ -137,6 +138,8 @@ public class ArecaApp extends App {
 
     private UIComposite             progressBody;
 
+    private boolean                 debug;
+
 
     protected ArecaApp() {
         EntityRepository.newConfiguration()
@@ -161,7 +164,16 @@ public class ArecaApp extends App {
     }
 
 
-    public void createUI() {
+    public boolean debug() {
+        return debug;
+    }
+
+
+    public void createUI( @SuppressWarnings("hiding") boolean debug ) {
+        this.debug = debug;
+        LOG.info( "Debug: %s", debug );
+        Promise.setDefaultErrorHandler( defaultErrorHandler() );
+
         UIComponentRenderer.start();
 
         super.createUI( rootWindow -> {
@@ -197,9 +209,12 @@ public class ArecaApp extends App {
             if (e instanceof ProgressMonitor.CancelledException) {
                 LOG.info( "Operation cancelled." );
             }
-            else {
+            else if (debug) {
                 // get a meaningfull stracktrace in TeaVM
                 throw (RuntimeException)e;
+            }
+            else {
+                Pageflow.current().open( new GeneralErrorPage( e ), null );
             }
         };
     }
