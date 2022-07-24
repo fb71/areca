@@ -57,6 +57,7 @@ public class ResourceVersioningFilter
             version = version!= null ? version : "";
             var filtered = new String( captured.out.toByteArray(), "UTF-8" ).replace( "%version%", version );
             response.getOutputStream().write( filtered.getBytes( "UTF-8" ) );
+            response.flushBuffer();
         }
         else {
             chain.doFilter( request, response );
@@ -76,6 +77,10 @@ public class ResourceVersioningFilter
 
         public CapturingResponseWrapper( HttpServletResponse response ) {
             super( response );
+        }
+
+        @Override
+        public void flushBuffer() throws IOException {
         }
 
         @Override
