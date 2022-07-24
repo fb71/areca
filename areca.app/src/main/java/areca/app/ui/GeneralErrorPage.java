@@ -18,11 +18,16 @@ import static areca.ui.Orientation.VERTICAL;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import areca.app.ArecaApp;
+import areca.app.service.TransportService.TransportMessage;
+import areca.app.service.mail.EmailAddress;
 import areca.common.Platform.HttpServerException;
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Color;
 import areca.ui.Size;
+import areca.ui.component2.Badge;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Text;
@@ -77,17 +82,25 @@ public class GeneralErrorPage
 
         ui.body.add( new Text() {{
             format.set( Format.HTML );
-            if (error instanceof HttpServerException) {
-                content.set( String.format( "%s<br><br>%s", error.getMessage(), ((HttpServerException)error).responseBody ) );
-            }
-            else {
-                var stack = new StringWriter( 4096 );
-                error.printStackTrace( new PrintWriter( stack ) );
-                LOG.info( "Stack size: %d", stack.toString().length() );
-                //error.printStackTrace();
+            content.set( messageText() );
+        }});
 
-                content.set( String.format( "%s<br><pre style=\"white-space:pre-wrap\">%s\n\n%s</pre>", error.getMessage(), error, stack.toString() ) );
-            }
+        ui.body.add( new Button() {{
+            layoutConstraints.set( new RowConstraints().height.set( 50 ) );
+            label.set( "SEND REPORT" );
+
+            var ok = new Badge( this );
+            events.on( EventType.SELECT, ev -> {
+                var msg = new TransportMessage() {{
+                    receipient = new EmailAddress( "falko@polymap.de" );
+                    text = messageText();
+                    threadSubject = Opt.of( "Ürschendewas is noch nich richtisch" );
+                }};
+                ArecaApp.current().services.transportFor( msg.receipient, transport -> {
+                    transport.send( msg );
+                    ok.content.set( "OK" );
+                });
+            });
         }});
 
         ui.body.add( new Button() {{
@@ -98,6 +111,21 @@ public class GeneralErrorPage
             });
         }});
         return ui;
+    }
+
+
+    protected String messageText() {
+        if (error instanceof HttpServerException) {
+            return String.format( "%s<br><br>%s", error.getMessage(), ((HttpServerException)error).responseBody );
+        }
+        else {
+            var stack = new StringWriter( 4096 );
+            error.printStackTrace( new PrintWriter( stack ) );
+            LOG.info( "Stack size: %d", stack.toString().length() );
+            //error.printStackTrace();
+
+            return String.format( "%s<br><pre style=\"white-space:pre-wrap\">%s\n\n%s</pre>", error.getMessage(), error, stack.toString() );
+        }
     }
 
 }
