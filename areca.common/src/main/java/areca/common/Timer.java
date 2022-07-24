@@ -13,7 +13,10 @@
  */
 package areca.common;
 
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
+import java.time.format.DateTimeFormatter;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -63,6 +66,9 @@ public class Timer {
                     .append( Math.round( (millis - (seconds*1000)) / 100 ) )
                     .append( "s" ).toString();
         }
-        throw new RuntimeException( "Time exceeds range: " + elapsed( TimeUnit.MINUTES ) + "+ minutes" );
+        else {
+            var formatter = DateTimeFormatter.ofPattern( "mmm:ss" ).toFormat();
+            return formatter.format( new Date( elapsed( TimeUnit.SECONDS ) ) );
+        }
     }
 }

@@ -495,6 +495,26 @@ public class Promise<T> {
 
 
     /**
+     * Signals that the {@link Promise} was cancelled.
+     */
+    public static class CancelledException
+            extends RuntimeException {
+
+        protected CancelledException() {
+            super( "Operation was cancelled." );
+        }
+
+        protected CancelledException( String message ) {
+            super( message );
+        }
+
+        protected CancelledException( String message, Throwable cause ) {
+            super( message, cause );
+        }
+    }
+
+
+    /**
      * Interface for providers.
      */
     public static class Completable<T>
@@ -514,24 +534,6 @@ public class Promise<T> {
         private List<Promise<?>> upstreams = new ArrayList<>();
 
 
-//        @Override
-//        public <E extends Exception> Promise<T> onSuccess( BiConsumer<HandlerSite,T,E> newConsumer ) {
-//            super.onSuccess( newConsumer );
-//            if (isDone()) {
-//                for (var consumer : onSuccess) {
-//                    try {
-//                        consumer.accept( site, waitForResult );
-//                    }
-//                    catch (Throwable e) {
-//                        completeWithError( e );
-//                        break;
-//                    }
-//                }
-//            }
-//            return this;
-//        }
-
-
         /**
          * Sets the upstream (parent) instance for this promise.
          */
@@ -543,8 +545,10 @@ public class Promise<T> {
 
         @Override
         public void cancel() {
-            upstreams.forEach( upstream -> upstream.cancel() );
-            super.cancel();
+            if (!isCanceled()) {
+                upstreams.forEach( upstream -> upstream.cancel() );
+                super.cancel();
+            }
         }
 
 
@@ -557,9 +561,11 @@ public class Promise<T> {
 
 
         public void consumeResult( T value ) {
-            //LOG.debug( "consumeResult(): %s", value );
             // cancelled -> do nothing
             if (isCanceled()) {
+                if (error == null) {
+                    completeWithError( new CancelledException() );
+                }
                 return;
             }
             // already done with error
@@ -591,13 +597,12 @@ public class Promise<T> {
 
 
         public void completeWithError( Throwable e ) {
-            //LOG.debug( "completeWithError(): %s", e );
-            // cancelled -> do nothing
-            if (isCanceled()) {
-                return;
+            if (!isCanceled()) {
+                cancel(); // avoid more errors/results after this error
             }
+
             // already done with error
-            else if (error != null) {
+            if (error != null) {
                 LOG.debug( "SKIPPING error after error: " + e );
                 //throw (RuntimeException)Platform.rootCause( e );
             }
@@ -633,7 +638,7 @@ public class Promise<T> {
                 synchronized (this) {
                     onSuccess = null; // help GC(?)
                     onError = null;
-                    upstreams = null;
+                    //upstreams = null;
                     done = true;
                     notifyAll();
                 }

@@ -20,6 +20,7 @@ import areca.common.AssertionException;
 import areca.common.MutableInt;
 import areca.common.Platform;
 import areca.common.Promise;
+import areca.common.Promise.CancelledException;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -36,6 +37,59 @@ public class AsyncTests {
     private static final Log LOG = LogFactory.getLog( AsyncTests.class );
 
     public static final AsyncTestsClassInfo info = AsyncTestsClassInfo.instance();
+
+
+    @Test(expected = CancelledException.class)
+    public Promise<?> cancelPromiseTest() {
+        var result = async( () -> "1" )
+                .then( s -> async( () -> Integer.valueOf( s ) ) );
+        result.cancel();
+        Assert.isEqual( true, result.isCanceled() );
+        return result;
+    }
+
+
+    @Test(expected = CancelledException.class)
+    public Promise<?> cancelJoinedPromiseTest() {
+        var result = Promise.joined( 10, i -> async( () -> i ) )
+                .reduce2( 0, (r,next) -> r += next );
+        result.cancel();
+        Assert.isEqual( true, result.isCanceled() );
+        return result;
+    }
+
+
+    @Test(expected = CancelledException.class)
+    public Promise<?> cancelFromWithinJoinedPromiseTest() {
+        return Promise.joined( 10, i -> async( () -> i ) )
+                .map( (i,self) -> {
+                    self.cancel();
+                    self.complete( i );
+                })
+                .onSuccess( value -> {
+                    throw new IllegalStateException( "Result after error" );
+                });
+    }
+
+
+    @Test(expected = AssertionException.class)
+    public Promise<?> cancelAfterErrorTest() {
+        return Promise.joined( 10, i -> async( () -> i ) )
+                .reduce2( 0, (r,next) -> Assert.isNull( next, "never null" ) )
+                .onSuccess( value -> {
+                    throw new IllegalStateException( "Result after error" );
+                });
+    }
+
+
+    @Test(expected = AssertionException.class)
+    public Promise<?> cancelAfterErrorTest2() {
+        return Promise.joined( 10, i -> async( () -> Assert.isNull( i, "never null" ) ) )
+                .reduce2( 0, (r,next) -> r + next )
+                .onSuccess( value -> {
+                    throw new IllegalStateException( "Result after error" );
+                });
+    }
 
 
     @Test
@@ -114,21 +168,25 @@ public class AsyncTests {
 
 
     @Test(expected = AssertionException.class)
-    public Promise<Integer> cascadedPromiseHandlerError() {
-        return async( () -> {
-                    return "1";
-                })
-                .then( s -> {
-                    return Platform.async( () -> {
-                        Assert.isEqual( "falsch", s );
-                        return Integer.valueOf( s );
-                    });
-                })
-                .onError( e -> {
-                    LOG.info( "Error: " + e );
-                })
+    public Promise<?> cascadedPromiseHandlerError() {
+        return async( () -> "1" )
+                .then( s -> async( () -> {
+                    Assert.isEqual( "falsch", s );
+                    return Integer.valueOf( s );
+                }))
+                .onSuccess( value -> {
+                    throw new IllegalStateException( "Result after error" );
+                });
+    }
+
+
+    @Test
+    public Promise<?> promiseThenTest() {
+        return Promise
+                .joined( 3, i -> Platform.async( () -> i ) )
+                .then( i -> async( () -> i ) )
                 .onSuccess( i -> {
-                    LOG.info( "Result: " + i );
+                    Assert.isEqual( 3, i );
                 });
     }
 

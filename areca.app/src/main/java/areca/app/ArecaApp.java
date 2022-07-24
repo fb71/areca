@@ -209,6 +209,9 @@ public class ArecaApp extends App {
             if (e instanceof ProgressMonitor.CancelledException) {
                 LOG.info( "Operation cancelled." );
             }
+            else if (e instanceof Promise.CancelledException) {
+                LOG.info( "Operation cancelled." );
+            }
             else if (debug) {
                 // get a meaningfull stracktrace in TeaVM
                 throw (RuntimeException)e;

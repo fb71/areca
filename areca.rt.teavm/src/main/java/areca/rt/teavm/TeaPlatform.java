@@ -48,7 +48,7 @@ public class TeaPlatform
             try {
                 promise.complete( task.call() );
             }
-            catch (Exception e) {
+            catch (Throwable e) {
                 promise.completeWithError( e );
             }
         }, delayMillis );

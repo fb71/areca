@@ -27,11 +27,40 @@ import areca.common.testrunner.Test;
 @Test
 public class RuntimeTest {
 
-    private static final Log log = LogFactory.getLog( RuntimeTest.class );
+    private static final Log LOG = LogFactory.getLog( RuntimeTest.class );
 
     public static final RuntimeTestClassInfo    info = RuntimeTestClassInfo.instance();
 
     protected boolean closed;
+
+
+    @Test
+    public void stackTraceTest() {
+        var e = new RuntimeException( "Test" );
+        e.fillInStackTrace();
+        LOG.info( "Stack trace: %s", e.getStackTrace().length );
+        //throw e;
+    }
+
+
+    @Test
+    public void stackTraceTest2() {
+        try {
+            String s = null;
+            var s2 = "" + s.toString();
+        }
+        catch (Exception e) {
+            LOG.info( "Stack trace: %s", e.getStackTrace().length );
+        }
+    }
+
+
+//    @Test
+//    public void stackTraceTest3() {
+//            String s = null;
+//            var s2 = "" + s.toString();
+//    }
+
 
     @Test
     public void exceptionCauseTest() {
