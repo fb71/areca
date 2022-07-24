@@ -80,7 +80,7 @@ public class Pageflow {
 
     public void open( Page _page, Page parent, Position origin ) {
         Assert.that( pages.isEmpty() || parent == pages.peek().page, "Adding other than top page is not supported yet." );
-        var _pageSite = new PageSite() {
+        var _pageSite = new PageSite( _page ) {
             @Override
             @SuppressWarnings("unchecked")
             public <R> R data( Class<R> type, String scope ) {

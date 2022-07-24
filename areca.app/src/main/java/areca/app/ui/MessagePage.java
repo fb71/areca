@@ -76,7 +76,7 @@ public class MessagePage
             }});
         }});
 
-        site.actions.add( new Action() {{
+        pageSite.actions.add( new Action() {{
             icon.set( "delete" );
             description.set( "Delete this message" );
             handler.set( ev -> {
@@ -84,7 +84,7 @@ public class MessagePage
                     return uow.entity( msg )
                             .then( loaded -> loaded.delete() )
                             .then( loaded -> uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) ) )
-                            .onSuccess( __ -> site.pageflow().close( MessagePage.this ) );
+                            .onSuccess( __ -> pageSite.closePage() );
                 });
             });
         }});

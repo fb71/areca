@@ -76,7 +76,7 @@ public class MessagesPage extends Page {
 
     public static final DateFormat  df = DateFormat.getDateTimeInstance( DateFormat.DEFAULT, DateFormat.DEFAULT, ArecaApp.locale() );
 
-    public static final int         MESSAGE_MARK_READ_DELAY = 1000;
+    public static final int         MESSAGE_MARK_READ_DELAY = 0;
 
     protected Anchor                anchor;
 
@@ -123,7 +123,7 @@ public class MessagesPage extends Page {
         selectedCard = Property.rw( ui, "selectedCard" );
         subject = Property.rw( ui, "subject" );
 
-        site.actions.add( new Action() {{
+        pageSite.actions.add( new Action() {{
             icon.set( "delete" );
             description.set( "Delete this anchor and all messages" );
             handler.set( ev -> {
@@ -131,7 +131,7 @@ public class MessagesPage extends Page {
                     return uow.entity( anchor )
                             .then( loaded -> loaded.delete( true ) )
                             .then( loaded -> uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) ) )
-                            .onSuccess( __ -> site.pageflow().close( MessagesPage.this ) );
+                            .onSuccess( __ -> pageSite.closePage() );
                 });
             });
         }});
@@ -466,7 +466,7 @@ public class MessagesPage extends Page {
                 icon.set( "fullscreen" );
                 tooltip.set( "Open this message in fullscreen" );
                 events.on( EventType.SELECT, ev -> {
-                    site.pageflow().open( new MessagePage( message ), MessagesPage.this, ev.clientPos() );
+                    pageSite.openPage( new MessagePage( message ), ev.clientPos() );
                 });
             }});
 

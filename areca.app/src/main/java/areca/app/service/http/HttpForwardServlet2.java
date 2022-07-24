@@ -101,7 +101,11 @@ public class HttpForwardServlet2 extends HttpServlet {
             resp.setStatus( conn.getResponseCode() );
             conn.getHeaderFields().forEach( (name,values) -> {
                 //debug( "Response Header: %s: %s", name, values );
-                if (name != null) {
+                if (name == null || name.equals( "WWW-Authenticate" )) {
+                    // return 401 code but suppress the WWW-Authenticate header
+                    // in order to prevent browser popup asking for credentials
+                }
+                else {
                     resp.addHeader( name, values.get( 0 ) ); // FIXME
                 }
             });

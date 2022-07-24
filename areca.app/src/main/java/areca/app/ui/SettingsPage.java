@@ -62,7 +62,7 @@ public class SettingsPage
             tooltip.set( _tooltip );
             layoutConstraints.set( new RowConstraints().height.set( 50 ) );
             events.on( EventType.SELECT, ev -> {
-                site.pageflow().open( _pageFactory.supply(), SettingsPage.this, ev.clientPos() );
+                pageSite.openPage( _pageFactory.supply(), ev.clientPos() );
             });
         }};
     }

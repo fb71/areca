@@ -62,7 +62,7 @@ public class ContactsPage extends Page {
         ui.title.set( "Contacts" );
 
         // order-by
-        site.actions.add( new Action() {{
+        pageSite.actions.add( new Action() {{
             icon.set( "sort_by_alpha" );
             description.set( "Order by first- or lastname" );
             handler.set( ev ->  {
@@ -134,7 +134,7 @@ public class ContactsPage extends Page {
 
         btn.events.on( SELECT, ev -> {
             //site.put( contact );
-            site.pageflow().open( new ContactPage( contact ), ContactsPage.this, ev.clientPos() );
+            pageSite.openPage( new ContactPage( contact ), ev.clientPos() );
         });
         return btn;
     }

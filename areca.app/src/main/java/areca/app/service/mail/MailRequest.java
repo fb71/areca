@@ -18,7 +18,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -26,6 +25,7 @@ import org.teavm.jso.json.JSON;
 
 import areca.common.Assert;
 import areca.common.Platform;
+import areca.common.Platform.HttpServerException;
 import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.base.Sequence;
@@ -92,7 +92,7 @@ public abstract class MailRequest<R extends MailRequest.Response> {
                 .map( response -> {
                     LOG.debug( "Status: " + response.status() + " (" + timer.elapsedHumanReadable() + ")" );
                     if (response.status() > 299) {
-                        throw new IOException( "HTTP Status: " + response.status() );
+                        throw new HttpServerException( response.status(), response.text() );
                     }
                     String text = response.text();
                     return parse( text );

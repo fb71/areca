@@ -69,7 +69,7 @@ public class CarddavSettingsPage
                     if (!matcher.matches()) {
                         throw new RuntimeException( "URL is not valid: " + settings.url.get() );
                     }
-                    LOG.info( "%s / %s", matcher.group( 1 ), matcher.group( 2 ) );
+                    LOG.debug( "%s / %s", matcher.group( 1 ), matcher.group( 2 ) );
                     return new PropfindRequest( DavResource.create( matcher.group( 1 ), matcher.group( 2 ) )
                             .auth( settings.username.get(), settings.pwd.get() ) );
                 })

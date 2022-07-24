@@ -65,6 +65,16 @@ public class Main {
             TestsMain.main( args );
             LOG.info( "done." );
         }
+        // runtime
+        else if (hash.equals( "#runtime" )) {
+            catchAll( __ -> {
+                new AsyncAwareTestRunner()
+                        .addTests( areca.rt.teavm.test.TeavmRuntimeTest.info )
+                        .addTests( areca.common.test.RuntimeTest.info )
+                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
+                        .run();
+            });
+        }
         // Gallery
         else if (hash.equals( "#gallery" )) {
             catchAll( __ -> {

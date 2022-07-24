@@ -83,7 +83,7 @@ public class PageContainer
             }});
 
             // actions
-            page.site.actions.onChange( (actions, __) -> {
+            page.pageSite.actions.onChange( (actions, __) -> {
                 for (var action : actions) {
                     actionsBtns.computeIfAbsent( action, ___ -> add( new Button() {{
                         bordered.set( false );

@@ -41,7 +41,7 @@ import areca.ui.pageflow.PageContainer;
 
 /**
  *
- * @param <S> The type of the settings Entity.
+ * @param <S> The type of the settings {@link Entity}.
  * @author Falko Bräutigam
  */
 public abstract class ServiceSettingsPage<S extends Entity>
@@ -172,8 +172,9 @@ public abstract class ServiceSettingsPage<S extends Entity>
                                 enabled.set( true );
                                 badge.content.set( ":(" );
                                 status.set( Status.INVALID );
-                            })
-                            .onError( ArecaApp.instance().defaultErrorHandler() );
+                                pageSite.openPage( new GeneralErrorPage( e ), position.get() );
+                            });
+                            //.onError( ArecaApp.instance().defaultErrorHandler() );
                 });
             }};
         }
@@ -190,7 +191,7 @@ public abstract class ServiceSettingsPage<S extends Entity>
                     uow.waitForResult().get().submit().onSuccess( submitted -> {
                         LOG.info( "Submitted: %s", submitted );
                         badge.content.set( "OK" );
-                        Platform.schedule( 750, () -> site.pageflow().close( ServiceSettingsPage.this ) );
+                        Platform.schedule( 750, () -> pageSite.closePage() );
                     });
                 });
             }};

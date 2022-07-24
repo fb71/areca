@@ -16,8 +16,8 @@ package areca.app.service.carddav;
 import java.util.Date;
 import org.teavm.jso.dom.xml.Document;
 
-import areca.common.Assert;
 import areca.common.Platform;
+import areca.common.Platform.HttpServerException;
 import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -52,6 +52,7 @@ public class PropfindRequest {
 //    }
 
 
+
     @SuppressWarnings("deprecation")
     public Promise<DavResource[]> submit() {
         var xhr = Platform.xhr( "PROPFIND", "http?uri=" + res.url() )
@@ -64,7 +65,9 @@ public class PropfindRequest {
         return xhr.submit()
                 .map( response -> {
                     LOG.debug( "Status: %s", response.status() );
-                    Assert.that( response.status() < 299, "Wrong status: " + response.status() );
+                    if (response.status() > 299) {
+                        throw new HttpServerException( response.status(), response.text() );
+                    }
 
                     Document xml = (Document)response.xml();
                     var responses = xml.getElementsByTagNameNS( "DAV:", "response" );

@@ -41,15 +41,15 @@ public class StartPage
         ui.title.set( "Anchors" );
 
         // Contacts
-        site.actions.add( new Action() {{
+        pageSite.actions.add( new Action() {{
             icon.set( "face" );
             description.set( "Show contacts" );
             handler.set( ev ->  {
-                site.pageflow().open( new ContactsPage(), StartPage.this, ev.clientPos() );
+                pageSite.openPage( new ContactsPage(), ev.clientPos() );
             });
         }});
         // Sync
-        site.actions.add( new Action() {{
+        pageSite.actions.add( new Action() {{
             icon.set( "sync" );
             description.set( "Start synchronization" );
             handler.set( (UIEvent ev) -> {
@@ -57,11 +57,11 @@ public class StartPage
             });
         }});
         // Settings
-        site.actions.add( new Action() {{
+        pageSite.actions.add( new Action() {{
             icon.set( "settings" );
             description.set( "Open settings" );
             handler.set( (UIEvent ev) -> {
-                site.pageflow().open( new SettingsPage(), StartPage.this, ev.clientPos() );
+                pageSite.openPage( new SettingsPage(), ev.clientPos() );
             });
         }});
 
@@ -73,7 +73,7 @@ public class StartPage
 
     /* Just testing */
     PageSite site() {
-        return site;
+        return pageSite;
     }
 
 

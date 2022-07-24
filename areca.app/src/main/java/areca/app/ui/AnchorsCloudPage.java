@@ -55,6 +55,7 @@ import areca.ui.layout.DynamicLayoutManager;
 import areca.ui.layout.FillLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageContainer;
+import areca.ui.pageflow.Pageflow;
 
 /**
  *
@@ -74,7 +75,7 @@ public class AnchorsCloudPage
 
     /** Work from within StartPage */
     public AnchorsCloudPage( UIComposite body, StartPage page ) {
-        this.site = page.site();
+        this.pageSite = page.site();
         this.page = page;
 
         this.body = body
@@ -200,8 +201,8 @@ public class AnchorsCloudPage
 
         // click
         btn.events.on( EventType.SELECT, ev -> {
-            site.put( anchor );
-            site.pageflow().open( new MessagesPage( anchor, anchor.name.get() ), page, ev.clientPos() );
+            pageSite.put( anchor );
+            Pageflow.current().open( new MessagesPage( anchor, anchor.name.get() ), page, ev.clientPos() );
         });
         return btn;
     }

@@ -125,4 +125,37 @@ public abstract class Platform {
 
         public abstract /*Document*/ Object xml();
     }
+
+    /**
+     *
+     */
+    public static class HttpServerException
+            extends Exception {
+
+        public String   message;
+
+        public int      httpStatus;
+
+        public String   responseBody;
+
+        public HttpServerException( int httpStatus, String responseBody ) {
+            switch (httpStatus) {
+                case 401: message = "Authentication failed. Wrong username and/or password."; break;
+                case 500: message = "Internal server error: " + httpStatus; break;
+                default: message = "Request failed with HTTP status: " + httpStatus;
+            }
+            this.httpStatus = httpStatus;
+            this.responseBody = responseBody;
+        }
+
+        @Override
+        public String getMessage() {
+            return message;
+        }
+
+        @Override
+        public String toString() {
+            return String.format( "%s: %s", getClass().getSimpleName(), message );
+        }
+    }
 }

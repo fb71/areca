@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 import areca.common.Assert;
 import areca.ui.Action;
+import areca.ui.Position;
 import areca.ui.component2.Property;
 import areca.ui.component2.Property.ReadWrites;
 import areca.ui.component2.UIComponent;
@@ -28,12 +29,11 @@ import areca.ui.component2.UIComposite;
  */
 public abstract class Page {
 
-    protected PageSite      site;
+    protected PageSite      pageSite;
 
 
-    @SuppressWarnings("hiding")
     UIComponent init( UIComposite parent, PageSite site ) {
-        this.site = site;
+        this.pageSite = site;
         var result = doInit( parent );
         Assert.notSame( parent, result, "A Page must create a UIComposite." );
         result.cssClasses.add( getClass().getSimpleName() );
@@ -43,7 +43,7 @@ public abstract class Page {
 
     void dispose() {
         doDispose();
-        this.site = null;
+        this.pageSite = null;
     }
 
 
@@ -67,11 +67,23 @@ public abstract class Page {
      */
     public static abstract class PageSite {
 
+        public Page page;
+
         /** Allows the Page to add actions to be shown in its context. */
         public ReadWrites<?,Action> actions = Property.rws( this, "actions", new ArrayList<>() );
 
-        public Pageflow pageflow() {
-            return Pageflow.current();
+        public PageSite( Page page ) {
+            this.page = page;
+        }
+
+        public PageSite openPage( Page newPage, Position pos ) {
+            Pageflow.current().open( newPage, page, pos );
+            return this;
+        }
+
+        public PageSite closePage() {
+            Pageflow.current().close( page );
+            return this;
         }
 
         public <R> R data( Class<R> type ) {
