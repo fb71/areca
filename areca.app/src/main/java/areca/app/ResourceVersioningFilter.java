@@ -15,6 +15,7 @@ package areca.app;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -95,5 +96,9 @@ public class ResourceVersioningFilter
             };
         }
 
+        @Override
+        public PrintWriter getWriter() throws IOException {
+            throw new RuntimeException( "not yet implemented." );
+        }
     }
 }
