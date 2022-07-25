@@ -48,20 +48,20 @@ public class ResourceVersioningFilter
         var http = (HttpServletRequest)request;
         System.out.println( "FILTER: " + http.getRequestURI() + " - " + http.getQueryString() );
 
-        var version = http.getParameter( "v" );
-        if (http.getRequestURI().endsWith( "/" ) || http.getRequestURI().endsWith( "/index.html" )) {
-            var captured = new CapturingResponseWrapper( (HttpServletResponse)response );
-
-            chain.doFilter( request, captured );
-
-            version = version!= null ? version : "";
-            var filtered = new String( captured.out.toByteArray(), "UTF-8" ).replace( "%version%", version );
-            response.getOutputStream().write( filtered.getBytes( "UTF-8" ) );
-            response.flushBuffer();
-        }
-        else {
+//        var version = http.getParameter( "v" );
+//        if (http.getRequestURI().endsWith( "/" ) || http.getRequestURI().endsWith( "/index.html" )) {
+//            var captured = new CapturingResponseWrapper( (HttpServletResponse)response );
+//
+//            chain.doFilter( request, captured );
+//
+//            version = version!= null ? version : "";
+//            var filtered = new String( captured.out.toByteArray(), "UTF-8" ).replace( "%version%", version );
+//            response.getOutputStream().write( filtered.getBytes( "UTF-8" ) );
+//            response.flushBuffer();
+//        }
+//        else {
             chain.doFilter( request, response );
-        }
+//        }
     }
 
 
