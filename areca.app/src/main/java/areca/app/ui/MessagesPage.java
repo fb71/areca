@@ -25,6 +25,7 @@ import java.util.Map;
 import java.text.DateFormat;
 
 import org.polymap.model2.query.Query.Order;
+import org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus;
 import org.polymap.model2.runtime.Lifecycle.State;
 
 import areca.app.ArecaApp;
@@ -246,6 +247,12 @@ public class MessagesPage extends Page {
         EventManager.instance()
                 .subscribe( (ModelUpdateEvent ev) -> {
                     LOG.info( "Model update: -> layout()" );
+
+                    // remove REMOVED cards
+                    Sequence.of( new ArrayList<>( cards.keySet() ) )
+                            .filter( msg -> msg.status() == EntityStatus.REMOVED )
+                            .forEach( msg -> cards.remove( msg ).dispose() );
+
                     messagesContainer.layout();
                 })
                 .performIf( ev -> ev instanceof ModelUpdateEvent

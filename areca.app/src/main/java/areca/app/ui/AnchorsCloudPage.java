@@ -20,11 +20,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import org.polymap.model2.query.Query.Order;
+import org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus;
 
 import areca.app.ArecaApp;
 import areca.app.model.Anchor;
@@ -98,6 +100,8 @@ public class AnchorsCloudPage
 
     private int reentryCount = 0;
 
+    private Set<Anchor> set;
+
     protected void createBody() {
         // XXX wait for repo to show up
         if (ArecaApp.instance().repo() == null) {
@@ -132,6 +136,21 @@ public class AnchorsCloudPage
                 .subscribe( (ModelUpdateEvent ev) -> {
                     if (!ev.entities( Anchor.class ).isEmpty()) {
                         LOG.info( "Updating layout..." );
+
+                        // remove Buttons of REMOVED anchors
+                        Sequence.of( new ArrayList<>( btns.keySet() ) )
+                                .filter( anchor -> anchor.status() == EntityStatus.REMOVED )
+                                .forEach( anchor -> btns.remove( anchor ).dispose() );
+
+//                        for (var it = btns.entrySet().iterator(); it.hasNext(); ) {
+//                            var entry = it.next();
+//                            if (entry.getKey().status() == EntityStatus.REMOVED) {
+//                                it.remove();
+//                                entry.getValue().dispose();
+//                                LOG.info( "REMOVED: %s", entry.getKey() );
+//                            }
+//                        }
+
                         body.layout();
                     }
                 })

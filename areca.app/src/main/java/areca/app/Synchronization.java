@@ -65,6 +65,7 @@ public class Synchronization {
 
         // start INCREMENTAL and BACKGROUND services (after we have the monitor UI)
         Platform.schedule( 5000, () -> {
+            this.incrementalDelay = app.debug() ? MAX_INCREMENTAL_DELAY : 0;
             incremental();
             restartBackground();
         });
