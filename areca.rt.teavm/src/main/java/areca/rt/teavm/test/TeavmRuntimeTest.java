@@ -13,10 +13,14 @@
  */
 package areca.rt.teavm.test;
 
+import org.teavm.jso.JSBody;
+import org.teavm.jso.JSExceptions;
+import org.teavm.jso.JSObject;
 import org.teavm.jso.ajax.XMLHttpRequest;
-
+import org.teavm.jso.browser.Window;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
 
 /**
@@ -24,11 +28,38 @@ import areca.common.testrunner.Test;
  * @author Falko Bräutigam
  */
 @Test
-public class TeavmRuntimeTest {
+public class TeavmRuntimeTest implements JSObject {
 
-    private static final Log log = LogFactory.getLog( TeavmRuntimeTest.class );
+    private static final Log LOG = LogFactory.getLog( TeavmRuntimeTest.class );
 
     public static TeavmRuntimeTestClassInfo info = TeavmRuntimeTestClassInfo.instance();
+
+    @JSBody(params = {"obj"}, script = "console.log( obj );")
+    public static native void console( JSObject obj );
+
+
+    @Test
+    @Skip
+    public void stackTraceTest() {
+        try {
+//            String s = null;
+//            s.toString();
+
+            var a = new String[0];
+            LOG.info( "a: length=%s", a.length );
+            a[10] = "1";
+            LOG.info( "a: length=%s", a.length );
+            LOG.info( "a: %s", a[10] );
+        }
+        catch (Exception e) {
+            var js = JSExceptions.getJSException( e );
+            console( js );
+        }
+        var e = new RuntimeException( "Test" );
+        e.fillInStackTrace();
+        var js = JSExceptions.getJSException( e );
+        Window.alert( js );
+    }
 
 
     @Test
@@ -54,9 +85,9 @@ public class TeavmRuntimeTest {
         XMLHttpRequest request1 = XMLHttpRequest.create();
         request1.open( "GET", "index.html", true );
         request1.onComplete( () -> {
-            log.info( "Thread: " + Thread.currentThread() );
+            LOG.info( "Thread: " + Thread.currentThread() );
             new Thread( () -> {
-                log.info( "Thread: " + Thread.currentThread() );
+                LOG.info( "Thread: " + Thread.currentThread() );
                 try {
                     synchronized (this) {
                         wait( 500 );

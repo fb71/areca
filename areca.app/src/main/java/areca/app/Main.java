@@ -70,7 +70,7 @@ public class Main {
         else if (hash.equals( "#runtime" )) {
             catchAll( __ -> {
                 new AsyncAwareTestRunner()
-                        //.addTests( areca.rt.teavm.test.TeavmRuntimeTest.info )
+                        .addTests( areca.rt.teavm.test.TeavmRuntimeTest.info )
                         //.addTests( areca.common.test.RuntimeTest.info )
                         .addTests( areca.common.test.AsyncTests.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
