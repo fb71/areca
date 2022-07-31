@@ -49,7 +49,7 @@ public class ContactsPage extends Page {
 
     private PageContainer       ui;
 
-    protected long              timeout = 280;  // 300ms timeout before page animation starts
+    protected long              timeout = 150;  // 300ms timeout before page animation starts
 
     protected Property<String>  orderBy = Contact.TYPE.firstname;
 

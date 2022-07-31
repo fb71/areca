@@ -61,7 +61,7 @@ public class PageStackLayout
 
             LOG.info( "Position: %s - %s -> %s", origin, composite.clientSize.value().divide( 1.2f ), top.position.value() );
 
-            Platform.schedule( 300, () -> {
+            Platform.schedule( 200, () -> {
                 top.bordered.set( true );
                 top.cssClasses.remove( "PageStackLayout-Top" );
                 top.position.set( Position.of( 0, 0 ) );
