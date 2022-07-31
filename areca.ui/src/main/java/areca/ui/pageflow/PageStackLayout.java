@@ -55,8 +55,11 @@ public class PageStackLayout
             top.cssClasses.add( "PageStackLayout-Top" );
 
             top.position.set( origin != null
-                    ? origin.substract( composite.clientSize.value().divide( 2 ) )
+                    //XXX ? origin.substract( composite.clientSize.value().divide( 1.2f ).divide( 2 ) )
+                    ? Position.of( 0, 0 )
                     : Position.of( 0, 0 ) );
+
+            LOG.info( "Position: %s - %s -> %s", origin, composite.clientSize.value().divide( 1.2f ), top.position.value() );
 
             Platform.schedule( 300, () -> {
                 top.bordered.set( true );

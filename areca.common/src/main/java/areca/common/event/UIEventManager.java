@@ -41,7 +41,7 @@ public class UIEventManager
 
     private static final int    INIT_QUEUE_CAPACITY = 128;
 
-    private static final int    MAX_TIME_PER_FRAME = 15;
+    private static final int    MAX_TIME_PER_FRAME = 20;
 
     private Deque<Event>        eventQueue = new ArrayDeque<>( INIT_QUEUE_CAPACITY );
 
