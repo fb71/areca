@@ -60,6 +60,16 @@ public abstract class Platform {
 
 
     /**
+     *
+     * @param callback Callback handling the timestamp of the call.
+     * @return Identifier of this request used to cancel the request.
+     */
+    public static Promise<Void> requestAnimationFrame( RConsumer<Double> callback ) {
+        return impl.requestAnimationFrame( callback );
+    }
+
+
+    /**
      * Prepares a XMLHttpRequest.
      */
     public static HttpRequest xhr( String method, String url ) {
@@ -75,6 +85,8 @@ public abstract class Platform {
         public <R> Promise<R> schedule( int delayMillis, Callable<R> task );
 
         public HttpRequest xhr( String method, String url );
+
+        public Promise<Void> requestAnimationFrame( RConsumer<Double> callback );
     }
 
 

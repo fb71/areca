@@ -41,6 +41,30 @@ public class TeaPlatform
 
     private static final Log LOG = LogFactory.getLog( TeaPlatform.class );
 
+
+    @Override
+    public Promise<Void> requestAnimationFrame( RConsumer<Double> callback ) {
+        return new Completable<Void>() {
+
+            int id = Window.requestAnimationFrame( timestamp -> {
+                callback.accept( timestamp );
+                complete( null );
+            });
+
+            @Override
+            public void cancel() {
+                Window.cancelAnimationFrame( id );
+                super.cancel();
+            }
+        };
+    }
+
+
+//    public long requestIdleFrame( RConsumer<Double> callback) {
+//        return Window.requestAnimationFrame( timestamp -> callback.accept( timestamp ) );
+//    }
+
+
     @Override
     public <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
         Completable<R> promise = new Completable<>();

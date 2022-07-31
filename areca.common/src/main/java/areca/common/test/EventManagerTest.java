@@ -34,7 +34,7 @@ import areca.common.testrunner.Test;
  * @author Falko Bräutigam
  */
 @Test
-public class EventManagerTest {
+public abstract class EventManagerTest {
 
     private static final Log LOG = LogFactory.getLog( EventManagerTest.class );
 

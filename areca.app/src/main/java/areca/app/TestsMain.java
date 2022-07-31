@@ -22,14 +22,6 @@ public class TestsMain {
     @SuppressWarnings("unchecked")
     public static void main( String[] args ) throws Exception {
         try {
-//            new AsyncAwareTestRunner()
-//                    .addTests(
-//                            areca.common.test.SameStackEventManagerTest.info,
-//                            areca.common.test.AsyncEventManagerTest.info
-//                    )
-//                    .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
-//                    .run();
-
             new AsyncAwareTestRunner()
                     .addTests(
                             areca.common.test.AnnotationTest.info,
@@ -37,6 +29,7 @@ public class TestsMain {
                             areca.common.test.SequenceOpTest.info,
                             areca.common.test.SameStackEventManagerTest.info,
                             areca.common.test.AsyncEventManagerTest.info,
+                            areca.common.test.UIEventManagerTest.info,
 //                            areca.common.test.ThreadedEventManagerTest.info,
                             areca.common.test.RuntimeTest.info,
                             areca.common.test.AsyncTests.info
