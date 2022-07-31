@@ -21,6 +21,7 @@ import org.teavm.jso.browser.Window;
 import areca.common.Platform;
 import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 import areca.common.test.SequenceOpTest;
 import areca.common.testrunner.AsyncAwareTestRunner;
@@ -148,14 +149,17 @@ public class Main {
         // app
         else {
             catchAll( __ -> {
-                //LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
-                //LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
-//                LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
-//                LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
-//                LogFactory.setClassLevel( areca.app.service.Message2ContactAnchorSynchronizer.class, DEBUG );
-//                LogFactory.setClassLevel( areca.app.service.Message2PseudoContactAnchorSynchronizer.class, DEBUG );
-
                 var debug = Window.current().getLocation().getSearch().contains( "debug" );
+                LogFactory.DEFAULT_LEVEL = Level.WARN;
+                if (debug) {
+                    LogFactory.DEFAULT_LEVEL = Level.INFO;
+//                    LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );
+//                    LogFactory.setClassLevel( UnitOfWorkImpl.class, Level.DEBUG );
+//                    LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
+//                    LogFactory.setClassLevel( areca.app.service.imap.ImapFolderSynchronizer.class, DEBUG );
+//                    LogFactory.setClassLevel( areca.app.service.Message2ContactAnchorSynchronizer.class, DEBUG );
+//                    LogFactory.setClassLevel( areca.app.service.Message2PseudoContactAnchorSynchronizer.class, DEBUG );
+                }
                 ArecaApp.instance().createUI( debug );
             });
         }
