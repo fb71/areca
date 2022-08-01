@@ -90,7 +90,9 @@ public class EmailAddress
                 return new AddressParts() {{first = name; last = ""; pure = email;}};
             }
         }
-        throw new RuntimeException( "No email match: " + email );
+        //
+        return new AddressParts() {{pure = email;}};
+        //throw new RuntimeException( "No email match: " + email );
     }
 
 
