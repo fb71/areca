@@ -14,14 +14,20 @@
 package areca.common.event;
 
 import static areca.common.Assert.notNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
 import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import areca.common.Assert;
 import areca.common.Promise;
@@ -61,6 +67,9 @@ public abstract class EventManager {
 
     /** Copy-on-Write */
     protected List<EventHandlerInfo>            handlers = Collections.emptyList();
+
+    @SuppressWarnings("rawtypes")
+    protected Map<Pair,MethodInfo>              methodCache = new HashMap<>( 128 );
 
 
     protected EventManager() {
@@ -239,22 +248,27 @@ public abstract class EventManager {
                     return;
                 }
                 // perform: annotated
-                ClassInfo<Object> cli = ClassInfo.of( handler );
-                for (MethodInfo m : cli.methods()) {
-                    Opt<EventHandler> a = m.annotation( EventHandler.class );
-
-                    if (a.isPresent() && a.get().value().isInstance( ev )) {
-                        try {
-                            m.invoke( handler, ev );
-                            return;
-                        }
-                        catch (InvocationTargetException e) {
-                            throw (RuntimeException)e.getTargetException();
+                var cacheKey = ImmutablePair.of( handler.getClass(), ev.getClass() );
+                var method = methodCache.computeIfAbsent( cacheKey, __ -> {
+                    ClassInfo<Object> cli = ClassInfo.of( handler );
+                    for (MethodInfo m : cli.methods()) {
+                        Opt<EventHandler> a = m.annotation( EventHandler.class );
+                        if (a.isPresent() && a.get().value().isInstance( ev )) {
+                            LOG.info( "Method cache: %s + 1", methodCache.size() );
+                            return m;
                         }
                     }
-                }
-                throw new IllegalStateException( "Handler is neither an EventListener nor annotated: "
+                    throw new IllegalStateException( "Handler is neither an EventListener nor annotated: "
                             + cli.simpleName() + " (" + ev.getClass().getSimpleName() + ")" );
+                });
+                try {
+                    method.invoke( handler, ev );
+                    return;
+                }
+                catch (InvocationTargetException e) {
+                    throw (RuntimeException)e.getTargetException();
+                }
+
             }
             catch (Throwable e) {
                 onError.accept( ev, e );
