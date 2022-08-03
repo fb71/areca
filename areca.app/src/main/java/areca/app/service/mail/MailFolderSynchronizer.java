@@ -165,7 +165,7 @@ public class MailFolderSynchronizer {
         return new MessageContentRequest( settings.toRequestParams(), folderName, Collections.singleton( msg.messageNum() ) )
                 .submit()
                 .map( response -> {
-                    Assert.isEqual( 1, response.messageContent().length );
+                    Assert.isEqual( 1, response.messageContent().length, "Fetching message from '" + folderName + "' has >1 content" );
                     return uow.createEntity( Message.class, proto -> {
                         proto.setStoreRef( new MessageStoreRef( settings, msg ) );
                         if (msg.from().length > 0) { // XXX skip message without From: ?
