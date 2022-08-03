@@ -74,7 +74,7 @@ public class Main {
                         .addTests( areca.rt.teavm.test.TeavmRuntimeTest.info )
                         //.addTests( areca.common.test.RuntimeTest.info )
                         //.addTests( areca.common.test.AsyncTests.info )
-                        .addTests( areca.common.test.SchedulerTest.info )
+                        //.addTests( areca.common.test.SchedulerTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                         .run();
             });
