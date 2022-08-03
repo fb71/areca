@@ -30,6 +30,7 @@ import areca.common.base.Opt;
 import areca.common.base.Predicate;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 
 /**
@@ -441,18 +442,18 @@ public class Promise<T> {
     }
 
 
-    /**
-     * Schedule this Promise with the given priority. This gives the
-     * {@link Scheduler} control over the execution. Success handlers that are
-     * registered with the resulting {@link Promise} are called just when the
-     * Scheduler decides to do so based on time and priority.
-     *
-     * @param priority
-     * @return Newly created scheduled {@link Promise}.
-     */
-    public Promise<T> schedule( Scheduler.Priority priority ) {
-        return Scheduler.current().schedule( priority, this );
-    }
+//    /**
+//     * Schedule this Promise with the given priority. This gives the
+//     * {@link Scheduler} control over the execution. Success handlers that are
+//     * registered with the resulting {@link Promise} are called just when the
+//     * Scheduler decides to do so based on time and priority.
+//     *
+//     * @param priority
+//     * @return Newly created scheduled {@link Promise}.
+//     */
+//    public Promise<T> schedule( Scheduler.Priority priority ) {
+//        return Scheduler.current().schedule( priority, this );
+//    }
 
 
     /**
@@ -586,7 +587,14 @@ public class Promise<T> {
                         consumer.accept( site, value );
                     }
                     catch (Throwable e) {
-                        LOG.warn( e.getMessage(), e );
+                        // INFO enabled means debug is on
+                        // XXX if debug=true the defaultErrorHandler should throw the exception for TeaVM
+                        // XXX but it's not happening :(
+                        if (LOG.isLevelEnabled( Level.INFO )) {
+                            throw (RuntimeException)e;
+                        } else {
+                            LOG.warn( e.toString(), e );
+                        }
                         completeWithError( e );
                         break;
                     }
@@ -603,7 +611,7 @@ public class Promise<T> {
 
             // already done with error
             if (error != null) {
-                LOG.debug( "SKIPPING error after error: " + e );
+                LOG.info( "SKIPPING error after error: " + e );
                 //throw (RuntimeException)Platform.rootCause( e );
             }
             // done without error -> programming error
@@ -617,6 +625,7 @@ public class Promise<T> {
                     complete = true;
                     error = e;
                     if (onError.isEmpty()) {
+                        LOG.info( "Default error handler: %s", e.toString() );
                         defaultErrorHandler.accept( e );
                     }
                     else {

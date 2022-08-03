@@ -69,10 +69,12 @@ public class Main {
         // runtime
         else if (hash.equals( "#runtime" )) {
             catchAll( __ -> {
-                new AsyncAwareTestRunner()
+                new TestRunner()
+                        //.addTests( areca.common.test.UIEventManagerTest.info )
                         .addTests( areca.rt.teavm.test.TeavmRuntimeTest.info )
                         //.addTests( areca.common.test.RuntimeTest.info )
-                        .addTests( areca.common.test.AsyncTests.info )
+                        //.addTests( areca.common.test.AsyncTests.info )
+                        .addTests( areca.common.test.SchedulerTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                         .run();
             });
@@ -80,6 +82,7 @@ public class Main {
         // Gallery
         else if (hash.equals( "#gallery" )) {
             catchAll( __ -> {
+                //UIComponentEvent.manager;
                 UIComponentRenderer.start();
                 var doc = Window.current().getDocument();
                 var appSize = Size.of( doc.getBody().getClientWidth(), doc.getBody().getClientHeight() );
@@ -90,11 +93,11 @@ public class Main {
         // #m2
         else if (hash.equals( "#m2" )) {
             catchAll( __ -> {
-                //LogFactory.setClassLevel( areca.app.service.carddav.CarddavSynchronizer.class, DEBUG );
                 new AsyncAwareTestRunner()
                         .addTests( org.polymap.model2.test2.SimpleQueryTest.info )
                         .addTests( org.polymap.model2.test2.RuntimeTest.info )
                         .addTests( org.polymap.model2.test2.AssociationsTest.info )
+                        .addTests( org.polymap.model2.test2.ComplexModelTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                         .run();
             });

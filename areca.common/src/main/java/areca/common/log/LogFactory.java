@@ -116,5 +116,9 @@ public class LogFactory {
         public void debug( String format, Object... args ) {
             log( Level.DEBUG, format, args, null );
         }
+
+        public boolean isLevelEnabled( Level l ) {
+            return l.ordinal() >= level.ordinal();
+        }
     }
 }
