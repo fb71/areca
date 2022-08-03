@@ -211,12 +211,12 @@ public abstract class Property<C,T> {
 
         public ReadWrite<C,T> onChange( RBiConsumer<T,T> consumer ) {
             UIComponentEvent.manager
-                .subscribe( (PropertyChangedEvent<T> ev) -> {
-                    LOG.debug( "HANDLE: %s:%s -> %s (%s)", component().getClass().getSimpleName(), name, ev.getNewValue(), ev.getOldValue() );
-                    consumer.accept( ev.getNewValue(), ev.getOldValue() );
-                })
-                .performIf( ev -> ev.getSource() == ReadWrite.this )
-                .unsubscribeIf( () -> ((UIComponent)component()).isDisposed() );  // TODO
+                    .subscribe( (PropertyChangedEvent<T> ev) -> {
+                        //LOG.debug( "HANDLE: %s:%s -> %s (%s)", component().getClass().getSimpleName(), name, ev.getNewValue(), ev.getOldValue() );
+                        consumer.accept( ev.getNewValue(), ev.getOldValue() );
+                    })
+                    .performIf( ev -> ev.getSource() == ReadWrite.this )
+                    .unsubscribeIf( () -> ((UIComponent)component()).isDisposed() ); // TODO
             return this;
         }
 
