@@ -14,11 +14,13 @@
 package areca.app.service.carddav;
 
 import java.util.Date;
+
 import org.teavm.jso.dom.xml.Document;
 
 import areca.common.Platform;
 import areca.common.Platform.HttpServerException;
 import areca.common.Promise;
+import areca.common.Scheduler.Priority;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -63,6 +65,7 @@ public class PropfindRequest {
                 xhr.authenticate( user, res.pwd.get() ) );
 
         return xhr.submit()
+                .priority( Priority.BACKGROUND )
                 .map( response -> {
                     LOG.debug( "Status: %s", response.status() );
                     if (response.status() > 299) {

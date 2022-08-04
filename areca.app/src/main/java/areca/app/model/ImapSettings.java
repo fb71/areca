@@ -16,6 +16,7 @@ package areca.app.model;
 import org.polymap.model2.Property;
 
 import areca.app.service.mail.RequestParams;
+import areca.common.Scheduler.Priority;
 import areca.common.reflect.RuntimeInfo;
 
 /**
@@ -40,12 +41,13 @@ public class ImapSettings extends Common {
     public Property<Integer>        monthsToSync;
 
 
-    public RequestParams toRequestParams() {
+    public RequestParams toRequestParams( Priority prio ) {
         return new RequestParams() {{
             this.host.value = ImapSettings.this.host.get();
             this.port.value = ImapSettings.this.port.get().toString();
             this.username.value = ImapSettings.this.username.get();
             this.password.value = ImapSettings.this.pwd.get();
+            this.priority = prio;
         }};
     }
 

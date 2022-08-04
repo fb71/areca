@@ -17,6 +17,7 @@ import areca.common.Platform;
 import areca.common.Platform.HttpResponse;
 import areca.common.Platform.HttpServerException;
 import areca.common.Promise;
+import areca.common.Scheduler.Priority;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -43,6 +44,7 @@ public class GetResourceRequest {
                 xhr.authenticate( user, res.pwd.get() ) );
 
         return xhr.submit()
+                .priority( Priority.BACKGROUND )
                 .map( response -> {
                     if (response.status() > 299) {
                         throw new HttpServerException( response.status(), response.text() );

@@ -181,7 +181,7 @@ public class Message
             });
         }
         else {
-            return Promise.completed( Collections.emptyList() );
+            return Promise.completed( Collections.emptyList(), context.getUnitOfWork().priority() );
         }
     }
 

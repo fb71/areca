@@ -80,7 +80,7 @@ public class MailFolderSynchronizer {
                     if (msgs.length == 0
                             || folderName.equalsIgnoreCase( "INBOX" ) || folderName.equalsIgnoreCase( "Sent" )) {
                         LOG.debug( "%s: no messages to sync -> skipping Anchor", folderName );
-                        return Promise.completed( msgs );
+                        return Promise.completed( msgs, uow.priority() );
                     }
                     return checkCreateFolderAnchor().map( anchor -> {
                         folderAnchor = Opt.of( anchor );
@@ -112,7 +112,7 @@ public class MailFolderSynchronizer {
                 .then( missingMsg -> {
                     if (missingMsg.isEmpty()) {
                         LOG.debug( "%s: sending absent()", folderName );
-                        return Promise.absent();
+                        return Promise.absent( uow.priority() );
                     }
                     else {
                         var it = missingMsg.iterator();
@@ -141,13 +141,13 @@ public class MailFolderSynchronizer {
 
 
     protected Promise<Integer> fetchMessageCount() {
-        return new FolderInfoRequest( settings.toRequestParams(), folderName ).submit()
+        return new FolderInfoRequest( settings.toRequestParams( uow.priority() ), folderName ).submit()
                 .map( folderInfo -> folderInfo.count() );
     }
 
 
     protected Promise<MessageHeaders[]> fetchMessageIds( int start, int end ) {
-        return new MessageHeadersRequest( settings.toRequestParams(), folderName, Range.between( start, end ) ).submit()
+        return new MessageHeadersRequest( settings.toRequestParams( uow.priority() ), folderName, Range.between( start, end ) ).submit()
                 .map( response -> response.messageHeaders() );
     }
 
@@ -155,14 +155,14 @@ public class MailFolderSynchronizer {
     protected Promise<MessageHeaders[]> fetchMessageIds() {
         var minDate = DateUtils.addMonths( new Date(), -settings.monthsToSync.get() );
         LOG.debug( "MIN. DATE: %s", minDate );
-        return new MessageHeadersRequest( settings.toRequestParams(), folderName, minDate, null ).submit()
+        return new MessageHeadersRequest( settings.toRequestParams( uow.priority() ), folderName, minDate, null ).submit()
                 .map( response -> response.messageHeaders() );
     }
 
 
     protected Promise<Message> fetchMessage( MessageHeaders msg ) {
         LOG.info( "%s: Fetching: %s", folderName, msg.messageNum() );
-        return new MessageContentRequest( settings.toRequestParams(), folderName, Collections.singleton( msg.messageNum() ) )
+        return new MessageContentRequest( settings.toRequestParams( uow.priority() ), folderName, Collections.singleton( msg.messageNum() ) )
                 .submit()
                 .map( response -> {
                     Assert.isEqual( 1, response.messageContent().length, "Fetching message from '" + folderName + "' has >1 content" );

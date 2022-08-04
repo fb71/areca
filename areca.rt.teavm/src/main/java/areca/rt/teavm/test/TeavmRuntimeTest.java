@@ -18,6 +18,9 @@ import org.teavm.jso.JSExceptions;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.ajax.XMLHttpRequest;
 import org.teavm.jso.browser.Window;
+
+import areca.common.Platform;
+import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.testrunner.Skip;
@@ -36,6 +39,14 @@ public class TeavmRuntimeTest implements JSObject {
 
     @JSBody(params = {"obj"}, script = "console.log( obj );")
     public static native void console( JSObject obj );
+
+
+    @Test
+    public Promise<?> idleCallbackTest() {
+        return Platform.requestIdleCallback( deadline -> {
+            LOG.info( "Deadline: remaining = %s", deadline.timeRemaining() );
+        });
+    }
 
 
     @Test

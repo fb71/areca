@@ -14,6 +14,7 @@
 package areca.ui.test;
 
 import areca.common.Promise;
+import areca.common.Scheduler.Priority;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -50,7 +51,7 @@ public class DynamicRasterTest {
                         var result = Sequence.ofInts( start, start+num-1 )
                                 .map( i -> new Component( new Button().label.set( ""+i ), i ) )
                                 .toList();
-                        return Promise.completed( result );
+                        return Promise.completed( result, Priority.MAIN_EVENT_LOOP );
                     }));
         }});
         parent.layout();

@@ -16,10 +16,10 @@ package areca.common;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
 
+import areca.common.Scheduler.Priority;
 import areca.common.base.BiConsumer;
 import areca.common.base.BiFunction;
 import areca.common.base.Consumer;
@@ -75,7 +75,7 @@ public class Promise<T> {
     public static <R> Promise<R> joined( int num, R emptyValue, RFunction<Integer,Promise<R>> supplier ) {
         Assert.that( num >= 0 );
         return num == 0
-                ? Promise.completed( emptyValue )
+                ? Promise.completed( emptyValue, null ) // XXX scheduler priority
                 : joined( num, supplier );
     }
 
@@ -99,7 +99,7 @@ public class Promise<T> {
     public static <R> Promise<R> serial( int num, R emptyValue, RFunction<Integer,Promise<R>> supplier ) {
         Assert.that( num >= 0 );
         return num == 0
-                ? Promise.completed( emptyValue )
+                ? Promise.completed( emptyValue, null ) // XXX scheduler priority
                 : serial( num, supplier );
     }
 
@@ -253,9 +253,28 @@ public class Promise<T> {
             Assert.that( result instanceof Opt, "Value must be of type Opt<T>: " + result );
             return ((Opt<T>)result)
                     .ifPresentMap( v -> f.apply( result ).map( r -> Opt.of( r ) ) )
-                    .orElse( absent() );
+                    .orElse( absent( null ) ); // XXX scheduler priority
             //return opt( (Opt<T>)result, f );
         });
+    }
+
+
+    /**
+     * Creates a new {@link Promise} that is executed by the {@link Scheduler}. After
+     * {@link Platform#xhr(String, String)} or a DB operation this can be used to
+     * switch execution from main JS event loop to idle scheduler.
+     *
+     * @param prio The priority of the execution. Null signals that the function is
+     *        disabled and just this is returned.
+     * @return A newly created {@link Promise}.
+     */
+    public Promise<T> priority( Priority prio ) {
+        if (prio == null || prio == Priority.MAIN_EVENT_LOOP) {
+            return this;
+        }
+        else {
+            return then( (T result) -> Platform.scheduler.schedule( prio, () -> result ) );
+        }
     }
 
 
@@ -645,8 +664,8 @@ public class Promise<T> {
             //LOG.debug( "complete()" );
             if (!done) {
                 synchronized (this) {
-                    onSuccess = null; // help GC(?)
-                    onError = null;
+                    //onSuccess = null; // help GC(?)
+                    //onError = null;
                     //upstreams = null;
                     done = true;
                     notifyAll();
@@ -660,8 +679,8 @@ public class Promise<T> {
      * See {@link #thenOpt(RFunction)}
      * @see #thenOpt(RFunction)
      */
-    public static <R> Promise<Opt<R>> absent() {
-        return completed( Opt.<R>absent() );
+    public static <R> Promise<Opt<R>> absent( Priority priority ) {
+        return completed( Opt.<R>absent(), priority );
     }
 
 
@@ -680,8 +699,13 @@ public class Promise<T> {
 
     /**
      * Returns a {@link Promise} that (immediatelly) delivers the given value.
+     *
+     * @param priority The priority the {@link Scheduler} should execute the result
+     *        of this operation with, or null to execute in the main JS event loop.
      */
-    public static <R> Promise<R> completed( R value ) {
-        return Platform.async( () -> value );
+    public static <R> Promise<R> completed( R value, Priority priority ) {
+        return priority != null && priority != Priority.MAIN_EVENT_LOOP
+                ? Platform.scheduler.schedule( priority, () -> value )
+                : Platform.async( () -> value );
     }
 }

@@ -59,7 +59,7 @@ public class PageStackLayout
                     ? Position.of( 0, 0 )
                     : Position.of( 0, 0 ) );
 
-            LOG.info( "Position: %s - %s -> %s", origin, composite.clientSize.value().divide( 1.2f ), top.position.value() );
+            //LOG.info( "Position: %s - %s -> %s", origin, composite.clientSize.value().divide( 1.2f ), top.position.value() );
 
             Platform.schedule( 200, () -> {
                 top.bordered.set( true );

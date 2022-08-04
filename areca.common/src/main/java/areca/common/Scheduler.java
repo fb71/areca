@@ -13,10 +13,12 @@
  */
 package areca.common;
 
+import java.util.ArrayDeque;
 import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.Deque;
 import java.util.concurrent.Callable;
 
+import areca.common.Platform.IdleDeadline;
 import areca.common.Promise.Completable;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -25,70 +27,91 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-public abstract class Scheduler {
+public class Scheduler {
 
     private static final Log LOG = LogFactory.getLog( Scheduler.class );
 
-    public static Scheduler current() {
-        throw new RuntimeException( "not yet implemented" );
-    }
-
     public enum Priority {
-        HIGH, STANDARD, DECORATION
+        MAIN_EVENT_LOOP,
+        INTERACTIVE, BACKGROUND, DECORATION
     }
 
 
     // instance *******************************************
 
-    protected PriorityQueue<Task<?>>   queue = new PriorityQueue<>( new TaskPriority() );
+    // XXX protected PriorityQueue<Task<?>>    queue = new PriorityQueue<>( 256, new TaskPriority() );
+    protected Deque<Task<?>>            queue = new ArrayDeque<>( 256 );
 
-
-    /**
-     * Run the next tick in the loop.
-     */
-    protected void run( RunInfo info ) {
-        var peek = queue.peek();
-        while (peek != null && peek.targetTime <= info.now() && info.timeRemaining() > 0) {
-            queue.poll();
-            // run task... -> promise
-            try {
-                var result = peek.work.call();
-                // ...
-            }
-            catch (Throwable e) {
-                peek.result.completeWithError( e );
-            }
-            peek = queue.peek();
-        }
-    }
-
-    /**
-     *
-     */
-    protected interface RunInfo {
-        public long now();
-        public int timeRemaining();
-    }
-
-
-    protected abstract long now();
+    protected Promise<Void>             async;
 
 
     public <R> Promise<R> schedule( Callable<R> task ) {
-        return schedule( Priority.STANDARD, 0, task );
+        return schedule( Priority.BACKGROUND, 0, task );
+    }
+
+
+    public <R> Promise<R> schedule( Priority prio, Callable<R> task ) {
+        return schedule( prio, 0, task );
     }
 
 
     public <R> Promise<R> schedule( Priority prio, int delayMillis, Callable<R> work ) {
+        Assert.notNull( prio, "Priority must not be null" );
+        Assert.that( prio != Priority.MAIN_EVENT_LOOP, "MAIN_EVENT_LOOP is special priority for Promise" );
+        Assert.isEqual( 0, delayMillis, "Delayed schedule is not yet supported." );
+        if (async == null) {
+            //Assert.isNull( async );
+            async = Platform.requestIdleCallback( deadline -> process( deadline ) );
+        }
+
         var targetTime = now() + delayMillis;
         var task = new Task<>( prio, targetTime, work );
-        queue.add( task );
-        return task.result;
+        queue.addLast( task );
+        return task.promise;
     }
 
 
-    public <R> Promise<R> schedule( Priority prio, Promise<R> task ) {
-        throw new RuntimeException( "not yet implemented" );
+//    public <R> Promise<R> schedule( Promise<R> task ) {
+//        return schedule( () -> {
+//
+//        });
+//    }
+
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected void process( IdleDeadline deadline ) {
+        LOG.info( "Queue: %d, remaining: %s", queue.size(), deadline.timeRemaining() );
+        var now = now();
+
+        async = null;
+
+        // handle tasks
+        int count = 0;
+        Task peek = queue.peek();
+        while (peek != null /*&& peek.targetTime <= now*/ && deadline.timeRemaining() > 0) {
+            queue.poll();
+            try {
+                //LOG.info( "  work: %s", peek.work );
+                var result = peek.work.call();
+                peek.promise.complete( result );
+            }
+            catch (Throwable e) {
+                peek.promise.completeWithError( e );
+            }
+            peek = queue.peek();
+            count ++;
+        }
+        LOG.info( "  processed: %d, queue: %d, remaining: %s, async: %s", count, queue.size(), deadline.timeRemaining(), async );
+
+        // schedule next loop
+        if (!queue.isEmpty() && async == null) {
+            async = Platform.requestIdleCallback( dl -> process( dl ) );
+        }
+    }
+
+
+    protected long now() {
+        return System.nanoTime() / 1000000;
     }
 
 
@@ -99,9 +122,10 @@ public abstract class Scheduler {
             implements Comparator<Task<?>> {
 
         @Override
-        public int compare( Task<?> o1, Task<?> o2 ) {
-            // XXX Auto-generated method stub
-            throw new RuntimeException( "not yet implemented." );
+        public int compare( Task<?> t1, Task<?> t2 ) {
+            return t1.priority != t2.priority
+                    ? t1.priority.ordinal() > t2.priority.ordinal() ? 1 : -1
+                    : t1.targetTime > t2.targetTime ? 1 : -1;
         }
     }
 
@@ -117,7 +141,7 @@ public abstract class Scheduler {
 
         public long                     targetTime;
 
-        public Promise.Completable<T>   result = new Completable<T>();
+        public Promise.Completable<T>   promise = new Completable<T>();
 
         public Task( Priority priority, long targetTime, Callable<T> work ) {
             this.priority = priority;

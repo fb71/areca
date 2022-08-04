@@ -83,7 +83,7 @@ public class Synchronization {
                 })
                 .performIf( ModelUpdateEvent.class, ev -> ev.contains( settingsTypes ) );
 
-        // model have been changed
+        // model has been changed
         var entityTypes = Sequence.of( ArecaApp.APP_ENTITY_TYPES ).map( info -> (Class<Entity>)info.type() ).toSet();
         EventManager.instance()
                 .subscribe( (ModelUpdateEvent ev) -> {
@@ -158,7 +158,7 @@ public class Synchronization {
                                             .onError( __ -> { if (ctx.monitor != null) ctx.monitor.done(); } );
                                 }
                                 else {
-                                    return Promise.completed( null );
+                                    return Promise.completed( null, uow.priority() );
                                 }
                             });
                         }

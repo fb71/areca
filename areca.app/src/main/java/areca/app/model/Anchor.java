@@ -105,7 +105,7 @@ public class Anchor
         else {
             // XXX dangling messages!?
             context.getUnitOfWork().removeEntity( this );
-            return Promise.completed( null );
+            return Promise.completed( null, context.getUnitOfWork().priority() );
         }
     }
 

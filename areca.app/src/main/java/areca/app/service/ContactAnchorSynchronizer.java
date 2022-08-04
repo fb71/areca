@@ -51,7 +51,7 @@ public class ContactAnchorSynchronizer {
     public Promise<Message> perform( Message message ) {
         Assert.notNull( message );
         if (!message.fromAddress.opt().isPresent() || !message.toAddress.opt().isPresent()) {
-            return Promise.completed( message );
+            return Promise.completed( message, uow.priority() );
         }
 
         var address = Address.parseEncoded( message.outgoing.get()
@@ -63,7 +63,7 @@ public class ContactAnchorSynchronizer {
                 .executeCollect()
                 .map( rs -> {
                     if (rs.isEmpty()) {
-                        return Promise.completed( message );
+                        return Promise.completed( message, uow.priority() );
                     }
                     return Promise.serial( rs.size(), i -> {
                         var contact = rs.get( i );

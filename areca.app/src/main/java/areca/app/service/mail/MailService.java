@@ -13,6 +13,7 @@
  */
 package areca.app.service.mail;
 
+import static areca.common.Scheduler.Priority.BACKGROUND;
 import static org.apache.commons.lang3.StringUtils.abbreviate;
 import static org.polymap.model2.runtime.EntityRuntimeContext.EntityStatus.REMOVED;
 import static org.polymap.model2.runtime.Lifecycle.State.AFTER_MODIFIED;
@@ -139,7 +140,7 @@ public class MailService
             return Promise
                     .serial( removedStoreRefs.size(), null, i -> {
                         var storeRef = removedStoreRefs.get( i );
-                        return new MessageDeleteRequest( settings.toRequestParams(), storeRef.msgId() ).submit()
+                        return new MessageDeleteRequest( settings.toRequestParams( BACKGROUND), storeRef.msgId() ).submit()
                                 .onSuccess( command -> LOG.info( "REMOVED: deleted (%s)", command.count() ) );
                     })
                     .reduce2( 0, (result,next) -> result++ );
@@ -164,11 +165,11 @@ public class MailService
             // so this horrible checks if just one Message was changed
             if (modified.size() != 1 ) {
                 LOG.info( "FLAGS: to much Messages changed (%d)", modified.size() );
-                return Promise.completed( null );
+                return Promise.completed( null, BACKGROUND );
             }
             else {
                 var storeRef = modified.get( 0 );
-                return new MessageSetFlagRequest( settings.toRequestParams(), storeRef.msgId() ).submit()
+                return new MessageSetFlagRequest( settings.toRequestParams( BACKGROUND ), storeRef.msgId() ).submit()
                         .onSuccess( command -> LOG.info( "On UNREAD: SEEN flag set (%s)", command.count() ) );
             }
         }
@@ -298,7 +299,7 @@ public class MailService
 
 
         protected Promise<List<String>> fetchFolders() {
-            return new AccountInfoRequest( settings.toRequestParams() ).submit()
+            return new AccountInfoRequest( settings.toRequestParams( uow.priority() ) ).submit()
                     .map( accountInfo -> Sequence.of( accountInfo.folderNames() ).toList() );
         }
     }
@@ -374,8 +375,8 @@ public class MailService
                     })
                     .then( imap -> {
                         return imap
-                                .map( it -> new MessageAppendRequest( it.toRequestParams(), "Sent", msg ).submit() )
-                                .orElse( Promise.completed( null ) );
+                                .map( it -> new MessageAppendRequest( it.toRequestParams( BACKGROUND ), "Sent", msg ).submit() )
+                                .orElse( Promise.completed( null, BACKGROUND ) );
                     })
                     .reduce2( 0, (result, next) -> result++ );
         }

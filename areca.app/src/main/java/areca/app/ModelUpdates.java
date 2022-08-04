@@ -24,6 +24,7 @@ import areca.app.model.EntityLifecycleEvent;
 import areca.app.model.ModelUpdateEvent;
 import areca.common.Assert;
 import areca.common.Promise;
+import areca.common.Scheduler.Priority;
 import areca.common.Timer;
 import areca.common.base.Function.RFunction;
 import areca.common.base.Sequence;
@@ -96,7 +97,7 @@ public class ModelUpdates {
         if (first != null) {
             try {
                 LOG.info( "Starting (next) update operation..." );
-                first.apply( app.repo.newUnitOfWork() )
+                first.apply( app.repo.newUnitOfWork().setPriority( Priority.BACKGROUND ) )
                         .onSuccess( __ -> modelUpdateCompleted( first ) )
                         .onError( app.defaultErrorHandler() )
                         .onError( __ -> modelUpdateCompleted( first ) );

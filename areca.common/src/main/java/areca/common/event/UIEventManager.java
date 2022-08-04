@@ -39,9 +39,9 @@ public class UIEventManager
 
     private static final Log LOG = LogFactory.getLog( UIEventManager.class );
 
-    private static final int    INIT_QUEUE_CAPACITY = 128;
+    private static final int    INIT_QUEUE_CAPACITY = 1024;
 
-    private static final int    MAX_TIME_PER_FRAME = 20;
+    private static final int    MAX_TIME_PER_FRAME = 30;
 
     private Deque<Event>        eventQueue = new ArrayDeque<>( INIT_QUEUE_CAPACITY );
 
@@ -74,8 +74,9 @@ public class UIEventManager
 
 
     protected void processEvents( Double timestamp ) {
-        LOG.info( "Timestamp: %s - %s", timestamp, System.nanoTime()/1000000 );
+        //LOG.info( "Timestamp: %s - %s", timestamp, System.nanoTime()/1000000 );
 
+        async = null;
         var t = Timer.start();
         var count = 0;
         while (!eventQueue.isEmpty() && t.elapsed( MILLISECONDS ) < MAX_TIME_PER_FRAME) {
@@ -89,11 +90,11 @@ public class UIEventManager
             }
             //LOG.info( "Time: %s", t.elapsedHumanReadable() );
         }
-        async = !eventQueue.isEmpty()
+        async = !eventQueue.isEmpty() && async == null
                 ? Platform.requestAnimationFrame( ts -> processEvents( ts ) )
                 : null;
 
-        LOG.info( "Handled: %s, Queued: %s - Handlers: %s - %s", count, eventQueue.size(), handlers.size(), t.elapsedHumanReadable() );
+        LOG.info( "Processed: %s, Queued: %s - Handlers: %s - %s", count, eventQueue.size(), handlers.size(), t.elapsedHumanReadable() );
     }
 
 

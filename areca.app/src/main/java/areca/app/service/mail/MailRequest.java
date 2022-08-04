@@ -89,6 +89,7 @@ public abstract class MailRequest<R extends MailRequest.Response> {
             }
         }
         return xhr.submit( content )
+                .priority( params.priority )
                 .map( response -> {
                     LOG.debug( "Status: " + response.status() + " (" + timer.elapsedHumanReadable() + ")" );
                     if (response.status() > 299) {

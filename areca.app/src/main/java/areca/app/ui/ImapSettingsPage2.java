@@ -13,6 +13,8 @@
  */
 package areca.app.ui;
 
+import static areca.common.Scheduler.Priority.MAIN_EVENT_LOOP;
+
 import areca.app.model.ImapSettings;
 import areca.app.service.carddav.CarddavTest;
 import areca.app.service.mail.AccountInfoRequest;
@@ -62,7 +64,7 @@ public class ImapSettingsPage2
 
 
     protected Promise<?> checkSettings( ImapSettings settings ) {
-        return new AccountInfoRequest( settings.toRequestParams() ).submit();
+        return new AccountInfoRequest( settings.toRequestParams( MAIN_EVENT_LOOP ) ).submit();
     }
 
 

@@ -50,7 +50,7 @@ public abstract class EventManager {
 
     private static final Log LOG = LogFactory.getLog( EventManager.class );
 
-    private static EventManager     INSTANCE = new SameStackEventManager();
+    private static EventManager INSTANCE = new SameStackEventManager();
 
     public static EventManager instance() {
         return INSTANCE;

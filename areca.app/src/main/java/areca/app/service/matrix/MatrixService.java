@@ -46,6 +46,7 @@ import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.Promise.Completable;
+import areca.common.Scheduler.Priority;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.event.EventManager;
@@ -79,7 +80,7 @@ public class MatrixService
      */
     protected Promise<MatrixClient> initMatrixClient( MatrixSettings settings ) {
         if (matrix != null) {
-            return Promise.completed( matrix );
+            return Promise.completed( matrix, Priority.BACKGROUND );
         }
         else {
             // FIXME check if settings have been changed since last call
@@ -348,7 +349,7 @@ public class MatrixService
                     return checkContactAnchor( event.sender(), uow ).then( contactAnchor -> {
                         if (contactAnchor != null) {
                             contactAnchor.messages.add( msg );
-                            return Promise.completed( msg );
+                            return Promise.completed( msg, uow.priority() );
                         }
                         else {
                             return ensureRoomAnchor( event.roomId(), uow ).map( roomAnchor -> {
@@ -359,7 +360,7 @@ public class MatrixService
                     });
                 }
                 else {
-                    return Promise.completed( msg );
+                    return Promise.completed( msg, uow.priority() );
                 }
             });
         }
@@ -398,7 +399,7 @@ public class MatrixService
 //                        return anchor.image.get() != null
 //                                ? Promise.completed( anchor )
 //                                : updateAvatarImage( anchor, userId );
-                        return Promise.completed( anchor );
+                        return Promise.completed( anchor, uow.priority() );
                     });
         }
 
@@ -453,11 +454,11 @@ public class MatrixService
                             })
                             .then( anchor -> {
                                 return anchor.image.get() != null
-                                        ? Promise.completed( anchor )
+                                        ? Promise.completed( anchor, uow.priority() )
                                         : updateAvatarImage( anchor, userId );
                             });
                         })
-                        .orElse( Promise.completed( (Anchor)null ) );
+                        .orElse( Promise.completed( (Anchor)null, uow.priority() ) );
             });
         }
 
@@ -469,7 +470,7 @@ public class MatrixService
                         //MatrixClient.console( info );
                         if (!info.errorCode().isUndefined()) {
                             LOG.info( "No profile: error=%s", info.errorCode().stringValue() );
-                            return Promise.completed( anchor );
+                            return Promise.completed( anchor, Priority.BACKGROUND );
                         }
                         else {
                             var url = matrix.mxcUrlToHttp( info.avatarUrl(), 50, 50, "scale", false );

@@ -17,6 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import org.teavm.jso.JSBody;
+import org.teavm.jso.JSFunctor;
+import org.teavm.jso.JSMethod;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.ajax.XMLHttpRequest;
 import org.teavm.jso.browser.Window;
@@ -24,6 +27,7 @@ import org.teavm.jso.browser.Window;
 import areca.common.Platform;
 import areca.common.Platform.HttpRequest;
 import areca.common.Platform.HttpResponse;
+import areca.common.Platform.IdleDeadline;
 import areca.common.Promise;
 import areca.common.Promise.Completable;
 import areca.common.Timer;
@@ -37,7 +41,7 @@ import areca.common.log.LogFactory.Log;
  * @author Falko Bräutigam
  */
 public class TeaPlatform
-        implements Platform.PlatformImpl {
+        implements Platform.PlatformImpl, JSObject {
 
     private static final Log LOG = LogFactory.getLog( TeaPlatform.class );
 
@@ -60,9 +64,40 @@ public class TeaPlatform
     }
 
 
-//    public long requestIdleFrame( RConsumer<Double> callback) {
-//        return Window.requestAnimationFrame( timestamp -> callback.accept( timestamp ) );
-//    }
+    @Override
+    public Promise<Void> requestIdleCallback( RConsumer<Platform.IdleDeadline> callback ) {
+        return new Completable<Void>() {
+
+            int id = _requestIdleCallback( deadline -> {
+                callback.accept( new IdleDeadline() {
+                    @Override public double timeRemaining() { return deadline.timeRemaining(); }
+                });
+                complete( null );
+            });
+
+            @Override
+            public void cancel() {
+                _cancelIdleCallback( id );
+                super.cancel();
+            }
+        };
+    }
+
+    @JSBody(params = "callback", script = "return window.requestIdleCallback(callback);")
+    protected static native int _requestIdleCallback( _IdleCallback callback );
+
+    @JSBody(params = "id", script = "return window.cancelIdleCallback(id);")
+    protected static native void _cancelIdleCallback( int id );
+
+    @JSFunctor
+    protected interface _IdleCallback extends JSObject {
+        void onIdle( _IdleDeadline deadline );
+    }
+
+    public abstract class _IdleDeadline implements JSObject {
+        @JSMethod()
+        public abstract double timeRemaining();
+    }
 
 
     @Override

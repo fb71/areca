@@ -46,7 +46,7 @@ public class PseudoContactSynchronizer {
 
     public Promise<Message> perform( Message message ) {
         if (!message.fromAddress.opt().isPresent() || !message.toAddress.opt().isPresent()) {
-            return Promise.completed( message );
+            return Promise.completed( message, uow.priority() );
         }
         // XXX all associated adresses
         var address = Address.parseEncoded( message.outgoing.get()

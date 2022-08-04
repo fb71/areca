@@ -77,7 +77,7 @@ public class ModelUpdateEvent
     public <R extends Entity> Promise<List<R>> entities( Class<R> type, UnitOfWork uow ) {
         var ids = new ArrayList<>( entities( type ) );
         return ids.isEmpty()
-                ? Promise.completed( Collections.emptyList() )
+                ? Promise.completed( Collections.emptyList(), uow.priority() )
                 : Promise.joined( ids.size(), i -> uow.entity( type, ids.get( i ) ) )
                         .reduce( new ArrayList<>( ids.size() ), (result,entity) -> {
                             if (entity != null) {  // REMOVED Entity

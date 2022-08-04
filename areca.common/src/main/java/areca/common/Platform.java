@@ -26,6 +26,8 @@ public abstract class Platform {
 
     public static PlatformImpl impl;
 
+    public static Scheduler scheduler = new Scheduler();
+
 
     public static <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
         return impl.schedule( delayMillis, task );
@@ -70,6 +72,20 @@ public abstract class Platform {
 
 
     /**
+     *
+     *
+     * @param callback
+     */
+    public static Promise<Void> requestIdleCallback( RConsumer<IdleDeadline> callback ) {
+        return impl.requestIdleCallback( callback );
+    }
+
+    public interface IdleDeadline {
+        public double timeRemaining();
+    }
+
+
+    /**
      * Prepares a XMLHttpRequest.
      */
     public static HttpRequest xhr( String method, String url ) {
@@ -87,6 +103,8 @@ public abstract class Platform {
         public HttpRequest xhr( String method, String url );
 
         public Promise<Void> requestAnimationFrame( RConsumer<Double> callback );
+
+        public Promise<Void> requestIdleCallback( RConsumer<IdleDeadline> callback );
     }
 
 
@@ -113,6 +131,10 @@ public abstract class Platform {
 
         protected abstract Promise<HttpResponse> doSubmit( Object jsonOrStringData );
 
+        /**
+         *
+         * @see Promise#priority(areca.common.Scheduler.Priority)
+         */
         public Promise<HttpResponse> submit() {
             return doSubmit( null );
         }

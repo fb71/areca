@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import areca.common.Scheduler;
+import areca.common.Scheduler.Priority;
+
 /**
  *
  * @author Falko Bräutigam
@@ -26,7 +29,7 @@ public class RequestParams {
 
     public static final String  REQUEST_HEADER_PREFIX = "X-imap-";
 
-    public List<Param>       all = new ArrayList<>();
+    public List<Param>      all = new ArrayList<>();
 
     public Param            username = new Param( "username", null );
 
@@ -35,6 +38,12 @@ public class RequestParams {
     public Param            host = new Param( "host", null );
 
     public Param            port = new Param( "port", null );
+
+    /**
+     * The priority the {@link Scheduler} should execute the result of this operation
+     * with, or null to execute in the main JS event loop.
+     */
+    public Priority         priority;
 
 //    props.put( "mail.imap.ssl.enable", "true");
 //    props.put( "mail.imap.ssl.trust", "mail.polymap.de");

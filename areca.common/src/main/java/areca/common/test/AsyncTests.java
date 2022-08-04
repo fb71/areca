@@ -245,7 +245,7 @@ public class AsyncTests {
 
     @Test
     public Promise<?> propagateOptionalPromiseTest() {
-        return Promise.absent()
+        return Promise.absent( null )
                 .thenOpt( v -> (Platform.async( () -> Assert.notNull( v.get() ) )) )
                 .reduce2( 0, (r,i) -> r + 1 )
                 .onSuccess( (self,count) -> {

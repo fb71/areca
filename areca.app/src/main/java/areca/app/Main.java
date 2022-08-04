@@ -43,13 +43,6 @@ public class Main {
 
     public static void initLog() {
         LogFactory.DEFAULT_LEVEL = INFO;
-        // LogFactory.setPackageLevel( areca.ui.component2.UIComponent.class, DEBUG );
-
-        // LogFactory.setClassLevel( IDBUnitOfWork.class, DEBUG );
-        // LogFactory.setClassLevel( UnitOfWorkImpl.class, DEBUG );
-        // LogFactory.setClassLevel( org.polymap.model2.test2.SimpleModelTest.class, DEBUG );
-        // LogFactory.setClassLevel( org.polymap.model2.test2.AssociationsModelTest.class, DEBUG );
-        // LogFactory.setClassLevel( areca.common.Promise.class, DEBUG );
     }
 
 
@@ -71,10 +64,12 @@ public class Main {
             catchAll( __ -> {
                 new TestRunner()
                         //.addTests( areca.common.test.UIEventManagerTest.info )
-                        .addTests( areca.rt.teavm.test.TeavmRuntimeTest.info )
+                        //.addTests( areca.rt.teavm.test.TeavmRuntimeTest.info )
                         //.addTests( areca.common.test.RuntimeTest.info )
                         //.addTests( areca.common.test.AsyncTests.info )
-                        //.addTests( areca.common.test.SchedulerTest.info )
+                        .addTests( areca.common.test.SchedulerTest.info )
+                        //.addTests( areca.common.test.IdleAsyncEventManagerTest.info )
+                        //.addTests( areca.common.test.AsyncEventManagerTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
                         .run();
             });
@@ -93,7 +88,8 @@ public class Main {
         // #m2
         else if (hash.equals( "#m2" )) {
             catchAll( __ -> {
-                new AsyncAwareTestRunner()
+                new TestRunner()
+                        //.addTests( org.polymap.model2.test2.SimpleModelTest.info )
                         .addTests( org.polymap.model2.test2.SimpleQueryTest.info )
                         .addTests( org.polymap.model2.test2.RuntimeTest.info )
                         .addTests( org.polymap.model2.test2.AssociationsTest.info )

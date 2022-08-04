@@ -270,7 +270,7 @@ public class MessagesPage extends Page {
                 .orderBy( Message.TYPE.date, Order.DESC )
                 .executeCollect()
                 .map( fetched -> {
-                    LOG.debug( "fetchMessages(): %d / %d -> %d (%s)", startIndex, num, fetched.size(), timer.elapsedHumanReadable() );
+                    LOG.info( "fetchMessages(): %d / %d -> %d (%s)", startIndex, num, fetched.size(), timer.elapsedHumanReadable() );
                     //LOG.info( "%s", Sequence.of( fetched ) );
                     var result = new ArrayList<MessageComponent>();
                     for (int i = 0; i < fetched.size(); i++) {

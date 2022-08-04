@@ -50,7 +50,6 @@ public class CarddavSynchronizer {
     protected UnitOfWork                uow;
 
 
-
     public CarddavSynchronizer( DavResource contactsRoot, UnitOfWork uow ) {
         this.contactsRoot = contactsRoot;
         this.uow = uow;

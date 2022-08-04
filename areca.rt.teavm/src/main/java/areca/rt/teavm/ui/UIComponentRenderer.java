@@ -185,15 +185,16 @@ public class UIComponentRenderer
                     //((MouseEvent)_htmlEv).stopPropagation();
                     ((MouseEvent)_htmlEv).preventDefault();
                     try {
-                    handler.consumer.accept( new UIEvent( c ) {
-                        {
-                            this.htmlEv = _htmlEv;
-                            this.type = handler.type;
-                        }
-                        @Override
-                        public Position clientPos() {
-                            return Position.of( ((MouseEvent)_htmlEv).getClientX(), ((MouseEvent)_htmlEv).getClientY() );
-                        }});
+                        handler.consumer.accept( new UIEvent( c ) {
+                            {
+                                this.htmlEv = _htmlEv;
+                                this.type = handler.type;
+                            }
+                            @Override
+                            public Position clientPos() {
+                                return Position.of( ((MouseEvent)_htmlEv).getClientX(), ((MouseEvent)_htmlEv).getClientY() );
+                            }
+                        });
                     }
                     catch (Exception e) {
                         Throwable rootCause = Platform.rootCause( e );
