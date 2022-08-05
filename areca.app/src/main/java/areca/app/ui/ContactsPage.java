@@ -17,7 +17,6 @@ import static areca.ui.component2.Events.EventType.SELECT;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
-
 import org.polymap.model2.Property;
 import org.polymap.model2.query.Query.Order;
 
@@ -49,7 +48,7 @@ public class ContactsPage extends Page {
 
     private PageContainer       ui;
 
-    protected long              timeout = 150;  // 300ms timeout before page animation starts
+    protected long              timeout; // before next chunk of buttons is rendered
 
     protected Property<String>  orderBy = Contact.TYPE.firstname;
 
@@ -91,11 +90,13 @@ public class ContactsPage extends Page {
         body.add( new Text().content.set( "Loading..." ) );
         body.layout();
 
+        timeout = 150;  // 200ms? timeout before page animation starts
         var timer = Timer.start();
         var chunk = new ArrayList<Button>();
         var c  = new MutableInt( 0 );
 
         ArecaApp.instance().unitOfWork()
+                //.setPriority( Priority.BACKGROUND )
                 .query( Contact.class )
                 .orderBy( orderBy, Order.ASC )
                 .execute()

@@ -74,8 +74,6 @@ public class UIEventManager
 
 
     protected void processEvents( Double timestamp ) {
-        //LOG.info( "Timestamp: %s - %s", timestamp, System.nanoTime()/1000000 );
-
         async = null;
         var t = Timer.start();
         var count = 0;
@@ -88,7 +86,6 @@ public class UIEventManager
             if (queued.promise != null) {
                 queued.promise.complete( null );
             }
-            //LOG.info( "Time: %s", t.elapsedHumanReadable() );
         }
         async = !eventQueue.isEmpty() && async == null
                 ? Platform.requestAnimationFrame( ts -> processEvents( ts ) )
