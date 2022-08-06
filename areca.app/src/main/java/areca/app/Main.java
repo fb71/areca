@@ -41,14 +41,9 @@ public class Main {
 
     private static final Log LOG = LogFactory.getLog( Main.class );
 
-    public static void initLog() {
-        LogFactory.DEFAULT_LEVEL = INFO;
-    }
-
-
     @SuppressWarnings("unchecked")
     public static void main( String[] args ) throws Exception {
-        initLog();
+        LogFactory.DEFAULT_LEVEL = INFO;
         Platform.impl = new TeaPlatform();
 
         String hash = Window.current().getLocation().getHash();
@@ -148,8 +143,8 @@ public class Main {
         // app
         else {
             catchAll( __ -> {
-                var debug = Window.current().getLocation().getSearch().contains( "debug" );
                 LogFactory.DEFAULT_LEVEL = Level.WARN;
+                var debug = Window.current().getLocation().getSearch().contains( "debug" );
                 if (debug) {
                     LogFactory.DEFAULT_LEVEL = Level.INFO;
 //                    LogFactory.setClassLevel( IDBUnitOfWork.class, Level.DEBUG );

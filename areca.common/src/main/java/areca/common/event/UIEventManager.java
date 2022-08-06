@@ -91,7 +91,7 @@ public class UIEventManager
                 ? Platform.requestAnimationFrame( ts -> processEvents( ts ) )
                 : null;
 
-        LOG.info( "Processed: %s, Queued: %s - Handlers: %s - %s", count, eventQueue.size(), handlers.size(), t.elapsedHumanReadable() );
+        LOG.debug( "Processed: %s, Queued: %s - Handlers: %s - %s", count, eventQueue.size(), handlers.size(), t.elapsedHumanReadable() );
     }
 
 
