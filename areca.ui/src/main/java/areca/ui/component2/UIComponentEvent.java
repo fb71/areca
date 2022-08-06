@@ -33,6 +33,8 @@ public abstract class UIComponentEvent
     /**
      * Component lifecycle and {@link PropertyChangedEvent}s. For internal use
      * while rendering.
+     *
+     * XXX replace with EventHandlers
      */
     public static final EventManager manager = new UIEventManager();
 

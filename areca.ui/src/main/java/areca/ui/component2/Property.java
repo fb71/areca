@@ -17,8 +17,6 @@ import java.util.Collection;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Objects;
-
 import areca.common.Assert;
 import areca.common.base.BiConsumer.RBiConsumer;
 import areca.common.base.Opt;
@@ -64,6 +62,8 @@ public abstract class Property<C,T> {
 
     protected String    name;
 
+    protected EventHandlers handlers = new EventHandlers();
+
 
     protected Property( C component, String name ) {
         this.component = component;
@@ -106,11 +106,11 @@ public abstract class Property<C,T> {
     }
 
     protected void fireEvent( T oldValue, T newValue ) {
-        if (Objects.equals( oldValue, newValue )) {
-            LOG.debug( "FIRE:" + name() + ": values are EQUAL: " + newValue + " -- " + oldValue );
-        }
+//        if (Objects.equals( oldValue, newValue )) {
+//            LOG.debug( "FIRE:" + name() + ": values are EQUAL: " + newValue + " -- " + oldValue );
+//        }
         var ev = new PropertyChangedEvent<>( this, oldValue, newValue );
-        UIComponentEvent.manager.publish( ev );
+        handlers.fireEvent( ev );
     }
 
 
@@ -210,13 +210,10 @@ public abstract class Property<C,T> {
         }
 
         public ReadWrite<C,T> onChange( RBiConsumer<T,T> consumer ) {
-            UIComponentEvent.manager
-                    .subscribe( (PropertyChangedEvent<T> ev) -> {
-                        //LOG.debug( "HANDLE: %s:%s -> %s (%s)", component().getClass().getSimpleName(), name, ev.getNewValue(), ev.getOldValue() );
-                        consumer.accept( ev.getNewValue(), ev.getOldValue() );
-                    })
-                    .performIf( ev -> ev.getSource() == ReadWrite.this )
-                    .unsubscribeIf( () -> ((UIComponent)component()).isDisposed() ); // TODO
+            handlers.add( (PropertyChangedEvent<T> ev) -> {
+                //LOG.debug( "HANDLE: %s:%s -> %s (%s)", component().getClass().getSimpleName(), name, ev.getNewValue(), ev.getOldValue() );
+                consumer.accept( ev.getNewValue(), ev.getOldValue() );
+            });
             return this;
         }
 
