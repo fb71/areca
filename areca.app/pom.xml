@@ -156,7 +156,7 @@
                             <optimizationLevel>ADVANCED</optimizationLevel>
                             <stopOnErrors>false</stopOnErrors>
                             <incremental>false</incremental>
-                            <!-- <targetType>WEBASSEMBLY</targetType> -->
+                            <!--targetType>WEBASSEMBLY</targetType-->
                             <targetType>JAVASCRIPT</targetType>
                             <outOfProcess>false</outOfProcess>
                         </configuration>

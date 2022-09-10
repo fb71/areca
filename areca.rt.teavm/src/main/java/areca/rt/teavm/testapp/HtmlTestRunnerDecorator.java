@@ -42,7 +42,9 @@ public class HtmlTestRunnerDecorator
 
     public static final ClassInfo<HtmlTestRunnerDecorator> info = HtmlTestRunnerDecoratorClassInfo.instance();
 
-    protected HTMLDocument          doc;
+    protected static HTMLDocument   doc = Window.current().getDocument();
+
+    public static HTMLElement       rootElm = doc.getBody();
 
     protected HTMLElement           testElm;
 
@@ -55,25 +57,24 @@ public class HtmlTestRunnerDecorator
 
     @Override
     public void preRun( TestRunner runner ) {
-        doc = Window.current().getDocument();
-        doc.getBody().getStyle().setProperty( "font", "12px monospace" );
+        rootElm.getStyle().setProperty( "font", "12px monospace" );
 
         if (runCount++ > 0) {
-            var hr = (HTMLElement)doc.getBody().appendChild( doc.createElement( "hr" ) );
+            var hr = (HTMLElement)rootElm.appendChild( doc.createElement( "hr" ) );
             hr.getStyle().setProperty( "border-style", "dotted none none none" );
             hr.getStyle().setProperty( "margin-top", "8px" );
             hr.getStyle().setProperty( "width", "60%" );
         }
 
-        doc.getBody().appendChild( doc.createTextNode( "Running tests..." ) );
+        rootElm.appendChild( doc.createTextNode( "Running tests..." ) );
 
-        lineWidth = (doc.getBody().getClientWidth() / 9) - 2;
+        lineWidth = (rootElm.getClientWidth() / 9) - 2;
     }
 
 
     @Override
     public void preTest( ClassInfo<?> test ) {
-        doc.getBody().appendChild( testElm = doc.createElement( "p" ));
+        rootElm.appendChild( testElm = doc.createElement( "p" ));
         testElm.getStyle().setProperty( "margin", "8px 0px 0px 0px" );
         testElm.getStyle().setProperty( "font-weight", "bold" );
         testElm.appendChild( doc.createTextNode( test.name() ) );
@@ -84,7 +85,7 @@ public class HtmlTestRunnerDecorator
     public void preTestMethod( TestMethod m ) {
         HTMLElement testMethodElm = doc.createElement( "p" );
         testMethodElms.put( m, testMethodElm );
-        doc.getBody().appendChild( testMethodElm );
+        rootElm.appendChild( testMethodElm );
         testMethodElm.getStyle().setProperty( "margin", "0px 0px" );
         String l = StringUtils.rightPad( m.name() + " ", lineWidth, '.' );
         testMethodElm.appendChild( doc.createTextNode( l ) );

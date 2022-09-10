@@ -54,6 +54,8 @@ public class SettingsPage
         ui.body.add( createBtn( "Matrix", "", "chat", () -> new MatrixSettingsPage2() ) );
         ui.body.add( createBtn( "Contacts / CardDav", "", "faces", () -> new CarddavSettingsPage() ) );
 
+        ui.body.add( createBtn( "Tests", "", "cruelty_free", () -> new InternalTestsPage() ) );
+
         ui.body.add( new Button() {{
             label.set( "RELOAD" );
             events.on( EventType.SELECT, ev -> {

@@ -29,7 +29,7 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.PropertyChangedEvent;
 
 /**
- * Async delivering UI events via
+ * Async delivering {@link Property} UI events via
  * {@link Platform#requestAnimationFrame(areca.common.base.Consumer.RConsumer)}.
  *
  * @see Property
@@ -43,7 +43,7 @@ class EventHandlers {
 
     private static final int        INIT_QUEUE_CAPACITY = 512;
 
-    private static final int        MAX_TIME_PER_FRAME = 20;
+    private static final int        MAX_TIME_PER_FRAME = 5;
 
     private static Deque<Event>     eventQueue = new ArrayDeque<>( INIT_QUEUE_CAPACITY );
 
@@ -90,7 +90,7 @@ class EventHandlers {
                 ? Platform.requestAnimationFrame( ts -> processEvents( ts ) )
                 : null;
 
-        LOG.debug( "Processed: %s, Queued: %s - %s", count, eventQueue.size(), t.elapsedHumanReadable() );
+        LOG.info( "Processed: %s, Remaining: %s, Time: %s", count, eventQueue.size(), t.elapsedHumanReadable() );
     }
 
 

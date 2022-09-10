@@ -32,6 +32,7 @@ import areca.common.log.LogFactory.Log;
  * Async delivering (UI) events via
  * {@link Platform#requestAnimationFrame(areca.common.base.Consumer.RConsumer)}.
  *
+ * @deprecated In favor of EventHandlers.
  * @author Falko Bräutigam
  */
 public class UIEventManager
@@ -41,7 +42,7 @@ public class UIEventManager
 
     private static final int    INIT_QUEUE_CAPACITY = 1024;
 
-    private static final int    MAX_TIME_PER_FRAME = 30;
+    private static final int    MAX_TIME_PER_FRAME = 10;
 
     private Deque<Event>        eventQueue = new ArrayDeque<>( INIT_QUEUE_CAPACITY );
 

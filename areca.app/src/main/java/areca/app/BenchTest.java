@@ -17,7 +17,6 @@ import areca.common.Promise;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
-import areca.common.test.AsyncEventManagerTest;
 import areca.common.test.SameStackEventManagerTest;
 import areca.common.testrunner.Test;
 
@@ -31,12 +30,6 @@ public class BenchTest {
     private static final Log LOG = LogFactory.getLog( BenchTest.class );
 
     public static final BenchTestClassInfo info = BenchTestClassInfo.instance();
-
-    @Test
-    public Promise<?> asyncEventManagerPerformance() {
-        var test = new AsyncEventManagerTest() {{setup();}};
-        return test.performanceTest();
-    }
 
     @Test
     public Promise<?> syncEventManagerPerformance() {
