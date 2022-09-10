@@ -26,6 +26,7 @@ import areca.common.testrunner.AsyncAwareTestRunner;
 import areca.common.testrunner.LogDecorator;
 import areca.common.testrunner.TestRunner;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
+import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.FillLayout;
@@ -49,6 +50,9 @@ public class InternalTestsPage
         ui.title.set( "Tests" );
 
         ui.body.layout.set( new FillLayout() );
+        ui.body.add( new Text() {{
+            content.set( "Waiting ..." );
+        }});
         Platform.schedule( 1000, () -> runTests() );
         return ui;
     }
@@ -57,6 +61,7 @@ public class InternalTestsPage
     @SuppressWarnings("unchecked")
     protected void runTests() {
         try {
+            ui.body.components.disposeAll();
             HtmlTestRunnerDecorator.rootElm = (HTMLElement)ui.body.htmlElm;
             new TestRunner()
                     .addTests(
