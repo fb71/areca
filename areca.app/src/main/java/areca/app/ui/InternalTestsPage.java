@@ -51,7 +51,7 @@ public class InternalTestsPage
 
         ui.body.layout.set( new FillLayout() );
         ui.body.add( new Text() {{
-            content.set( "Waiting ..." );
+            content.set( "Waiting...  " );
         }});
         Platform.schedule( 1000, () -> runTests() );
         return ui;
