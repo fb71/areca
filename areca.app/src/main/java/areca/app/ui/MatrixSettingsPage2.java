@@ -43,8 +43,8 @@ public class MatrixSettingsPage2
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
-        var result = super.doInit( parent );
+    protected UIComponent onCreateUI( UIComposite parent ) {
+        var result = super.onCreateUI( parent );
         ui.title.set( "Matrix Settings" );
         return result;
     }

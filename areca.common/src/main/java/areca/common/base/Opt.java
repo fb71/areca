@@ -123,7 +123,6 @@ public class Opt<T> {
         return isPresent() ? Opt.of( mapper.apply( value ) ) : absent();
     }
 
-
     /**
      * Synonym for {@link #transform(Function)}.
      */
@@ -137,7 +136,6 @@ public class Opt<T> {
     public <R,E extends Exception> Opt<R> map( Function<? super T,? extends R,E> mapper ) throws E {
         return transform( mapper );
     }
-
 
     /**
      *
@@ -188,6 +186,11 @@ public class Opt<T> {
         } else {
             throw supplier.get();
         }
+    }
+
+
+    public <E extends Exception> Opt<T> defaults( Supplier<T,E> supplier ) throws E {
+        return isAbsent() ? Opt.of( supplier.supply() ) : this;
     }
 
 }

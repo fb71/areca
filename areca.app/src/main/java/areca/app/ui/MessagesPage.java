@@ -109,14 +109,14 @@ public class MessagesPage extends Page {
 
 
     @Override
-    protected void doDispose() {
+    protected void onDispose() {
         cards.clear();
         ui.dispose();
     }
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.cssClasses.add( "MessagesPage" );
         ui.title.set( abbreviate( title, 25 ) );
@@ -132,7 +132,7 @@ public class MessagesPage extends Page {
                     return uow.entity( anchor )
                             .then( loaded -> loaded.delete( true ) )
                             .then( loaded -> uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) ) )
-                            .onSuccess( __ -> pageSite.closePage() );
+                            .onSuccess( __ -> pageSite.close() );
                 });
             });
         }});
@@ -472,7 +472,7 @@ public class MessagesPage extends Page {
                 icon.set( "fullscreen" );
                 tooltip.set( "Open this message in fullscreen" );
                 events.on( EventType.SELECT, ev -> {
-                    pageSite.openPage( new MessagePage( message ), ev.clientPos() );
+                    pageSite.createPage( new MessagePage( message ) ).origin( ev.clientPos() ).open();
                 });
             }});
 

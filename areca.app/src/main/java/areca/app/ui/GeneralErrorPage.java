@@ -65,7 +65,7 @@ public class GeneralErrorPage
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Failed" );
         ui.body.layout.set( new RowLayout()
@@ -107,7 +107,7 @@ public class GeneralErrorPage
             layoutConstraints.set( new RowConstraints().height.set( 50 ) );
             label.set( "DISMISS" );
             events.on( EventType.SELECT, ev -> {
-                pageSite.closePage();
+                pageSite.close();
             });
         }});
         return ui;

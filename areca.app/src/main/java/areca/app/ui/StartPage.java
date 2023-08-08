@@ -36,7 +36,7 @@ public class StartPage
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Anchors" );
 
@@ -45,7 +45,7 @@ public class StartPage
             icon.set( "face" );
             description.set( "Show contacts" );
             handler.set( ev ->  {
-                pageSite.openPage( new ContactsPage(), ev.clientPos() );
+                pageSite.createPage( new ContactsPage() ).origin( ev.clientPos() ).open();
             });
         }});
         // Sync
@@ -61,7 +61,7 @@ public class StartPage
             icon.set( "settings" );
             description.set( "Open settings" );
             handler.set( (UIEvent ev) -> {
-                pageSite.openPage( new SettingsPage(), ev.clientPos() );
+                pageSite.createPage( new SettingsPage() ).origin( ev.clientPos() ).open();
             });
         }});
 
@@ -78,7 +78,7 @@ public class StartPage
 
 
     @Override
-    protected void doDispose() {
+    protected void onDispose() {
         LOG.info( "DISPOSING..." );
     }
 }

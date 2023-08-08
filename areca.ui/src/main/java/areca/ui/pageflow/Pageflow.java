@@ -16,12 +16,12 @@ package areca.ui.pageflow;
 import static areca.common.base.With.with;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
-
+import java.util.List;
 import areca.common.Assert;
 import areca.common.Platform;
+import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -50,25 +50,71 @@ public class Pageflow {
         return Assert.notNull( instance, "Pageflow not start()ed yet." );
     }
 
-    private static class PageData {
-        Page        page;
-        PageSite    site;
-        UIComponent container;
+    /**
+     *
+     */
+    protected static class Scoped {
+        String      scope;
+        Object      value;
+
+        public Scoped( Object value, String scope ) {
+            this.scope = Assert.notNull( scope, "Scope must not be null. Use DEFAULT_SCOPE instead." );
+            this.value = Assert.notNull( value, "Value of a context variable must not be null. Removing is not yet supported." );
+        }
+
+        public boolean isCompatible( Class<?> type, @SuppressWarnings("hiding") String scope ) {
+            return type.isAssignableFrom( value.getClass() ) && scope.equals( this.scope );
+        }
     }
 
-    private static class ScopedData {
-        String      scope;
-        Object      data;
+    /**
+     *
+     */
+    protected class PageHolder extends PageSite {
+
+        /** The root component of the UI of this {@link Page} */
+        UIComponent     ui;
+        /** Page supplied by client code or {@link AnnotatedPage}. */
+        Page            page;
+        /** The page impl supplied by client code, Pojo or {@link Page}. */
+        Object          clientPage;
+
+        PageHolder      parent;
+
+        List<Scoped>    context = new ArrayList<>();
+
+        @Override
+        public PageBuilder createPage( Object newPage ) {
+            return Pageflow.this.create( newPage ).parent( clientPage );
+        }
+
+        @Override
+        public void close() {
+            Pageflow.this.close( clientPage );
+        }
+
+        protected Opt<Scoped> _local( Class<?> type, String scope ) {
+            return Sequence.of( context ).first( scoped -> scoped.isCompatible( type, scope ));
+        }
+
+        protected Opt<Scoped> _context( Class<?> type, String scope ) {
+            return Opt.of( _local( type, scope )
+                    .orElseCompute( () -> parent != null
+                            ? parent._context( type, scope ).orElse( null )
+                            : null ) );
+        }
+
+        @Override
+        public <R> R context( Class<R> type, String scope ) {
+            return type.cast( _context( type, scope ).map( scoped -> scoped.value ).orElse( null ) );
+        }
     }
 
     // instance *******************************************
 
     private UIComposite         rootContainer;
 
-    private Deque<PageData>     pages = new ArrayDeque<>();
-
-    /* XXX this probably to simple; data should life for its page only!? */
-    protected Set<ScopedData>   data = new HashSet<>();
+    private Deque<PageHolder>   pages = new ArrayDeque<>();
 
 
     protected Pageflow( UIComposite rootContainer ) {
@@ -79,65 +125,94 @@ public class Pageflow {
 
 
     /**
-     * Opens the given {@link Page} on top of the current page stack.
+     * Prepare a {@link PageBuilder} in order to open a new page.
+     *
+     * @param page An instance of {@link Page} or an annotated object that acts as
+     *        the controller of the newly created page.
      */
-    public void open( Page _page, Position origin ) {
-        var _pageSite = new PageSite( _page ) {
-            @Override
-            @SuppressWarnings("unchecked")
-            public <R> R data( Class<R> type, String scope ) {
-                return (R)Sequence.of( data )
-                        .first( sd -> type.isInstance( sd.data ) && scope.equals( sd.scope ) )
-                        .orElseThrow( () -> new IllegalStateException( "No data for type: " + type.getSimpleName() + ", scope: " + scope ) )
-                        .data;
-            }
-            @Override
-            public PageSite put( Object _data, String _scope ) {
-                var scopedData = new ScopedData() {{
-                    data = Assert.notNull( _data );
-                    scope = Assert.notNull( _scope );
-                }};
-                if (!data.add( scopedData )) {
-                    throw new IllegalArgumentException( "Data is already there: " + _data.getClass().getSimpleName() + ", scope: " + _scope );
-                }
-                return this;
-            }
-        };
-        var _pageContainer = _page.init( rootContainer, _pageSite );
-        pages.push( new PageData() {{page = _page; site = _pageSite; container = _pageContainer;}} );
-
-        var layout = (PageStackLayout)rootContainer.layout.value();
-        layout.layout( rootContainer ); // do NOT layout ALL child components
-
-        if (_pageContainer instanceof UIComposite) {
-            ((UIComposite)_pageContainer).layout();
-        }
-        layout.openLast( origin );
+    public PageBuilder create( Object page ) {
+        return new PageBuilder( page );
     }
 
 
     /**
-     * Opens the given {@link Page} at any position of the current stack of pages. If
-     * the given parent is not the top page then this page and all of its children
-     * are closed.
+     * API for client code to create/open a new Page.
      */
-    public void open( Page _page, Page parent, Position origin ) {
-        Assert.that( pages.isEmpty() || parent == pages.peek().page, "Adding other than top page is not supported yet." );
-        open( _page, origin );
+    public class PageBuilder
+            extends PageHolder {
+
+        protected Position  origin;
+
+        public PageBuilder( Object page ) {
+            if (page instanceof Page) {
+                this.clientPage = this.page = (Page)page;
+            }
+            else {
+                this.clientPage = page;
+                this.page = new AnnotatedPage( page, Pageflow.this );
+            }
+            if (pages.isEmpty()) {
+                put( Pageflow.this, Page.Context.DEFAULT_SCOPE );
+                put( PageBuilder.this, Page.Context.DEFAULT_SCOPE );
+            }
+        }
+
+        public PageBuilder origin( @SuppressWarnings("hiding") Position origin ) {
+            this.origin = origin;
+            return this;
+        }
+
+        public PageBuilder parent( @SuppressWarnings("hiding") Object parent ) {
+            Assert.that( pages.isEmpty() || parent == pages.peek().clientPage, "Adding other than top page is not supported yet." );
+            this.parent = pages.peek();
+            return this;
+        }
+
+        public PageBuilder put( Object value, String scope ) {
+            var scoped = _context( value.getClass(), scope ).orElseCompute( () -> {
+                var newEntry = new Scoped( value, scope );
+                context.add( newEntry );
+                return newEntry;
+            });
+            scoped.value = value;
+            return this;
+        }
+
+        /**
+         * Actually opens the newly created page in the UI.
+         */
+        public void open() {
+            if (page instanceof AnnotatedPage) {
+                ((AnnotatedPage)page).inject( (type,scope) -> context( type, scope ) );
+            }
+            page.init( this );
+            ui = page.createUI( rootContainer );
+            pages.push( this );
+
+            var layout = (PageStackLayout)rootContainer.layout.value();
+            layout.layout( rootContainer ); // do NOT layout ALL child components
+
+            if (ui instanceof UIComposite) {
+                ((UIComposite)ui).layout();
+            }
+            layout.openLast( origin );
+        }
     }
 
 
-    public void close( Page page ) {
+    public void close( Object page ) {
         Assert.isSame( page, pages.peek().page, "Removing other than top page is not supported yet." );
         var pageData = pages.pop();
-        pageData.container.cssClasses.add( "Closing" );
-        with( pageData.container.position ).apply( pos -> pos.set(
+        pageData.ui.cssClasses.add( "Closing" );
+        with( pageData.ui.position ).apply( pos -> pos.set(
                 Position.of( pos.value().x, rootContainer.clientSize.value().height() - 30 ) ) );
 
         Platform.schedule( 750, () -> {
+            var closing = pageData.page.close();
+            Assert.isEqual( true, closing, "Vetoing Page.close() is not yet supported." );
             pageData.page.dispose();
-            if (!pageData.container.isDisposed()) {
-                pageData.container.dispose();
+            if (!pageData.ui.isDisposed()) {
+                pageData.ui.dispose();
             }
             // rootContainer.layout();
         });
@@ -157,7 +232,7 @@ public class Pageflow {
         public PageCloseGesture( UIComposite component ) {
             super( component );
             on( ev -> {
-                var top = pages.peek().container;
+                var top = pages.peek().ui;
                 LOG.debug( "PageCloseGesture: top = %s, status = %s, delta = %s", top, ev.status(), "???"); //ev.delta() != null ? ev.delta() : "???" );
                 switch (ev.status()) {
                     case START: {

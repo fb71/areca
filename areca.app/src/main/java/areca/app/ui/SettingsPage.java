@@ -44,7 +44,7 @@ public class SettingsPage
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Settings" );
 
@@ -74,7 +74,7 @@ public class SettingsPage
             tooltip.set( _tooltip );
             layoutConstraints.set( new RowConstraints().height.set( 50 ) );
             events.on( EventType.SELECT, ev -> {
-                pageSite.openPage( _pageFactory.supply(), ev.clientPos() );
+                pageSite.createPage( _pageFactory.supply() ).origin( ev.clientPos() ).open();
             });
         }};
     }

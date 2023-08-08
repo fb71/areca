@@ -56,7 +56,7 @@ public class ContactsPage extends Page {
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Contacts" );
 
@@ -135,7 +135,7 @@ public class ContactsPage extends Page {
 
         btn.events.on( SELECT, ev -> {
             //site.put( contact );
-            pageSite.openPage( new ContactPage( contact ), ev.clientPos() );
+            pageSite.createPage( new ContactPage( contact ) ).origin( ev.clientPos() ).open();
         });
         return btn;
     }

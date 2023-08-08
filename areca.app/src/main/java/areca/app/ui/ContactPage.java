@@ -50,7 +50,7 @@ public class ContactPage extends Page {
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( StringUtils.abbreviate( contact.label(), 25 ) );
         ui.body.layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true ); spacing.set( 15 ); margins.set( Size.of( 10, 10 ) );}} );
@@ -104,6 +104,6 @@ public class ContactPage extends Page {
     }
 
     @Override
-    protected void doDispose() {
+    protected void onDispose() {
     }
 }

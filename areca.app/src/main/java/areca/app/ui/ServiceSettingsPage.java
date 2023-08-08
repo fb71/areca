@@ -70,7 +70,7 @@ public abstract class ServiceSettingsPage<S extends Entity>
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         this.ui = new PageContainer( this, parent );
         ui.body.layout.set( new RowLayout().orientation.set( VERTICAL ).fillWidth.set( true ).spacing.set( 15 ).margins.set( Size.of( 10, 10 ) ) );
 
@@ -172,7 +172,7 @@ public abstract class ServiceSettingsPage<S extends Entity>
                                 enabled.set( true );
                                 badge.content.set( ":(" );
                                 status.set( Status.INVALID );
-                                pageSite.openPage( new GeneralErrorPage( e ), position.get() );
+                                pageSite.createPage( new GeneralErrorPage( e ) ).origin( position.get() ).open();
                             });
                             //.onError( ArecaApp.instance().defaultErrorHandler() );
                 });
@@ -191,7 +191,7 @@ public abstract class ServiceSettingsPage<S extends Entity>
                     uow.waitForResult().get().submit().onSuccess( submitted -> {
                         LOG.info( "Submitted: %s", submitted );
                         badge.content.set( "OK" );
-                        Platform.schedule( 750, () -> pageSite.closePage() );
+                        Platform.schedule( 750, () -> pageSite.close() );
                     });
                 });
             }};

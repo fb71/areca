@@ -61,7 +61,7 @@ public class MessagePage
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( StringUtils.abbreviate( "Message...", 25 ) );
 
@@ -84,7 +84,7 @@ public class MessagePage
                     return uow.entity( msg )
                             .then( loaded -> loaded.delete() )
                             .then( loaded -> uow.submit().onSuccess( __ -> LOG.info( "Submitted." ) ) )
-                            .onSuccess( __ -> pageSite.closePage() );
+                            .onSuccess( __ -> pageSite.close() );
                 });
             });
         }});

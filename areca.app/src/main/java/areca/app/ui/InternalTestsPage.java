@@ -45,7 +45,7 @@ public class InternalTestsPage
     private PageContainer ui;
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Tests" );
 

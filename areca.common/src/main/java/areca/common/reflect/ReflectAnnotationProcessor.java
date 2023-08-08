@@ -15,6 +15,7 @@ package areca.common.reflect;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -340,14 +341,21 @@ public class ReflectAnnotationProcessor
                     m.addStatement( "  name = $S", methodElm.getSimpleName() );
 
                     // annotations
-                    m.addCode( "  annotations = $T.asList(\n", Arrays.class );
-                    int c1 = 0;
-                    for (AnnotationMirror am : processingEnv.getElementUtils().getAllAnnotationMirrors( methodElm )) {
-                        if (processedAnnotations.contains( am.getAnnotationType().asElement() )) {
-                            m.addCode( c1++ > 0 ? ",\n" : "" ).addCode( "    " + createAnnotation( am ) );
-                        }
+                    var ams = processingEnv.getElementUtils().getAllAnnotationMirrors( methodElm );
+                    if (ams.isEmpty()) {
+                        m.addCode( "  annotations = $T.emptyList();\n", Collections.class );
                     }
-                    m.addCode( "  );\n  }\n" );
+                    else {
+                        m.addCode( "  annotations = $T.asList(\n", Arrays.class );
+                        int c1 = 0;
+                        for (AnnotationMirror am : ams) {
+                            if (processedAnnotations.contains( am.getAnnotationType().asElement() )) {
+                                m.addCode( c1++ > 0 ? ",\n" : "" ).addCode( "    " + createAnnotation( am ) );
+                            }
+                        }
+                        m.addCode( "  );\n" );
+                    }
+                    m.addCode( "  }\n" );
 
                     // invoke
                     var returnTypeName = TypeName.get( methodElm.getReturnType() );
@@ -406,7 +414,8 @@ public class ReflectAnnotationProcessor
 
         private CodeBlock createAnnotation( AnnotationMirror am ) {
             CodeBlock.Builder codeBlock = CodeBlock.builder();
-            codeBlock.add( "new $T()", ClassName.bestGuess( am.getAnnotationType().toString() + "AnnotationInfo" ) );
+            codeBlock.add( "new $L()", infoElementClassName( (TypeElement)am.getAnnotationType().asElement(), true ) + "AnnotationInfo" );
+            //codeBlock.add( "new $T()", ClassName.bestGuess( am.getAnnotationType().toString() + "AnnotationInfo" ) );
             Map<? extends ExecutableElement,? extends AnnotationValue> values = am.getElementValues();
             if (!values.isEmpty()) {
                 codeBlock.add( " {{" );
@@ -477,15 +486,41 @@ public class ReflectAnnotationProcessor
                             : typeName;
         }
 
+        /**
+         * Creates the base classname for an info element for the given type.
+         *
+         * @param elm The element to create an info class for.
+         * @return
+         */
+        private String infoElementClassName( TypeElement elm, boolean withPackage ) {
+            ClassName className = ClassName.get( elm );
+            StringBuilder result = new StringBuilder( 128 );
+            if (withPackage) {
+                result.append( className.packageName() ).append( "." );
+            }
+            for (var enclosing : className.simpleNames()) { // !!!
+                result.append( enclosing );
+            }
+            return result.toString();
+
+        }
 
         protected void checkCreateAnnotationInfo( TypeElement annotation ) throws IOException {
             log( ("=== " + annotation + " ===============================================================").substring( 0, 68 ) );
             //log( "Enclosing: " + annotation.getEnclosedElements() );
 
-            String packageName = StringUtils.substringBeforeLast( annotation.getQualifiedName().toString(), "." );
-            String typeName = annotation.getSimpleName() + "AnnotationInfo";
+            var className = ClassName.get( annotation );
+            var typeName = className.simpleNames().stream().reduce( (r,elm) -> r + "." + elm ).get();
+            var infoTypeName = typeName.replace( ".", "" ) + "AnnotationInfo";
+            var infoClassName = ClassName.get( className.packageName(), infoTypeName );
+
+//            PackageElement pkg = processingEnv.getElementUtils().getPackageOf( annotation );
+//            String packageName = pkg.getQualifiedName().toString();
+//            String aName = annotation.getQualifiedName().toString().substring( packageName.length()+1 ); // maybe Page.Init
+//            String typeName = aName.replace( ".", "" ) + "AnnotationInfo";
+            log( "    -> ", className.packageName(), "..", infoTypeName );
             try {
-                Class.forName( packageName + "." + typeName );
+                Class.forName( className.packageName() + "." + infoTypeName );
                 log( "    already exists!" );  // imported from other jar
                 return;
             }
@@ -494,15 +529,14 @@ public class ReflectAnnotationProcessor
             }
 
             // class
-            Builder classBuilder = TypeSpec.classBuilder( typeName )
+            Builder classBuilder = TypeSpec.classBuilder( infoTypeName )
                     .addModifiers( Modifier.PUBLIC )
                     .addSuperinterface( annotation.asType() )
                     .superclass( AnnotationInfo.class );
 
             // INFO field
-            ClassName className = ClassName.get( packageName, typeName );
-            classBuilder.addField( FieldSpec.builder( className, "INFO", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL )
-                    .initializer( "new $L()", className )
+            classBuilder.addField( FieldSpec.builder( infoClassName, "INFO", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL )
+                    .initializer( "new $L()", infoClassName )
                     .build() );
 
             // methods
@@ -528,12 +562,11 @@ public class ReflectAnnotationProcessor
             classBuilder.addMethod( MethodSpec.methodBuilder( "annotationType" )
                     .addModifiers( Modifier.PUBLIC )
                     .returns( ParameterizedTypeName.get( ClassName.get( Class.class ), WildcardTypeName.subtypeOf( Annotation.class ) ) )
-                    .addStatement( "return " + annotation.getSimpleName() + ".class" )
+                    .addStatement( "return " + typeName + ".class" )
                     .build() );
 
             // file
-            log( "    package: " + packageName );
-            JavaFile javaFile = JavaFile.builder( packageName, classBuilder.build() ).build();
+            JavaFile javaFile = JavaFile.builder( className.packageName(), classBuilder.build() ).build();
             //javaFile.writeTo( System.out );
             javaFile.writeTo( processingEnv.getFiler() );
         }

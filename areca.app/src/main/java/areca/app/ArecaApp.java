@@ -199,7 +199,7 @@ public class ArecaApp extends App {
             }});
             rootWindow.layout();
 
-            Pageflow.start( mainBody ).open( new StartPage(), null, null );
+            Pageflow.start( mainBody ).create( new StartPage() ).open();
         });
     }
 
@@ -217,7 +217,7 @@ public class ArecaApp extends App {
                 throw (RuntimeException)e;
             }
             else {
-                Pageflow.current().open( new GeneralErrorPage( e ), null );
+                Pageflow.current().create( new GeneralErrorPage( e ) ).open();
             }
         };
     }

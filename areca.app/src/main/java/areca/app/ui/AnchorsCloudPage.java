@@ -88,7 +88,7 @@ public class AnchorsCloudPage
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
+    protected UIComponent onCreateUI( UIComposite parent ) {
         var ui = new PageContainer( this, parent );
         ui.title.set( "Anchors" );
 
@@ -220,8 +220,11 @@ public class AnchorsCloudPage
 
         // click
         btn.events.on( EventType.SELECT, ev -> {
-            pageSite.put( anchor );
-            Pageflow.current().open( new MessagesPage( anchor, anchor.name.get() ), page, ev.clientPos() );
+            Pageflow.current().create( new MessagesPage( anchor, anchor.name.get() ) )
+                    .put( anchor, Page.Context.DEFAULT_SCOPE )
+                    .parent( page )
+                    .origin( ev.clientPos() )
+                    .open();
         });
         return btn;
     }

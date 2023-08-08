@@ -46,6 +46,9 @@ public class UIComponentRenderer
 
     public static final ClassInfo<UIComponentRenderer> TYPE = UIComponentRendererClassInfo.instance();
 
+    /**
+     * Starts all component renderes of this package.
+     */
     public static void start() {
         UICompositeRenderer._start();
         ScrollableCompositeRenderer._start(); // after UIComposite

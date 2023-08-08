@@ -87,7 +87,6 @@
                         <goal>unpack</goal>
                     </goals>
                     <configuration>
-                    
                         <artifactItems>
                             <artifactItem>
                                 <groupId>areca</groupId>

@@ -51,7 +51,7 @@ public class App {
     /**
      *
      */
-    public class RootWindow
+    public static class RootWindow
             extends UIComposite {
     }
 

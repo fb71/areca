@@ -72,6 +72,14 @@ public class Assert {
         return actual;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <R> R isType( Class<?> expected, Object actual, String... msgs ) throws AssertionException {
+        if (enabled && actual != null && !expected.isAssignableFrom( actual.getClass() )) {
+            throw new AssertionException( expected, actual, message( msgs, "not expected type" ) );
+        }
+        return (R)actual;
+    }
+
 
     public static <R> R isNull( R actual, String... msgs ) {
         if (enabled && actual != null) {

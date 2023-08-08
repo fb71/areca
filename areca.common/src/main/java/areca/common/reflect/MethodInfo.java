@@ -49,4 +49,19 @@ public abstract class MethodInfo
 
     public abstract Object invoke( Object obj, Object... params ) throws InvocationTargetException;
 
+
+    /**
+     * {@link #invoke(Object, Object...)} this method and encapsulate the target
+     * exceptions of any {@link InvocationTargetException} into a
+     * {@link RuntimeException}.
+     */
+    public Object invokeThrowingRuntimeException( Object obj, Object... params ) {
+        try {
+            return invoke( obj, params );
+        }
+        catch (InvocationTargetException e) {
+            throw new RuntimeException( e.getTargetException() );
+        }
+    }
+
 }

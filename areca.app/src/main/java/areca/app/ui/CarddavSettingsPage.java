@@ -44,8 +44,8 @@ public class CarddavSettingsPage
 
 
     @Override
-    protected UIComponent doInit( UIComposite parent ) {
-        var result = super.doInit( parent );
+    protected UIComponent onCreateUI( UIComposite parent ) {
+        var result = super.onCreateUI( parent );
         ui.title.set( "CardDav Settings" );
         return result;
     }

@@ -18,8 +18,9 @@ import static areca.ui.component2.Events.EventType.SELECT;
 import java.util.HashMap;
 import java.util.Map;
 
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
+import areca.common.Assert;
+import areca.common.reflect.ClassInfo;
+import areca.common.reflect.RuntimeInfo;
 import areca.ui.Action;
 import areca.ui.Position;
 import areca.ui.Size;
@@ -29,16 +30,20 @@ import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.LayoutManager;
+import areca.ui.pageflow.Page.PageSite;
 
 /**
  * Provides the standard common user interface elements for a {@link Page}.
  *
  * @author Falko Bräutigam
  */
+@RuntimeInfo
 public class PageContainer
         extends UIComposite {
 
-    static final Log LOG = LogFactory.getLog( PageContainer.class );
+    //static final Log LOG = LogFactory.getLog( PageContainer.class );
+
+    public static final ClassInfo<PageContainer> INFO = PageContainerClassInfo.instance();
 
     private static final String CSS_HEADER = "PageHeader";
     private static final String CSS_HEADER_ITEM = "PageHeaderItem";
@@ -52,14 +57,36 @@ public class PageContainer
 
     protected Text              titleText;
 
-    //protected UIComposite       toolbar;
-
     protected Button            closeBtn;
 
     protected Map<Action,Button> actionsBtns = new HashMap<>();
 
+    @Page.Context
+    protected PageSite          pageSite;
 
+    /**
+     * No-op ctor for injection.
+     */
+    public PageContainer() {}
+
+    /**
+     * Init after injection.
+     */
+    public PageContainer init( UIComposite parent ) {
+        Assert.notNull( pageSite, "PageSite is not injected. Using @Page.Part?" );
+        doInit( parent );
+        return this;
+    }
+
+    /**
+     * Ctor for {@link Page}s not using injection.
+     */
     public PageContainer( Page page, UIComposite parent ) {
+        this.pageSite = page.pageSite;
+        doInit( parent );
+    }
+
+    protected void doInit( UIComposite parent ) {
         parent.components.add( this );
         layout.set( new PageContainerLayout() );
 
@@ -72,7 +99,7 @@ public class PageContainer
                 cssClasses.add( CSS_HEADER_ITEM );
                 icon.set( "arrow_back" );
                 events.on( SELECT, ev -> {
-                    Pageflow.current().close( page );
+                    pageSite.close();
                 });
             }});
 
@@ -83,7 +110,7 @@ public class PageContainer
             }});
 
             // actions
-            page.pageSite.actions.onChange( (actions, __) -> {
+            pageSite.actions.onChange( (actions, __) -> {
                 for (var action : actions) {
                     actionsBtns.computeIfAbsent( action, ___ -> add( new Button() {{
                         bordered.set( false );
