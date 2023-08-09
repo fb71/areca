@@ -2,6 +2,8 @@
 
 Areca is an [application](https://github.com/fb71/areca/tree/master/areca.app) that helps people to collaborate on projects. It provides means to organize and share messages and documents. Users can use the messenger backend of their choice, including Email, Signal, Threema, etc. Areca runs on the client device only - no server is needed. All data is replicated between the devices automatically.
 
+**Currently** this is a prototype and proof-of-concept. **Next big step** is to use [Conflict-free Replicated Data Type](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type) (CRDT) for replication of project structure and data/documents.
+
 ## Framework
 
 Areca is also a software **framework** that allows to build applications for mobile and browser using Java or other JVM languages. It is based on [TeaVM](http://teavm.org/). The framework provides
