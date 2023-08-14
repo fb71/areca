@@ -83,6 +83,16 @@ public class Pageflow {
 
         List<Scoped>    context = new ArrayList<>();
 
+
+        @Override
+        public String toString() {
+            return String.format( "PageSite[page=%s, context=[%s]]", clientPage.getClass().getSimpleName(),
+                    Sequence.of( context )
+                            .map( scoped -> scoped.value )
+                            .map( value -> value instanceof PageSite ? "-PageSite-" : value.toString() )
+                            .reduce( (r,elm) -> r + ", " ).orElse( "" ) );
+        }
+
         @Override
         public PageBuilder createPage( Object newPage ) {
             return Pageflow.this.create( newPage ).parent( clientPage );
@@ -94,19 +104,19 @@ public class Pageflow {
         }
 
         protected Opt<Scoped> _local( Class<?> type, String scope ) {
-            return Sequence.of( context ).first( scoped -> scoped.isCompatible( type, scope ));
+            return Sequence.of( context ).first( scoped -> scoped.isCompatible( type, scope ) );
         }
 
         protected Opt<Scoped> _context( Class<?> type, String scope ) {
-            return Opt.of( _local( type, scope )
-                    .orElseCompute( () -> parent != null
-                            ? parent._context( type, scope ).orElse( null )
-                            : null ) );
+            return _local( type, scope ).or( () -> {
+                LOG.info( "Context: not found locally: %s (%s) %s", type.getName(), scope, clientPage );
+                return parent != null ? parent._context( type, scope ) : Opt.absent();
+            });
         }
 
         @Override
         public <R> R context( Class<R> type, String scope ) {
-            return type.cast( _context( type, scope ).map( scoped -> scoped.value ).orElse( null ) );
+            return type.cast( _context( type, scope ).map( scoped -> scoped.value ).orNull() );
         }
     }
 
@@ -151,9 +161,10 @@ public class Pageflow {
                 this.clientPage = page;
                 this.page = new AnnotatedPage( page, Pageflow.this );
             }
+            // default context
+            putContext( PageBuilder.this, Page.Context.DEFAULT_SCOPE ); // PageSite
             if (pages.isEmpty()) {
-                put( Pageflow.this, Page.Context.DEFAULT_SCOPE );
-                put( PageBuilder.this, Page.Context.DEFAULT_SCOPE );
+                putContext( Pageflow.this, Page.Context.DEFAULT_SCOPE );
             }
         }
 
@@ -168,13 +179,15 @@ public class Pageflow {
             return this;
         }
 
-        public PageBuilder put( Object value, String scope ) {
-            var scoped = _context( value.getClass(), scope ).orElseCompute( () -> {
+        public PageBuilder putContext( Object value, String scope ) {
+            var scoped = _local( value.getClass(), scope ).orElse( () -> {
                 var newEntry = new Scoped( value, scope );
                 context.add( newEntry );
+                //LOG.info( "putContext: %s (%s)\n        %s", value.toString(), scope, this );
                 return newEntry;
             });
             scoped.value = value;
+            Assert.that( _local( value.getClass(), scope ).isPresent() );
             return this;
         }
 
@@ -185,9 +198,9 @@ public class Pageflow {
             if (page instanceof AnnotatedPage) {
                 ((AnnotatedPage)page).inject( (type,scope) -> context( type, scope ) );
             }
+            pages.push( this );
             page.init( this );
             ui = page.createUI( rootContainer );
-            pages.push( this );
 
             var layout = (PageStackLayout)rootContainer.layout.value();
             layout.layout( rootContainer ); // do NOT layout ALL child components
@@ -201,7 +214,7 @@ public class Pageflow {
 
 
     public void close( Object page ) {
-        Assert.isSame( page, pages.peek().page, "Removing other than top page is not supported yet." );
+        Assert.isSame( page, pages.peek().clientPage, "Removing other than top page is not supported yet." );
         var pageData = pages.pop();
         pageData.ui.cssClasses.add( "Closing" );
         with( pageData.ui.position ).apply( pos -> pos.set(
@@ -216,6 +229,14 @@ public class Pageflow {
             }
             // rootContainer.layout();
         });
+    }
+
+
+    /**
+     * The sequnce of pages in the Pageflow.
+     */
+    public Sequence<Object,RuntimeException> pages() {
+        return Sequence.of( pages ).map( holder -> holder.clientPage );
     }
 
 

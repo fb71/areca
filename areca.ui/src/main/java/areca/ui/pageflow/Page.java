@@ -45,15 +45,6 @@ import areca.ui.pageflow.Pageflow.PageBuilder;
 public abstract class Page {
 
     /**
-     *
-     */
-    @Documented
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    public @interface Part {
-    }
-
-    /**
      * Denotes one or more methods of a pojo page which are called after all
      * {@link Context} variables are injected and before the page is opened.
      */
@@ -87,66 +78,32 @@ public abstract class Page {
     public @interface CreateUI {}
 
     /**
-     * Denotes a context variable to be injected into a page.
+     * Denotes a part of a page. A part may have {@link Context} variables to
+     * be injected. Parts are not shared between pages. Injected instances are
+     * created on demand and are unique per page and its parts.
+     */
+    @Documented
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface Part {
+    }
+
+
+    /**
+     * Denotes a context variable to be injected into a page. Context variables are
+     * passed/shared between pages.
      */
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD})
     public @interface Context {
         public static String DEFAULT_SCOPE = "_default_";
-//        public enum Mode {
-//            /** */
-//            SHADE,
-//            /** */
-//            ADD
-//        }
+
         String scope() default DEFAULT_SCOPE;
-//        Mode mode() default Mode.SHADE;
+
+        /** This context variable is required to be not null. */
+        boolean required() default true;
     }
-
-//    /**
-//     * A modifiable {@link Context} variable.
-//     *
-//     * @param <T>
-//     */
-//    public static class ContextVar<T> {
-//
-//        Page.PageSite   pageSite;
-//
-//        ContextVar( T value ) {
-//            //this.value = value;
-//        }
-//
-//        public T get() {
-//            return pageSite.context( )
-//        }
-//
-//        public void set( T value ) {
-//            this.value = value;
-//        }
-//    }
-
-//    /**
-//     *
-//     */
-//    public static class Scoped {
-//        public enum Mode {
-//            SHADE,
-//            ADD
-//        }
-//        public static Scoped $( Object _value ) {
-//            return new Scoped() {{value = _value;}};
-//        }
-//        public static Scoped $( Object _value, Mode _mode ) {
-//            return new Scoped() {{value = _value; mode = _mode;}};
-//        }
-//        public static Scoped $( Object _value, String _scope ) {
-//            return new Scoped() {{value = _value; this.scope = _scope;}};
-//        }
-//        Object      value;
-//        Mode        mode = Mode.ADD;
-//        String      scope = Page.Context.DEFAULT_SCOPE;
-//    }
 
     // instance *******************************************
 
@@ -225,6 +182,14 @@ public abstract class Page {
             return context( type, Page.Context.DEFAULT_SCOPE );
         }
 
+        /**
+         * Retrieve a variable of the context of this {@link Page}.
+         *
+         * @param <R> The type of the context variable to retrieve.
+         * @param type The {@link Class} of the context variable to retrieve.
+         * @param scope
+         * @return The value of the context variable, or null.
+         */
         public abstract <R> R context( Class<R> type, String scope );
     }
 

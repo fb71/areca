@@ -58,17 +58,23 @@ class AnnotatedPage
         doInject( delegate, valueSupplier );
     }
 
-    @SuppressWarnings("deprecation")
     protected void doInject( Object part, ContextValueSupplier<?> valueSupplier ) {
         for (FieldInfo f : ClassInfo.of( part ).fields()) {
             // Context
             f.annotation( Page.Context.class ).ifPresent( a -> {
+                @SuppressWarnings({"unchecked", "rawtypes"})
                 var value = valueSupplier.apply( (Class)f.type(), a.scope() );
-                f.set( part, value );
+                if (value == null && a.required()) {
+                    throw new IllegalStateException( "Context variable of type: '" + f.type().getSimpleName()
+                            + "' required but absent in Page: " + delegate.getClass().getSimpleName() );
+                }
+                f.set( part, f.type().cast( value ) );
+                LOG.info( "inject: %s = %s", f.name(), value != null ? value : "null" );
             });
             // Part
             f.annotation( Page.Part.class ).ifPresent( a -> {
                 try {
+                    @SuppressWarnings("deprecation")
                     var value = f.type().newInstance();
                     doInject( value, valueSupplier );
                     f.set( part, value );

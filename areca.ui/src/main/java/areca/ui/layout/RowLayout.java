@@ -35,12 +35,33 @@ public class RowLayout
 
     private static final Log LOG = LogFactory.getLog( RowLayout.class );
 
+    /**
+     * Returns a new instance with defaults values set.
+     */
+    public static RowLayout defaults() {
+        return new RowLayout();
+    }
+
+
+    /**
+     * Returns a new instance with {@link #fillHeight} and {@link #fillWidth} true.
+     */
+    public static RowLayout filled() {
+        return new RowLayout().fillHeight.set( true ).fillWidth.set( true );
+    }
+
+    // instance *******************************************
+
     public ReadWrite<RowLayout,Size>        margins = Property.rw( this, "margins", Size.of( 0, 0 ) );
 
     public ReadWrite<RowLayout,Integer>     spacing = Property.rw( this, "spacing", 0 );
 
     public ReadWrite<RowLayout,Orientation> orientation = Property.rw( this, "orientation", HORIZONTAL );
 
+    public RowLayout orientation( Orientation value ) {
+        orientation.set( value );
+        return this;
+    }
     /**
      * {@link Orientation#HORIZONTAL}: all components have the same height so that the
      * entiry client size of the composite is filled. Default: {@link Boolean#FALSE}
@@ -53,6 +74,11 @@ public class RowLayout
      * {@link RowConstraints#width} are ignored. Default: {@link Boolean#FALSE}
      */
     public ReadWrite<RowLayout,Boolean>     fillWidth = Property.rw( this, "fillWidth", false );
+
+    public RowLayout fillWidth( boolean value ) {
+        fillWidth.set( value );
+        return this;
+    }
 
 
     @Override
@@ -131,5 +157,6 @@ public class RowLayout
             }
         }
     }
+
 
 }

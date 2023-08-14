@@ -221,7 +221,7 @@ public class AnchorsCloudPage
         // click
         btn.events.on( EventType.SELECT, ev -> {
             Pageflow.current().create( new MessagesPage( anchor, anchor.name.get() ) )
-                    .put( anchor, Page.Context.DEFAULT_SCOPE )
+                    .putContext( anchor, Page.Context.DEFAULT_SCOPE )
                     .parent( page )
                     .origin( ev.clientPos() )
                     .open();
