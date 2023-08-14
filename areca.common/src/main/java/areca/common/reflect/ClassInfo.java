@@ -134,7 +134,7 @@ public abstract class ClassInfo<T>
                     LOG.debug( "Method overridden: %s::%s", ci.name(), m.name() );
                 }
             }
-            ci = ci.superclassInfo().orElse( null );
+            ci = ci.superclassInfo().orNull();
         }
         return result.values();
     }
@@ -153,7 +153,7 @@ public abstract class ClassInfo<T>
 
     /**
      * All methods declared by this class and {@link #superclassInfo() annotated
-     * super classes}.
+     * superclasses}.
      */
     public Collection<FieldInfo> fields() {
         Map<String,FieldInfo> result = new HashMap<>( 128 );
@@ -164,7 +164,7 @@ public abstract class ClassInfo<T>
                     LOG.debug( "Field overridden: %s::%s", ci.name(), f.name() );
                 }
             }
-            ci = ci.superclassInfo().orElse( null );
+            ci = ci.superclassInfo().orNull();
         }
         return result.values();
     }

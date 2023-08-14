@@ -17,12 +17,17 @@ import java.util.List;
 
 import java.lang.reflect.InvocationTargetException;
 
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
+
 /**
  *
  * @author Falko Bräutigam
  */
 public abstract class MethodInfo
         implements Named, Annotated {
+
+    private static final Log LOG = LogFactory.getLog( MethodInfo.class );
 
     protected String                   name;
 
@@ -60,6 +65,7 @@ public abstract class MethodInfo
             return invoke( obj, params );
         }
         catch (InvocationTargetException e) {
+            LOG.warn( "invokeThrowingRuntimeException(): " + e.getTargetException(), e.getTargetException() );
             throw new RuntimeException( e.getTargetException() );
         }
     }

@@ -173,7 +173,7 @@ public abstract class Property<C,T> {
 
         @Override
         public String toString() {
-            return String.format( "%s = %s", name, opt().orElse( null ) );
+            return String.format( "%s = %s", name, opt().orNull() );
         }
     }
 

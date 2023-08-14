@@ -38,7 +38,7 @@ public abstract class JSMessage
     public abstract OptString msgtype();
 
     public boolean isMsgtype( EventType check ) {
-        return check.equals( msgtype().opt().orElse( null ) );
+        return check.equals( msgtype().opt().orNull() );
     }
 
     @JSProperty

@@ -26,20 +26,16 @@ import areca.common.base.Supplier.RSupplier;
  */
 public class Opt<T> {
 
-    /** Common instance for {@code empty()}.  */
     @SuppressWarnings("rawtypes")
-    private static final Opt ABSENT = new Opt<>( null );
+    private static Opt ABSENT = null; // XXX initializing here does not work with TeaVM
 
     public static <R> Opt<R> of( R value ) {
-        return value != null ? new Opt<>( value ) : ABSENT;
+        return value != null ? new Opt<>( value ) : absent();
     }
 
-//    public static <R> Opt<R> of( R value ) {
-//        return new Opt<>( Objects.requireNonNull( value ) );
-//    }
-
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static <R> Opt<R> absent() {
-        return ABSENT;
+        return ABSENT != null ? ABSENT : (ABSENT = new Opt( null ));
     }
 
 
@@ -149,12 +145,15 @@ public class Opt<T> {
         return value;
     }
 
+    public T orNull() {
+        return isPresent() ? value : null;
+    }
 
     public T orElse( T elseValue ) {
         return isPresent() ? value : elseValue;
     }
 
-    public <E extends Exception> T orElseCompute( Supplier<T,E> elseSupplier ) throws E {
+    public <E extends Exception> T orElse( Supplier<T,E> elseSupplier ) throws E {
         return isPresent() ? value : elseSupplier.supply();
     }
 
@@ -189,8 +188,13 @@ public class Opt<T> {
     }
 
 
-    public <E extends Exception> Opt<T> defaults( Supplier<T,E> supplier ) throws E {
-        return isAbsent() ? Opt.of( supplier.supply() ) : this;
+//    public <E extends Exception> Opt<T> or( Supplier<? extends T,E> supplier ) throws E {
+//        return isAbsent() ? Opt.of( Assert.notNull( supplier.supply() ) ) : this;
+//    }
+
+    @SuppressWarnings("unchecked")
+    public <E extends Exception> Opt<T> or( Supplier<Opt<? extends T>,E> supplier ) throws E {
+        return isAbsent() ? Assert.notNull( (Opt<T>)supplier.supply() ) : this;
     }
 
 }

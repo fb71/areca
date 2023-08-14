@@ -102,7 +102,7 @@ public abstract class MatrixClient
     public Promise<MatrixClient> waitForStartup() {
         once( "sync", (_state, prevState, res) -> {
             OptString state = _state.cast();
-            clientSyncState = state.opt().orElse( null );
+            clientSyncState = state.opt().orNull();
             LOG.info( "Client sync: %s - %s", clientSyncState, "PREPARED".equals( clientSyncState ) );
         });
         return new WaitFor<MatrixClient>( () -> "PREPARED".equals( clientSyncState ) )

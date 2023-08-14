@@ -31,6 +31,22 @@ public interface Predicate<T,E extends Exception> {
     }
 
     /**
+     * Returns a predicate that is the negation of the supplied predicate. This is
+     * accomplished by returning result of the calling {@link #negate()}.
+     *
+     * @param <T> the type of arguments to the specified predicate
+     * @param target predicate to negate
+     * @return a predicate that negates the results of the supplied predicate
+     * @throws NullPointerException If target is null
+     */
+    @SuppressWarnings("unchecked")
+    static <T,E extends Exception> Predicate<T,E> not( Predicate<? super T,E> target ) {
+        return (Predicate<T,E>)target.negate();
+    }
+
+    // instance *******************************************
+
+    /**
      * Evaluates this predicate on the given argument.
      */
     public boolean test(T t);

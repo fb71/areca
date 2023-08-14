@@ -262,7 +262,7 @@ public class Promise<T> {
     /**
      * Creates a new {@link Promise} that is executed by the {@link Scheduler}. After
      * {@link Platform#xhr(String, String)} or a DB operation this can be used to
-     * switch execution from main JS event loop to idle scheduler.
+     * transfer execution from main JS event loop to the nicer idle scheduler.
      *
      * @param prio The priority of the execution. Null signals that the function is
      *        disabled and just this is returned.

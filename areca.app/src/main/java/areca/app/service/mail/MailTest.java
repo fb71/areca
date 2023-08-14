@@ -182,7 +182,7 @@ public class MailTest {
                     Sequence.of( messageHeaders ).forEach( msg -> {
                         Assert.notNull( msg.messageId() );
                         Assert.that( msg.messageNum() > 0 );
-                        Assert.notNull( msg.subject().opt().orElse( null ) );
+                        Assert.notNull( msg.subject().opt().orNull() );
                         Assert.notNull( msg.sentDate() );
                         Assert.notNull( msg.receivedDate() );
                         Assert.notNull( msg.from()[0].address() );

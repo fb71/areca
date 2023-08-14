@@ -250,11 +250,12 @@ public abstract class EventManager {
                 // perform: annotated
                 var cacheKey = ImmutablePair.of( handler.getClass(), ev.getClass() );
                 var method = methodCache.computeIfAbsent( cacheKey, __ -> {
-                    ClassInfo<Object> cli = ClassInfo.of( handler );
+                    var cli = ClassInfo.of( handler );
                     for (MethodInfo m : cli.methods()) {
                         Opt<EventHandler> a = m.annotation( EventHandler.class );
                         if (a.isPresent() && a.get().value().isInstance( ev )) {
-                            LOG.info( "Method cache: %s + 1", methodCache.size() );
+                            LOG.debug( "Method cache: %s + 1", methodCache.size() );
+                            Assert.that( methodCache.size() < 64, "EventManager: methodCache exceeds 64 entries. Ok?" );
                             return m;
                         }
                     }

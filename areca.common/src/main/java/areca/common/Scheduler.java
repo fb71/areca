@@ -81,7 +81,7 @@ public class Scheduler {
     @SuppressWarnings({"rawtypes", "unchecked"})
     protected void process( IdleDeadline deadline ) {
         LOG.debug( "Queue: %d, remaining: %s", queue.size(), deadline.timeRemaining() );
-        var now = now();
+        //var now = now();
 
         async = null;
 

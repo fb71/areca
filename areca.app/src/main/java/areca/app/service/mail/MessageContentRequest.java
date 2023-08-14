@@ -69,7 +69,7 @@ public class MessageContentRequest
 
             public default Opt<MessagePart> bodyParts( String... mimeTypes ) {
                 for (var mimeType : mimeTypes) {
-                    var found = Sequence.of( parts() ).first( part -> part.isType( mimeType ) ).orElse( null );
+                    var found = Sequence.of( parts() ).first( part -> part.isType( mimeType ) ).orNull();
                     if (found != null) {
                         return Opt.of( found );
                     }

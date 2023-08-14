@@ -49,7 +49,7 @@ public class TextFieldViewer
 
     @Override
     public void store() {
-        model.setValue( textField.content.opt().orElse( null ) );
+        model.setValue( textField.content.opt().orNull() );
     }
 
     @Override
