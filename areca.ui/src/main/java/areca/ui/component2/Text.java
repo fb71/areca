@@ -33,4 +33,10 @@ public class Text
      */
     public ReadWrite<Text,Format> format = Property.rw( this, "format", Format.PLAIN );
 
+//    @Override
+//    public int computeMinHeight( int width ) {
+//        //Assert.notNull( minimumHeight, "minimumHeight function not initialized!");
+//        return minimumHeight != null ? minimumHeight.apply( width ) : 50;
+//    }
+
 }

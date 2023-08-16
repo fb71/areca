@@ -151,6 +151,14 @@ public class UIComponentRenderer
 //                    return Size.of( htmlElm.getOffsetWidth(), htmlElm.getOffsetHeight() );
 //                });
 
+        // minimumHeight
+        // EXPERIMENTAL: see UIComponent#minimumHeight
+        c.minimumHeight = width -> {
+            htmlElm.getStyle().removeProperty( "height" );
+            htmlElm.getStyle().setProperty( "width", String.format( "%spx", width ) );
+            return htmlElm.getOffsetHeight();
+        };
+
         // position
         c.position
                 .onInitAndChange( (newValue, oldValue) -> {

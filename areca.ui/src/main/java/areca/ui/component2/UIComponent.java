@@ -22,6 +22,8 @@ import java.util.TreeMap;
 import java.util.function.Supplier;
 
 import areca.common.Assert;
+import areca.common.base.Function;
+import areca.common.base.Function.RFunction;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -89,6 +91,16 @@ public abstract class UIComponent {
     public ReadWrite<UIComponent,Size>      size = Property.rw( this, PROP_SIZE );
 
     public ReadOnly<UIComponent,Size>       clientSize = Property.rw( this, "clientSize" );
+
+    /**
+     * A {@link Function} that is set bei the renderer to give client code (layouter) access
+     * to the actual minimum size of the components backend HTML element.
+     * <p>
+     * <b>EXPERIMENTAL</b>: often does not work as expected because the backend HTML is updated
+     * *asynchronously* via events. Calling this function by client code often sees a null
+     * because backend HTML is not yet create fully initialized as there are pending events.
+     */
+    public RFunction<Integer,Integer>       minimumHeight;
 
     /**
      * The position of the component. Usually this is set by a {@link LayoutManager} only.
