@@ -53,7 +53,12 @@ public class UICompositeRenderer
         // XXX
         if (ev.getSource().getClass().getSimpleName().startsWith( "Root" )) {
             LOG.warn( "ROOT container:  " + ev.getSource().getClass().getSimpleName() );
-            doc().getBody().appendChild( (Node)c.htmlElm );
+            var body = doc().getElementById( "body" );
+            if (body == null) {
+                LOG.warn( "No element 'body' found, using doc().getBody()" );
+                body = doc().getBody();
+            }
+            body.appendChild( (Node)c.htmlElm );
 
 //            LOG.warn( "" + Size.of( doc().getBody().getClientWidth(), doc().getBody().getClientHeight() ) );
 //            c.size.defaultsTo( () -> {
