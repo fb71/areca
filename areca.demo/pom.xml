@@ -1,0 +1,213 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>areca</groupId>
+    <artifactId>demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>war</packaging>
+    <name>Areca Demo</name>
+    <description></description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.13</java.version>
+        <teavm.version>0.7.0</teavm.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>areca</groupId>
+            <artifactId>areca.ui</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>areca</groupId>
+            <artifactId>areca.rt.teavm</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Java compiler -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+<!--                     <release>14</release> -->
+<!--                     <compilerArgs>enable-preview</compilerArgs> -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <debug>true</debug>
+                            <debuglevel>lines,vars,source</debuglevel>
+                            <annotationProcessors>
+                                <annotationProcessor>areca.common.reflect.ReflectAnnotationProcessor</annotationProcessor>
+                            </annotationProcessors>
+                        </configuration>
+                   </execution>
+                </executions>
+            </plugin>
+
+            <!-- TeaVM -->
+            <plugin>
+                <groupId>org.teavm</groupId>
+                <artifactId>teavm-maven-plugin</artifactId>
+                <version>${teavm.version}</version>
+                <executions>
+                    <execution>
+                        <!-- Main app -->
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <!-- This configuration conforms to the settings of the WAR plugin -->
+                            <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
+                            <targetFileName>app.js</targetFileName>
+                            <mainClass>areca.demo.DemoApp</mainClass>
+                            <minifying>false</minifying>
+                            <debugInformationGenerated>true</debugInformationGenerated>
+                            <sourceMapsGenerated>true</sourceMapsGenerated>
+                            <sourceFilesCopied>true</sourceFilesCopied>
+                            <!-- Optimization level. Valid values are: SIMPLE, ADVANCED, FULL -->
+                            <optimizationLevel>ADVANCED</optimizationLevel>
+                            <stopOnErrors>false</stopOnErrors>
+                            <incremental>false</incremental>
+                            <!--targetType>WEBASSEMBLY</targetType-->
+                            <targetType>JAVASCRIPT</targetType>
+                            <outOfProcess>false</outOfProcess>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+           <!-- SASS -->
+           <plugin>
+             <groupId>nl.geodienstencentrum.maven</groupId>
+             <artifactId>sass-maven-plugin</artifactId>
+             <version>3.7.2</version>
+             <configuration>
+              <indentSize>4</indentSize>
+              <resources>
+                <resource>
+                  <source>
+                    <directory>${basedir}/src/main/webapp</directory>
+                  </source>
+                  <relativeOutputDirectory>..</relativeOutputDirectory>
+                  <destination>${project.build.directory}/${project.build.finalName}</destination>
+                </resource>
+              </resources>
+             </configuration>
+           </plugin>
+           
+           <!-- Wait -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>sleep-for-a-while</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target>
+                                <sleep seconds="2" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- WAR: include JavaScript files generated by TeaVM -->
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.2</version>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>${project.build.directory}/generated/js</directory>
+                        </resource>
+                        <resource>
+                            <directory>${basedir}/src/main/webapp</directory>
+                        </resource>
+                    </webResources>
+                    <!-- TODO -->
+                    <packagingExcludes>
+                        WEB-INF/lib/teavm*.jar,
+                        WEB-INF/lib/areca.rt.teavm*.jar,
+                        WEB-INF/lib/model2*.jar,
+                        WEB-INF/lib/javapoet*.jar
+                    </packagingExcludes>
+                </configuration>
+            </plugin>
+        </plugins>
+        
+        <pluginManagement>
+            <plugins>
+                <!--
+                  This plugin's configuration is used to store Eclipse m2e settings only.
+                  It has no influence on the Maven build itself.
+                  -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <!-- sleep -->
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                                        <versionRange>[1.0,)</versionRange>
+                                        <goals>
+                                            <goal>run</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute>
+                                            <runOnIncremental>true</runOnIncremental>
+                                        </execute>
+                                    </action>
+                                </pluginExecution>
+                                
+                                <!-- war -->
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-war-plugin</artifactId>
+                                        <versionRange>[2.4,)</versionRange>
+                                        <goals>
+                                            <goal>war</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute>
+                                            <runOnIncremental>true</runOnIncremental>
+                                        </execute>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+    </build>
+</project>

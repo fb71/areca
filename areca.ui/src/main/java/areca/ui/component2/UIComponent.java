@@ -47,6 +47,7 @@ public abstract class UIComponent {
     private static final Log LOG = LogFactory.getLog( UIComponent.class );
 
     public static final String          PROP_CSS_CLASSES = "cssClasses";
+    public static final String          PROP_CSS_STYLES = "cssStyles";
     public static final String          PROP_BG_COLOR = "bgColor";
     public static final String          PROP_SIZE = "size";
     public static final String          PROP_POSITION = "position";
@@ -71,9 +72,37 @@ public abstract class UIComponent {
     public ReadWrite<UIComponent,String>    tooltip = Property.rw( this, "tooltip" );
 
     /**
-     * The styling classes of this component.
+     * The CSS styling classes of this component.
      */
     public ReadWrites<UIComponent,String>   cssClasses = Property.rws( this, PROP_CSS_CLASSES );
+
+    public static class CssStyle {
+        public String name;
+        public String value;
+
+        public CssStyle( String name, String value ) {
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        public int hashCode() {
+            return name.hashCode();
+        }
+
+        @Override
+        public boolean equals( Object obj ) {
+            return obj instanceof CssStyle ? name.equals( ((CssStyle)obj).name ) : false;
+        }
+
+    }
+    /**
+     * Explicite CSS styling of this component.
+     * <p>
+     * Prefer using {@link #cssClasses} instead!
+     * @see UIComponent#cssClasses
+     */
+    public ReadWrites<UIComponent,CssStyle> styles = Property.rws( this, PROP_CSS_STYLES, new HashSet<>() );
 
     /**
      * Background color.

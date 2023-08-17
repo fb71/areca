@@ -54,6 +54,11 @@ public class RowLayout
 
     public ReadWrite<RowLayout,Size>        margins = Property.rw( this, "margins", Size.of( 0, 0 ) );
 
+    public RowLayout margins( Size value ) {
+        this.margins.set( value );
+        return this;
+    }
+
     public ReadWrite<RowLayout,Integer>     spacing = Property.rw( this, "spacing", 0 );
 
     public ReadWrite<RowLayout,Orientation> orientation = Property.rw( this, "orientation", HORIZONTAL );

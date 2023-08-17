@@ -13,12 +13,15 @@
  */
 package areca.rt.teavm.ui;
 
+import java.util.HashSet;
+
 import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.events.MouseEvent;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.common.Assert;
 import areca.common.Platform;
+import areca.common.base.Sequence;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -28,11 +31,12 @@ import areca.ui.Align.Vertical;
 import areca.ui.Position;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComponentEvent;
+import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDisposedEvent;
-import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
 
 /**
  *
@@ -94,6 +98,19 @@ public class UIComponentRenderer
                 .onInitAndChange( (newValue, oldValue) -> {
                     Assert.notNull( newValue, "Setting null value means remove() ???" );
                     htmlElm.setAttribute( "class", String.join( " ", newValue ) );
+                });
+
+        // cssStyles
+        c.styles
+                .onInitAndChange( (newValue, oldValue) -> {
+                    Assert.notNull( newValue, "Setting null value means remove() ???" );
+                    var old = oldValue != null ? oldValue : new HashSet<CssStyle>();
+                    Sequence.of( newValue ) // new elements
+                            .filter( elm -> !old.contains( elm ) )
+                            .forEach( elm -> htmlElm.getStyle().setProperty( elm.name, elm.value ) );
+                    Sequence.of( old ) // removed elements
+                            .filter( elm -> !newValue.contains( elm ) )
+                            .forEach( elm -> htmlElm.getStyle().removeProperty( elm.name ) );
                 });
 
         // bgColor
