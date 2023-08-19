@@ -250,7 +250,7 @@ public class UIComponentRenderer
     }
 
 
-    protected interface ScrollableHTMLElement
+    public interface ScrollableHTMLElement
             extends HTMLElement {
         @JSBody(params = {"behavior", "block"}, script = "this.scrollIntoView({'block':block, 'behavior':behavior});")
         void scrollIntoView( String behavior, String block );

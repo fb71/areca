@@ -12,18 +12,100 @@ Areca is a toolkit build on top of the great [TeaVM](http://teavm.org).
 - No HTML, XML, JavaScript
 - ...
 
-## Code Example
+## Zwei
+
+REFLECT: === areca.common.reflect.RuntimeInfo ===============================
+REFLECT:     -> areca.common.reflect..RuntimeInfoAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.Init ====================================
+REFLECT:     -> areca.ui.pageflow..PageInitAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.CreateUI ================================
+REFLECT:     -> areca.ui.pageflow..PageCreateUIAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.Part ====================================
+REFLECT:     -> areca.ui.pageflow..PagePartAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.Context =================================
+REFLECT:     -> areca.ui.pageflow..PageContextAnnotationInfo
+REFLECT:     Method: required() -> boolean : true
+REFLECT:     Method: scope() -> java.lang.String : "_default_"
+REFLECT: === areca.demo.StartPage ===========================================
+REFLECT:     Field: LOG -> areca.common.log.LogFactory.Log
+REFLECT:     Field: INFO -> areca.common.reflect.ClassInfo<areca.demo.StartPage>
+REFLECT:         raw: areca.common.reflect.ClassInfo
+REFLECT:         param: areca.common.reflect.ClassInfo<areca.demo.StartPage> -> [areca.demo.StartPage]
+REFLECT:     Field: cms -> areca.demo.CMS
+REFLECT:     Field: pageSite -> areca.ui.pageflow.Page.PageSite
+REFLECT:     Field: ui -> areca.ui.pageflow.PageContainer
+REFLECT:     Method: <init>() -> void
+REFLECT:     Method: init() -> void
+REFLECT:     Method: create() -> areca.ui.component2.UIComponent
+REFLECT:     Method: createText() -> areca.ui.component2.Text
+REFLECT:     Method: tweakHtml() -> void
+REFLECT:     Method: tweakHtmlHeaders() -> void
+REFLECT:     Method: tweakHtmlLinks() -> void
+REFLECT:     package: areca.demo
+
+
+## Drei
+
+REFLECT: === areca.common.reflect.RuntimeInfo ===============================
+REFLECT:     -> areca.common.reflect..RuntimeInfoAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.Init ====================================
+REFLECT:     -> areca.ui.pageflow..PageInitAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.CreateUI ================================
+REFLECT:     -> areca.ui.pageflow..PageCreateUIAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.Part ====================================
+REFLECT:     -> areca.ui.pageflow..PagePartAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.Context =================================
+REFLECT:     -> areca.ui.pageflow..PageContextAnnotationInfo
+REFLECT:     Method: required() -> boolean : true
+REFLECT:     Method: scope() -> java.lang.String : "_default_"
+REFLECT: === areca.demo.StartPage ===========================================
+REFLECT:     Field: LOG -> areca.common.log.LogFactory.Log
+REFLECT:     Field: INFO -> areca.common.reflect.ClassInfo<areca.demo.StartPage>
+REFLECT:         raw: areca.common.reflect.ClassInfo
+REFLECT:         param: areca.common.reflect.ClassInfo<areca.demo.StartPage> -> [areca.demo.StartPage]
+REFLECT:     Field: cms -> areca.demo.CMS
+REFLECT:     Field: pageSite -> areca.ui.pageflow.Page.PageSite
+REFLECT:     Field: ui -> areca.ui.pageflow.PageContainer
+REFLECT:     Method: <init>() -> void
+REFLECT:     Method: init() -> void
+REFLECT:     Method: create() -> areca.ui.component2.UIComponent
+REFLECT:     Method: createText() -> areca.ui.component2.Text
+REFLECT:     Method: tweakHtml() -> void
+REFLECT:     Method: tweakHtmlHeaders() -> void
+REFLECT:     Method: tweakHtmlLinks() -> void
+REFLECT:     package: areca.demo
+
+## Vier
+
+REFLECT: === areca.common.reflect.RuntimeInfo ===============================
+REFLECT:     -> areca.common.reflect..RuntimeInfoAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.Init ====================================
+REFLECT:     -> areca.ui.pageflow..PageInitAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.CreateUI ================================
+REFLECT:     -> areca.ui.pageflow..PageCreateUIAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.Part ====================================
+REFLECT:     -> areca.ui.pageflow..PagePartAnnotationInfo
+REFLECT: === areca.ui.pageflow.Page.Context =================================
+REFLECT:     -> areca.ui.pageflow..PageContextAnnotationInfo
+REFLECT:     Method: required() -> boolean : true
+REFLECT:     Method: scope() -> java.lang.String : "_default_"
+REFLECT: === areca.demo.StartPage ===========================================
+REFLECT:     Field: LOG -> areca.common.log.LogFactory.Log
+REFLECT:     Field: INFO -> areca.common.reflect.ClassInfo<areca.demo.StartPage>
+REFLECT:         raw: areca.common.reflect.ClassInfo
+REFLECT:         param: areca.common.reflect.ClassInfo<areca.demo.StartPage> -> [areca.demo.StartPage]
+REFLECT:     Field: cms -> areca.demo.CMS
+REFLECT:     Field: pageSite -> areca.ui.pageflow.Page.PageSite
+REFLECT:     Field: ui -> areca.ui.pageflow.PageContainer
+REFLECT:     Method: <init>() -> void
+REFLECT:     Method: init() -> void
+REFLECT:     Method: create() -> areca.ui.component2.UIComponent
+REFLECT:     Method: createText() -> areca.ui.component2.Text
+REFLECT:     Method: tweakHtml() -> void
+REFLECT:     Method: tweakHtmlHeaders() -> void
+REFLECT:     Method: tweakHtmlLinks() -> void
+REFLECT:     package: areca.demo
+
+<h2 id="last">Last</h2>
 
 ...
-
-<pre><code class="language-java">
-    @Page.CreateUI
-    public UIComponent create( UIComposite parent ) {
-        ui.init( parent ).title.set( "Areca Demo" );
-        ui.body.layout.set( SwitcherLayout.defaults() );
-        ui.body.add( new UIComposite() {{
-            add( createText( cms.file( "start" ) ) );
-        }});
-        return ui;
-    }
-</code></pre>

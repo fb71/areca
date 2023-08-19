@@ -14,18 +14,17 @@
 package areca.demo;
 
 import org.teavm.jso.dom.html.HTMLElement;
-
 import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.Size;
+import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.RowLayout;
-import areca.ui.layout.SwitcherLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.Page.PageSite;
 import areca.ui.pageflow.PageContainer;
@@ -62,16 +61,20 @@ public class StartPage {
         LOG.info( "createUI: CMS = %s, ui = %s", cms, ui );
         ui.init( parent ).title.set( "Areca Demo" );
 
-        ui.body.layout.set( SwitcherLayout.defaults() );
-        ui.body.add( new UIComposite() {{
+        ui.body.layout.set( RowLayout.filled() ); //SwitcherLayout.defaults() );
+
+        var two = ui.body.add( new ScrollableComposite() {{
+            layout.set( RowLayout.filled().margins.set( Size.of( 20, 10 ) ) );
+            add( createText( cms.file( "programming" ) ) );
+        }});
+        var one = ui.body.add( new ScrollableComposite() {{
             layout.set( RowLayout.filled().margins.set( Size.of( 20, 10 ) ) );
             add( createText( cms.file( "start" ) ) );
         }});
-//        ui.body.add( new UIComposite() {{
-//            add( new Text() {{
-//                content.set( "page2 :)" );
-//            }});
-//        }});
+
+        Platform.schedule( 1000, () -> { // XXX listen to ComponentConstructedEvent
+            new SyncScrolling( one, two );
+        });
         return ui;
     }
 
@@ -91,21 +94,24 @@ public class StartPage {
 
 
     protected void tweakHtml( Text text ) {
-        Platform.schedule( 1000, () -> { // XXX listen to ComponentConstructedEvent
+        Platform.schedule( 200, () -> { // XXX listen to ComponentConstructedEvent
             if (text.htmlElm == null) {
                 LOG.info( "tweak links: no element rendered yet" );
                 tweakHtml( text );
             }
             else {
                 tweakHtmlLinks( text );
-                tweakHtmlCode( text );
+                Prism.instance().highlightAllUnder( (HTMLElement)text.htmlElm );
             }
         });
     }
 
 
-    protected void tweakHtmlCode( Text text ) {
-        Prism.instance().highlightAllUnder( (HTMLElement)text.htmlElm );
+    protected void tweakHtmlHeaders( Text text ) {
+        var links = ((HTMLElement)text.htmlElm).getElementsByTagName( "a" );
+        for (int i = 0; i < links.getLength(); i++) {
+            HTMLElement a = links.item( i );
+        }
     }
 
 

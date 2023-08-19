@@ -26,8 +26,14 @@ public class ScrollableComposite
 
     private static final Log LOG = LogFactory.getLog( ScrollableComposite.class );
 
+    /**
+     * Register a listener to get notified about scrolling.
+     */
     public ReadWrite<?,Integer> scrollTop = Property.rw( this, "scrollTop", 0 );
 
+    /**
+     * Register a listener to get notified about scrolling.
+     */
     public ReadWrite<?,Integer> scrollLeft = Property.rw( this, "scrollLeft", 0 );
 
 }
