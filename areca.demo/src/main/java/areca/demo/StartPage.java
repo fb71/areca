@@ -25,6 +25,7 @@ import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.RowLayout;
+import areca.ui.layout.SwitcherLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.Page.PageSite;
 import areca.ui.pageflow.PageContainer;
@@ -61,15 +62,16 @@ public class StartPage {
         LOG.info( "createUI: CMS = %s, ui = %s", cms, ui );
         ui.init( parent ).title.set( "Areca Demo" );
 
-        ui.body.layout.set( RowLayout.filled() ); //SwitcherLayout.defaults() );
+//        ui.body.layout.set( RowLayout.filled() );
+        ui.body.layout.set( SwitcherLayout.defaults() );
 
-        var two = ui.body.add( new ScrollableComposite() {{
-            layout.set( RowLayout.filled().margins.set( Size.of( 20, 10 ) ) );
-            add( createText( cms.file( "programming" ) ) );
-        }});
         var one = ui.body.add( new ScrollableComposite() {{
             layout.set( RowLayout.filled().margins.set( Size.of( 20, 10 ) ) );
             add( createText( cms.file( "start" ) ) );
+        }});
+        var two = ui.body.add( new ScrollableComposite() {{
+            layout.set( RowLayout.filled().margins.set( Size.of( 20, 10 ) ) );
+            add( createText( cms.file( "programming" ) ) );
         }});
 
         Platform.schedule( 1000, () -> { // XXX listen to ComponentConstructedEvent

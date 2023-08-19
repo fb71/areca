@@ -13,8 +13,6 @@
  */
 package areca.rt.teavm.ui;
 
-import java.util.HashSet;
-
 import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.events.MouseEvent;
 import org.teavm.jso.dom.html.HTMLElement;
@@ -31,7 +29,6 @@ import areca.ui.Align.Vertical;
 import areca.ui.Position;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.UIComponent;
-import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
@@ -104,13 +101,15 @@ public class UIComponentRenderer
         c.styles
                 .onInitAndChange( (newValue, oldValue) -> {
                     Assert.notNull( newValue, "Setting null value means remove() ???" );
-                    var old = oldValue != null ? oldValue : new HashSet<CssStyle>();
-                    Sequence.of( newValue ) // new elements
-                            .filter( elm -> !old.contains( elm ) )
-                            .forEach( elm -> htmlElm.getStyle().setProperty( elm.name, elm.value ) );
-                    Sequence.of( old ) // removed elements
-                            .filter( elm -> !newValue.contains( elm ) )
-                            .forEach( elm -> htmlElm.getStyle().removeProperty( elm.name ) );
+                    LOG.debug( "CSS: %s", newValue );
+                    // new/updated
+                    newValue.forEach( elm -> htmlElm.getStyle().setProperty( elm.name, elm.value ) );
+                    // removed
+                    if (oldValue != null) {
+                        Sequence.of( oldValue )
+                                .filter( elm -> !newValue.contains( elm ) )
+                                .forEach( elm -> htmlElm.getStyle().removeProperty( elm.name ) );
+                    }
                 });
 
         // bgColor

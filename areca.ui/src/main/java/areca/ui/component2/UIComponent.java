@@ -86,6 +86,11 @@ public abstract class UIComponent {
         }
 
         @Override
+        public String toString() {
+            return String.format( "[%s = %s]", name, value );
+        }
+
+        @Override
         public int hashCode() {
             return name.hashCode();
         }
@@ -94,8 +99,8 @@ public abstract class UIComponent {
         public boolean equals( Object obj ) {
             return obj instanceof CssStyle ? name.equals( ((CssStyle)obj).name ) : false;
         }
-
     }
+
     /**
      * Explicite CSS styling of this component.
      * <p>

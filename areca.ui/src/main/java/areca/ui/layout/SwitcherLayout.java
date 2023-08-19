@@ -15,6 +15,11 @@ package areca.ui.layout;
 
 import static areca.ui.component2.Events.EventType.SELECT;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import areca.common.MutableInt;
+import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
@@ -37,65 +42,93 @@ public class SwitcherLayout
         return new SwitcherLayout();
     }
 
-    // instance *******************************************
+    private UIComposite     composite;
 
-    private UIComposite composite;
+    private List<Child>     children = new ArrayList<>();
 
-    private Button leftHandle;
+    private Button          leftHandle;
 
-    private Button rightHandle;
+    private Button          rightHandle;
+
+    private int             rotationStep;
 
 
     @Override
     public void layout( @SuppressWarnings("hiding") UIComposite composite ) {
+        // init
         if (this.composite == null) {
-            composite.styles.add( new CssStyle( "perspective", "4000px") );
-            this.leftHandle = composite.add( new HandleButton() {{
-                events.on( SELECT, ev -> {
-                    composite.components.values().first().get().styles.add( new CssStyle( "transform", "rotate3d(0,1,0,0deg)" ));
-                });
+            composite.styles.add( new CssStyle( "perspective", "6000px") );
+
+            // children
+            rotationStep = 360 / composite.components.size();
+            MutableInt i = new MutableInt( 0 );
+            for (var c : composite.components) {
+                c.cssClasses.add( "SwitcherChild" );
+                c.position.set( Position.of( 0, 0 ) );
+                children.add( new Child() {{
+                    component = c;
+                    rotate( rotationStep * i.getAndIncrement() );
+                }});
+            }
+            // handles
+            this.leftHandle = composite.add( new SwitcherHandle( "keyboard_double_arrow_right") {{
+                events.on( SELECT, ev -> children.forEach( child -> child.rotate( rotationStep ) ) );
             }});
-            this.rightHandle = composite.add( new HandleButton()  {{
-                events.on( SELECT, ev -> {
-                    UIComponent c = composite.components.values().first().get();
-                    c.styles.add( new CssStyle( "transform", "rotate3d(0,1,0,180deg)" ));
-                    c.bordered.set( true );
-                });
+            this.rightHandle = composite.add( new SwitcherHandle( "keyboard_double_arrow_left")  {{
+                events.on( SELECT, ev -> children.forEach( child -> child.rotate( -rotationStep ) ) );
             }});
         }
         this.composite = composite;
 
-        // int zIndex = 0;
+        // components
         Size clientSize = composite.clientSize.value();
-        for (var component : composite.components) {
-            if (!(component instanceof HandleButton)) {
-                component.cssClasses.add( "SwitcherChild" );
-                component.position.set( Position.of( 0, 0 ) );
-                component.size.set( clientSize );
-                // component.zIndex.set( zIndex++ );
-            }
-        }
+        children.forEach( child -> child.component.size.set( clientSize ) );
 
         // handles
         leftHandle.position.set( Position.of(
-                0, (clientSize.height() - leftHandle.size.$().height()) / 2 ) );
+                -10, (clientSize.height() - leftHandle.size.$().height()) / 2 ) );
         rightHandle.position.set( Position.of(
-                clientSize.width() - rightHandle.size.$().width(),
+                clientSize.width() - rightHandle.size.$().width() + 10,
                 (clientSize.height() - rightHandle.size.$().height()) / 2 ) );
     }
 
     /**
      *
      */
-    static class HandleButton
+    class Child {
+        UIComponent component;
+        int         rotation;
+
+        public void rotate( int delta ) {
+            rotation += delta;
+            var style = new CssStyle( "transform", "rotate3d(0,1,0," + rotation + "deg)" );
+            component.styles.remove( style ); // XXX check styles Property impl
+            component.styles.add( style );
+            component.bordered.set( true );
+            component.styles.add( new CssStyle( "margin", "-1px" ));
+            Platform.schedule( 1000, () -> {
+                component.bordered.set( false );
+                component.styles.remove( new CssStyle( "margin", "-1px" ));
+            });
+        }
+    }
+
+    /**
+     *
+     */
+    static class SwitcherHandle
             extends Button {
 
-        public static final Size DEFAULT_SIZE = Size.of( 40, 40 );
+        public static final Size DEFAULT_SIZE = Size.of( 35, 65 );
 
-        public HandleButton() {
+        public SwitcherHandle() {
             size.set( DEFAULT_SIZE );
             icon.set( "drag_indicator" );
-            cssClasses.add( "SwitcherHandle" );
+        }
+
+        public SwitcherHandle( String icon ) {
+            this();
+            this.icon.set( icon );
         }
     }
 
