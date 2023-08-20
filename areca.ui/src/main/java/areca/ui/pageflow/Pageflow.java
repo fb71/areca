@@ -128,7 +128,6 @@ public class Pageflow {
 
 
     protected Pageflow( UIComposite rootContainer ) {
-        Assert.notNull( pages );
         this.rootContainer = Assert.notNull( rootContainer, "rootContainer must not be null" );
         this.rootContainer.layout.set( new PageStackLayout() );
         //new PageCloseGesture( rootContainer );
@@ -237,6 +236,7 @@ public class Pageflow {
      * The sequence of pages in this Pageflow.
      */
     public Sequence<Object,RuntimeException> pages() {
+        Assert.notNull( pages, "#pages is null!" );
         return Sequence.of( pages ).map( holder -> holder.clientPage );
     }
 
