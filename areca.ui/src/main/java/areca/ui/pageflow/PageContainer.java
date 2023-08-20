@@ -64,9 +64,6 @@ public class PageContainer
     @Page.Context
     protected PageSite          pageSite;
 
-    @Page.Context
-    protected Pageflow          pageflow;
-
     /**
      * No-op ctor for injection.
      */
@@ -98,7 +95,7 @@ public class PageContainer
             cssClasses.add( CSS_HEADER );
 
             // closeBtn
-            if (pageflow.pages().count() > 1) {
+            if (Pageflow.current().pages().count() > 1) {
                 closeBtn = add( new Button() {{
                     cssClasses.add( CSS_HEADER_ITEM );
                     icon.set( "arrow_back" );

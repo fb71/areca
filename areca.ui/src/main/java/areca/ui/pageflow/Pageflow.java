@@ -236,8 +236,7 @@ public class Pageflow {
      * The sequence of pages in this Pageflow.
      */
     public Sequence<Object,RuntimeException> pages() {
-        Assert.notNull( pages, "#pages is null!" );
-        return Sequence.of( pages ).map( holder -> holder.clientPage );
+        return Sequence.of( this.pages ).map( holder -> holder.clientPage );
     }
 
 

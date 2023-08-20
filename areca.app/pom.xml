@@ -222,9 +222,11 @@
                         <resource>
                             <directory>${project.build.directory}/generated/js</directory>
                         </resource>
+                        <!-- 
                         <resource>
                             <directory>${basedir}/src/main/webapp</directory>
                         </resource>
+                        -->
                     </webResources>
                     <!-- TODO -->
                     <packagingExcludes>

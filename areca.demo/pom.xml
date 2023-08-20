@@ -9,7 +9,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.13</java.version>
+        <java.version>13</java.version>
         <teavm.version>0.7.0</teavm.version>
     </properties>
 
@@ -140,9 +140,6 @@
                     <webResources>
                         <resource>
                             <directory>${project.build.directory}/generated/js</directory>
-                        </resource>
-                        <resource>
-                            <directory>${basedir}/src/main/webapp</directory>
                         </resource>
                     </webResources>
                     <!-- TODO -->
