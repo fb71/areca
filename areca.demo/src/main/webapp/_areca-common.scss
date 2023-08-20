@@ -298,8 +298,9 @@ $badge-padding: 4px;
 }
 .SwitcherHandle {
     padding: 0;
+    border-color: lighten($bg3_color, 25%) !important;
     box-shadow: 0px 0px 5px rgba(0,0,0,50%);
-    background-color: $bg1_color;
+    background-color: darken($bg1_color, 5%);
     color: $link_color;
     border-radius: 10px;    
 }

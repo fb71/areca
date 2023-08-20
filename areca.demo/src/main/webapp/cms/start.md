@@ -1,6 +1,6 @@
 # Welcome to Areca
 
-This is a small demo of the Areca toolkit. It is meant to showcase the **UI** and give a brief overview of the **programming**. You can <a href="#flip">flip</a> the page at any time to see some code snippets that illustrate the features described.
+This is a small demo of the Areca toolkit. It is meant to showcase the **UI** and give a brief overview of the **programming**. You can <a href="#flip">flip</a> the page at any time to switch between general description and some code snippets.
 
 ## What is Areca?
 
