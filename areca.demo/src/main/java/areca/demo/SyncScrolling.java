@@ -37,7 +37,8 @@ public class SyncScrolling {
 
         ScrollableComposite             scrollable;
 
-        TreeMap<Integer,HTMLElement>    map = new TreeMap<>();
+        /** Vertical positions of the child elements */
+        TreeMap<Integer,HTMLElement>    elements = new TreeMap<>();
 
         public Composite( ScrollableComposite scrollable ) {
             this.scrollable = scrollable;
@@ -45,7 +46,7 @@ public class SyncScrolling {
             var headers = ((HTMLElement)scrollable.htmlElm).getElementsByTagName( "h2" );
             for (int i = 0; i < headers.getLength(); i++) {
                 HTMLElement h = headers.item( i );
-                map.put( h.getOffsetTop(), h );
+                elements.put( h.getOffsetTop(), h );
                 h.setAttribute( "sync-scrolling-index", String.valueOf( i ) );
             }
         }
@@ -72,10 +73,10 @@ public class SyncScrolling {
             return;
         }
         LOG.info( "Scroll: top = %s", top );
-        var floor = origin.map.floorEntry( top + 300 );
+        var floor = origin.elements.floorEntry( top + (origin.scrollable.size.$().height() / 2) );
         if (floor.getKey() > top) {
             var index = floor.getValue().getAttribute( "sync-scrolling-index" );
-            for (var elm : target.map.values()) {
+            for (var elm : target.elements.values()) {
                 if (elm.getAttribute( "sync-scrolling-index" ).equals( index )) {
                     LOG.info( "      : index = %s", index );
                     skipEvent = 1;

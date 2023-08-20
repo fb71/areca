@@ -14,12 +14,15 @@
 package areca.demo;
 
 import org.teavm.jso.dom.html.HTMLElement;
+
 import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
+import areca.ui.Action;
 import areca.ui.Size;
+import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
@@ -51,12 +54,6 @@ public class StartPage {
     protected PageContainer ui;
 
 
-    @Page.Init
-    public void init() {
-        LOG.info( "init: pageSite = %s", pageSite );
-    }
-
-
     @Page.CreateUI
     public UIComponent create( UIComposite parent ) {
         LOG.info( "createUI: CMS = %s, ui = %s", cms, ui );
@@ -77,6 +74,15 @@ public class StartPage {
         Platform.schedule( 1000, () -> { // XXX listen to ComponentConstructedEvent
             new SyncScrolling( one, two );
         });
+
+        // Settings
+        pageSite.actions.add( new Action() {{
+            icon.set( "settings" );
+            description.set( "Open settings" );
+            handler.set( (UIEvent ev) -> {
+                //pageSite.createPage( new SettingsPage() ).origin( ev.clientPos() ).open();
+            });
+        }});
         return ui;
     }
 
@@ -109,14 +115,6 @@ public class StartPage {
     }
 
 
-    protected void tweakHtmlHeaders( Text text ) {
-        var links = ((HTMLElement)text.htmlElm).getElementsByTagName( "a" );
-        for (int i = 0; i < links.getLength(); i++) {
-            HTMLElement a = links.item( i );
-        }
-    }
-
-
     protected void tweakHtmlLinks( Text text ) {
         var links = ((HTMLElement)text.htmlElm).getElementsByTagName( "a" );
         for (int i = 0; i < links.getLength(); i++) {
@@ -124,29 +122,30 @@ public class StartPage {
             var href = a.getAttribute( "href" );
             LOG.info( "a: %s", href );
 
-//            // internal/article link
-//            if (href.startsWith( "#" ) || !href.contains( ":" )) {
-//                a.addEventListener( "click", htmlEv -> {
-//                    WebsiteApp.catchAll( () -> {
-//                        LOG.info( "CLICK!" );
-//                        htmlEv.preventDefault();
-//
-//                        var file2Load = cms.file( href.replaceFirst( "[#!]", "" ) );
-//                        var newPage = new ArticlePage();
-//                        newPage.file = file2Load;
+            // internal/article link
+            if (href.startsWith( "#" ) || !href.contains( ":" )) {
+                a.addEventListener( "click", htmlEv -> {
+                    DemoApp.catchAll( () -> {
+                        LOG.info( "CLICK!" );
+                        htmlEv.preventDefault();
+
+                        if (href.equals( "#flip" )) {
+                            ((SwitcherLayout)ui.body.layout.$()).next();
+                        }
+
+//                        ClassInfo.
 //                        pageSite.createPage( newPage )
-//                        .putContext( file2Load, Context.DEFAULT_SCOPE )
-//                        .parent( ArticlePage.this )
-//                        .open();
-//                        return null;
-//                    });
-//                });
-//            }
-//            // external
-//            else if (href.startsWith( "http" )) {
-//                a.setAttribute( "target", "_blank" );
-//                a.setAttribute( "rel", "noopener" );
-//            }
+//                                .parent( StartPage.this )
+//                                .open();
+                        return null;
+                    });
+                });
+            }
+            // external
+            else if (href.startsWith( "http" )) {
+                a.setAttribute( "target", "_blank" );
+                a.setAttribute( "rel", "noopener" );
+            }
         }
     }
 

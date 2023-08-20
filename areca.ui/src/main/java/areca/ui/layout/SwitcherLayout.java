@@ -95,6 +95,13 @@ public class SwitcherLayout
     /**
      *
      */
+    public void next() {
+        children.forEach( child -> child.rotate( rotationStep ) );
+    }
+
+    /**
+     *
+     */
     class Child {
         UIComponent component;
         int         rotation;

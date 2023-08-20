@@ -4,5 +4,30 @@
 
 p {
     text-align: justify;
+    line-height: 1.3;
 }
 
+pre[class*=language-] {
+    padding: 0 1em 1em 1em;
+}
+code[class*=language-] {
+    line-height: 1.1;
+}
+.token.function {
+    color: inherit;
+}
+.token.comment {
+    //color: #f08d49;
+    color: #58b764;
+    font-style: italic;
+}
+.token.class-name {
+    color: #d9b572;
+}
+.token.keyword {
+    color: #858585;
+    font-weight: bold;
+}
+.token.annotation {
+    color: #f08d49;    
+}
