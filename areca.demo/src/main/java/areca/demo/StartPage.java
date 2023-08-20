@@ -132,11 +132,9 @@ public class StartPage {
                         if (href.equals( "#flip" )) {
                             ((SwitcherLayout)ui.body.layout.$()).next();
                         }
-
-//                        ClassInfo.
-//                        pageSite.createPage( newPage )
-//                                .parent( StartPage.this )
-//                                .open();
+                        else if (href.equals( "#open" )) {
+                            pageSite.createPage( new SimplePage() ).open();
+                        }
                         return null;
                     });
                 });

@@ -126,7 +126,7 @@ public class SwitcherLayout
     static class SwitcherHandle
             extends Button {
 
-        public static final Size DEFAULT_SIZE = Size.of( 35, 65 );
+        public static final Size DEFAULT_SIZE = Size.of( 30, 65 );
 
         public SwitcherHandle() {
             size.set( DEFAULT_SIZE );

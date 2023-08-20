@@ -3,8 +3,8 @@
 }
 
 h2 {
-    border-bottom: 1px solid $separator_color;
-    margin-block-start: 1.3em;
+    //border-bottom: 1px solid darken($separator_color, 5%);
+    margin-block-start: 1.6em;
 }
 p {
     text-align: justify;
