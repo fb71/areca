@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021, the @authors. All rights reserved.
+ * Copyright (C) 2021-2023, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -128,7 +128,8 @@ public class Pageflow {
 
 
     protected Pageflow( UIComposite rootContainer ) {
-        this.rootContainer = rootContainer;
+        Assert.notNull( pages );
+        this.rootContainer = Assert.notNull( rootContainer, "rootContainer must not be null" );
         this.rootContainer.layout.set( new PageStackLayout() );
         //new PageCloseGesture( rootContainer );
     }
@@ -233,7 +234,7 @@ public class Pageflow {
 
 
     /**
-     * The sequnce of pages in the Pageflow.
+     * The sequence of pages in this Pageflow.
      */
     public Sequence<Object,RuntimeException> pages() {
         return Sequence.of( pages ).map( holder -> holder.clientPage );
