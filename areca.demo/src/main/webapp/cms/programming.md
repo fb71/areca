@@ -2,7 +2,7 @@
 
 ## A minimal app
 
-A minimal application consists of an app class providing the main entry point and a main [Page](https://github.com/fb71/areca/blob/master/areca.ui/src/main/java/areca/ui/pageflow/Page.java).
+A minimal application consists of just an app class with the main entry point and a main [Page](https://github.com/fb71/areca/blob/master/areca.ui/src/main/java/areca/ui/pageflow/Page.java).
 
 The app class of this demo basically looks like this:
 
@@ -21,7 +21,7 @@ public class DemoApp extends TeaApp {
 }
 </code></pre>
 
-An almost empty page could look like this:
+A simple main page could look like this:
 
 <pre><code class="language-java">
 @RuntimeInfo
@@ -115,33 +115,28 @@ public class StartPage {
 
 The demo uses [Marked](https://github.com/markedjs/marked) for parsing markdown and [Prism](https://prismjs.com) for syntax highlighting. The entire code of the demo is [on GitHub](https://github.com/fb71/areca/tree/master/areca.demo/src/main/java/areca/demo).
 
-## Two
+## UI components
 
-...
-
-<pre><code class="language-java">
-    @Page.CreateUI
-    public UIComponent create( UIComposite parent ) {
-        ui.init( parent ).title.set( "Areca Demo" );
-        ui.body.layout.set( SwitcherLayout.defaults() );
-        ui.body.add( new UIComposite() {{
-            add( createText( cms.file( "start" ) ) );
-        }});
-        return ui;
-    }
-</code></pre>
+This typical code to create UI components looks like this:
 
 <pre><code class="language-java">
-    @Page.CreateUI
-    public UIComponent create( UIComposite parent ) {
-        ui.init( parent ).title.set( "Areca Demo" );
-        ui.body.layout.set( SwitcherLayout.defaults() );
-        ui.body.add( new UIComposite() {{
-            add( createText( cms.file( "start" ) ) );
+    ui.body.add( new UIComposite() {{
+        layout.set( RowLayout.filled() );
+        
+        add( new Text() {{
+            content.set( "This the text..." );
         }});
-        return ui;
-    }
+
+        add( new Button() {{
+            label.set( "CLICK ME" );
+            events.on( SELECT, ev -> {
+                ...
+            });
+        }});
+    }});
 </code></pre>
+
+Note how **object initializers** are used to create a hierarchy of depending objects. Is is minimal code and the structure of the code reflects the hierarchy of the UI components.
 
 ## Three
 

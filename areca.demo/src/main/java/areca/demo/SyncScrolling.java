@@ -17,6 +17,7 @@ import java.util.TreeMap;
 
 import org.teavm.jso.dom.html.HTMLElement;
 
+import areca.common.Timer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.ui.UIComponentRenderer.ScrollableHTMLElement;
@@ -33,14 +34,14 @@ public class SyncScrolling {
     /**
      *
      */
-    class Composite {
+    class Part {
 
         ScrollableComposite             scrollable;
 
         /** Vertical positions of the child elements */
         TreeMap<Integer,HTMLElement>    elements = new TreeMap<>();
 
-        public Composite( ScrollableComposite scrollable ) {
+        public Part( ScrollableComposite scrollable ) {
             this.scrollable = scrollable;
 
             var headers = ((HTMLElement)scrollable.htmlElm).getElementsByTagName( "h2" );
@@ -54,21 +55,23 @@ public class SyncScrolling {
 
     // instance *******************************************
 
-    protected Composite     left, right;
+    protected Part          left, right;
 
     protected volatile int  skipEvent;
 
 
     public SyncScrolling( ScrollableComposite one, ScrollableComposite two ) {
-        left = new Composite( one );
-        right = new Composite( two );
+        var start = Timer.start();
+        left = new Part( one );
+        right = new Part( two );
 
         left.scrollable.scrollTop.onChange( (current,__) -> sync( left, right, current ) );
         right.scrollable.scrollTop.onChange( (current,__) -> sync( right, left, current ) );
+        LOG.info( "init: done (%s)", start.elapsedHumanReadable() );
     }
 
 
-    protected void sync( Composite origin, Composite target, Integer top ) {
+    protected void sync( Part origin, Part target, Integer top ) {
         if (skipEvent-- >= 0) {
             return;
         }

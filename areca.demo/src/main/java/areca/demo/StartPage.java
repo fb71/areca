@@ -71,7 +71,7 @@ public class StartPage {
             add( createText( cms.file( "programming" ) ) );
         }});
 
-        Platform.schedule( 1000, () -> { // XXX listen to ComponentConstructedEvent
+        Platform.schedule( 2000, () -> { // XXX listen to ComponentConstructedEvent
             new SyncScrolling( one, two );
         });
 
