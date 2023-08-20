@@ -64,6 +64,9 @@ public class PageContainer
     @Page.Context
     protected PageSite          pageSite;
 
+    @Page.Context
+    protected Pageflow          pageflow;
+
     /**
      * No-op ctor for injection.
      */
@@ -95,13 +98,15 @@ public class PageContainer
             cssClasses.add( CSS_HEADER );
 
             // closeBtn
-            closeBtn = add( new Button() {{
-                cssClasses.add( CSS_HEADER_ITEM );
-                icon.set( "arrow_back" );
-                events.on( SELECT, ev -> {
-                    pageSite.close();
-                });
-            }});
+            if (pageflow.pages().count() > 1) {
+                closeBtn = add( new Button() {{
+                    cssClasses.add( CSS_HEADER_ITEM );
+                    icon.set( "arrow_back" );
+                    events.on( SELECT, ev -> {
+                        pageSite.close();
+                    });
+                }});
+            }
 
             // title
             titleText = add( new Text() {{
@@ -158,10 +163,12 @@ public class PageContainer
 
             var btnSize = HEADER_HEIGHT - 10;
             var btnMargin = (HEADER_HEIGHT - btnSize) / 2;
-            closeBtn.position.set( Position.of( btnMargin, btnMargin ) );
-            closeBtn.size.set( Size.of( btnSize, btnSize ) );
+            if (closeBtn != null) {
+                closeBtn.position.set( Position.of( btnMargin, btnMargin ) );
+                closeBtn.size.set( Size.of( btnSize, btnSize ) );
+            }
 
-            var titleMargin = (HEADER_HEIGHT - 18) / 2;
+            var titleMargin = (HEADER_HEIGHT - 22) / 2;
             titleText.position.set( Position.of( btnMargin + btnSize + titleMargin, titleMargin-1 ) );
 
             var actionLeft = clientSize.width() - btnSize - btnMargin;
