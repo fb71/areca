@@ -31,6 +31,8 @@ import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.TeaApp;
 import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.ui.UIComponentRenderer;
+import areca.ui.component2.UIComposite;
+import areca.ui.layout.MaxWidthLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.Pageflow;
 
@@ -45,8 +47,6 @@ public class DemoApp
     private static final Log LOG = LogFactory.getLog( DemoApp.class );
 
     public static boolean   debug;
-
-    public static CMS.File  _404;
 
     /**
      *
@@ -66,10 +66,12 @@ public class DemoApp
 
             // UI
             new DemoApp().createUI( rootWindow -> {
-                LOG.info( "URI path: %s", Window.current().getLocation().getPathName() );
-                var cms = new CMS();
-                _404 = cms.file( "404" );
-                Pageflow.start( rootWindow )
+                rootWindow.layout.set( MaxWidthLayout.width( 680 ).fillHeight.set( true ) );
+
+                var pageflowContainer = rootWindow.add( new UIComposite() {{cssClasses.add( "MaxWidth" );}} );
+                rootWindow.layout();
+
+                Pageflow.start( pageflowContainer )
                         .create( new StartPage() )
                         .putContext( new CMS(), Page.Context.DEFAULT_SCOPE )
                         .open();
