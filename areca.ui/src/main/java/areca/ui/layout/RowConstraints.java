@@ -23,6 +23,14 @@ import areca.ui.component2.Property.ReadWrite;
 public class RowConstraints
         implements LayoutConstraints {
 
+    public static RowConstraints width( int width ) {
+        return new RowConstraints().width.set( width );
+    }
+
+    public static RowConstraints height( int height ) {
+        return new RowConstraints().height.set( height );
+    }
+
     public ReadWrite<RowConstraints,Integer>       height = Property.rw( this, "height" );
 
     public ReadWrite<RowConstraints,Integer>       width = Property.rw( this, "width" );

@@ -132,6 +132,12 @@ public class StartPage {
                         if (href.equals( "#flip" )) {
                             ((SwitcherLayout)ui.body.layout.$()).next();
                         }
+                        else if (href.equals( "#components" )) {
+                            pageSite.createPage( new ComponentsPage() ).open();
+                        }
+                        else if (href.equals( "#layout" )) {
+                            pageSite.createPage( new LayoutPage() ).open();
+                        }
                         else if (href.equals( "#open" )) {
                             pageSite.createPage( new SimplePage() ).open();
                         }

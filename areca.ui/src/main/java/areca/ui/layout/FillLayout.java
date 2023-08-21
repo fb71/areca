@@ -30,6 +30,13 @@ public class FillLayout
 
     private static final Log LOG = LogFactory.getLog( FillLayout.class );
 
+    /**
+     * Returns a newly created instance width {@link #orientation} set to {@link Orientation#HORIZONTAL}.
+     */
+    public static FillLayout defaults() {
+        return new FillLayout();
+    }
+
     private Orientation             orientation = Orientation.HORIZONTAL;
 
 

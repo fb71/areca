@@ -103,7 +103,7 @@ a:active, .Link:active {
     background-color: $bg3_color;
     border-color: lighten($bg3_color, 8%) !important;
     box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
-    overflow: visible; // badge and tags
+    overflow: visible; // badge and tags!
 }
 .Button:hover:enabled {
     //background-color: lighten(saturate($accent_color2, 0%), 0%);

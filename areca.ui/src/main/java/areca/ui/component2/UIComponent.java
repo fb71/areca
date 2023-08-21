@@ -77,6 +77,11 @@ public abstract class UIComponent {
     public ReadWrites<UIComponent,String>   cssClasses = Property.rws( this, PROP_CSS_CLASSES );
 
     public static class CssStyle {
+
+        public static CssStyle of( String name, String value ) {
+            return new CssStyle( name, value );
+        }
+
         public String name;
         public String value;
 

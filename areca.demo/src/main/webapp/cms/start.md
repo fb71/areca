@@ -23,12 +23,14 @@ So I started to learn, experiment and test to figure out what's possible with Te
 
 ## UI components
 
-The UI components are the basic foundation of the entire UI. 
+The UI components are the basic foundation of the entire UI.
 
-> - **Basic**: Text, Button, Input, ...
-> - **Composites**: consists of elements and layout them
+Basically there are two kinds of UI elements:
 
-The **hierarchy** of composites and components that form an actual application is described in pure Java. Have a look at the <a href="#flip">code example</a> to get an idea how it feels.
+- **Component**: like <a href="#components">Text, Button, Input</a>, and 
+- **Composites**: do the <a href="#layout">Layout</a>
+
+The **hierarchy** of composites and components of an application is described in pure Java. Have a look at the <a href="#flip">code example</a> to get an idea how it feels.
 
 The **implementation** is simple yet powerful. It uses asynchronous events to render the components to HTML. Those events are processed inside [requestAnimationFrame callbacks](https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame). This prevents the UI from lagging during updates.
 

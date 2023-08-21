@@ -61,12 +61,18 @@ public class RowLayout
 
     public ReadWrite<RowLayout,Integer>     spacing = Property.rw( this, "spacing", 0 );
 
+    public RowLayout spacing( int value ) {
+        this.spacing.set( value );
+        return this;
+    }
+
     public ReadWrite<RowLayout,Orientation> orientation = Property.rw( this, "orientation", HORIZONTAL );
 
     public RowLayout orientation( Orientation value ) {
         orientation.set( value );
         return this;
     }
+
     /**
      * {@link Orientation#HORIZONTAL}: all components have the same height so that the
      * entiry client size of the composite is filled. Default: {@link Boolean#FALSE}

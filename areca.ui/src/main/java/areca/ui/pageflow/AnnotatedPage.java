@@ -100,8 +100,8 @@ class AnnotatedPage
     protected UIComponent onCreateUI( UIComposite parent ) {
         var result = new MutableObject<UIComponent>();
         for (MethodInfo m : pageInfo.methods()) {
-            Assert.isNull( result.getValue(), "More than on method annotated with @Page.CreateUI!" );
             m.annotation( Page.CreateUI.class ).ifPresent( a -> {
+                Assert.isNull( result.getValue(), "More than on method annotated with @Page.CreateUI!" );
                 result.setValue( Assert.isType( UIComponent.class, m.invokeThrowingRuntimeException( delegate, parent ) ) );
             });
         }
