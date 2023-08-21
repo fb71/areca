@@ -27,7 +27,6 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
-import areca.ui.Color;
 import areca.ui.Size;
 import areca.ui.component2.Button;
 import areca.ui.component2.Label;
@@ -83,6 +82,7 @@ public class ComponentsPage {
 
             add( resultText = new Text() {{
                 layoutConstraints.set( RowConstraints.height( 35 ) );
+                bordered.set( true );
                 styles.add( CssStyle.of( "text-align", "center" ) );
                 styles.add( CssStyle.of( "padding", "8px" ) );
             }});
@@ -105,7 +105,7 @@ public class ComponentsPage {
 
         var distance = StringUtils.getLevenshteinDistance( result, "Ellen Louise Ripley" );
         //LOG.info( "distance: %s", distance );
-        resultText.bgColor.set( Color.rgb( 40, 40, 40 ) );
+        //resultText.bgColor.set( Color.rgb( 40, 40, 40 ) );
 
         if (!resultText.isDisposed()) {
             Platform.schedule( 500, () -> checkResult() );

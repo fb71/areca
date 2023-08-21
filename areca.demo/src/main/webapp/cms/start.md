@@ -17,7 +17,7 @@ Areca is a toolkit build on top of the great [TeaVM](http://teavm.org). It is me
 
 When I started to make apps for mobile devices I first looked into Android and I found that building Android apps with Gradle is unbelievable slow. Really not fun to work with. Next bummer: Android development is tied to IntelliJ, which I don't like. And, most important: it is just one platform, no desktop, no iOS.
 
-I really like to use the Browser as a platform independent environment - but I don't like the idea to program in JavaScript (or TypeScript, React, Angular, whatever). Then I discovered [TeaVM](http://teavm.org). I was really excited about it. It seemed possible to have ...
+I really like the idea to use the Browser as a platform independent environment - but I don't like code JavaScript (or TypeScript, React, Angular, whatever). Then I discovered [TeaVM](http://teavm.org). I was really excited about it. It seemed possible to have ...
 
 So I started to learn, experiment and test to figure out what's possible with TeaVM and what is missing to build apps with minimal effort. The result is the Areca toolkit. Below is a brief overview of the main parts of Areca.
 

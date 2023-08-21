@@ -21,6 +21,7 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.Action;
+import areca.ui.Color;
 import areca.ui.Size;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.ScrollableComposite;
@@ -61,6 +62,7 @@ public class StartPage {
 
 //        ui.body.layout.set( RowLayout.filled() );
         ui.body.layout.set( SwitcherLayout.defaults() );
+        ui.body.bgColor.set( Color.rgb( 36, 36, 35 ) ); // rotate over dark background
 
         var one = ui.body.add( new ScrollableComposite() {{
             layout.set( RowLayout.filled().margins.set( Size.of( 20, 10 ) ) );
