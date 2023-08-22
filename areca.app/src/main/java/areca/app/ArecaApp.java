@@ -53,6 +53,7 @@ import areca.common.event.IdleAsyncEventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
+import areca.rt.teavm.SimpleBrowserHistoryStrategy;
 import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.App;
 import areca.ui.Size;
@@ -200,6 +201,8 @@ public class ArecaApp extends App {
             rootWindow.layout();
 
             Pageflow.start( mainBody ).create( new StartPage() ).open();
+
+            SimpleBrowserHistoryStrategy.start( Pageflow.current() );
         });
     }
 

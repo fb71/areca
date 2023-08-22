@@ -50,7 +50,7 @@ public class IdleAsyncEventManager
             for (EventHandlerInfo handler : stableHandlers) {
                 handler.perform( ev );
             }
-            LOG.debug( "Handlers: %s (%s) - %s", stableHandlers.size(), handlers.size() );
+            LOG.debug( "Handlers: %s (%s)", stableHandlers.size(), handlers.size() );
             return null;
         });
     }

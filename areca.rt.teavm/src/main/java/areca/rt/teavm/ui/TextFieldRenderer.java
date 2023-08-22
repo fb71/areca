@@ -59,7 +59,7 @@ public class TextFieldRenderer
         c.htmlElm = inputElm;
 
         c.content.onInitAndChange( (newValue, oldValue) -> {
-            LOG.info( "Set: %s", newValue );
+            LOG.debug( "Set: %s", newValue );
             inputElm.setAttribute( "value", newValue != null ? newValue : "" );
         });
 

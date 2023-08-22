@@ -69,7 +69,7 @@ class AnnotatedPage
                             + "' required but absent in Page: " + delegate.getClass().getSimpleName() );
                 }
                 f.set( part, f.type().cast( value ) );
-                LOG.info( "inject: %s = %s", f.name(), value != null ? value : "null" );
+                LOG.debug( "inject: %s = %s", f.name(), value != null ? value : "null" );
             });
             // Part
             f.annotation( Page.Part.class ).ifPresent( a -> {

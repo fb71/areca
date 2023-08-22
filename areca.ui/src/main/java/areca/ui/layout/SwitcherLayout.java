@@ -57,7 +57,7 @@ public class SwitcherLayout
     public void layout( @SuppressWarnings("hiding") UIComposite composite ) {
         // init
         if (this.composite == null) {
-            composite.styles.add( new CssStyle( "perspective", "6000px") );
+            composite.cssClasses.add( "Switcher" );
 
             // children
             rotationStep = 360 / composite.components.size();

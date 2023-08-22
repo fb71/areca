@@ -25,9 +25,12 @@ import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.event.EventManager;
+import areca.common.event.IdleAsyncEventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
+import areca.rt.teavm.SimpleBrowserHistoryStrategy;
 import areca.rt.teavm.TeaApp;
 import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.ui.UIComponentRenderer;
@@ -56,14 +59,12 @@ public class DemoApp
         LOG.info( "Debug: %s", debug );
         LogFactory.DEFAULT_LEVEL = debug ? Level.INFO : Level.WARN;
 
+        EventManager.setInstance( new IdleAsyncEventManager() );
         Promise.setDefaultErrorHandler( defaultErrorHandler() );
         Platform.impl = new TeaPlatform();
         UIComponentRenderer.start();
 
         try {
-            // Browser history
-            Window.current().addEventListener( "popstate", ev -> onBrowserHistoryEvent( ev.cast() ) );
-
             // UI
             new DemoApp().createUI( rootWindow -> {
                 rootWindow.layout.set( MaxWidthLayout.width( 680 ).fillHeight.set( true ) );
@@ -75,6 +76,8 @@ public class DemoApp
                         .create( new StartPage() )
                         .putContext( new CMS(), Page.Context.DEFAULT_SCOPE )
                         .open();
+
+                SimpleBrowserHistoryStrategy.start( Pageflow.current() );
             });
         }
         catch (Throwable e) {

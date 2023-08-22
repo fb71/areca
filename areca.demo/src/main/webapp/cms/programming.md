@@ -108,7 +108,7 @@ Note how **object initializers** are used to create a hierarchy of depending obj
     }
 </code></pre>
 
-## Four
+## Asynchronous programming with Promise
 
 ...
 
@@ -124,16 +124,6 @@ Note how **object initializers** are used to create a hierarchy of depending obj
     }
 </code></pre>
 
-<pre><code class="language-java">
-    @Page.CreateUI
-    public UIComponent create( UIComposite parent ) {
-        ui.init( parent ).title.set( "Areca Demo" );
-        ui.body.layout.set( SwitcherLayout.defaults() );
-        ui.body.add( new UIComposite() {{
-            add( createText( cms.file( "start" ) ) );
-        }});
-        return ui;
-    }
-</code></pre>
-
 ## Five
+
+...

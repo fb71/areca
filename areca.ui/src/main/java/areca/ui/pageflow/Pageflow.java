@@ -14,6 +14,11 @@
 package areca.ui.pageflow;
 
 import static areca.common.base.With.with;
+import static areca.ui.pageflow.PageflowEvent.EventType.INITIALIZING;
+import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSED;
+import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSING;
+import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_OPENED;
+import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_OPENING;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -23,6 +28,7 @@ import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
@@ -30,6 +36,7 @@ import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.gesture.PanGesture;
 import areca.ui.pageflow.Page.PageSite;
+import areca.ui.pageflow.PageflowEvent.EventType;
 
 /**
  *
@@ -89,7 +96,7 @@ public class Pageflow {
             return String.format( "PageSite[page=%s, context=[%s]]", clientPage.getClass().getSimpleName(),
                     Sequence.of( context )
                             .map( scoped -> scoped.value )
-                            .map( value -> value instanceof PageSite ? "-PageSite-" : value.toString() )
+                            .map( value -> value instanceof PageSite ? "[PageSite]" : value.toString() )
                             .reduce( (r,elm) -> r + ", " ).orElse( "" ) );
         }
 
@@ -128,11 +135,27 @@ public class Pageflow {
 
 
     protected Pageflow( UIComposite rootContainer ) {
+        fireEvent( this, null, INITIALIZING );
         this.rootContainer = Assert.notNull( rootContainer, "rootContainer must not be null" );
         this.rootContainer.layout.set( new PageStackLayout() );
         //new PageCloseGesture( rootContainer );
+        fireEvent( this, null, EventType.INITIALIZED );
     }
 
+
+    public void dispose() {
+        throw new RuntimeException( "not yet implemented." );
+    }
+
+
+    public boolean isDisposed() {
+        return pages == null;
+    }
+
+
+    protected void fireEvent( Pageflow pageflow, Object page, EventType type ) {
+        EventManager.instance().publish( new PageflowEvent( pageflow, page, type ) );
+    }
 
     /**
      * Prepare a {@link PageBuilder} in order to open a new page.
@@ -141,6 +164,7 @@ public class Pageflow {
      *        the controller of the newly created page.
      */
     public PageBuilder create( Object page ) {
+        fireEvent( this, page, PAGE_OPENING );
         return new PageBuilder( page );
     }
 
@@ -209,6 +233,7 @@ public class Pageflow {
                 ((UIComposite)ui).layout();
             }
             layout.openLast( origin );
+            fireEvent( Pageflow.this, page, PAGE_OPENED );
         }
     }
 
@@ -216,6 +241,7 @@ public class Pageflow {
     public void close( Object page ) {
         Assert.isSame( page, pages.peek().clientPage, "Removing other than top page is not supported yet." );
         var pageData = pages.pop();
+        fireEvent( this, pageData.clientPage, PAGE_CLOSING );
         pageData.ui.cssClasses.add( "Closing" );
         with( pageData.ui.position ).apply( pos -> pos.set(
                 Position.of( pos.value().x, rootContainer.clientSize.value().height() - 30 ) ) );
@@ -227,6 +253,7 @@ public class Pageflow {
             if (!pageData.ui.isDisposed()) {
                 pageData.ui.dispose();
             }
+            fireEvent( this, pageData.clientPage, PAGE_CLOSED );
             // rootContainer.layout();
         });
     }

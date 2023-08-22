@@ -47,7 +47,7 @@ public class LayoutPage {
 
     @Page.CreateUI
     protected UIComposite createUI( UIComposite parent ) {
-        ui.init( parent ).title.set( "Components" );
+        ui.init( parent ).title.set( "RowLayout" );
 
         var layout = new RowLayout().margins( Size.of( 5, 5 ) ).spacing( 5 ).fillWidth( true );
         ui.body.layout.set( layout );

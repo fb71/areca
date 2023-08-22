@@ -122,13 +122,12 @@ public class StartPage {
         for (int i = 0; i < links.getLength(); i++) {
             HTMLElement a = links.item( i );
             var href = a.getAttribute( "href" );
-            LOG.info( "a: %s", href );
+            LOG.debug( "a: %s", href );
 
             // internal/article link
             if (href.startsWith( "#" ) || !href.contains( ":" )) {
                 a.addEventListener( "click", htmlEv -> {
                     DemoApp.catchAll( () -> {
-                        LOG.info( "CLICK!" );
                         htmlEv.preventDefault();
 
                         if (href.equals( "#flip" )) {

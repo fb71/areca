@@ -288,6 +288,10 @@ $badge-padding: 4px;
     //bottom: -$badge_padding;
 }
 
+.Switcher {
+    perspective: 6000px;
+    overflow-x: hidden; // clip switcher handles
+}
 .SwitcherChild {
     background-color: $bg1_color;
     backface-visibility: hidden;
