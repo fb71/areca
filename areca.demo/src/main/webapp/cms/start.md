@@ -1,6 +1,6 @@
 # Welcome to Areca
 
-This is a short demo of the Areca toolkit. It is meant to showcase the **UI** and give a brief overview of the **programming**. You can <a href="#flip">flip</a> the page at any time to switch between general description and some code examples.
+This is a short demo of the Areca toolkit. It is meant to showcase the **UI** and give a brief overview of the **programming**. You can **<a href="#flip">flip</a>** the page at any time to switch between general description and some code examples.
 
 ## What is Areca?
 
@@ -27,12 +27,12 @@ The UI components are the basic foundation of the entire UI.
 
 Basically there are two kinds of UI elements:
 
-- **Components**: like <a href="#components">Text, Button, Input</a>, and 
+- **Components**: like <a href="#components">Text, Button, Input</a>, etc.
 - **Composites**: do the <a href="#layout">Layout</a>
 
 The **hierarchy** of composites and components of an application is described in pure Java. Have a look at the <a href="#flip">code example</a> to get an idea how it feels.
 
-The **implementation** is simple yet powerful. It uses asynchronous events to render the components to HTML. Those events are processed inside [requestAnimationFrame callbacks](https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame). This prevents the UI from lagging during updates.
+The **implementation** is simple yet powerful. It uses [asynchronous event processing](https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame) to render the components to the DOM/HTML. This prevents the UI from lagging during updates.
 
 ## Pageflow
 

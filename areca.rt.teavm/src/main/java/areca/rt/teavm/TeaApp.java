@@ -13,9 +13,14 @@
  */
 package areca.rt.teavm;
 
+import java.util.EventObject;
+
 import org.teavm.jso.browser.Window;
+import org.teavm.jso.dom.html.HTMLBodyElement;
+import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.common.base.Consumer;
+import areca.common.event.EventCollector;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.App;
@@ -35,14 +40,27 @@ public class TeaApp
     public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E {
         return super.createUI( rootWindow -> {
             // XXX set the size of the root composite
+            HTMLBodyElement body = Window.current().getDocument().getBody();
             rootWindow.size.defaultsTo( () -> {
-                var body = Window.current().getDocument().getBody();
-                var size = Size.of( body.getClientWidth(), body.getClientHeight() );
-                LOG.debug( "BODY: " + size );
-                return size;
+                return elementSize( body );
             });
+
+            var throttle = new EventCollector<>( 750 );
+            Window.current().addEventListener( "resize", ev -> {
+                throttle.collect( new EventObject( body ), __ -> {
+                    rootWindow.size.set( elementSize( body ) );
+                });
+            });
+
+            rootWindow.size.onChange( (newSize,__) -> rootWindow.layout() );
             initializer.accept( rootWindow );
         });
+    }
+
+    protected Size elementSize( HTMLElement elm ) {
+        var result = Size.of( elm.getClientWidth(), elm.getClientHeight() );
+        LOG.info( "BODY: %s", result );
+        return result;
     }
 
 }

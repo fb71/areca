@@ -16,6 +16,7 @@ package areca.rt.teavm.ui;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.xml.Node;
 
+import areca.common.Assert;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -53,12 +54,8 @@ public class UICompositeRenderer
         // XXX
         if (ev.getSource().getClass().getSimpleName().startsWith( "Root" )) {
             LOG.warn( "ROOT container:  " + ev.getSource().getClass().getSimpleName() );
-            var body = doc().getElementById( "body" );
-            if (body == null) {
-                LOG.warn( "No element 'body' found, using doc().getBody()" );
-                body = doc().getBody();
-            }
-            body.appendChild( (Node)c.htmlElm );
+            Assert.that( doc().getElementById( "body" ) == null, "RootWindow other than document.body is not supported yet (because initial size)" );
+            doc().getBody().appendChild( (Node)c.htmlElm );
 
 //            LOG.warn( "" + Size.of( doc().getBody().getClientWidth(), doc().getBody().getClientHeight() ) );
 //            c.size.defaultsTo( () -> {

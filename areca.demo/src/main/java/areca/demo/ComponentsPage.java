@@ -67,7 +67,7 @@ public class ComponentsPage {
     protected UIComposite createUI( UIComposite parent ) {
         ui.init( parent ).title.set( "Components" );
 
-        ui.body.layout.set( MaxWidthLayout.width( 400 ).fillHeight.set( true ) );
+        ui.body.layout.set( MaxWidthLayout.width( 350 ).fillHeight.set( true ) );
         ui.body.add( new UIComposite() {{
             layout.set( RowLayout.defaults().orientation( VERTICAL ).margins( Size.of( 0, 40) ).spacing( 30 ).fillWidth( true ) );
 
