@@ -13,13 +13,12 @@ Areca is meant to:
 > - build apps for **mobile** and **desktop**
 > - with a **simple API**
 > - using just **Java**
-> - no HTML, XML, JavaScript
 
 ### Motivation
 
 When I started to make apps for mobile devices I first looked into Android and I found that building Android apps with Gradle is unbelievable slow. Really not fun to work with. Next bummer: Android development is tied to IntelliJ, which I don't like. And, most important: it is just one platform, no desktop, no iOS.
 
-I really like the idea to use the Browser as a platform independent environment - but I don't like to code JavaScript (or TypeScript, React, Angular, whatever). Then I discovered [TeaVM](http://teavm.org) and I started to learn and experiment to figure out what is possible with TeaVM and what is missing in order to be able to build apps with minimal effort. The result is the Areca toolkit. Below is a brief overview of the main parts of Areca.
+I really like the idea to use the Browser as a platform independent environment - but I don't like to code JavaScript (or TypeScript, React, Angular, whatever). Then I discovered [TeaVM](http://teavm.org) and I started to learn and experiment to figure out what is possible with TeaVM and what is missing in order to be able to build apps with minimal effort. The result is the Areca toolkit. Below is a brief overview of some important parts of it.
 
 ## UI components
 
