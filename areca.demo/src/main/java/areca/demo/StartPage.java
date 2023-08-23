@@ -82,7 +82,7 @@ public class StartPage {
             icon.set( "settings" );
             description.set( "Open settings" );
             handler.set( (UIEvent ev) -> {
-                //pageSite.createPage( new SettingsPage() ).origin( ev.clientPos() ).open();
+                pageSite.createPage( new SimplePage() ).origin( ev.clientPos() ).open();
             });
         }});
         return ui;
@@ -140,6 +140,9 @@ public class StartPage {
                             pageSite.createPage( new LayoutPage() ).open();
                         }
                         else if (href.equals( "#open" )) {
+                            pageSite.createPage( new SimplePage() ).open();
+                        }
+                        else if (href.equals( "#settings" )) {
                             pageSite.createPage( new SimplePage() ).open();
                         }
                         return null;
