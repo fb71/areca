@@ -15,12 +15,7 @@ package areca.demo;
 
 import java.util.concurrent.Callable;
 
-import org.teavm.jso.JSBody;
-import org.teavm.jso.JSObject;
-import org.teavm.jso.JSProperty;
 import org.teavm.jso.browser.Window;
-import org.teavm.jso.json.JSON;
-
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
@@ -87,44 +82,6 @@ public class DemoApp
             throw (Exception)rootCause;
         }
     }
-
-
-    /**
-     *
-     */
-    public static abstract class BrowserHistoryState
-            implements JSObject {
-
-        @JSBody(params = "newState", script = "return {state: newState};")
-        public static native BrowserHistoryState create( String newState );
-
-        @JSProperty
-        public abstract String getState();
-    }
-
-    public static void onPageOpen( String browserHistoryState ) {
-        var state = BrowserHistoryState.create( browserHistoryState );
-        Window.current().getHistory().pushState( state, "", browserHistoryState );
-    }
-
-    public static void closeTopPage() {
-        Window.current().getHistory().back();
-    }
-
-    /**
-     *
-     */
-    private static void onBrowserHistoryEvent( PopStateEvent ev ) {
-        LOG.info( "popstate: %s", JSON.stringify( ev.getState() ) );
-        ev.preventDefault();
-
-        catchAll( () -> {
-            var pageflow = Pageflow.current();
-            pageflow.close( pageflow.pages().first().orElseError() );
-            return null;
-        });
-    }
-
 
     /**
      * Helps to handle exceptions in any code that is not handled
