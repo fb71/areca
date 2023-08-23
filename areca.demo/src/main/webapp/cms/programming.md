@@ -24,7 +24,6 @@ public class DemoApp extends TeaApp {
 A simple main page could look like this:
 
 <pre><code class="language-java">
-@RuntimeInfo
 public class StartPage {
 
     // inject the system interface for this page
@@ -82,48 +81,51 @@ Note how **object initializers** are used to create a hierarchy of depending obj
 
 ## Pageflow
 
+An important part of the Pageflow system is the **context** of a Page. A Page can share variables with other Pages via its context. Context variables are **injected** using annotations.
+
+<pre><code class="language-java">
+public class StartPage {
+
+    // inject the system interface for this page
+    @Page.Context
+    protected PageSite pageSite;
+
+    // create and inject the standard page UI container
+    @Page.Part
+    protected PageContainer ui;
+    
+    ...
+</code></pre>
+
+## Data modeling
+
+The following is an example of a simple **Entity**:
+
+<pre><code class="language-java">
+public class Person extends Entity {
+
+    public static Person TYPE;
+
+    @Nullable
+    @Queryable
+    @DefaultValue("Ellen")
+    public Property&lt;String&gt; firstname;
+
+    @Nullable
+    @Queryable
+    @DefaultValue("Ripley")
+    public Property&lt;String&gt; lastname;
+
+    public ManyAssociation&lt;Contact&gt; friends;
+}
+</code></pre>
+
+
+## UI data binding
+
 ...
-
-<pre><code class="language-java">
-    @Page.CreateUI
-    public UIComponent create( UIComposite parent ) {
-        ui.init( parent ).title.set( "Areca Demo" );
-        ui.body.layout.set( SwitcherLayout.defaults() );
-        ui.body.add( new UIComposite() {{
-            add( createText( cms.file( "start" ) ) );
-        }});
-        return ui;
-    }
-</code></pre>
-
-<pre><code class="language-java">
-    @Page.CreateUI
-    public UIComponent create( UIComposite parent ) {
-        ui.init( parent ).title.set( "Areca Demo" );
-        ui.body.layout.set( SwitcherLayout.defaults() );
-        ui.body.add( new UIComposite() {{
-            add( createText( cms.file( "start" ) ) );
-        }});
-        return ui;
-    }
-</code></pre>
 
 ## Asynchronous programming with Promise
 
 ...
 
-<pre><code class="language-java">
-    @Page.CreateUI
-    public UIComponent create( UIComposite parent ) {
-        ui.init( parent ).title.set( "Areca Demo" );
-        ui.body.layout.set( SwitcherLayout.defaults() );
-        ui.body.add( new UIComposite() {{
-            add( createText( cms.file( "start" ) ) );
-        }});
-        return ui;
-    }
-</code></pre>
-
-## Five
-
-...

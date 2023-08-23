@@ -27,6 +27,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
+import areca.ui.Color;
 import areca.ui.Size;
 import areca.ui.component2.Button;
 import areca.ui.component2.Label;
@@ -72,11 +73,11 @@ public class ComponentsPage {
             layout.set( RowLayout.defaults().orientation( VERTICAL ).margins( Size.of( 0, 40) ).spacing( 30 ).fillWidth( true ) );
 
             add( decorate( "Firstname", new TextField() {{
-                content.set( "Ellen Louise" );
+                content.set( "Ellen ???" );
                 textFields.add( this );
             }}));
             add( decorate( "Lastname", new TextField() {{
-                content.set( "???" );
+                content.set( "Ripley" );
                 textFields.add( this );
             }}));
 
@@ -103,9 +104,9 @@ public class ComponentsPage {
         var result = Sequence.of( textFields ).map( field -> field.content.$() ).reduce( "", (r,n) -> r + " " + n );
         resultText.content.set( result );
 
-        var distance = StringUtils.getLevenshteinDistance( result, "Ellen Louise Ripley" );
-        //LOG.info( "distance: %s", distance );
-        //resultText.bgColor.set( Color.rgb( 40, 40, 40 ) );
+        var distance = StringUtils.getJaroWinklerDistance( result, "Ellen Louise Ripley" );
+        LOG.info( "distance: %s", distance );
+        resultText.bgColor.set( Color.rgb( 40, (int)(40 + ((distance - 0.6) * 100)), 40 ) );
 
         if (!resultText.isDisposed()) {
             Platform.schedule( 500, () -> checkResult() );
