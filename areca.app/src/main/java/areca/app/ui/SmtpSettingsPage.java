@@ -16,6 +16,7 @@ package areca.app.ui;
 import areca.app.model.SmtpSettings;
 import areca.app.service.mail.MessageSendRequest;
 import areca.common.Promise;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
@@ -75,7 +76,7 @@ public class SmtpSettingsPage
     }
 
     @Override
-    protected UIComposite buildCheckingForm( SmtpSettings settings, Form form ) {
+    protected UIComposite buildCheckingForm( RSupplier<SmtpSettings> settings, Form form ) {
         return new SmtpCheckingForm( settings, form );
     }
 
@@ -86,7 +87,7 @@ public class SmtpSettingsPage
     protected class SmtpCheckingForm
             extends CheckingForm {
 
-        public SmtpCheckingForm( SmtpSettings settings, Form form ) {
+        public SmtpCheckingForm( RSupplier<SmtpSettings> settings, Form form ) {
             super( settings, form );
         }
 
@@ -94,30 +95,30 @@ public class SmtpSettingsPage
         protected void buildForm() {
             add( form.newField().label( "Email Address" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.from ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().from ) )
                     .create() );
             add( form.newField().label( "Username" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.username ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().username ) )
                     .create() );
             add( form.newField().label( "Password" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.pwd ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().pwd ) )
                     .create() );
             add( form.newField().label( "Host" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.host ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().host ) )
                     .create() );
             add( form.newField().label( "Port" )
                     .viewer( new TextFieldViewer() )
                     .transformer( new Number2StringTransformer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.port ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().port ) )
                     .create() );
         }
 
         @Override
         protected void buildButtons( UIComposite container ) {
-            container.add( createCheckButton( () -> checkSettings( settings ) ) );
+            container.add( createCheckButton( () -> checkSettings( settings.get() ) ) );
             container.add( createSubmitButton() );
         }
     }

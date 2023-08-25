@@ -136,10 +136,10 @@ public class Main {
                         .run();
             });
         }
-        // unknown #hash
-        else if (!hash.isBlank()) {
-            throw new RuntimeException( "Unknown hash:  " + hash );
-        }
+//        // unknown #hash
+//        else if (!hash.isBlank()) {
+//            throw new RuntimeException( "Unknown hash:  " + hash );
+//        }
         // app
         else {
             catchAll( __ -> {

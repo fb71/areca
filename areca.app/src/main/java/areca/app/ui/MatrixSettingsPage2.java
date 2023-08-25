@@ -18,6 +18,7 @@ import areca.app.model.MatrixSettings;
 import areca.app.service.matrix.MatrixClient;
 import areca.common.Promise;
 import areca.common.Promise.Completable;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
@@ -78,7 +79,7 @@ public class MatrixSettingsPage2
 
 
     @Override
-    protected UIComposite buildCheckingForm( MatrixSettings settings, Form form ) {
+    protected UIComposite buildCheckingForm( RSupplier<MatrixSettings> settings, Form form ) {
         return new MatrixCheckingForm( settings, form );
     }
 
@@ -89,7 +90,7 @@ public class MatrixSettingsPage2
     protected class MatrixCheckingForm
             extends CheckingForm {
 
-        public MatrixCheckingForm( MatrixSettings settings, Form form ) {
+        public MatrixCheckingForm( RSupplier<MatrixSettings> settings, Form form ) {
             super( settings, form );
         }
 
@@ -97,11 +98,11 @@ public class MatrixSettingsPage2
         protected void buildForm() {
             add( form.newField().label( "Base URL" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.baseUrl ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().baseUrl ) )
                     .create() );
             add( form.newField().label( "Username" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.username ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().username ) )
                     .create() );
             add( form.newField().label( "Password" )
                     .viewer( new TextFieldViewer() )
@@ -111,7 +112,7 @@ public class MatrixSettingsPage2
 
         @Override
         protected void buildButtons( UIComposite container ) {
-            container.add( createCheckButton( () -> checkSettings( settings ) ) );
+            container.add( createCheckButton( () -> checkSettings( settings.get() ) ) );
             container.add( createSubmitButton() );
         }
     }

@@ -15,12 +15,16 @@ package areca.app.ui;
 
 import static areca.ui.Orientation.VERTICAL;
 
+import org.apache.commons.lang3.mutable.MutableObject;
+
 import org.polymap.model2.Entity;
 import org.polymap.model2.runtime.UnitOfWork;
 
 import areca.app.ArecaApp;
+import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Promise;
+import areca.common.Timer;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -66,7 +70,7 @@ public abstract class ServiceSettingsPage<S extends Entity>
 
     protected abstract S newSettings();
 
-    protected abstract UIComposite buildCheckingForm( S settings, Form form );
+    protected abstract UIComposite buildCheckingForm( RSupplier<S> settings, Form form );
 
 
     @Override
@@ -84,32 +88,45 @@ public abstract class ServiceSettingsPage<S extends Entity>
 //                createUI( ui.body );
 //            });
 //        }});
-        createUI( ui.body );
+        loadDataAndCreateForm( ui.body );
         return ui;
     }
 
 
-    protected void createUI( UIComposite container) {
+    protected void loadDataAndCreateForm( UIComposite container ) {
+        var t = Timer.start();
         container.components.disposeAll();
-        container.add( new Text().content.set( "Loading..." ) );
+
+        // (pre)build (not load) the form for the first Entity
+        Form form1 = new Form();
+        MutableObject<S> settings1 = new MutableObject<>();
+        container.add( buildCheckingForm( () -> settings1.getValue(), form1 ) );
         container.layout();
 
+        LOG.info( "Form created (%s)", t.elapsedHumanReadable() );
+        t.restart();
+
         uow.waitForResult().get().query( settingsType ).executeCollect().onSuccess( list -> {
-            container.components.disposeAll();
+            LOG.info( "Query done (%s)", t.elapsedHumanReadable() );
+            t.restart();
+
             if (list.isEmpty()) {
+                container.components.disposeAll();
                 container.add( new Text().content.set( "No settings yet." ) );
                 container.add( new Button() {{
                     label.set( "CREATE" );
                     events.on( EventType.SELECT, ev -> {
                         newSettings();
-                        createUI( ui.body );
+                        loadDataAndCreateForm( ui.body );
                     });
                 }});
             }
             else {
-                for (var settings : list) {
-                    container.add( buildCheckingForm( settings, new Form() ) );
-                }
+                settings1.setValue( list.get( 0 ) );
+                form1.revert();
+                LOG.info( "Form loaded (%s)", t.elapsedHumanReadable() );
+
+                Assert.that( list.size() <= 1, "Multi forms are not supported yet" );
             }
             container.layout();
         });
@@ -121,14 +138,14 @@ public abstract class ServiceSettingsPage<S extends Entity>
     protected abstract class CheckingForm
             extends UIComposite {
 
-        protected S     settings;
+        protected RSupplier<S> settings;
 
         protected Form  form;
 
         public ReadWrite<?,Status> status = Property.rw( this, "valid", Status.UNKNOWN );
 
 
-        public CheckingForm( S settings, Form form ) {
+        public CheckingForm( RSupplier<S> settings, Form form ) {
             this.settings = settings;
             this.form = form;
             layoutConstraints.set( new RowConstraints().height.set( 250 ) );

@@ -22,6 +22,7 @@ import areca.app.service.carddav.PropfindRequest;
 import areca.app.service.carddav.VCard;
 import areca.common.Platform;
 import areca.common.Promise;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
@@ -81,7 +82,7 @@ public class CarddavSettingsPage
 
 
     @Override
-    protected UIComposite buildCheckingForm( CarddavSettings settings, Form form ) {
+    protected UIComposite buildCheckingForm( RSupplier<CarddavSettings> settings, Form form ) {
         return new CarddavCheckingForm( settings, form );
     }
 
@@ -92,7 +93,7 @@ public class CarddavSettingsPage
     protected class CarddavCheckingForm
             extends CheckingForm {
 
-        public CarddavCheckingForm( CarddavSettings settings, Form form ) {
+        public CarddavCheckingForm( RSupplier<CarddavSettings> settings, Form form ) {
             super( settings, form );
         }
 
@@ -100,22 +101,22 @@ public class CarddavSettingsPage
         protected void buildForm() {
             add( form.newField().label( "URL" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.url ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().url ) )
                     //.validator( URL... )
                     .create() );
             add( form.newField().label( "Username" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.username ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().username ) )
                     .create() );
             add( form.newField().label( "Password" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.pwd ) )
+                    .adapter( new PropertyAdapter<>( () -> settings.get().pwd ) )
                     .create() );
         }
 
         @Override
         protected void buildButtons( UIComposite container ) {
-            container.add( createCheckButton( () -> checkSettings( settings ) ) );
+            container.add( createCheckButton( () -> checkSettings( settings.get() ) ) );
             container.add( createSubmitButton() );
         }
     }

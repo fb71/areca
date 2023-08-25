@@ -43,7 +43,6 @@ public class TextFieldViewer
 //                content.set(  )
 //            });
         }};
-        load();
         return textField;
     }
 
