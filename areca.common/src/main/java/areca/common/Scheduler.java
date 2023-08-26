@@ -13,6 +13,8 @@
  */
 package areca.common;
 
+import static areca.common.log.LogFactory.Level.INFO;
+
 import java.util.ArrayDeque;
 import java.util.Comparator;
 import java.util.Deque;
@@ -54,6 +56,13 @@ public class Scheduler {
         return schedule( prio, 0, task );
     }
 
+    public void schedule( Priority prio, Runnable task ) {
+        schedule( prio, 0, () -> {
+            task.run();
+            return null;
+        });
+    }
+
 
     public <R> Promise<R> schedule( Priority prio, int delayMillis, Callable<R> work ) {
         Assert.notNull( prio, "Priority must not be null" );
@@ -64,23 +73,17 @@ public class Scheduler {
             async = Platform.requestIdleCallback( deadline -> process( deadline ) );
         }
 
-        var targetTime = now() + delayMillis;
-        var task = new Task<>( prio, targetTime, work );
+        var task = new Task<>( prio, now() + delayMillis, work );
         queue.addLast( task );
         return task.promise;
     }
 
 
-//    public <R> Promise<R> schedule( Promise<R> task ) {
-//        return schedule( () -> {
-//
-//        });
-//    }
-
-
     @SuppressWarnings({"rawtypes", "unchecked"})
     protected void process( IdleDeadline deadline ) {
-        LOG.info( "Queue: %d, remaining: %s", queue.size(), deadline.timeRemaining() );
+        if (LOG.isLevelEnabled( INFO )) { // LOG potentially uses Scheduler
+            System.out.println( LOG.format( INFO, "Queue: %d, remaining: %s", queue.size(), deadline.timeRemaining() ) );
+        }
         //var now = now();
 
         async = null;
@@ -91,7 +94,6 @@ public class Scheduler {
         while (peek != null /*&& peek.targetTime <= now*/ && deadline.timeRemaining() > 0) {
             queue.poll();
             try {
-                //LOG.info( "  work: %s", peek.work );
                 var result = peek.work.call();
                 peek.promise.complete( result );
             }
@@ -101,7 +103,9 @@ public class Scheduler {
             peek = queue.peek();
             count ++;
         }
-        LOG.info( "  processed: %d, queue: %d, remaining: %s, async: %s", count, queue.size(), deadline.timeRemaining(), async );
+        if (LOG.isLevelEnabled( INFO )) {
+            System.out.println( LOG.format( INFO, "  processed: %d, queue: %d, remaining: %s, async: %s", count, queue.size(), deadline.timeRemaining(), async ) );
+        }
 
         // schedule next loop
         if (!queue.isEmpty() && async == null) {

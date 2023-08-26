@@ -20,6 +20,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import areca.common.base.Sequence;
+import areca.common.base.Supplier.RSupplier;
 
 /**
  *
@@ -63,9 +64,9 @@ public class LogFactory {
      */
     public static class Log {
 
-        protected String                        prefix;
+        protected final String  prefix;
 
-        protected Level                         level;
+        protected final Level   level;
 
 
         public Log( Class<?> cl, String prefix ) {
@@ -78,17 +79,31 @@ public class LogFactory {
                     .orElse( Level.DEFAULT );
         }
 
+        public String format( Level msgLevel, String msg, Object... args ) {
+            var formatted = args != null ? String.format( msg, args ) : msg;
+            return String.format( "[%-5s] %-20s: %s", msgLevel, abbreviate(prefix,20), formatted );
+        }
+
+        private void doLog( Level msgLevel, String msg, Object[] args, Throwable e ) {
+            @SuppressWarnings("resource")
+            var out = msgLevel.ordinal() >= Level.WARN.ordinal() ? System.err : System.out;
+            out.println( format( msgLevel, msg, args ) );
+        }
+
         protected void log( Level msgLevel, String msg, Object[] args, Throwable e ) {
-            var currentLevel = level != Level.DEFAULT ? level : DEFAULT_LEVEL;
-            if (msgLevel.ordinal() >= currentLevel.ordinal()) {
-                var formatted = args != null ? String.format( msg, args ) : msg;
-                var record = String.format( "[%-5s] %-20s: %s", msgLevel, abbreviate(prefix,20), formatted );
-                if (msgLevel.ordinal() >= Level.WARN.ordinal()) {
-                    System.err.println( record );
-                }
-                else {
-                    System.out.println( record );
-                }
+            if (isLevelEnabled( msgLevel )) {
+                //Platform.scheduler.schedule( Priority.DECORATION, () -> {
+                    doLog( msgLevel, msg, args, null );
+                //});
+            }
+        }
+
+        protected void log2( Level msgLevel, String msg, RSupplier<Object>[] args, Throwable e ) {
+            if (isLevelEnabled( msgLevel )) {
+                //Platform.scheduler.schedule( Priority.DECORATION, () -> {
+                    var supplied = Sequence.of( args ).map( supplier -> supplier.get() ).toArray( Object[]::new );
+                    doLog( msgLevel, msg, supplied, null );
+                //});
             }
         }
 
@@ -104,12 +119,23 @@ public class LogFactory {
             log( Level.INFO, format, args, null );
         }
 
+        @SafeVarargs
+        public final void info2( String format, RSupplier<Object>... args ) {
+            log2( Level.INFO, format, args, null );
+        }
+
         public void debug( String format, Object... args ) {
             log( Level.DEBUG, format, args, null );
         }
 
+        @SafeVarargs
+        public final void debug2( String format, RSupplier<Object>... args ) {
+            log( Level.DEBUG, format, args, null );
+        }
+
         public boolean isLevelEnabled( Level l ) {
-            return l.ordinal() >= level.ordinal();
+            var currentLevel = level != Level.DEFAULT ? level : DEFAULT_LEVEL;
+            return l.ordinal() >= currentLevel.ordinal();
         }
     }
 }
