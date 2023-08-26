@@ -23,8 +23,6 @@ import java.util.Locale;
 
 import org.teavm.jso.browser.Location;
 import org.teavm.jso.browser.Navigator;
-import org.teavm.jso.browser.Window;
-
 import org.polymap.model2.Entity;
 import org.polymap.model2.runtime.EntityRepository;
 import org.polymap.model2.runtime.UnitOfWork;
@@ -54,12 +52,13 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.rt.teavm.SimpleBrowserHistoryStrategy;
+import areca.rt.teavm.TeaApp;
 import areca.rt.teavm.ui.UIComponentRenderer;
-import areca.ui.App;
 import areca.ui.Size;
 import areca.ui.component2.Progress;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComposite;
+import areca.ui.layout.MaxWidthLayout;
 import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Pageflow;
@@ -68,7 +67,7 @@ import areca.ui.pageflow.Pageflow;
  *
  * @author Falko Bräutigam
  */
-public class ArecaApp extends App {
+public class ArecaApp extends TeaApp {
 
     static final Log LOG = LogFactory.getLog( ArecaApp.class );
 
@@ -179,23 +178,19 @@ public class ArecaApp extends App {
         super.createUI( rootWindow -> {
             //VisualActionFeedback.start();
 
-            rootWindow.size.defaultsTo( () -> {
-                var doc = Window.current().getDocument();
-                var size = Size.of( doc.getBody().getClientWidth(), doc.getBody().getClientHeight() );
-                LOG.info( "BODY: " + size );
-                return size;
-            });
+            rootWindow.layout.set( MaxWidthLayout.width( 700 ) );
+            rootWindow.add( new UIComposite() {{
+                layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true );}} );
+                mainBody = add( new UIComposite() {{
+                    layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 5 );}} );
+                }});
 
-            rootWindow.layout.set( new RowLayout() {{orientation.set( VERTICAL ); fillWidth.set( true );}} );
-            mainBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( rootWindow.size.value().height() - 5 );}} );
-            }});
-
-            // monitorBody
-            progressBody = rootWindow.add( new UIComposite() {{
-                layoutConstraints.set( new RowConstraints() {{height.set( 5 );}} );
-                cssClasses.add( "ProgressContainer" );
-                layout.set( new RowLayout() {{margins.set( Size.of( 0, 0 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
+                // monitorBody
+                progressBody = add( new UIComposite() {{
+                    layoutConstraints.set( new RowConstraints() {{height.set( 5 );}} );
+                    cssClasses.add( "ProgressContainer" );
+                    layout.set( new RowLayout() {{margins.set( Size.of( 0, 0 ) ); spacing.set( 10 ); fillWidth.set( true ); fillHeight.set( true );}} );
+                }});
             }});
             rootWindow.layout();
 
