@@ -28,41 +28,34 @@ import areca.common.base.Sequence;
 public class LogFactory {
 
     public enum Level {
-        DEBUG, INFO, WARN, ERROR, OFF
+        DEBUG, INFO, WARN, ERROR, OFF,
+        /** Signals that the logger should use the current {@link LogFactory#DEFAULT_LEVEL}. */
+        DEFAULT
     }
 
+    /** The level that is used for loggers with current level {@link Level#DEFAULT}. */
     public static Level DEFAULT_LEVEL = Level.INFO;
 
+    private static Map<String,Level> levels = new HashMap<>();
+
     public static Log getLog( Class<?> cl ) {
-        init();
         return new Log( cl, null );
     }
 
     public static Log getLog( String prefix, Class<?> cl ) {
-        init();
         return new Log( cl, prefix );
     }
 
     public static void setClassLevel( Class<?> cl, Level level ) {
-        init();
         System.out.println( "LOG: " + cl.getName() + " -> " + level );
         levels.put( cl.getName(), level );
     }
 
     public static void setPackageLevel( Class<?> cl, Level level ) {
-        init();
         String packageName = StringUtils.substringBeforeLast( cl.getName(), "." );
         System.out.println( "LOG: " + packageName + " -> " + level );
         levels.put( packageName, level );
     }
-
-    public static void init() {
-        if (levels == null) {
-            levels = new HashMap<>();
-        }
-    }
-
-    private static Map<String,Level> levels;
 
 
     /**
@@ -70,26 +63,24 @@ public class LogFactory {
      */
     public static class Log {
 
-        protected Class<?>                      cl;
-
         protected String                        prefix;
 
         protected Level                         level;
 
 
         public Log( Class<?> cl, String prefix ) {
-            this.cl = cl;
             this.prefix = prefix != null ? prefix : cl.getSimpleName();
 
             this.level = Sequence.of( levels.entrySet() )
                     .filter( entry -> cl.getName().startsWith( entry.getKey() ) )
                     .reduce( (e1,e2) -> e1.getKey().length() > e2.getKey().length() ? e1 : e2 )
                     .ifPresentMap( entry -> entry.getValue() )
-                    .orElse( DEFAULT_LEVEL );
+                    .orElse( Level.DEFAULT );
         }
 
         protected void log( Level msgLevel, String msg, Object[] args, Throwable e ) {
-            if (msgLevel.ordinal() >= level.ordinal()) {
+            var currentLevel = level != Level.DEFAULT ? level : DEFAULT_LEVEL;
+            if (msgLevel.ordinal() >= currentLevel.ordinal()) {
                 var formatted = args != null ? String.format( msg, args ) : msg;
                 var record = String.format( "[%-5s] %-20s: %s", msgLevel, abbreviate(prefix,20), formatted );
                 if (msgLevel.ordinal() >= Level.WARN.ordinal()) {

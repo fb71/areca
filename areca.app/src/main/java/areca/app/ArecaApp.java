@@ -172,7 +172,6 @@ public class ArecaApp extends App {
 
     public void createUI( @SuppressWarnings("hiding") boolean debug ) {
         this.debug = debug;
-        LOG.info( "Debug: %s", debug );
         Promise.setDefaultErrorHandler( defaultErrorHandler() );
 
         UIComponentRenderer.start();
