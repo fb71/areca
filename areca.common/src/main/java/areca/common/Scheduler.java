@@ -80,7 +80,7 @@ public class Scheduler {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     protected void process( IdleDeadline deadline ) {
-        LOG.debug( "Queue: %d, remaining: %s", queue.size(), deadline.timeRemaining() );
+        LOG.info( "Queue: %d, remaining: %s", queue.size(), deadline.timeRemaining() );
         //var now = now();
 
         async = null;
@@ -101,7 +101,7 @@ public class Scheduler {
             peek = queue.peek();
             count ++;
         }
-        LOG.debug( "  processed: %d, queue: %d, remaining: %s, async: %s", count, queue.size(), deadline.timeRemaining(), async );
+        LOG.info( "  processed: %d, queue: %d, remaining: %s, async: %s", count, queue.size(), deadline.timeRemaining(), async );
 
         // schedule next loop
         if (!queue.isEmpty() && async == null) {

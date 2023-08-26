@@ -24,6 +24,7 @@ import areca.app.ArecaApp;
 import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Promise;
+import areca.common.Scheduler.Priority;
 import areca.common.Timer;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
@@ -106,30 +107,34 @@ public abstract class ServiceSettingsPage<S extends Entity>
         LOG.info( "Form created (%s)", t.elapsedHumanReadable() );
         t.restart();
 
-        uow.waitForResult().get().query( settingsType ).executeCollect().onSuccess( list -> {
-            LOG.info( "Query done (%s)", t.elapsedHumanReadable() );
-            t.restart();
+        uow.waitForResult().get().query( settingsType )
+                .executeCollect()
+                //.then( list -> Platform.schedule( 1000, () -> list ) )
+                .priority( Priority.BACKGROUND )
+                .onSuccess( list -> {
+                    LOG.info( "Query done (%s)", t.elapsedHumanReadable() );
+                    t.restart();
 
-            if (list.isEmpty()) {
-                container.components.disposeAll();
-                container.add( new Text().content.set( "No settings yet." ) );
-                container.add( new Button() {{
-                    label.set( "CREATE" );
-                    events.on( EventType.SELECT, ev -> {
-                        newSettings();
-                        loadDataAndCreateForm( ui.body );
-                    });
-                }});
-            }
-            else {
-                settings1.setValue( list.get( 0 ) );
-                form1.revert();
-                LOG.info( "Form loaded (%s)", t.elapsedHumanReadable() );
+                    if (list.isEmpty()) {
+                        container.components.disposeAll();
+                        container.add( new Text().content.set( "No settings yet." ) );
+                        container.add( new Button() {{
+                            label.set( "CREATE" );
+                            events.on( EventType.SELECT, ev -> {
+                                newSettings();
+                                loadDataAndCreateForm( ui.body );
+                            });
+                        }});
+                    }
+                    else {
+                        settings1.setValue( list.get( 0 ) );
+                        form1.revert();
+                        LOG.info( "Form loaded (%s)", t.elapsedHumanReadable() );
 
-                Assert.that( list.size() <= 1, "Multi forms are not supported yet" );
-            }
-            container.layout();
-        });
+                        Assert.that( list.size() <= 1, "Multi forms are not supported yet" );
+                    }
+                    container.layout();
+                });
     }
 
     /**

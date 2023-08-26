@@ -260,21 +260,20 @@ public class Promise<T> {
 
 
     /**
-     * Creates a new {@link Promise} that is executed by the {@link Scheduler}. After
-     * {@link Platform#xhr(String, String)} or a DB operation this can be used to
+     * Returnes a new {@link Promise} that is executed by the {@link Scheduler}
+     * (rather than in the main event loop).
+     * <p>
+     * This is useful after {@link Platform#xhr(String, String)} or a DB operation to
      * transfer execution from main JS event loop to the nicer idle scheduler.
      *
      * @param prio The priority of the execution. Null signals that the function is
-     *        disabled and just this is returned.
+     *        disabled and just 'this' is returned.
      * @return A newly created {@link Promise}.
      */
     public Promise<T> priority( Priority prio ) {
-        if (prio == null || prio == Priority.MAIN_EVENT_LOOP) {
-            return this;
-        }
-        else {
-            return then( (T result) -> Platform.scheduler.schedule( prio, () -> result ) );
-        }
+        return prio == null || prio == Priority.MAIN_EVENT_LOOP
+                ? this
+                : then( (T result) -> Platform.scheduler.schedule( prio, () -> result ) );
     }
 
 
