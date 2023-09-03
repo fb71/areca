@@ -209,7 +209,7 @@ public class UIComponentRenderer
                 }
                 htmlElm( c ).addEventListener( type, _htmlEv -> {
                     LOG.debug( "HTML event: " + handler + " " + ((MouseEvent)_htmlEv).getButton() );
-                    //((MouseEvent)_htmlEv).stopPropagation();
+                    ((MouseEvent)_htmlEv).stopPropagation();
                     ((MouseEvent)_htmlEv).preventDefault();
                     try {
                         handler.consumer.accept( new UIEvent( c ) {
