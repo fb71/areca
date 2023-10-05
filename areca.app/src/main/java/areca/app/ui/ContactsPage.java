@@ -76,7 +76,7 @@ public class ContactsPage extends Page {
             layout.set( new RasterLayout() {{
                 spacing.set( 10 );
                 margins.set( Size.of( 10, 10 ) );
-                itemSize.set( Size.of( 80, 75 ) );
+                componentSize.set( Size.of( 80, 75 ) );
             }});
         }});
 
