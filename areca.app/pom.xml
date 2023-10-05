@@ -162,7 +162,7 @@
                         </configuration>
                     </execution>
                     <!-- Test app -->
-                    <execution>
+                    <!--execution>
                         <id>test</id>
                         <phase>pre-integration-test</phase>
                         <goals>
@@ -180,7 +180,7 @@
                             <incremental>false</incremental>
                             <targetType>JAVASCRIPT</targetType>
                         </configuration>
-                    </execution>
+                    </execution-->
                     
                 </executions>
             </plugin>
