@@ -39,8 +39,9 @@ public class RendererBase {
     }
 
 
-    protected HTMLElement htmlElm( UIComponent c ) {
-        return Assert.notNull( (HTMLElement)c.htmlElm );
+    @SuppressWarnings("unchecked")
+    protected <R extends HTMLElement> R htmlElm( UIComponent c ) {
+        return Assert.notNull( (R)c.htmlElm );
     }
 
 

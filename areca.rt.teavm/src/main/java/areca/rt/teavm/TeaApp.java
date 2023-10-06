@@ -36,6 +36,9 @@ public class TeaApp
 
     private static final Log LOG = LogFactory.getLog( TeaApp.class );
 
+    /**
+     * Automatically sets proper size of the rootWindow and handles update events.
+     */
     @Override
     public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E {
         return super.createUI( rootWindow -> {

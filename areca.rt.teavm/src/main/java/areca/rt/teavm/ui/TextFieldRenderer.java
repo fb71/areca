@@ -14,6 +14,7 @@
 package areca.rt.teavm.ui;
 
 import org.teavm.jso.dom.html.HTMLInputElement;
+import org.teavm.jso.dom.html.HTMLTextAreaElement;
 
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
@@ -48,31 +49,36 @@ public class TextFieldRenderer
     public void componentConstructed( ComponentConstructedEvent ev ) {
         TextField c = (TextField)ev.getSource();
 
-//        var labelElm = (HTMLElement)doc().createElement( "label" );
-//        var textNode = (HTMLElement)doc().createTextNode( c.label.opt().orElse( "" ) );
-//        labelElm.appendChild( textNode );
+        // multiline textarea
+        if (c.multiline.get()) {
+            var textarea = (HTMLTextAreaElement)(c.htmlElm = doc().createElement( "textarea" ));
 
-        var inputElm = (HTMLInputElement)doc().createElement( "input" );
-        inputElm.setAttribute( "type", "text" );
-//        labelElm.appendChild( inputElm );
+            c.content.onInitAndChange( (newValue, oldValue) -> {
+                LOG.debug( "Set: %s", newValue );
+                textarea.setValue( newValue != null ? newValue : "" );
+            });
+            htmlElm( c ).addEventListener( "input", htmlEv -> {
+                //((MouseEvent)_htmlEv).stopPropagation();
+                //htmlEv.preventDefault();
+                c.content.rawSet( textarea.getValue() );
+            });
+        }
+        // input
+        else {
+            var input = (HTMLInputElement)(c.htmlElm = doc().createElement( "input" ));
+            input.setAttribute( "type", "text" );
 
-        c.htmlElm = inputElm;
+            c.content.onInitAndChange( (newValue, oldValue) -> {
+                LOG.debug( "Set: %s", newValue );
+                input.setValue( newValue != null ? newValue : "" );
+            });
 
-        c.content.onInitAndChange( (newValue, oldValue) -> {
-            LOG.debug( "Set: %s", newValue );
-            inputElm.setAttribute( "value", newValue != null ? newValue : "" );
-        });
-
-//        c.label.onInitAndChange( (newValue, oldValue) -> {
-//            textNode.setNodeValue( newValue );
-//        });
-
-        inputElm.addEventListener( "input", htmlEv -> {
-            //LOG.info( "HTML event: %s", inputElm.getValue() );
-            //((MouseEvent)_htmlEv).stopPropagation();
-            //htmlEv.preventDefault();
-            c.content.rawSet( inputElm.getValue() );
-        });
+            htmlElm( c ).addEventListener( "input", htmlEv -> {
+                //((MouseEvent)_htmlEv).stopPropagation();
+                //htmlEv.preventDefault();
+                c.content.rawSet( input.getValue() );
+            });
+        }
     }
 
 }

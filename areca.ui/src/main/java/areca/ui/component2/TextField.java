@@ -28,6 +28,8 @@ public class TextField
 
     public ReadWrite<TextField,String> content = Property.rw( this, "content" );
 
+    public ReadWrite<TextField,Boolean> multiline = Property.rw( this, "multiline", false );
+
     //public ReadWrite<TextField,String> label = Property.rw( this, "label" );
 
     @Override
