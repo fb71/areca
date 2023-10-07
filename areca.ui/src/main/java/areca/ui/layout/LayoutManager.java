@@ -39,11 +39,11 @@ public abstract class LayoutManager {
 
 
     public int computeMinWidth( int height ) {
-        throw new RuntimeException( "computeMinWidth() is not implemented for: " + getClass().getSimpleName() );
+        throw new RuntimeException( "computeMinWidth() is not implemented for: " + getClass().getName() );
     }
 
     public int computeMinHeight( int width ) {
-        throw new RuntimeException( "computeMinWidth() is not implemented for: " + getClass().getSimpleName() );
+        throw new RuntimeException( "computeMinHeight() is not implemented for: " + getClass().getName() );
     }
 
 
