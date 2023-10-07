@@ -94,6 +94,18 @@ public class UIComposite
     }
 
 
+    @Override
+    public int computeMinWidth( int height ) {
+        return layout.opt().map( l -> l.computeMinWidth( height ) ).orElse( 100 );
+    }
+
+
+    @Override
+    public int computeMinHeight( int width ) {
+        return layout.opt().map( l -> l.computeMinHeight( width ) ).orElse( 100 );
+    }
+
+
     /**
      *
      */

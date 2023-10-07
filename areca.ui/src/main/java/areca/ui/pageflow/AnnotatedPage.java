@@ -13,10 +13,14 @@
  */
 package areca.ui.pageflow;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import areca.common.Assert;
 import areca.common.base.BiFunction;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
@@ -48,10 +52,13 @@ class AnnotatedPage
 
     private ClassInfo<Object>   pageInfo;
 
+    private List<Object>        parts = new ArrayList<>();
+
     public AnnotatedPage( Object delegate, Pageflow pageflow ) {
         this.delegate = Assert.notNull( delegate );
         this.pageInfo = Assert.notNull( ClassInfo.of( delegate ) );
         this.pageflow = Assert.notNull( pageflow );
+        parts.add( delegate );
     }
 
     public void inject( ContextValueSupplier<?> valueSupplier ) {
@@ -74,9 +81,15 @@ class AnnotatedPage
             // Part
             f.annotation( Page.Part.class ).ifPresent( a -> {
                 try {
-                    @SuppressWarnings("deprecation")
-                    var value = f.type().newInstance();
-                    doInject( value, valueSupplier );
+                    var value = Sequence.of( parts )
+                            .first( p -> f.type().isInstance( p ) )
+                            .orElse( () -> {
+                                @SuppressWarnings("deprecation")
+                                var result = f.type().newInstance();
+                                doInject( result, valueSupplier );
+                                parts.add( result );
+                                return result;
+                            });
                     f.set( part, value );
                 }
                 catch (ReflectiveOperationException e) {

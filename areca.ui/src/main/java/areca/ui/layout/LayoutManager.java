@@ -38,6 +38,15 @@ public abstract class LayoutManager {
     public abstract void layout( UIComposite composite );
 
 
+    public int computeMinWidth( int height ) {
+        throw new RuntimeException( "computeMinWidth() is not implemented for: " + getClass().getSimpleName() );
+    }
+
+    public int computeMinHeight( int width ) {
+        throw new RuntimeException( "computeMinWidth() is not implemented for: " + getClass().getSimpleName() );
+    }
+
+
     /**
      * The components of the given {@link UIComposite} ordered as specified via
      * {@link #componentOrder}.

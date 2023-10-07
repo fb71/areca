@@ -38,7 +38,7 @@ public class SwitcherLayout
 
     private static final Log LOG = LogFactory.getLog( SwitcherLayout.class );
 
-    public static LayoutManager defaults() {
+    public static SwitcherLayout defaults() {
         return new SwitcherLayout();
     }
 
