@@ -144,7 +144,7 @@ public class ArecaApp extends TeaApp {
     protected ArecaApp() {
         EntityRepository.newConfiguration()
                 .entities.set( APP_ENTITY_TYPES )
-                .store.set( new IDBStore( "areca.app", 28, true ) )
+                .store.set( new IDBStore( "areca.app", 29, true ) )
                 .create()
                 .onSuccess( result -> {
                     repo = result;
