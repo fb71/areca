@@ -93,6 +93,12 @@ public class Events
     }
 
 
+    @Override
+    public Events clear() {
+        return (Events)super.clear();
+    }
+
+
     /**
      *
      */

@@ -29,7 +29,7 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.PropertyChangedEvent;
 
 /**
- * Async delivering of UI events (fired by {@link Property}) via
+ * Async delivering of UI update events (fired by {@link Property}) via
  * {@link Platform#requestAnimationFrame(areca.common.base.Consumer.RConsumer)}.
  *
  * @see Property

@@ -278,6 +278,11 @@ public abstract class Property<C,T> {
             }
         }
 
+        public ReadWrites<C,T> clear() {
+            value.clear();
+            return this;
+        }
+
         /**
          *
          * @param elm
