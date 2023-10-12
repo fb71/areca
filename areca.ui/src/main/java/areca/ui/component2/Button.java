@@ -22,7 +22,16 @@ import areca.ui.component2.Property.ReadWrite;
 public class Button
         extends UIComponent {
 
+    public enum Format {
+        PLAIN, HTML
+    }
+
     public ReadWrite<Button,String> label = new ReadWrite<>( this, "label" );
+
+    /**
+     * The format of the {@link #label}; defaults to {@link Format#PLAIN}.
+     */
+    public ReadWrite<Button,Format> format = Property.rw( this, "format", Format.PLAIN );
 
     /**
      * A ligature or numeric character reference of a

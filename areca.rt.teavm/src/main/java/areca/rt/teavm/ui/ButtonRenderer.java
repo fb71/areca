@@ -75,7 +75,10 @@ public class ButtonRenderer
                 return (HTMLElement)htmlButton.appendChild( doc().createElement( "span" ) );
             });
             span.setAttribute( "class", "label" );
-            span.setInnerText( newValue );
+            switch (c.format.$()) {
+                case PLAIN: span.setInnerText( newValue ); break;
+                case HTML: span.setInnerHTML( newValue ); break;
+            }
         });
 
         // icon
