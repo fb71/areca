@@ -68,8 +68,8 @@ public class RowLayout
 
     public ReadWrite<RowLayout,Orientation> orientation = Property.rw( this, "orientation", HORIZONTAL );
 
-    public RowLayout orientation( Orientation value ) {
-        orientation.set( value );
+    public RowLayout vertical() {
+        orientation.set( Orientation.VERTICAL );
         return this;
     }
 

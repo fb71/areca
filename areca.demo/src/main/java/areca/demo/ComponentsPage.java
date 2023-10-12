@@ -70,7 +70,7 @@ public class ComponentsPage {
 
         ui.body.layout.set( MaxWidthLayout.width( 350 ).fillHeight.set( true ) );
         ui.body.add( new UIComposite() {{
-            layout.set( RowLayout.defaults().orientation( VERTICAL ).margins( Size.of( 0, 40) ).spacing( 30 ).fillWidth( true ) );
+            layout.set( RowLayout.defaults().vertical().margins( Size.of( 0, 40) ).spacing( 30 ).fillWidth( true ) );
 
             add( decorate( "Firstname", new TextField() {{
                 content.set( "Ellen ???" );
