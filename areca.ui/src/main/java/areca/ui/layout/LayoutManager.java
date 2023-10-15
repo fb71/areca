@@ -32,7 +32,7 @@ public abstract class LayoutManager {
 
     private static final Logger LOG = Logger.getLogger( LayoutManager.class.getSimpleName() );
 
-    public ReadWrite<?,Comparator<? extends UIComponent>>   componentOrder = Property.rw( this, "componentOrder" );
+    public ReadWrite<?,Comparator<? extends UIComponent>> componentOrder = Property.rw( this, "componentOrder" );
 
 
     public abstract void layout( UIComposite composite );
