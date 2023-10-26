@@ -1,0 +1,23 @@
+{
+    "vhosts": [
+        {
+            "hostnames": ["localhost"],
+            "ec2id": "i-0ef343b852bd58970",
+            "proxypaths": [
+                {
+                    "path": "/",
+                    "redirect": "http://3.74.245.82:8080"
+                }
+            ] 
+        },
+        {
+            "hostnames": ["example.com", "www.example.com"],
+            "proxypaths": [
+                {
+                    "path": "/wbv",
+                    "redirect": "https://postman-echo.com/"
+                }
+            ] 
+        }
+    ]
+}
