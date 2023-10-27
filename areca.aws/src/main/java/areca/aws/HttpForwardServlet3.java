@@ -47,8 +47,9 @@ public class HttpForwardServlet3
             "proxy-authenticate", "proxy-authorization", "te", "trailers", "transfer-encoding", "upgrade",
             "content-length" );
 
-    private static final Duration TIMEOUT_CONNECT = Duration.ofSeconds( 3 );
-    private static final Duration TIMEOUT_REQUEST = Duration.ofSeconds( 10 );
+    public static final Duration TIMEOUT_CONNECT = Duration.ofSeconds( 3 );
+    public static final Duration TIMEOUT_REQUEST = Duration.ofSeconds( 10 );
+    public static final Duration TIMEOUT_SERVICES_STARTUP = Duration.ofSeconds( 20 );
 
     // instance *******************************************
 
@@ -130,15 +131,15 @@ public class HttpForwardServlet3
             req.getHeaderNames().asIterator().forEachRemaining( name -> {
                 if (!FORBIDDEN_HEADERS.contains( name.toLowerCase() )) {
                     request.setHeader( name, req.getHeader( name ) );
-                    debug( "Header: %s: %s", name, req.getHeader( name ) );
+                    //debug( "Header: %s: %s", name, req.getHeader( name ) );
                 }
             });
             request.setHeader( "X-Forwarded-Host", req.getServerName() );
-            debug( "XHeader: %s: %s", "X-Forwarded-Host", req.getServerName() );
+            //debug( "XHeader: %s: %s", "X-Forwarded-Host", req.getServerName() );
             request.setHeader( "X-Forwarded-Port", String.valueOf( req.getServerPort() ) );
-            debug( "XHeader: %s: %s", "X-Forwarded-Port", req.getServerPort() );
+            //debug( "XHeader: %s: %s", "X-Forwarded-Port", req.getServerPort() );
             request.setHeader( "X-Forwarded-Proto", req.getScheme() );
-            debug( "XHeader: %s: %s", "X-Forwarded-Proto", req.getScheme() );
+            //debug( "XHeader: %s: %s", "X-Forwarded-Proto", req.getScheme() );
 
             // send
             var response = http.send( request.build(), BodyHandlers.ofInputStream() );
@@ -146,7 +147,7 @@ public class HttpForwardServlet3
 
             // headers
             response.headers().map().forEach( (name,values) -> {
-                debug( "Response Header: %s: %s", name, values );
+                //debug( "Response Header: %s: %s", name, values );
                 if (name == null || name.equals( "WWW-Authenticate" )) {
                     // return 401 code but suppress the WWW-Authenticate header
                     // in order to prevent browser popup asking for credentials

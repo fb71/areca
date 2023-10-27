@@ -13,6 +13,8 @@
  */
 package areca.aws;
 
+import static areca.aws.HttpForwardServlet3.TIMEOUT_SERVICES_STARTUP;
+
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -20,6 +22,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.io.FileReader;
 import java.net.ConnectException;
 import java.net.http.HttpConnectTimeoutException;
+import java.net.http.HttpTimeoutException;
+import java.time.Duration;
+import java.time.Instant;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
@@ -90,33 +95,57 @@ public class VHost {
         }
     }
 
+
     public void ensureRunning( Callable<?> block ) throws Exception {
         lastAccess = System.currentTimeMillis();
 
         var wasRunning = isRunning.get();
+
+        // expect not running
         if (!isRunning.get()) {
             synchronized (isRunning) {
                 if (!isRunning.get()) {
                     aws.startInstance( ec2id );
+                }
+                tryExecute( block );
+                isRunning.set( true );
+            }
+        }
+
+        // expect running
+        else {
+            try {
+                block.call();
+            }
+            // we expect the instance to run but no connect
+            catch (HttpTimeoutException|ConnectException e) {
+                LOG.info( "No connection: %s/%s (wasRunning=%s) - %s", hostnames.get( 0 ), ec2id, wasRunning, e );
+                synchronized (isRunning) {
+                    // instance is down or service is down or crashed
+                    aws.stopInstance( ec2id );
+                    aws.startInstance( ec2id );
+
+                    tryExecute( block );
+
                     isRunning.set( true );
-                    Thread.sleep( 1000 ); // allow services to start
                 }
             }
         }
-        try {
-            block.call();
-        }
-        // we expect the instance to run but no connect
-        catch (HttpConnectTimeoutException|ConnectException e) {
-            LOG.info( "No connection: %s/%s (wasRunning=%s)", hostnames.get( 0 ), ec2id, wasRunning );
-            synchronized (isRunning) {
-                aws.stopInstance( ec2id );
-                aws.startInstance( ec2id );
-                isRunning.set( true );
-                Thread.sleep( 1000 ); // allow services to start
+    }
+
+
+    protected void tryExecute( Callable block ) throws Exception {
+        for (var start = Instant.now(); Duration.between( start, Instant.now() ).compareTo( TIMEOUT_SERVICES_STARTUP ) < 0;) {
+            try {
+                block.call();
+                return;
             }
-            block.call();
+            catch (HttpTimeoutException|ConnectException e) {
+                LOG.info( "Waiting for connection: %s/%s", hostnames.get( 0 ), ec2id );
+                Thread.sleep( 1000 );
+            }
         }
+        throw new HttpConnectTimeoutException( "No connection after: " + TIMEOUT_SERVICES_STARTUP.toSeconds() + "s" );
     }
 
 

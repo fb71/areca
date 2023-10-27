@@ -5,8 +5,12 @@
             "ec2id": "i-06bf6d6fe1ada6b45",
             "proxypaths": [
                 {
-                    "path": "/jenkins",
-                    "redirect": "http://3.78.52.188:8080"
+                    "path": "/jenkins/",
+                    "redirect": "http://3.78.52.188:8080/jenkins/"
+                },
+                {
+                    "path": "/deploy/",
+                    "redirect": "http://3.78.52.188:8090/"
                 },
                 {
                     "path": "/ragtime",
