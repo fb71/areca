@@ -38,14 +38,14 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Falko Bräutigam
  */
-public class HttpForwardServlet2
+public class HttpForwardServlet3
         extends HttpServlet {
 
     private static final List<String> METHODS_WITH_BODY = Arrays.asList("POST", "REPORT", "PUT");
 
-    private static final List<String> FORBIDDEN_HEADERS = Arrays.asList( "Host", "Connection", "Keep-Alive",
-            "Proxy-Authenticate", "Proxy-Authorization", "TE", "Trailers", "Transfer-Encoding", "Upgrade",
-            "Content-Length" );
+    private static final List<String> FORBIDDEN_HEADERS = Arrays.asList( "host", "connection", "keep-alive",
+            "proxy-authenticate", "proxy-authorization", "te", "trailers", "transfer-encoding", "upgrade",
+            "content-length" );
 
     private static final Duration TIMEOUT_CONNECT = Duration.ofSeconds( 3 );
     private static final Duration TIMEOUT_REQUEST = Duration.ofSeconds( 10 );
@@ -72,6 +72,7 @@ public class HttpForwardServlet2
         HttpsURLConnection.setDefaultHostnameVerifier( SSLUtils.DO_NOT_VERIFY );
     }
 
+
     @Override
     protected void service( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
         try {
@@ -81,8 +82,13 @@ public class HttpForwardServlet2
             e.printStackTrace();
             throw e;
         }
+        catch (NoSuchElementException e) {
+            debug( "", e.getMessage() );
+            resp.sendError( 404, e.getMessage() );
+        }
         catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException( e );
         }
     }
 
@@ -97,8 +103,12 @@ public class HttpForwardServlet2
                 .orElseThrow( () -> new NoSuchElementException( "No vhost found for server: " + req.getServerName() ) );
 
         // redirect
-        var redirect = vhost.proxypaths.get( 0 ).redirect // XXX
-                + req.getPathInfo()
+        var proxypath = vhost.proxypaths.stream()
+                .filter( p -> req.getPathInfo().startsWith( p.path ) ).findAny()
+                .orElseThrow( () -> new NoSuchElementException( "No proxypath found for: " + req.getPathInfo() ) );
+
+        var redirect = proxypath.redirect
+                + req.getPathInfo().substring( proxypath.path.length() )
                 + (req.getQueryString() != null ? "?"+req.getQueryString() : "" );
         debug( "    -> %s", redirect );
 
@@ -118,11 +128,17 @@ public class HttpForwardServlet2
 
             // headers
             req.getHeaderNames().asIterator().forEachRemaining( name -> {
-                if (!FORBIDDEN_HEADERS.contains( name )) {
+                if (!FORBIDDEN_HEADERS.contains( name.toLowerCase() )) {
                     request.setHeader( name, req.getHeader( name ) );
-                    //debug( "Header: %s: %s", name, req.getHeader( name ) );
+                    debug( "Header: %s: %s", name, req.getHeader( name ) );
                 }
             });
+            request.setHeader( "X-Forwarded-Host", req.getServerName() );
+            debug( "XHeader: %s: %s", "X-Forwarded-Host", req.getServerName() );
+            request.setHeader( "X-Forwarded-Port", String.valueOf( req.getServerPort() ) );
+            debug( "XHeader: %s: %s", "X-Forwarded-Port", req.getServerPort() );
+            request.setHeader( "X-Forwarded-Proto", req.getScheme() );
+            debug( "XHeader: %s: %s", "X-Forwarded-Proto", req.getScheme() );
 
             // send
             var response = http.send( request.build(), BodyHandlers.ofInputStream() );
@@ -130,7 +146,7 @@ public class HttpForwardServlet2
 
             // headers
             response.headers().map().forEach( (name,values) -> {
-                //debug( "Response Header: %s: %s", name, values );
+                debug( "Response Header: %s: %s", name, values );
                 if (name == null || name.equals( "WWW-Authenticate" )) {
                     // return 401 code but suppress the WWW-Authenticate header
                     // in order to prevent browser popup asking for credentials

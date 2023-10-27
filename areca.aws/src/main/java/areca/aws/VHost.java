@@ -22,6 +22,7 @@ import java.net.ConnectException;
 import java.net.http.HttpConnectTimeoutException;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 
 /**
  *
@@ -55,26 +56,32 @@ public class VHost {
 
     // instance *******************************************
 
-    /** The URL server names of the virtual server */
-    public List<String>     hostnames;
-
-    /** The EC2 instance id */
-    public String           ec2id;
-
     private AtomicBoolean   isRunning;
 
     private volatile int    pending; // XXX
 
     private long            lastAccess;
 
+    /** The URL server names of the virtual server */
+    @SerializedName("hostnames")
+    public List<String>     hostnames;
+
+    /** The EC2 instance id */
+    @SerializedName("ec2id")
+    public String           ec2id;
+
+    @SerializedName("proxypaths")
     public List<ProxyPath>  proxypaths;
 
     public class ProxyPath {
 
+        @SerializedName("path")
         public String path;
 
+        @SerializedName("redirect")
         public String redirect;
     }
+
 
     protected void init() {
         if (ec2id != null) {

@@ -2,19 +2,32 @@
     "vhosts": [
         {
             "hostnames": ["localhost"],
-            "ec2id": "i-0ef343b852bd58970",
+            "ec2id": "i-06bf6d6fe1ada6b45",
             "proxypaths": [
                 {
-                    "path": "/",
-                    "redirect": "http://3.74.245.82:8080"
+                    "path": "/jenkins",
+                    "redirect": "http://3.78.52.188:8080"
+                },
+                {
+                    "path": "/ragtime",
+                    "redirect": "http://3.78.52.188:8090/ragtime.app-0.0.1-SNAPSHOT"
+                },
+                {
+                    "path": "/echo",
+                    "redirect": "https://postman-echo.com/get"
                 }
             ] 
         },
         {
             "hostnames": ["example.com", "www.example.com"],
+            "_ec2id_": "i-0ef343b852bd58970",
             "proxypaths": [
                 {
                     "path": "/wbv",
+                    "redirect": "http://3.74.245.82:8080/wbv"
+                },
+                {
+                    "path": "/echo",
                     "redirect": "https://postman-echo.com/"
                 }
             ] 
