@@ -16,7 +16,6 @@ package areca.aws;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,6 +23,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -31,7 +31,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpUtils;
 
 /**
  *
@@ -48,6 +47,11 @@ public class HttpForwardServlet2
             "Proxy-Authenticate", "Proxy-Authorization", "TE", "Trailers", "Transfer-Encoding", "Upgrade",
             "Content-Length" );
 
+    private static final Duration TIMEOUT_CONNECT = Duration.ofSeconds( 3 );
+    private static final Duration TIMEOUT_REQUEST = Duration.ofSeconds( 10 );
+
+    // instance *******************************************
+
     private List<VHost>     vhosts;
 
     private SSLContext      sslContext;
@@ -61,7 +65,7 @@ public class HttpForwardServlet2
 
         vhosts = VHost.readConfig();
 
-        http = HttpClient.newHttpClient();
+        http = HttpClient.newBuilder().connectTimeout( TIMEOUT_CONNECT ).build();
 
         sslContext = SSLUtils.trustAllSSLContext();
         HttpsURLConnection.setDefaultSSLSocketFactory( sslContext.getSocketFactory() );
@@ -83,19 +87,23 @@ public class HttpForwardServlet2
     }
 
 
-    @SuppressWarnings("deprecation")
     protected void doService( HttpServletRequest req, HttpServletResponse resp ) throws Exception {
-        debug( "URI: %s %s", req.getMethod(), HttpUtils.getRequestURL( req ) );
+        debug( "URI: %s %s://%s:%s/%s ?%s", req.getMethod(),
+                req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI(), req.getQueryString() );
 
         // vhost
         var vhost = vhosts.stream()
                 .filter( _vhost -> _vhost.hostnames.contains( req.getServerName() ) ).findAny()
                 .orElseThrow( () -> new NoSuchElementException( "No vhost found for server: " + req.getServerName() ) );
-        var redirect = vhost.proxypaths.get( 0 ).redirect + req.getPathInfo(); // XXX
+
+        // redirect
+        var redirect = vhost.proxypaths.get( 0 ).redirect // XXX
+                + req.getPathInfo()
+                + (req.getQueryString() != null ? "?"+req.getQueryString() : "" );
         debug( "    -> %s", redirect );
 
         vhost.ensureRunning( () -> {
-            var request = HttpRequest.newBuilder( new URI( redirect ) );
+            var request = HttpRequest.newBuilder( new URI( redirect ) ).timeout( TIMEOUT_REQUEST );
 
             // METHOD
             if (METHODS_WITH_BODY.contains( req.getMethod() ) ) {
@@ -106,7 +114,7 @@ public class HttpForwardServlet2
                 request.method( req.getMethod(), HttpRequest.BodyPublishers.noBody() );
             }
 
-            // authentication
+            // authentication?
 
             // headers
             req.getHeaderNames().asIterator().forEachRemaining( name -> {

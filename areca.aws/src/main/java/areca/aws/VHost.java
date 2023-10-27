@@ -18,6 +18,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.io.FileReader;
+import java.net.ConnectException;
+import java.net.http.HttpConnectTimeoutException;
 
 import com.google.gson.Gson;
 
@@ -28,7 +30,11 @@ import com.google.gson.Gson;
  */
 public class VHost {
 
+    private static final XLogger LOG = XLogger.get( VHost.class );
+
     public static final AWS aws = new AWS();
+
+    //private static final Timer timer = new Timer();
 
     public static List<VHost> readConfig() {
         try (var in = new FileReader( "/home/falko/workspaces/workspace-android/areca/areca.aws/src/test/resources/config.json" ) ) {
@@ -45,6 +51,7 @@ public class VHost {
 
         public List<VHost>  vhosts;
     }
+
 
     // instance *******************************************
 
@@ -71,23 +78,38 @@ public class VHost {
 
     protected void init() {
         if (ec2id != null) {
-            var instance = aws.describeEC2Instances( ec2id );
-            String state = instance.state().name().name();
-            isRunning = new AtomicBoolean( state.compareTo( "RUNNING" ) == 0 );
+            isRunning = new AtomicBoolean( aws.isInstanceRunning( ec2id ) );
             lastAccess = System.currentTimeMillis();
         }
     }
 
     public void ensureRunning( Callable<?> block ) throws Exception {
+        lastAccess = System.currentTimeMillis();
+
+        var wasRunning = isRunning.get();
         if (!isRunning.get()) {
             synchronized (isRunning) {
                 if (!isRunning.get()) {
                     aws.startInstance( ec2id );
                     isRunning.set( true );
+                    Thread.sleep( 1000 ); // allow services to start
                 }
             }
         }
-        block.call();
+        try {
+            block.call();
+        }
+        // we expect the instance to run but no connect
+        catch (HttpConnectTimeoutException|ConnectException e) {
+            LOG.info( "No connection: %s/%s (wasRunning=%s)", hostnames.get( 0 ), ec2id, wasRunning );
+            synchronized (isRunning) {
+                aws.stopInstance( ec2id );
+                aws.startInstance( ec2id );
+                isRunning.set( true );
+                Thread.sleep( 1000 ); // allow services to start
+            }
+            block.call();
+        }
     }
 
 
