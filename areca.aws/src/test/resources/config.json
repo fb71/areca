@@ -2,8 +2,8 @@
     "vhosts": [
         {
             "hostnames": ["localhost"],
-            "ec2id": "i-06bf6d6fe1ada6b45",
-            "idleTimeout": "PT3M",
+            "ec2id": "i-024c0875fea9dc39d",
+            "idleTimeout": "PT60M",
             "proxypaths": [
                 {
                     "path": "/jenkins/",

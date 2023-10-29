@@ -14,11 +14,14 @@
 package areca.aws;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.CookieHandler;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -66,7 +69,16 @@ public class HttpForwardServlet3
 
         vhosts = VHost.readConfig();
 
-        http = HttpClient.newBuilder().connectTimeout( TIMEOUT_CONNECT ).build();
+        var noCookies = new CookieHandler() {
+            @Override
+            public Map<String,List<String>> get( URI uri, Map<String,List<String>> requestHeaders ) throws IOException {
+                return Collections.emptyMap();
+            }
+            @Override
+            public void put( URI uri, Map<String,List<String>> responseHeaders ) throws IOException {
+            }
+        };
+        http = HttpClient.newBuilder().connectTimeout( TIMEOUT_CONNECT ).cookieHandler( noCookies ).build();
 
         sslContext = SSLUtils.trustAllSSLContext();
         HttpsURLConnection.setDefaultSSLSocketFactory( sslContext.getSocketFactory() );
@@ -142,7 +154,7 @@ public class HttpForwardServlet3
             req.getHeaderNames().asIterator().forEachRemaining( name -> {
                 if (!FORBIDDEN_HEADERS.contains( name.toLowerCase() )) {
                     request.setHeader( name, req.getHeader( name ) );
-                    //debug( "Header: %s: %s", name, req.getHeader( name ) );
+                    debug( "Header: %s: %s", name, req.getHeader( name ) );
                 }
             });
             request.setHeader( "X-Forwarded-Host", req.getServerName() );
@@ -151,6 +163,8 @@ public class HttpForwardServlet3
             //debug( "XHeader: %s: %s", "X-Forwarded-Port", req.getServerPort() );
             request.setHeader( "X-Forwarded-Proto", req.getScheme() );
             //debug( "XHeader: %s: %s", "X-Forwarded-Proto", req.getScheme() );
+            request.setHeader( "X-Forwarded-For", req.getRemoteHost() );
+            //debug( "XHeader: %s: %s", "X-Forwarded-For", req.getRemoteHost() );
 
             // send
             var response = http.send( request.build(), BodyHandlers.ofInputStream() );
@@ -158,7 +172,7 @@ public class HttpForwardServlet3
 
             // headers
             response.headers().map().forEach( (name,values) -> {
-                //debug( "Response Header: %s: %s", name, values );
+                debug( "Response Header: %s: %s", name, values );
                 if (name == null || name.equals( "WWW-Authenticate" )) {
                     // return 401 code but suppress the WWW-Authenticate header
                     // in order to prevent browser popup asking for credentials
