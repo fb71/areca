@@ -14,11 +14,15 @@
 package areca.aws;
 
 import static areca.aws.HttpForwardServlet3.TIMEOUT_SERVICES_STARTUP;
+import static java.time.Instant.now;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import java.io.File;
 import java.io.FileReader;
 import java.net.ConnectException;
 import java.net.http.HttpConnectTimeoutException;
@@ -40,10 +44,14 @@ public class VHost {
 
     public static final AWS aws = new AWS();
 
-    //private static final Timer timer = new Timer();
+    private static final Timer timer = new Timer();
 
     public static List<VHost> readConfig() {
-        try (var in = new FileReader( "/home/falko/workspaces/workspace-android/areca/areca.aws/src/test/resources/config.json" ) ) {
+        var f = new File( System.getProperty( "user.home"), "proxy.config" );
+        if (!f.exists()) {
+            f = new File( "/home/falko/workspaces/workspace-android/areca/areca.aws/src/test/resources/config.json" );
+        }
+        try (var in = new FileReader( f ) ) {
             var vhosts = new Gson().fromJson( in, ConfigFile.class ).vhosts;
             vhosts.forEach( vhost -> vhost.init() );
             return vhosts;
@@ -65,7 +73,9 @@ public class VHost {
 
     private volatile int    pending; // XXX
 
-    private long            lastAccess;
+    private volatile Instant lastAccess;
+
+    private TimerTask       idleCheck;
 
     /** The URL server names of the virtual server */
     @SerializedName("hostnames")
@@ -74,6 +84,9 @@ public class VHost {
     /** The EC2 instance id */
     @SerializedName("ec2id")
     public String           ec2id;
+
+    @SerializedName("idleTimeout")
+    public String           idleTimeout;
 
     @SerializedName("proxypaths")
     public List<ProxyPath>  proxypaths;
@@ -91,13 +104,41 @@ public class VHost {
     protected void init() {
         if (ec2id != null) {
             isRunning = new AtomicBoolean( aws.isInstanceRunning( ec2id ) );
-            lastAccess = System.currentTimeMillis();
+            lastAccess = Instant.now();
+
+            // idle check
+            var idle = Duration.parse( idleTimeout );
+            idleCheck = new TimerTask() {
+                @Override public void run() {
+                    LOG.info( "Idle check: %s/%s, last: %s", hostnames.get( 0 ), ec2id, lastAccess );
+                    if (isRunning.get() && Duration.between( lastAccess, now() ).compareTo( idle ) > 0) {
+                        LOG.info( "IDLE: %s/%s, stopping...", hostnames.get( 0 ), ec2id );
+                        synchronized (isRunning) {
+                            if (isRunning.get()) {
+                                aws.stopInstance( ec2id );
+                                isRunning.set( false );
+                            }
+                        }
+                    }
+                }
+            };
+            var interval = Duration.ofSeconds( 10 ).toMillis();
+            timer.scheduleAtFixedRate( idleCheck, interval, interval );
+            LOG.info( "Idle check started: %s/%s, at interval: %s", hostnames.get( 0 ), ec2id, idle );
+        }
+    }
+
+
+    public void dispose() {
+        if (idleCheck != null) {
+            idleCheck.cancel();
+            idleCheck = null;
         }
     }
 
 
     public void ensureRunning( Callable<?> block ) throws Exception {
-        lastAccess = System.currentTimeMillis();
+        lastAccess = Instant.now();
 
         var wasRunning = isRunning.get();
 
@@ -122,7 +163,8 @@ public class VHost {
                 LOG.info( "No connection: %s/%s (wasRunning=%s) - %s", hostnames.get( 0 ), ec2id, wasRunning, e );
                 synchronized (isRunning) {
                     // instance is down or service is down or crashed
-                    aws.stopInstance( ec2id );
+                    //aws.stopInstance( ec2id );
+                    isRunning.set( false );
                     aws.startInstance( ec2id );
 
                     tryExecute( block );

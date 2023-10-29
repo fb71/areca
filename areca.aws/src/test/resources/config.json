@@ -3,6 +3,7 @@
         {
             "hostnames": ["localhost"],
             "ec2id": "i-06bf6d6fe1ada6b45",
+            "idleTimeout": "PT3M",
             "proxypaths": [
                 {
                     "path": "/jenkins/",

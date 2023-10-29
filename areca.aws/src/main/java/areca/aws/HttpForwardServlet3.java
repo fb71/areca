@@ -62,7 +62,7 @@ public class HttpForwardServlet3
 
     @Override
     public void init() throws ServletException {
-        log( "" + getClass().getSimpleName() + " init..." );
+        log( getClass().getSimpleName() + " init..." );
 
         vhosts = VHost.readConfig();
 
@@ -71,6 +71,13 @@ public class HttpForwardServlet3
         sslContext = SSLUtils.trustAllSSLContext();
         HttpsURLConnection.setDefaultSSLSocketFactory( sslContext.getSocketFactory() );
         HttpsURLConnection.setDefaultHostnameVerifier( SSLUtils.DO_NOT_VERIFY );
+    }
+
+
+    @Override
+    public void destroy() {
+        log( getClass().getSimpleName() + ": destroy ..." );
+        vhosts.forEach( vhost -> vhost.dispose() );
     }
 
 
