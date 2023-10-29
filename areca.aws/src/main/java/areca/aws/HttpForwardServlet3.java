@@ -121,7 +121,11 @@ public class HttpForwardServlet3
         debug( "    -> %s", redirect );
 
         vhost.ensureRunning( () -> {
-            var request = HttpRequest.newBuilder( new URI( redirect ) ).timeout( TIMEOUT_REQUEST );
+            var request = HttpRequest.newBuilder( new URI( redirect ) );
+            // XXX WBV "late/pending" request
+            if (req.getParameter( "cid" ) == null && req.getParameter( "servicehandler" ) == null) {
+                request.timeout( TIMEOUT_REQUEST );
+            }
 
             // METHOD
             if (METHODS_WITH_BODY.contains( req.getMethod() ) ) {
