@@ -49,7 +49,11 @@ public class VHost {
     public static List<VHost> readConfig() {
         var f = new File( System.getProperty( "user.home"), "proxy.config" );
         if (!f.exists()) {
+            LOG.info( "No config at: %s", f.getAbsolutePath() );
             f = new File( "/home/falko/workspaces/workspace-android/areca/areca.aws/src/test/resources/config.json" );
+        }
+        else if (!f.exists()) {
+            throw new RuntimeException( "No config: " + new File( System.getProperty( "user.home"), "proxy.config" ).getAbsolutePath() );
         }
         try (var in = new FileReader( f ) ) {
             var vhosts = new Gson().fromJson( in, ConfigFile.class ).vhosts;
