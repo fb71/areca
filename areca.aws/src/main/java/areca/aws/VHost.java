@@ -200,7 +200,7 @@ public class VHost {
             }
             catch (HttpTimeoutException|ConnectException e) {
                 LOG.info( "Waiting for connection: %s/%s", hostnames.get( 0 ), ec2id );
-                Thread.sleep( 1000 );
+                Thread.sleep( 3000 );
             }
         }
         throw new HttpConnectTimeoutException( "No connection after: " + TIMEOUT_SERVICES_STARTUP.toSeconds() + "s" );
