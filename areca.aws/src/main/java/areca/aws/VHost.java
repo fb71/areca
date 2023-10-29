@@ -31,6 +31,8 @@ import java.time.Duration;
 import java.time.Instant;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 /**
@@ -47,16 +49,19 @@ public class VHost {
     private static final Timer timer = new Timer();
 
     public static List<VHost> readConfig() {
-        var f = new File( System.getProperty( "user.home"), "proxy.config" );
+        var home = System.getProperty( "user.home");
+        var f = new File( home, "proxy.config" );
         if (!f.exists()) {
             LOG.info( "No config at: %s", f.getAbsolutePath() );
-            f = new File( "/home/falko/workspaces/workspace-android/areca/areca.aws/src/test/resources/config.json" );
+            f = new File( home, "workspaces/workspace-android/areca/areca.aws/src/test/resources/config.json" );
         }
         else if (!f.exists()) {
-            throw new RuntimeException( "No config: " + new File( System.getProperty( "user.home"), "proxy.config" ).getAbsolutePath() );
+            throw new RuntimeException( "No config: " + new File( home, "proxy.config" ).getAbsolutePath() );
         }
+
         try (var in = new FileReader( f ) ) {
-            var vhosts = new Gson().fromJson( in, ConfigFile.class ).vhosts;
+            var vhosts = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create()
+                    .fromJson( in, ConfigFile.class ).vhosts;
             vhosts.forEach( vhost -> vhost.init() );
             return vhosts;
         }
@@ -67,6 +72,7 @@ public class VHost {
 
     public class ConfigFile {
 
+        @Expose
         public List<VHost>  vhosts;
     }
 
@@ -82,24 +88,30 @@ public class VHost {
     private TimerTask       idleCheck;
 
     /** The URL server names of the virtual server */
+    @Expose
     @SerializedName("hostnames")
     public List<String>     hostnames;
 
     /** The EC2 instance id */
+    @Expose
     @SerializedName("ec2id")
     public String           ec2id;
 
+    @Expose
     @SerializedName("idleTimeout")
     public String           idleTimeout;
 
+    @Expose
     @SerializedName("proxypaths")
     public List<ProxyPath>  proxypaths;
 
     public class ProxyPath {
 
+        @Expose
         @SerializedName("path")
         public String path;
 
+        @Expose
         @SerializedName("redirect")
         public String redirect;
     }
