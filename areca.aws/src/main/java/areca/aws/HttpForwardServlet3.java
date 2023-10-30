@@ -153,8 +153,9 @@ public class HttpForwardServlet3
             // headers
             req.getHeaderNames().asIterator().forEachRemaining( name -> {
                 if (!FORBIDDEN_HEADERS.contains( name.toLowerCase() )) {
-                    request.setHeader( name, req.getHeader( name ) );
-                    debug( "Header: %s: %s", name, req.getHeader( name ) );
+                    req.getHeaders( name ).asIterator().forEachRemaining( value -> request.headers( name, value ) );
+                    //request.setHeader( name, req.getHeader( name ) );
+                    debug( "Header: %s: %s", name, Collections.list( req.getHeaders( name ) ) );
                 }
             });
             request.setHeader( "X-Forwarded-Host", req.getServerName() );
@@ -163,7 +164,7 @@ public class HttpForwardServlet3
             //debug( "XHeader: %s: %s", "X-Forwarded-Port", req.getServerPort() );
             request.setHeader( "X-Forwarded-Proto", req.getScheme() );
             //debug( "XHeader: %s: %s", "X-Forwarded-Proto", req.getScheme() );
-            request.setHeader( "X-Forwarded-For", req.getRemoteHost() );
+            //request.setHeader( "X-Forwarded-For", req.getRemoteHost() );
             //debug( "XHeader: %s: %s", "X-Forwarded-For", req.getRemoteHost() );
 
             // send
@@ -173,13 +174,7 @@ public class HttpForwardServlet3
             // headers
             response.headers().map().forEach( (name,values) -> {
                 debug( "Response Header: %s: %s", name, values );
-                if (name == null || name.equals( "WWW-Authenticate" )) {
-                    // return 401 code but suppress the WWW-Authenticate header
-                    // in order to prevent browser popup asking for credentials
-                }
-                else {
-                    resp.addHeader( name, values.get( 0 ) ); // FIXME
-                }
+                values.forEach( value -> resp.addHeader( name, value ) );
             });
             copyAndClose( response.body(), resp.getOutputStream() );
             return null;
