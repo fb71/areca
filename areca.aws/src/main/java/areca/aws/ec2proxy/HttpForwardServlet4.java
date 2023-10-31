@@ -113,7 +113,7 @@ public class HttpForwardServlet4
 
 
     protected void doService( HttpServletRequest req, HttpServletResponse resp ) throws Exception {
-        var start = System.nanoTime();
+        //var start = System.nanoTime();
         debug( "URI: %s %s://%s:%s/%s ?%s", req.getMethod(),
                 req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI(), req.getQueryString() );
         debug( "Path:'%s'", req.getPathInfo() );
@@ -143,9 +143,9 @@ public class HttpForwardServlet4
         // handle
         var requestHandlers = Arrays.asList(
                 new IndexRedirectHandler(),
-                new EnsureEc2InstanceHandler( Mode.WAIT ),
+                new EnsureEc2InstanceHandler( Mode.LOADING_PAGE ),
                 new StraightForwardHandler(),
-                new EnsureEc2InstanceHandler.AfterError( Mode.WAIT ),
+                new EnsureEc2InstanceHandler.AfterError( Mode.LOADING_PAGE ),
                 new SanityCheckHandler() );
 
         for (var handler : requestHandlers) {

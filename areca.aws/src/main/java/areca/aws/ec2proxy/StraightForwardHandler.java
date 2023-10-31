@@ -37,6 +37,8 @@ public class StraightForwardHandler
 
     private static final XLogger LOG = XLogger.get( StraightForwardHandler.class );
 
+    public static final StraightForwardHandler INSTANCE = new StraightForwardHandler();
+
     public StraightForwardHandler() {
         super( notYetCommitted.and( ec2InstanceIsRunning ) );
     }

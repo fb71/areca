@@ -17,8 +17,10 @@ import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_SERVICES_STARTUP;
 import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
 
+import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.http.HttpConnectTimeoutException;
+import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.time.Instant;
@@ -38,26 +40,73 @@ public class EnsureEc2InstanceHandler
        WAIT, LOADING_PAGE
     }
 
+    //private static Map<String,HttpResponse<InputStream>> pending = new ConcurrentHashMap<>();
+
+    // instance *******************************************
+
     protected Mode mode;
 
     protected EnsureEc2InstanceHandler( Mode mode ) {
-        super( notYetCommitted.and( ec2InstanceIsRunning.negate() ) );
+        super( notYetCommitted.and(
+                ec2InstanceIsRunning.negate() /*.or( p -> pending.containsKey( p.request.getPathInfo() ) )*/ ) );
         this.mode = mode;
     }
 
 
     @Override
     public void handle( Probe probe ) throws Exception {
-        // expect not running
-        probe.vhost.updateRunning( false, () -> {
+        // send loading page
+        if (mode == Mode.LOADING_PAGE
+                && probe.request.getHeader( "Accept" ).contains( "text/html" )) {
+
+            new Thread( "Ec2InstanceStarter" ) { // XXX until instance is not running we start Threads for each reload
+                @Override public void run() {
+                    try {
+                        probe.vhost.updateRunning( false, () -> {
+                            probe.aws.startInstance( probe.vhost.ec2id );
+                            // let the subsequent AfterError handler try/load until success
+                            LOG.info( "%s: instance started.", getName() );
+                            return true;
+                        });
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
+
+            probe.response.setStatus( 200 );
+            try (
+                var out = probe.response.getOutputStream();
+                var in = Thread.currentThread().getContextClassLoader().getResourceAsStream( "loading.html" );
+            ) {
+                var buf = new byte[4096];
+                for (int c = in.read( buf ); c != -1; c = in.read( buf )) {
+                    out.write( buf, 0, c );
+                }
+                out.flush();
+            }
+        }
+
+        // wait for response
+        else {
+            startInstance( probe, /*expect not running*/ false );
+        }
+    }
+
+
+    protected void startInstance( Probe probe, Boolean expected ) throws Exception {
+        probe.vhost.updateRunning( expected, () -> {
             probe.aws.startInstance( probe.vhost.ec2id );
-            waitForService( probe );
+
+            var response = waitForService( probe );
+            StraightForwardHandler.INSTANCE.handleResponse( probe, response );
             return true;
         });
     }
 
 
-    protected void waitForService( Probe probe ) throws Exception {
+    protected HttpResponse<InputStream> waitForService( Probe probe ) throws Exception {
         for (var start = Instant.now(); Duration.between( start, Instant.now() ).compareTo( TIMEOUT_SERVICES_STARTUP ) < 0;) {
             try {
                 StraightForwardHandler forward = new StraightForwardHandler();
@@ -65,13 +114,12 @@ public class EnsureEc2InstanceHandler
                 // do not send error back to the client
                 // assuming that error status signals that service is not yet fully started
                 if (response.statusCode() < 400) {
-                    forward.handleResponse( probe, response );
+                    return response;
                 }
                 else {
                     LOG.info( "Response: status code = %s", response.statusCode() );
                     throw new HttpTimeoutException( "Response: status code =" + response.statusCode() );
                 }
-                return;
             }
             catch (HttpTimeoutException|ConnectException e) {
                 LOG.info( "Waiting for connection: %s/%s", probe.vhost.hostnames.get( 0 ), probe.vhost.ec2id );
@@ -95,12 +143,7 @@ public class EnsureEc2InstanceHandler
 
         @Override
         public void handle( Probe probe ) throws Exception {
-            // force, no matter what current state is
-            probe.vhost.updateRunning( null, () -> {
-                probe.aws.startInstance( probe.vhost.ec2id );
-                waitForService( probe );
-                return true;
-            });
+            startInstance( probe, /*force, no matter what current state is*/ null );
         }
     }
 

@@ -41,15 +41,6 @@ public abstract class HttpHandler {
 
     public abstract void handle( Probe probe ) throws Exception;
 
-//    /**
-//     *
-//     */
-//    public static interface Predicate
-//            extends java.util.function.Predicate<Probe> {
-//
-//        public boolean test( Probe probe );
-//    }
-
     /**
      *
      */

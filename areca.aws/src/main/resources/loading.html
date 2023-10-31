@@ -1,11 +1,22 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Ragtime</title>
+    <title>Loading</title>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" >
-  </head>
-  <body onload="main()">
-  Loading...
+    <script>
+        setTimeout( () => location.reload(), 3000 );
+    </script>
+    <style>
+      .centered {
+        position: absolute; 
+        left: 50%; 
+        top: 50%; 
+        transform: translate(-50%, -50%);  
+      }
+    </style>
+</head style="height:100%;">
+  <body style="min-height: 100%; background-color: lightgray; box-shadow: 0 0 200px rgba(0,0,0,0.9) inset;">
+    <div class="centered" style="font-family: monospace; font-size:20px;">Loading...</div>
   </body>
 </html>

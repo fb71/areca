@@ -26,8 +26,13 @@ public class IndexRedirectHandler
 
     private static final XLogger LOG = XLogger.get( IndexRedirectHandler.class );
 
+    public static final IndexRedirectHandler INSTANCE = new IndexRedirectHandler();
+
     protected IndexRedirectHandler() {
-        super( notYetCommitted.and( probe -> probe.proxyPath.redirect != null ) );
+        super( notYetCommitted
+                .and( probe -> probe.proxyPath.redirect != null )
+                // redirect just "/", not *everything* starting with "/"
+                .and( probe -> probe.proxyPath.path.equals( probe.request.getPathInfo() ) ) );
     }
 
     @Override
