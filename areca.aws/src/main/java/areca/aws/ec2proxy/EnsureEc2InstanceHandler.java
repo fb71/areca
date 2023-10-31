@@ -64,7 +64,8 @@ public class EnsureEc2InstanceHandler
                     try {
                         probe.vhost.updateRunning( false, () -> {
                             probe.aws.startInstance( probe.vhost.ec2id );
-                            // let the subsequent AfterError handler try/load until success
+                            // XXX let the subsequent AfterError handler try/load until success
+                            Thread.sleep( 5000 );
                             LOG.info( "%s: instance started.", getName() );
                             return true;
                         });
