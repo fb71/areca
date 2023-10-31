@@ -135,15 +135,14 @@ public class HttpForwardServlet4
                 .filter( p -> req.getPathInfo().startsWith( p.path ) ).findAny()
                 .orElseThrow( () -> new NoSuchElementException( "No proxypath found for: " + req.getPathInfo() ) );
 
-        probe.redirect = probe.proxyPath.redirect
+        probe.redirect = probe.proxyPath.forward
                 + req.getPathInfo().substring( probe.proxyPath.path.length() )
                 + (req.getQueryString() != null ? "?"+req.getQueryString() : "" );
         debug( "    -> %s", probe.redirect );
-        debug( "    -> indexRedirect: %s", probe.vhost.indexRedirect );
 
         // handle
         var requestHandlers = Arrays.asList(
-                //new IndexRedirectHandler(),
+                new IndexRedirectHandler(),
                 new EnsureEc2InstanceHandler( Mode.WAIT ),
                 new StraightForwardHandler(),
                 new EnsureEc2InstanceHandler.AfterError( Mode.WAIT ),
@@ -161,7 +160,7 @@ public class HttpForwardServlet4
                 }
             }
         }
-        debug( "    -> time: %s ms", (System.nanoTime() - start)/1000000 );
+        //debug( "    -> time: %s ms", (System.nanoTime() - start)/1000000 );
     }
 
 

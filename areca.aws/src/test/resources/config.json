@@ -7,19 +7,23 @@
             "proxypaths": [
                 {
                     "path": "/jenkins/",
-                    "redirect": "http://3.78.52.188:8080/jenkins/"
+                    "forward": "http://3.78.52.188:8080/jenkins/"
                 },
                 {
                     "path": "/deploy/",
-                    "redirect": "http://3.78.52.188:8090/"
+                    "forward": "http://3.78.52.188:8090/"
                 },
                 {
                     "path": "/ragtime",
-                    "redirect": "http://3.78.52.188:8090/ragtime.app-0.0.1-SNAPSHOT"
+                    "forward": "http://3.78.52.188:8090/ragtime.app-0.0.1-SNAPSHOT"
                 },
                 {
                     "path": "/echo",
-                    "redirect": "https://postman-echo.com/get"
+                    "forward": "https://postman-echo.com/get"
+                },
+                {
+                    "path": "/",
+                    "redirect": "jenkins/"
                 }
             ] 
         },
@@ -30,7 +34,7 @@
             "proxypaths": [
                 {
                     "path": "/echo",
-                    "redirect": "https://postman-echo.com/get"
+                    "forward": "https://postman-echo.com/get"
                 }
             ] 
         }

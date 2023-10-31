@@ -27,14 +27,12 @@ public class IndexRedirectHandler
     private static final XLogger LOG = XLogger.get( IndexRedirectHandler.class );
 
     protected IndexRedirectHandler() {
-        super( notYetCommitted
-                .and( probe -> probe.vhost.indexRedirect != null)
-                .and( probe -> probe.request.getPathInfo().equals( "/" ) ) );
+        super( notYetCommitted.and( probe -> probe.proxyPath.redirect != null ) );
     }
 
     @Override
     public void handle( Probe probe ) throws Exception {
-        probe.response.sendRedirect( probe.vhost.indexRedirect );
+        probe.response.sendRedirect( probe.proxyPath.redirect );
     }
 
 }

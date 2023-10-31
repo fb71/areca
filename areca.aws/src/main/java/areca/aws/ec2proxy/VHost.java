@@ -100,10 +100,6 @@ public class VHost {
     public String           idleTimeout;
 
     @Expose
-    @SerializedName("indexRedirect")
-    public String           indexRedirect;
-
-    @Expose
     @SerializedName("proxypaths")
     public List<ProxyPath>  proxypaths;
 
@@ -116,6 +112,10 @@ public class VHost {
         @Expose
         @SerializedName("redirect")
         public String redirect;
+
+        @Expose
+        @SerializedName("forward")
+        public String forward;
     }
 
 
