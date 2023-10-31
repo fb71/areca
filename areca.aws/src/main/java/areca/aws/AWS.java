@@ -45,6 +45,12 @@ public class AWS {
     }
 
 
+    public void dispose() {
+        ec2.close();
+        ec2 = null;
+    }
+
+
     public boolean isInstanceRunning( String ec2InstanceId ) {
         var instance = describeInstances( ec2InstanceId );
         String state = instance.state().name().name();

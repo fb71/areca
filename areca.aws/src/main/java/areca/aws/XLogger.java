@@ -47,4 +47,9 @@ public class XLogger {
         return this;
     }
 
+    public XLogger warn( String format, Object... args ) {
+        delegate.warning( String.format( format, args ) );
+        return this;
+    }
+
 }

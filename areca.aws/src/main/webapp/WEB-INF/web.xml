@@ -19,7 +19,7 @@
     <!-- HTTP -->
     <servlet>
         <servlet-name>default</servlet-name>
-        <servlet-class>areca.aws.HttpForwardServlet3</servlet-class>
+        <servlet-class>areca.aws.ec2proxy.HttpForwardServlet4</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>default</servlet-name>

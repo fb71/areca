@@ -24,16 +24,13 @@
             ] 
         },
         {
-            "hostnames": ["example.com", "www.example.com"],
-            "_ec2id_": "i-0ef343b852bd58970",
+            "hostnames": ["-localhost"],
+            "-ec2id": "i-0a943c0ae2e2f1edd",
+            "idleTimeout": "PT60M",
             "proxypaths": [
                 {
-                    "path": "/wbv",
-                    "redirect": "http://3.74.245.82:8080/wbv"
-                },
-                {
                     "path": "/echo",
-                    "redirect": "https://postman-echo.com/"
+                    "redirect": "https://postman-echo.com/get"
                 }
             ] 
         }
