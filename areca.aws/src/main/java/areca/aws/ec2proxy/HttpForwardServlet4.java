@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import areca.aws.AWS;
+import areca.aws.XLogger;
 import areca.aws.ec2proxy.EnsureEc2InstanceHandler.Mode;
 
 /**
@@ -42,6 +43,8 @@ import areca.aws.ec2proxy.EnsureEc2InstanceHandler.Mode;
  */
 public class HttpForwardServlet4
         extends HttpServlet {
+
+    private static final XLogger LOG = XLogger.get( HttpForwardServlet4.class );
 
     public static final List<String> METHODS_WITH_BODY = Arrays.asList("POST", "REPORT", "PUT");
 
@@ -76,9 +79,18 @@ public class HttpForwardServlet4
             }
             @Override
             public void put( URI uri, Map<String,List<String>> responseHeaders ) throws IOException {
+                LOG.info( "############## cookie: %s", uri );
+                responseHeaders.entrySet().stream()
+                        .filter( entry -> entry.getKey().startsWith( "set-cookie" ) )
+                        .forEach( entry -> LOG.info( "    %s : %s", entry.getKey(), entry.getValue() ) );
             }
         };
-        http = HttpClient.newBuilder().connectTimeout( TIMEOUT_CONNECT ).cookieHandler( noCookies ).build();
+        System.setProperty( "jdk.httpclient.allowRestrictedHeaders", "host" );
+        http = HttpClient.newBuilder()
+                .connectTimeout( TIMEOUT_CONNECT )
+                .cookieHandler( noCookies )
+                //.cookieHandler( new CookieManager( null, CookiePolicy.ACCEPT_ALL ) )
+                .build();
 
         aws = new AWS();
 
@@ -108,8 +120,9 @@ public class HttpForwardServlet4
             e.printStackTrace();
             throw e;
         }
-        catch (NoSuchElementException e) {
-            debug( "%s", e.getMessage() );
+        catch (NoSuchElementException e) { // XXX
+            e.printStackTrace();
+            LOG.info( "%s", e.getMessage() );
             resp.sendError( 404, e.getMessage() );
         }
         catch (Exception e) {
@@ -121,9 +134,9 @@ public class HttpForwardServlet4
 
     protected void doService( HttpServletRequest req, HttpServletResponse resp ) throws Exception {
         //var start = System.nanoTime();
-        debug( "URI: %s %s://%s:%s/%s ?%s", req.getMethod(),
+        LOG.info( "URI: %s %s://%s:%s/%s ?%s", req.getMethod(),
                 req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI(), req.getQueryString() );
-        debug( "Path:'%s'", req.getPathInfo() );
+        LOG.info( "Path:'%s'", req.getPathInfo() );
 
         var probe = new HttpHandler.Probe();
         probe.aws = aws;
@@ -145,7 +158,7 @@ public class HttpForwardServlet4
         probe.redirect = probe.proxyPath.forward
                 + req.getPathInfo().substring( probe.proxyPath.path.length() )
                 + (req.getQueryString() != null ? "?"+req.getQueryString() : "" );
-        debug( "    -> %s", probe.redirect );
+        LOG.info( "    -> %s", probe.redirect );
 
         // handle
         var requestHandlers = Arrays.asList(
@@ -158,11 +171,11 @@ public class HttpForwardServlet4
         for (var handler : requestHandlers) {
             if (handler.canHandle( probe )) {
                 try {
-                    debug( " ============ %s ============", handler.getClass().getSimpleName() );
+                    LOG.info( " ============ %s ============", handler.getClass().getSimpleName() );
                     handler.handle( probe );
                 }
                 catch (Exception e) {
-                    debug( "    : %s", e );
+                    LOG.info( "    : %s", e );
                     probe.error = e;
                 }
             }
@@ -171,8 +184,8 @@ public class HttpForwardServlet4
     }
 
 
-    protected static void debug( String msg, Object... args ) {
-        System.out.println( args.length == 0 ? msg : String.format( msg, args ) );
-    }
+//    protected static void debug( String msg, Object... args ) {
+//        System.out.println( args.length == 0 ? msg : String.format( msg, args ) );
+//    }
 
 }

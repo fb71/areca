@@ -19,7 +19,7 @@ import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_REQUEST;
 import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
 
-import java.io.IOException;
+import java.util.Collections;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -77,31 +77,38 @@ public class StraightForwardHandler
             if (!FORBIDDEN_HEADERS.contains( name.toLowerCase() )) {
                 probe.request.getHeaders( name ).asIterator()
                         .forEachRemaining( value -> request.headers( name, value ) );
-                //debug( "Header: %s: %s", name, Collections.list( probe.request.getHeaders( name ) ) );
+                LOG.info( "Header: %s: %s", name, Collections.list( probe.request.getHeaders( name ) ) );
             }
         });
+        //request.setHeader( "Host", "localhost:8080" );  //probe.request.getServerName() );
+        //LOG.info( "XHeader: %s: %s", "Host", probe.request.getServerName() );
         request.setHeader( "X-Forwarded-Host", probe.request.getServerName() );
-        //debug( "XHeader: %s: %s", "X-Forwarded-Host", probe.request.getServerName() );
+        //LOG.info( "XHeader: %s: %s", "X-Forwarded-Host", probe.request.getServerName() );
         request.setHeader( "X-Forwarded-Port", String.valueOf( probe.request.getServerPort() ) );
-        //debug( "XHeader: %s: %s", "X-Forwarded-Port", probe.request.getServerPort() );
+        //LOG.info( "XHeader: %s: %s", "X-Forwarded-Port", probe.request.getServerPort() );
         request.setHeader( "X-Forwarded-Proto", probe.request.getScheme() );
-        //debug( "XHeader: %s: %s", "X-Forwarded-Proto", probe.request.getScheme() );
-        //request.setHeader( "X-Forwarded-For", req.getRemoteHost() );
-        //debug( "XHeader: %s: %s", "X-Forwarded-For", req.getRemoteHost() );
+        //LOG.info( "XHeader: %s: %s", "X-Forwarded-Proto", probe.request.getScheme() );
+        request.setHeader( "X-Forwarded-For", probe.request.getRemoteHost() );
+        LOG.info( "XHeader: %s: %s", "X-Forwarded-For", probe.request.getRemoteHost() );
+        request.setHeader( "X-Real-IP", probe.request.getRemoteHost() );
+        //LOG.info( "XHeader: %s: %s", "X-Real-IP", probe.request.getRemoteHost() );
 
         // send
         return probe.http.send( request.build(), BodyHandlers.ofInputStream() );
     }
 
 
-    protected void handleResponse( Probe probe, HttpResponse<InputStream> response ) throws IOException {
+    protected void handleResponse( Probe probe, HttpResponse<InputStream> response ) throws Exception {
         probe.response.setStatus( response.statusCode() );
 
         // headers
         response.headers().map().forEach( (name,values) -> {
-            //debug( "Response Header: %s: %s", name, values );
+            LOG.info( "Response Header: %s: %s", name, values );
             values.forEach( value -> probe.response.addHeader( name, value ) );
         });
+//        var cm = probe.http.cookieHandler().get();
+//        var cookies = cm.get( new URI( probe.redirect ), new HashMap<>() );
+//        LOG.info( "################################### Response Cookie: %s", cookies );
 
         try (
             var in = response.body();

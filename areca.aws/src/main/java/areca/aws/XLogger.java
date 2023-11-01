@@ -13,7 +13,12 @@
  */
 package areca.aws;
 
+import static org.apache.commons.lang3.StringUtils.abbreviate;
+
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -22,34 +27,49 @@ import java.util.logging.Logger;
 public class XLogger {
 
     public static XLogger get( Class cl ) {
-        return new XLogger( Logger.getLogger( cl.getName() ) );
+        return new XLogger( cl, null ); //Logger.getLogger( cl.getName() ) );
     }
 
     // instance *******************************************
 
     private Logger delegate;
+    private Class cl;
 
-    protected XLogger( Logger logger ) {
+    protected XLogger( Class cl, Logger logger ) {
         this.delegate = logger;
+        this.cl = cl;
     }
 
     public Logger delegate() {
         return delegate;
     }
 
-    public XLogger debug( String format, Object... args ) {
-        delegate.fine( String.format( format, args ) );
+    protected XLogger log( Level level, String format, Object... args ) {
+        if (delegate != null) {
+            if (delegate.isLoggable( level )) {
+                var formatted = args != null ? String.format( format, args ) : format;
+                delegate.log( level, formatted );
+            }
+        }
+        else {
+            var formatted = args != null ? String.format( format, args ) : format;
+            var prefix = abbreviate( cl.getSimpleName(), 20 );
+            var l = StringUtils.substring( level.toString(), 0, 5);
+            System.out.println( String.format( "[%-5s] %-20s: %s", l, prefix, formatted ) );
+        }
         return this;
+    }
+
+    public XLogger debug( String format, Object... args ) {
+        return log( Level.FINE, format, args );
     }
 
     public XLogger info( String format, Object... args ) {
-        delegate.info( String.format( format, args ) );
-        return this;
+        return log( Level.INFO, format, args );
     }
 
     public XLogger warn( String format, Object... args ) {
-        delegate.warning( String.format( format, args ) );
-        return this;
+        return log( Level.WARNING, format, args );
     }
 
 }
