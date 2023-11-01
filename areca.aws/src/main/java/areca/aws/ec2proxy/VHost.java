@@ -125,7 +125,7 @@ public class VHost {
             var idle = Duration.parse( idleTimeout );
             idleCheck = new TimerTask() {
                 @Override public void run() {
-                    LOG.info( "Idle check: %s/%s, last: %s", hostnames.get( 0 ), ec2id, lastAccess );
+                    //LOG.debug( "Idle check: %s/%s, last: %s", hostnames.get( 0 ), ec2id, lastAccess );
                     if (isRunning.get() && Duration.between( lastAccess, now() ).compareTo( idle ) > 0) {
                         LOG.info( "IDLE: %s/%s, stopping...", hostnames.get( 0 ), ec2id );
                         synchronized (isRunning) {
