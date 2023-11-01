@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Timer;
 
 import java.io.IOException;
 import java.net.CookieHandler;
@@ -55,6 +56,8 @@ public class HttpForwardServlet4
 
     // instance *******************************************
 
+    public static Timer     timer;
+
     private List<VHost>     vhosts;
 
     private HttpClient      http;
@@ -79,6 +82,8 @@ public class HttpForwardServlet4
 
         aws = new AWS();
 
+        timer = new Timer();
+
         vhosts = VHost.readConfig( aws );
         vhosts.forEach( vhost -> vhost.init( aws ) );
     }
@@ -89,6 +94,8 @@ public class HttpForwardServlet4
         log( getClass().getSimpleName() + ": destroy ..." );
         vhosts.forEach( vhost -> vhost.dispose() );
         aws.dispose();
+        timer.cancel();
+        timer = null;
     }
 
 

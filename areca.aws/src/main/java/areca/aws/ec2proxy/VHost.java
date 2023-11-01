@@ -16,7 +16,6 @@ package areca.aws.ec2proxy;
 import static java.time.Instant.now;
 
 import java.util.List;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,8 +41,6 @@ import areca.aws.XLogger;
 public class VHost {
 
     private static final XLogger LOG = XLogger.get( VHost.class );
-
-    private static final Timer timer = new Timer();
 
     /**
      *
@@ -141,7 +138,7 @@ public class VHost {
                 }
             };
             var interval = Duration.ofSeconds( 60 ).toMillis();
-            timer.scheduleAtFixedRate( idleCheck, interval, interval );
+            HttpForwardServlet4.timer.scheduleAtFixedRate( idleCheck, interval, interval );
             LOG.info( "Idle check started: %s/%s, at interval: %s", hostnames.get( 0 ), ec2id, idle );
         }
     }
