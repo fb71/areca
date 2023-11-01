@@ -68,6 +68,7 @@ public abstract class HttpHandler {
 
         /**
          * Cache {@link #request} content for long running operations.
+         * Especially github webhooks which seem to close request quickly.
          */
         public LazyInitializer<byte[]> requestBody = Lazy.of( () -> IOUtils.toByteArray( request.getInputStream() ) );
 
