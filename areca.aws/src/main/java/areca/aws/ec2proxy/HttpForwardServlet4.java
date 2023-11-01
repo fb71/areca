@@ -176,6 +176,7 @@ public class HttpForwardServlet4
                 }
                 catch (Exception e) {
                     LOG.info( "    : %s", e );
+                    e.printStackTrace();
                     probe.error = e;
                 }
             }

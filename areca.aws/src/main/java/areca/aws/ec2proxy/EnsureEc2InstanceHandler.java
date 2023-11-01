@@ -16,6 +16,8 @@ package areca.aws.ec2proxy;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_SERVICES_STARTUP;
 import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import java.io.InputStream;
 import java.net.ConnectException;
@@ -78,7 +80,7 @@ public class EnsureEc2InstanceHandler
                 }
             }.start();
 
-            probe.response.setStatus( 200 );
+            probe.response.setStatus( SC_OK );
 
             var in = Thread.currentThread().getContextClassLoader().getResourceAsStream( "loading.html" );
             IOUtils.copy( in, probe.response.getOutputStream() );
@@ -110,7 +112,7 @@ public class EnsureEc2InstanceHandler
                 var response = forward.sendRequest( probe );
                 // do not send error back to the client
                 // assuming that error status signals that service is not yet fully started
-                if (response.statusCode() < 400) {
+                if (response.statusCode() < SC_BAD_REQUEST) {
                     return response;
                 }
                 else {
