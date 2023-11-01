@@ -106,6 +106,7 @@ public class StraightForwardHandler
             LOG.info( "Response Header: %s: %s", name, values );
             values.forEach( value -> probe.response.addHeader( name, value ) );
         });
+
 //        var cm = probe.http.cookieHandler().get();
 //        var cookies = cm.get( new URI( probe.redirect ), new HashMap<>() );
 //        LOG.info( "################################### Response Cookie: %s", cookies );
