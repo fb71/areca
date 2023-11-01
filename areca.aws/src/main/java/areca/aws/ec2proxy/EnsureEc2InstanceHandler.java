@@ -25,6 +25,8 @@ import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.time.Instant;
 
+import org.apache.commons.io.IOUtils;
+
 import areca.aws.XLogger;
 
 /**
@@ -77,16 +79,10 @@ public class EnsureEc2InstanceHandler
             }.start();
 
             probe.response.setStatus( 200 );
-            try (
-                var out = probe.response.getOutputStream();
-                var in = Thread.currentThread().getContextClassLoader().getResourceAsStream( "loading.html" );
-            ) {
-                var buf = new byte[4096];
-                for (int c = in.read( buf ); c != -1; c = in.read( buf )) {
-                    out.write( buf, 0, c );
-                }
-                out.flush();
-            }
+
+            var in = Thread.currentThread().getContextClassLoader().getResourceAsStream( "loading.html" );
+            IOUtils.copy( in, probe.response.getOutputStream() );
+            probe.response.flushBuffer();
         }
 
         // wait for response

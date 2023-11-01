@@ -26,6 +26,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 
+import org.apache.commons.io.IOUtils;
+
 import areca.aws.XLogger;
 
 /**
@@ -63,8 +65,7 @@ public class StraightForwardHandler
 
         // METHOD
         if (METHODS_WITH_BODY.contains( probe.request.getMethod() ) ) {
-            var in = probe.request.getInputStream();
-            request.method( probe.request.getMethod(), HttpRequest.BodyPublishers.ofInputStream( () -> in ) );
+            request.method( probe.request.getMethod(), HttpRequest.BodyPublishers.ofByteArray( probe.requestBody.get() ) );
         }
         else {
             request.method( probe.request.getMethod(), HttpRequest.BodyPublishers.noBody() );
@@ -111,17 +112,8 @@ public class StraightForwardHandler
 //        var cookies = cm.get( new URI( probe.redirect ), new HashMap<>() );
 //        LOG.info( "################################### Response Cookie: %s", cookies );
 
-        try (
-            var in = response.body();
-            var out = probe.response.getOutputStream();
-        ) {
-            var buf = new byte[4096];
-            for (int c = in.read( buf ); c != -1; c = in.read( buf )) {
-                out.write( buf, 0, c );
-            }
-            out.flush();
-            probe.response.flushBuffer();
-        }
+        IOUtils.copy( response.body(), probe.response.getOutputStream() );
+        probe.response.flushBuffer();
     }
 
 }

@@ -20,7 +20,11 @@ import java.net.http.HttpClient;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.concurrent.LazyInitializer;
+
 import areca.aws.AWS;
+import areca.aws.Lazy;
 import areca.aws.ec2proxy.VHost.ProxyPath;
 
 /**
@@ -61,6 +65,12 @@ public abstract class HttpHandler {
         public Exception error;
 
         public AWS aws;
+
+        /**
+         * Cache {@link #request} content for long running operations.
+         */
+        public LazyInitializer<byte[]> requestBody = Lazy.of( () -> IOUtils.toByteArray( request.getInputStream() ) );
+
     }
 
 }
