@@ -19,7 +19,6 @@ import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_REQUEST;
 import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
 
-import java.util.Collections;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -78,7 +77,7 @@ public class StraightForwardHandler
             if (!FORBIDDEN_HEADERS.contains( name.toLowerCase() )) {
                 probe.request.getHeaders( name ).asIterator()
                         .forEachRemaining( value -> request.headers( name, value ) );
-                LOG.info( "Header: %s: %s", name, Collections.list( probe.request.getHeaders( name ) ) );
+                //LOG.debug( "Header: %s: %s", name, Collections.list( probe.request.getHeaders( name ) ) );
             }
         });
         //request.setHeader( "Host", "localhost:8080" );  //probe.request.getServerName() );
@@ -90,7 +89,7 @@ public class StraightForwardHandler
         request.setHeader( "X-Forwarded-Proto", probe.request.getScheme() );
         //LOG.info( "XHeader: %s: %s", "X-Forwarded-Proto", probe.request.getScheme() );
         request.setHeader( "X-Forwarded-For", probe.request.getRemoteHost() );
-        LOG.info( "XHeader: %s: %s", "X-Forwarded-For", probe.request.getRemoteHost() );
+        //LOG.debug( "XHeader: %s: %s", "X-Forwarded-For", probe.request.getRemoteHost() );
         request.setHeader( "X-Real-IP", probe.request.getRemoteHost() );
         //LOG.info( "XHeader: %s: %s", "X-Real-IP", probe.request.getRemoteHost() );
 
@@ -104,7 +103,7 @@ public class StraightForwardHandler
 
         // headers
         response.headers().map().forEach( (name,values) -> {
-            LOG.info( "Response Header: %s: %s", name, values );
+            //LOG.debug( "Response Header: %s: %s", name, values );
             values.forEach( value -> probe.response.addHeader( name, value ) );
         });
 

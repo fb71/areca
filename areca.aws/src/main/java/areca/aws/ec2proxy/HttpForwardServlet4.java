@@ -183,10 +183,4 @@ public class HttpForwardServlet4
         }
         //debug( "    -> time: %s ms", (System.nanoTime() - start)/1000000 );
     }
-
-
-//    protected static void debug( String msg, Object... args ) {
-//        System.out.println( args.length == 0 ? msg : String.format( msg, args ) );
-//    }
-
 }
