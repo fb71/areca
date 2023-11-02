@@ -17,13 +17,14 @@ import static java.time.Instant.now;
 
 import java.util.List;
 import java.util.TimerTask;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import java.io.File;
 import java.io.FileReader;
 import java.time.Duration;
 import java.time.Instant;
+
+import org.apache.commons.lang3.function.FailableFunction;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -128,12 +129,10 @@ public class VHost {
                     //LOG.debug( "Idle check: %s/%s, last: %s", hostnames.get( 0 ), ec2id, lastAccess );
                     if (isRunning.get() && Duration.between( lastAccess, now() ).compareTo( idle ) > 0) {
                         LOG.info( "IDLE: %s/%s, stopping...", hostnames.get( 0 ), ec2id );
-                        synchronized (isRunning) {
-                            if (isRunning.get()) {
-                                aws.stopInstance( ec2id );
-                                isRunning.set( false );
-                            }
-                        }
+                        updateRunning( null, __ -> {
+                            aws.stopInstance( ec2id );
+                            return false;
+                        });
                     }
                 }
             };
@@ -158,11 +157,11 @@ public class VHost {
     }
 
 
-    public void updateRunning( Boolean expected, Callable<Boolean> block ) throws Exception {
+    public <E extends Exception> void updateRunning( Boolean expected, FailableFunction<Boolean,Boolean,E> block ) throws E {
         if (expected == null || expected.booleanValue() == isRunning.get() ) {
             synchronized (isRunning) {
                 if (expected == null || expected.booleanValue() == isRunning.get() ) {
-                    isRunning.set( block.call() );
+                    isRunning.set( block.apply( isRunning.get() ) );
                 }
             }
         }
