@@ -31,11 +31,11 @@ import areca.aws.ec2proxy.VHost.ProxyPath;
  *
  * @author Falko Bräutigam
  */
-public abstract class HttpHandler {
+public abstract class RequestHandler {
 
     protected Predicate<Probe> predicate;
 
-    protected HttpHandler( Predicate<Probe> predicate ) {
+    protected RequestHandler( Predicate<Probe> predicate ) {
         this.predicate = predicate;
     }
 

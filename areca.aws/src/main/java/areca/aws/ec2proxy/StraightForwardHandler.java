@@ -34,7 +34,7 @@ import areca.aws.XLogger;
  * @author Falko Bräutigam
  */
 public class StraightForwardHandler
-        extends HttpHandler {
+        extends RequestHandler {
 
     private static final XLogger LOG = XLogger.get( StraightForwardHandler.class );
 

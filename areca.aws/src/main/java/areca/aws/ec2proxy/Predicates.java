@@ -15,7 +15,7 @@ package areca.aws.ec2proxy;
 
 import java.util.function.Predicate;
 
-import areca.aws.ec2proxy.HttpHandler.Probe;
+import areca.aws.ec2proxy.RequestHandler.Probe;
 
 /**
  *

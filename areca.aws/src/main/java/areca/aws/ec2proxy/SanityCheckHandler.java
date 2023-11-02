@@ -24,7 +24,7 @@ import areca.aws.XLogger;
  * @author Falko Bräutigam
  */
 public class SanityCheckHandler
-        extends HttpHandler {
+        extends RequestHandler {
 
     private static final XLogger LOG = XLogger.get( SanityCheckHandler.class );
 

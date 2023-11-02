@@ -36,7 +36,7 @@ import areca.aws.XLogger;
  * @author Falko Bräutigam
  */
 public class EnsureEc2InstanceHandler
-        extends HttpHandler {
+        extends RequestHandler {
 
     private static final XLogger LOG = XLogger.get( EnsureEc2InstanceHandler.class );
 
@@ -66,7 +66,7 @@ public class EnsureEc2InstanceHandler
             new Thread( "Ec2InstanceStarter" ) { // XXX until instance is not running we start Threads for each reload
                 @Override public void run() {
                     try {
-                        probe.vhost.updateRunning( false, () -> {
+                        probe.vhost.updateRunning( false, __ -> {
                             probe.aws.startInstance( probe.vhost.ec2id );
                             // XXX let the subsequent AfterError handler try/load until success
                             Thread.sleep( 5000 );
@@ -95,7 +95,7 @@ public class EnsureEc2InstanceHandler
 
 
     protected void startInstance( Probe probe, Boolean expected ) throws Exception {
-        probe.vhost.updateRunning( expected, () -> {
+        probe.vhost.updateRunning( expected, __ -> {
             probe.aws.startInstance( probe.vhost.ec2id );
 
             var response = waitForService( probe );

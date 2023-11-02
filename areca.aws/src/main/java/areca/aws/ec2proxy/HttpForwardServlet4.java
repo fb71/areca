@@ -138,7 +138,7 @@ public class HttpForwardServlet4
                 req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI(), req.getQueryString() );
         LOG.info( "Path:'%s'", req.getPathInfo() );
 
-        var probe = new HttpHandler.Probe();
+        var probe = new RequestHandler.Probe();
         probe.aws = aws;
         probe.http = http;
         probe.request = req;
