@@ -13,8 +13,8 @@
  */
 package areca.aws.logs;
 
+import java.util.ArrayList;
 import java.util.Date;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -34,8 +34,10 @@ public class HttpRequestEvent {
 
     public HttpRequestEvent( HttpServletRequest req, HttpServletResponse resp ) {
         this.resp = resp;
-        method = req.getMethod();
         url = String.format( "%s://%s:%s/%s", req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI() );
+        method = req.getMethod();
+        ip = req.getRemoteAddr();
+        agent = new ArrayList<String>() {{req.getHeaders( "User-Agent" ).asIterator().forEachRemaining( h -> add(h));}}.toString();
     }
 
     public HttpRequestEvent complete() {
@@ -53,6 +55,10 @@ public class HttpRequestEvent {
     public String url;
 
     public String method;
+
+    public String agent;
+
+    public String ip;
 
     public String forward;
 
