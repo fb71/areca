@@ -35,8 +35,8 @@ import com.google.gson.JsonParser;
 import areca.aws.XLogger;
 import areca.aws.logs.EventCollector.Event;
 import areca.aws.logs.EventCollector.EventSink;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileLocation;
 
 /**
  *
@@ -71,9 +71,7 @@ public class OpenSearchSink
         this.credentials = credentials;
         if (credentials == null) {
             LOG.info( "No credentials given. Using ProfileCredentialsProvider." );
-            var provider = ProfileCredentialsProvider.create( "opensearch" );
-            AwsCredentials resolveCredentials = provider.resolveCredentials();
-            this.credentials = ImmutablePair.of( resolveCredentials.accessKeyId(), resolveCredentials.secretAccessKey() );
+            this.credentials = credentials();
         }
     }
 
@@ -109,6 +107,7 @@ public class OpenSearchSink
         }
     }
 
+
     /**
      *
      */
@@ -135,9 +134,24 @@ public class OpenSearchSink
     }
 
 
+    protected static Pair<String,String> credentials() {
+//        var provider = ProfileCredentialsProvider.create( "opensearch" );
+//        AwsCredentials resolveCredentials = provider.resolveCredentials();
+//        this.credentials = ImmutablePair.of( resolveCredentials.accessKeyId(), resolveCredentials.secretAccessKey() );
+
+        var b = ProfileFile.builder();
+        ProfileFileLocation.credentialsFileLocation().ifPresent( l -> b.content( l ).type( ProfileFile.Type.CREDENTIALS ) );
+        var profile = b.build().profile( "opensearch" )
+                .orElseThrow( () -> new RuntimeException( "No [opensearch] profile." ) ).properties();
+        return ImmutablePair.of( profile.get( "aws_access_key_id" ), profile.get( "aws_secret_access_key" ) );
+    }
+
+
     // test ***********************************************
 
     public static void main( String... args ) throws InterruptedException {
+        LOG.info( "%s", credentials() );
+
 //        var logs = new EventCollector<Object,String>()
 //                .addTransform( new GsonEventTransformer<Object>() )
 //                .addSink( new OpenSearchSink( null, null ) );
