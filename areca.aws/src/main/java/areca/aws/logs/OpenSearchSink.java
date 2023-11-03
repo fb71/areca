@@ -50,7 +50,7 @@ public class OpenSearchSink
     public static final Duration HTTP_TIMEOUT = Duration.ofSeconds( 30 );
 
     public static final Gson gson = new GsonBuilder() // NOT pretty for AWS :(
-            .setDateFormat("yyyy-MM-dd HH:mm:ss")
+            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
             .excludeFieldsWithModifiers( Modifier.PRIVATE )
             .create();
 
@@ -89,7 +89,7 @@ public class OpenSearchSink
         LOG.debug( "LOG: \n%s", body.toString() );
 
         String auth = credentials.getLeft() + ":" + credentials.getRight();
-        var request = HttpRequest.newBuilder( new URI( url + "_bulk" + "?filter_path=took,errors" ) )
+        var request = HttpRequest.newBuilder( new URI( url + "_bulk" /*+ "?filter_path=took,errors"*/ ) )
                 .method( "POST", BodyPublishers.ofString( body.toString() ) )
                 .header( "Content-Type", "application/json" )
                 .header( "Authorization", "Basic " + Base64.getEncoder().encodeToString( auth.getBytes() ) )
