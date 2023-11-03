@@ -82,36 +82,42 @@ public class HttpForwardServlet4
     public void init() throws ServletException {
         log( getClass().getSimpleName() + " init..." );
 
-        var noCookies = new CookieHandler() {
-            @Override
-            public Map<String,List<String>> get( URI uri, Map<String,List<String>> requestHeaders ) throws IOException {
-                return Collections.emptyMap();
-            }
-            @Override
-            public void put( URI uri, Map<String,List<String>> responseHeaders ) throws IOException {
-                //LOG.debug( "############## cookie: %s", uri );
-                responseHeaders.entrySet().stream()
-                        .filter( entry -> entry.getKey().startsWith( "set-cookie" ) )
-                        .forEach( entry -> LOG.info( "    %s : %s", entry.getKey(), entry.getValue() ) );
-            }
-        };
-        System.setProperty( "jdk.httpclient.allowRestrictedHeaders", "host" );
-        http = HttpClient.newBuilder()
-                .connectTimeout( TIMEOUT_CONNECT )
-                .cookieHandler( noCookies )
-                //.cookieHandler( new CookieManager( null, CookiePolicy.ACCEPT_ALL ) )
-                .build();
+        try {
+            var noCookies = new CookieHandler() {
+                @Override
+                public Map<String,List<String>> get( URI uri, Map<String,List<String>> requestHeaders ) throws IOException {
+                    return Collections.emptyMap();
+                }
+                @Override
+                public void put( URI uri, Map<String,List<String>> responseHeaders ) throws IOException {
+                    //LOG.debug( "############## cookie: %s", uri );
+                    responseHeaders.entrySet().stream()
+                            .filter( entry -> entry.getKey().startsWith( "set-cookie" ) )
+                            .forEach( entry -> LOG.info( "    %s : %s", entry.getKey(), entry.getValue() ) );
+                }
+            };
+            System.setProperty( "jdk.httpclient.allowRestrictedHeaders", "host" );
+            http = HttpClient.newBuilder()
+                    .connectTimeout( TIMEOUT_CONNECT )
+                    .cookieHandler( noCookies )
+                    //.cookieHandler( new CookieManager( null, CookiePolicy.ACCEPT_ALL ) )
+                    .build();
 
-        aws = new AWS();
+            aws = new AWS();
 
-        timer = new Timer();
+            timer = new Timer();
 
-        vhosts = VHost.readConfig( aws );
-        vhosts.forEach( vhost -> vhost.init( aws ) );
+            vhosts = VHost.readConfig( aws );
+            vhosts.forEach( vhost -> vhost.init( aws ) );
 
-        logs = new EventCollector<Object,String>()
-                .addTransform( new GsonEventTransformer<Object>() )
-                .addSink( new OpenSearchSink( null, null ) );
+            logs = new EventCollector<Object,String>()
+                    .addTransform( new GsonEventTransformer<Object>() )
+                    .addSink( new OpenSearchSink( null, null ) );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            throw new ServletException( e );
+        }
     }
 
 
