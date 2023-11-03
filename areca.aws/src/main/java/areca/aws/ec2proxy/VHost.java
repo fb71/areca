@@ -13,6 +13,7 @@
  */
 package areca.aws.ec2proxy;
 
+import static areca.aws.ec2proxy.HttpForwardServlet4.LOG_INSTANCE;
 import static java.time.Instant.now;
 
 import java.util.List;
@@ -33,6 +34,7 @@ import com.google.gson.annotations.SerializedName;
 
 import areca.aws.AWS;
 import areca.aws.XLogger;
+import areca.aws.logs.Ec2InstanceEvent;
 
 /**
  *
@@ -76,8 +78,6 @@ public class VHost {
     // instance *******************************************
 
     AtomicBoolean           isRunning;
-
-    private volatile int    pending; // XXX
 
     private volatile Instant lastAccess;
 
@@ -126,7 +126,7 @@ public class VHost {
             var idle = Duration.parse( idleTimeout );
             idleCheck = new TimerTask() {
                 @Override public void run() {
-                    //LOG.debug( "Idle check: %s/%s, last: %s", hostnames.get( 0 ), ec2id, lastAccess );
+                    LOG.debug( "Idle check: %s/%s, last: %s", hostnames.get( 0 ), ec2id, lastAccess );
                     if (isRunning.get() && Duration.between( lastAccess, now() ).compareTo( idle ) > 0) {
                         LOG.info( "IDLE: %s/%s, stopping...", hostnames.get( 0 ), ec2id );
                         updateRunning( null, __ -> {
@@ -161,7 +161,13 @@ public class VHost {
         if (expected == null || expected.booleanValue() == isRunning.get() ) {
             synchronized (isRunning) {
                 if (expected == null || expected.booleanValue() == isRunning.get() ) {
+                    var before = isRunning.get();
                     isRunning.set( block.apply( isRunning.get() ) );
+
+                    var event = new Ec2InstanceEvent();
+                    event.isRunningBefore = before;
+                    event.isRunningAfter = isRunning.get();
+                    HttpForwardServlet4.logs.publish( LOG_INSTANCE, event );
                 }
             }
         }

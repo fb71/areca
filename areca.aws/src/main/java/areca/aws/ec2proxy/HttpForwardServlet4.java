@@ -13,6 +13,8 @@
  */
 package areca.aws.ec2proxy;
 
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +36,10 @@ import javax.servlet.http.HttpServletResponse;
 import areca.aws.AWS;
 import areca.aws.XLogger;
 import areca.aws.ec2proxy.EnsureEc2InstanceHandler.Mode;
+import areca.aws.logs.EventCollector;
+import areca.aws.logs.GsonEventTransformer;
+import areca.aws.logs.HttpRequestEvent;
+import areca.aws.logs.OpenSearchSink;
 
 /**
  *
@@ -56,10 +62,14 @@ public class HttpForwardServlet4
     public static final Duration TIMEOUT_REQUEST = Duration.ofSeconds( 10 );
     public static final Duration TIMEOUT_SERVICES_STARTUP = Duration.ofSeconds( 60 );
 
+    public static final String LOG_REQUEST = "requests";
+    public static final String LOG_INSTANCE = "instance-status";
 
     // instance *******************************************
 
     public static Timer     timer;
+
+    public static EventCollector<Object,String> logs;
 
     private List<VHost>     vhosts;
 
@@ -79,7 +89,7 @@ public class HttpForwardServlet4
             }
             @Override
             public void put( URI uri, Map<String,List<String>> responseHeaders ) throws IOException {
-                LOG.info( "############## cookie: %s", uri );
+                //LOG.debug( "############## cookie: %s", uri );
                 responseHeaders.entrySet().stream()
                         .filter( entry -> entry.getKey().startsWith( "set-cookie" ) )
                         .forEach( entry -> LOG.info( "    %s : %s", entry.getKey(), entry.getValue() ) );
@@ -98,6 +108,10 @@ public class HttpForwardServlet4
 
         vhosts = VHost.readConfig( aws );
         vhosts.forEach( vhost -> vhost.init( aws ) );
+
+        logs = new EventCollector<Object,String>()
+                .addTransform( new GsonEventTransformer<Object>() )
+                .addSink( new OpenSearchSink( null, null ) );
     }
 
 
@@ -108,36 +122,42 @@ public class HttpForwardServlet4
         aws.dispose();
         timer.cancel();
         timer = null;
+        logs.dispose();
     }
 
 
     @Override
     protected void service( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
+        var event = HttpRequestEvent.prepare( req, resp );
+        LOG.info( "%s %s ?%s", req.getMethod(), event.url, defaultIfEmpty( req.getQueryString(), "-" ) );
+        //LOG.info( "Path:'%s'", req.getPathInfo() );
+
         try {
-            doService( req, resp );
+            doService( req, resp, event );
         }
         catch (ServletException|IOException e) {
+            event.exception = e.toString();
             e.printStackTrace();
             throw e;
         }
         catch (NoSuchElementException e) { // XXX
+            event.exception = e.toString();
             e.printStackTrace();
             LOG.info( "%s", e.getMessage() );
             resp.sendError( 404, e.getMessage() );
         }
         catch (Exception e) {
+            event.exception = e.toString();
             e.printStackTrace();
             throw new RuntimeException( e );
+        }
+        finally {
+            logs.publish( LOG_REQUEST, event.complete() );
         }
     }
 
 
-    protected void doService( HttpServletRequest req, HttpServletResponse resp ) throws Exception {
-        //var start = System.nanoTime();
-        LOG.info( "URI: %s %s://%s:%s/%s ?%s", req.getMethod(),
-                req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI(), req.getQueryString() );
-        LOG.info( "Path:'%s'", req.getPathInfo() );
-
+    protected void doService( HttpServletRequest req, HttpServletResponse resp, HttpRequestEvent event ) throws Exception {
         var probe = new RequestHandler.Probe();
         probe.aws = aws;
         probe.http = http;
@@ -158,7 +178,10 @@ public class HttpForwardServlet4
         probe.redirect = probe.proxyPath.forward
                 + req.getPathInfo().substring( probe.proxyPath.path.length() )
                 + (req.getQueryString() != null ? "?"+req.getQueryString() : "" );
+
         LOG.info( "    -> %s", probe.redirect );
+        event.vhost = probe.vhost.hostnames.get( 0 );
+        event.forward = probe.redirect;
 
         // handle
         var requestHandlers = Arrays.asList(
@@ -181,6 +204,5 @@ public class HttpForwardServlet4
                 }
             }
         }
-        //debug( "    -> time: %s ms", (System.nanoTime() - start)/1000000 );
     }
 }
