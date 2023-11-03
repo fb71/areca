@@ -37,6 +37,7 @@ public class HttpRequestEvent {
         url = String.format( "%s://%s:%s/%s", req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI() );
         method = req.getMethod();
         ip = req.getRemoteAddr();
+        session = req.getRequestedSessionId();
         agent = new ArrayList<String>() {{req.getHeaders( "User-Agent" ).asIterator().forEachRemaining( h -> add(h));}}.toString();
     }
 
@@ -59,6 +60,8 @@ public class HttpRequestEvent {
     public String agent;
 
     public String ip;
+
+    public String session;
 
     public String forward;
 
