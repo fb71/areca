@@ -24,6 +24,8 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.function.Failable;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -139,6 +141,8 @@ public class OpenSearchSink
 //        AwsCredentials resolveCredentials = provider.resolveCredentials();
 //        this.credentials = ImmutablePair.of( resolveCredentials.accessKeyId(), resolveCredentials.secretAccessKey() );
 
+        ProfileFileLocation.credentialsFileLocation().ifPresent( l ->
+                LOG.info( "%s\n(\n%s)", l, Failable.get( () -> IOUtils.toString( l.toUri() ) ) ) );
         var b = ProfileFile.builder();
         ProfileFileLocation.credentialsFileLocation().ifPresent( l -> b.content( l ).type( ProfileFile.Type.CREDENTIALS ) );
         var profile = b.build().profile( "opensearch" )
