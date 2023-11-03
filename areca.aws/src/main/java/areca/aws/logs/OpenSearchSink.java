@@ -24,8 +24,6 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.function.Failable;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -37,8 +35,8 @@ import com.google.gson.JsonParser;
 import areca.aws.XLogger;
 import areca.aws.logs.EventCollector.Event;
 import areca.aws.logs.EventCollector.EventSink;
-import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.profiles.ProfileFileLocation;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 
 /**
  *
@@ -137,17 +135,17 @@ public class OpenSearchSink
 
 
     protected static Pair<String,String> credentials() {
-//        var provider = ProfileCredentialsProvider.create( "opensearch" );
-//        AwsCredentials resolveCredentials = provider.resolveCredentials();
-//        this.credentials = ImmutablePair.of( resolveCredentials.accessKeyId(), resolveCredentials.secretAccessKey() );
+        var provider = ProfileCredentialsProvider.create( "opensearch" );
+        AwsCredentials resolveCredentials = provider.resolveCredentials();
+        return ImmutablePair.of( resolveCredentials.accessKeyId(), resolveCredentials.secretAccessKey() );
 
-        ProfileFileLocation.credentialsFileLocation().ifPresent( l ->
-                LOG.info( "%s\n(\n%s)", l, Failable.get( () -> IOUtils.toString( l.toUri() ) ) ) );
-        var b = ProfileFile.builder();
-        ProfileFileLocation.credentialsFileLocation().ifPresent( l -> b.content( l ).type( ProfileFile.Type.CREDENTIALS ) );
-        var profile = b.build().profile( "opensearch" )
-                .orElseThrow( () -> new RuntimeException( "No [opensearch] profile." ) ).properties();
-        return ImmutablePair.of( profile.get( "aws_access_key_id" ), profile.get( "aws_secret_access_key" ) );
+//        ProfileFileLocation.credentialsFileLocation().ifPresent( l ->
+//                LOG.info( "%s\n(\n%s)", l, Failable.get( () -> IOUtils.toString( l.toUri() ) ) ) );
+//        var b = ProfileFile.builder();
+//        ProfileFileLocation.credentialsFileLocation().ifPresent( l -> b.content( l ).type( ProfileFile.Type.CREDENTIALS ) );
+//        var profile = b.build().profile( "opensearch" )
+//                .orElseThrow( () -> new RuntimeException( "No [opensearch] profile." ) ).properties();
+//        return ImmutablePair.of( profile.get( "aws_access_key_id" ), profile.get( "aws_secret_access_key" ) );
     }
 
 
