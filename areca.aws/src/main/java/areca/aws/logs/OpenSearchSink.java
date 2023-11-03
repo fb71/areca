@@ -50,7 +50,7 @@ public class OpenSearchSink
     public static final Duration HTTP_TIMEOUT = Duration.ofSeconds( 30 );
 
     public static final Gson gson = new GsonBuilder() // NOT pretty for AWS :(
-            .setDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz")
+            .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .excludeFieldsWithModifiers( Modifier.PRIVATE )
             .create();
 

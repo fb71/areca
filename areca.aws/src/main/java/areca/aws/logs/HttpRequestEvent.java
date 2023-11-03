@@ -18,7 +18,10 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.gson.Gson;
+
 /**
+ * {@link Gson} serialized content for OpenSearch.
  *
  * @author Falko Bräutigam
  */
