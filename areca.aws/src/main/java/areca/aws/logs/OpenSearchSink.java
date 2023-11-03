@@ -89,7 +89,7 @@ public class OpenSearchSink
         LOG.debug( "LOG: \n%s", body.toString() );
 
         String auth = credentials.getLeft() + ":" + credentials.getRight();
-        var request = HttpRequest.newBuilder( new URI( url + "_bulk" /*+ "?filter_path=took,errors"*/ ) )
+        var request = HttpRequest.newBuilder( new URI( url + "_bulk" + "?filter_path=took,errors" ) )
                 .method( "POST", BodyPublishers.ofString( body.toString() ) )
                 .header( "Content-Type", "application/json" )
                 .header( "Authorization", "Basic " + Base64.getEncoder().encodeToString( auth.getBytes() ) )
