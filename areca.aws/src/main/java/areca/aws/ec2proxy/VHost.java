@@ -164,10 +164,7 @@ public class VHost {
                     var before = isRunning.get();
                     isRunning.set( block.apply( isRunning.get() ) );
 
-                    var event = new Ec2InstanceEvent();
-                    event.isRunningBefore = before;
-                    event.isRunningAfter = isRunning.get();
-                    HttpForwardServlet4.logs.publish( LOG_INSTANCE, event );
+                    HttpForwardServlet4.logs.publish( LOG_INSTANCE, new Ec2InstanceEvent( this, before, isRunning.get() ) );
                 }
             }
         }

@@ -13,14 +13,27 @@
  */
 package areca.aws.logs;
 
+import areca.aws.ec2proxy.VHost;
+
 /**
  *
  * @author Falko Bräutigam
  */
 public class Ec2InstanceEvent {
 
+    public Ec2InstanceEvent( VHost vhost, boolean before, boolean after ) {
+        this.vhost = vhost.hostnames.get( 0 );
+        this.ec2id = vhost.ec2id;
+        this.isRunningBefore = before;
+        this.isRunningAfter = after;
+    }
+
     public boolean isRunningBefore;
 
     public boolean isRunningAfter;
+
+    public String vhost;
+
+    public String ec2id;
 
 }
