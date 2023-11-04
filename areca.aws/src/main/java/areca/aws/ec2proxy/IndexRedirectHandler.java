@@ -29,15 +29,18 @@ public class IndexRedirectHandler
     public static final IndexRedirectHandler INSTANCE = new IndexRedirectHandler();
 
     protected IndexRedirectHandler() {
-        super( notYetCommitted
-                .and( probe -> probe.proxyPath.redirect != null )
-                // redirect just "/", not *everything* starting with "/"
-                .and( probe -> probe.proxyPath.path.equals( probe.request.getPathInfo() ) ) );
+        super( notYetCommitted.and( probe -> probe.proxyPath.redirect != null ) );
     }
 
     @Override
     public void handle( Probe probe ) throws Exception {
-        probe.response.sendRedirect( probe.proxyPath.redirect );
+        // redirect just "/", not *everything* starting with "/"
+        if (probe.proxyPath.path.equals( probe.request.getPathInfo() ) ) {
+            probe.response.sendRedirect( probe.proxyPath.redirect );
+        }
+        else {
+            throw new SignalErrorResponseException( 404, "No such path: " + probe.request.getPathInfo() );
+        }
     }
 
 }

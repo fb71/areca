@@ -50,11 +50,16 @@ public abstract class RequestHandler {
      */
     public static class Probe {
 
+        public Probe( HttpServletRequest request, HttpServletResponse response ) {
+            this.request = request;
+            this.response = response;
+        }
+
         public HttpClient http;
 
         public VHost vhost;
 
-        public String redirect;
+        //public String redirect;
 
         public ProxyPath proxyPath;
 

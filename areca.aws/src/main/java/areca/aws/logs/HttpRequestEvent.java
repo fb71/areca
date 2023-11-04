@@ -37,7 +37,7 @@ public class HttpRequestEvent {
 
     public HttpRequestEvent( HttpServletRequest req, HttpServletResponse resp ) {
         this.resp = resp;
-        url = String.format( "%s://%s:%s/%s", req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI() );
+        url = String.format( "%s://%s:%s%s", req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI() );
         method = req.getMethod();
         ip = req.getRemoteAddr();
         session = req.getRequestedSessionId();
@@ -70,6 +70,6 @@ public class HttpRequestEvent {
 
     public int status;
 
-    public String exception;
+    public String error;
 
 }

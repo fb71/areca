@@ -17,6 +17,7 @@ import static areca.aws.ec2proxy.HttpForwardServlet4.LOG_INSTANCE;
 import static java.time.Instant.now;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -60,7 +61,8 @@ public class VHost {
         }
 
         try (var in = new FileReader( f ) ) {
-            return new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create()
+            return new GsonBuilder()
+                    .excludeFieldsWithoutExposeAnnotation().create()
                     .fromJson( in, ConfigFile.class ).vhosts;
         }
         catch (Exception e) {

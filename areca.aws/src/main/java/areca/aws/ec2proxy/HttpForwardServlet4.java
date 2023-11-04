@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Timer;
 
 import java.io.IOException;
@@ -81,7 +80,6 @@ public class HttpForwardServlet4
     @Override
     public void init() throws ServletException {
         log( getClass().getSimpleName() + " init..." );
-
         try {
             var noCookies = new CookieHandler() {
                 @Override
@@ -134,52 +132,44 @@ public class HttpForwardServlet4
 
     @Override
     protected void service( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
-        var event = HttpRequestEvent.prepare( req, resp );
-        LOG.info( "%s %s ?%s", req.getMethod(), event.url, defaultIfEmpty( req.getQueryString(), "-" ) );
+        var ev = HttpRequestEvent.prepare( req, resp );
+        LOG.info( "%s %s ?%s", req.getMethod(), ev.url, defaultIfEmpty( req.getQueryString(), "-" ) );
         //LOG.info( "Path:'%s'", req.getPathInfo() );
 
         try {
-            doService( req, resp, event );
+            doService( req, resp, ev );
         }
-        catch (ServletException|IOException e) {
-            event.exception = e.toString();
-            e.printStackTrace();
-            throw e;
-        }
-        catch (NoSuchElementException e) { // XXX
-            event.exception = e.toString();
-            e.printStackTrace();
-            LOG.info( "%s", e.getMessage() );
-            resp.sendError( 404, e.getMessage() );
+        catch (SignalErrorResponseException e) {
+            ev.error = e.toString();
+            LOG.info( "Response: %s - %s", e.status, e.getMessage() );
+            resp.sendError( e.status, e.getMessage() );
         }
         catch (Exception e) {
-            event.exception = e.toString();
+            ev.error = e.toString();
             e.printStackTrace();
-            throw new RuntimeException( e );
+            resp.sendError( 500, e.getMessage() );
         }
         finally {
-            logs.publish( LOG_REQUEST, event.complete() );
+            logs.publish( LOG_REQUEST, ev.complete() );
         }
     }
 
 
     protected void doService( HttpServletRequest req, HttpServletResponse resp, HttpRequestEvent event ) throws Exception {
-        var probe = new RequestHandler.Probe();
+        var probe = new RequestHandler.Probe( req, resp );
         probe.aws = aws;
         probe.http = http;
-        probe.request = req;
-        probe.response = resp;
 
-        // find vhost
+        // vhost
         probe.vhost = vhosts.stream()
                 .filter( _vhost -> _vhost.hostnames.contains( req.getServerName() ) ).findAny()
-                .orElseThrow( () -> new NoSuchElementException( "No vhost found for server: " + req.getServerName() ) )
+                .orElseThrow( () -> new SignalErrorResponseException( 404, "No such server: " + req.getServerName() ) )
                 .touch();
 
-        // find redirect
+        // proxypath
         probe.proxyPath = probe.vhost.proxypaths.stream()
-                .filter( p -> req.getPathInfo().startsWith( p.path ) ).findAny()
-                .orElseThrow( () -> new NoSuchElementException( "No proxypath found for: " + req.getPathInfo() ) );
+                .filter( path -> req.getPathInfo().startsWith( path.path ) ).findAny()
+                .orElseThrow( () -> new SignalErrorResponseException( 404, "No such path: " + req.getPathInfo() ) );
 
         probe.redirect = probe.proxyPath.forward
                 + req.getPathInfo().substring( probe.proxyPath.path.length() )
