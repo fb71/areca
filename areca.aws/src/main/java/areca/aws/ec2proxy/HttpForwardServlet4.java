@@ -55,7 +55,7 @@ public class HttpForwardServlet4
 
     public static final List<String> FORBIDDEN_HEADERS = Arrays.asList( "host", "connection", "keep-alive",
             "proxy-authenticate", "proxy-authorization", "te", "trailers", "transfer-encoding", "upgrade",
-            "content-length" );
+            "content-length", "expect" );
 
     public static final Duration TIMEOUT_CONNECT = Duration.ofSeconds( 3 );
     public static final Duration TIMEOUT_REQUEST = Duration.ofSeconds( 10 );

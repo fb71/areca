@@ -84,6 +84,9 @@ public class StraightForwardHandler
                 //LOG.debug( "Header: %s: %s", name, Collections.list( probe.request.getHeaders( name ) ) );
             }
         });
+        if (probe.request.getHeader( "Expect" ) != null) {
+            request.expectContinue( true );
+        }
         //request.setHeader( "Host", "localhost:8080" );  //probe.request.getServerName() );
         //LOG.info( "XHeader: %s: %s", "Host", probe.request.getServerName() );
         request.setHeader( "X-Forwarded-Host", probe.request.getServerName() );
