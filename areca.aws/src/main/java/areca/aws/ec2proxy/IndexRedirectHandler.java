@@ -36,6 +36,7 @@ public class IndexRedirectHandler
     public void handle( Probe probe ) throws Exception {
         // redirect just "/", not *everything* starting with "/"
         if (probe.proxyPath.path.equals( probe.request.getPathInfo() ) ) {
+            LOG.info( "Sending redirect: " + probe.proxyPath.redirect );
             probe.response.sendRedirect( probe.proxyPath.redirect );
         }
         else {

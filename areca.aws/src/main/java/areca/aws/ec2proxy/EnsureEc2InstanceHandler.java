@@ -121,7 +121,7 @@ public class EnsureEc2InstanceHandler
                 }
             }
             catch (HttpTimeoutException|ConnectException e) {
-                LOG.info( "Waiting for connection: %s/%s", probe.vhost.hostnames.get( 0 ), probe.vhost.ec2id );
+                LOG.info( "Waiting for connection: %s (%s) ()", probe.vhost.hostnames.get( 0 ), e );
                 Thread.sleep( 2000 );
             }
         }
