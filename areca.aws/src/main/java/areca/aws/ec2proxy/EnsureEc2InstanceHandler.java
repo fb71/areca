@@ -65,13 +65,14 @@ public class EnsureEc2InstanceHandler
 
             pending.computeIfAbsent( probe.vhost, __ -> {
                 var t = new Thread( "Ec2InstanceStarter" ) {
+                    boolean isWbv = probe.request.getPathInfo().contains( "wbv" ); // XXX
                     @Override
                     public void run() {
                         try {
                             probe.vhost.updateRunning( false, __ -> {
                                 probe.aws.startInstance( probe.vhost.ec2id );
                                 // waitForService( probe ); // XXX
-                                Thread.sleep( 8000 );
+                                Thread.sleep( isWbv ? 8000 : 5000 );
                                 LOG.info( "Instance is ready: %s", getName() );
                                 return true;
                             });
