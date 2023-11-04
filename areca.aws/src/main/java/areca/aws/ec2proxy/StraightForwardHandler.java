@@ -41,7 +41,9 @@ public class StraightForwardHandler
     public static final StraightForwardHandler INSTANCE = new StraightForwardHandler();
 
     public StraightForwardHandler() {
-        super( notYetCommitted.and( ec2InstanceIsRunning ) );
+        super( notYetCommitted
+                .and( probe -> probe.proxyPath.forward != null )
+                .and( ec2InstanceIsRunning ) );
     }
 
 
