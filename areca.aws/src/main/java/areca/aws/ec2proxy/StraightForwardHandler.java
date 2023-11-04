@@ -53,9 +53,13 @@ public class StraightForwardHandler
 
 
     protected HttpResponse<InputStream> sendRequest( Probe probe ) throws Exception {
-        LOG.info( "Sending request: %s", probe.redirect );
+        var forward = probe.proxyPath.forward
+                + probe.request.getPathInfo().substring( probe.proxyPath.path.length() )
+                + (probe.request.getQueryString() != null ? "?"+probe.request.getQueryString() : "" );
+        probe.ev.forward = forward;
 
-        var request = HttpRequest.newBuilder( new URI( probe.redirect ) );
+        LOG.info( "Sending request: %s", forward );
+        var request = HttpRequest.newBuilder( new URI( forward ) );
 
         // XXX WBV "late/pending" request
         if (probe.request.getParameter( "cid" ) == null && probe.request.getParameter( "servicehandler" ) == null) {

@@ -155,10 +155,11 @@ public class HttpForwardServlet4
     }
 
 
-    protected void doService( HttpServletRequest req, HttpServletResponse resp, HttpRequestEvent event ) throws Exception {
+    protected void doService( HttpServletRequest req, HttpServletResponse resp, HttpRequestEvent ev ) throws Exception {
         var probe = new RequestHandler.Probe( req, resp );
         probe.aws = aws;
         probe.http = http;
+        probe.ev = ev;
 
         // vhost
         probe.vhost = vhosts.stream()
@@ -171,13 +172,7 @@ public class HttpForwardServlet4
                 .filter( path -> req.getPathInfo().startsWith( path.path ) ).findAny()
                 .orElseThrow( () -> new SignalErrorResponseException( 404, "No such path: " + req.getPathInfo() ) );
 
-        probe.redirect = probe.proxyPath.forward
-                + req.getPathInfo().substring( probe.proxyPath.path.length() )
-                + (req.getQueryString() != null ? "?"+req.getQueryString() : "" );
-
-        LOG.info( "    -> %s", probe.redirect );
-        event.vhost = probe.vhost.hostnames.get( 0 );
-        event.forward = probe.redirect;
+        ev.vhost = probe.vhost.hostnames.get( 0 );
 
         // handle
         var requestHandlers = Arrays.asList(

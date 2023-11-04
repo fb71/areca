@@ -26,6 +26,7 @@ import org.apache.commons.lang3.concurrent.LazyInitializer;
 import areca.aws.AWS;
 import areca.aws.Lazy;
 import areca.aws.ec2proxy.VHost.ProxyPath;
+import areca.aws.logs.HttpRequestEvent;
 
 /**
  *
@@ -59,8 +60,6 @@ public abstract class RequestHandler {
 
         public VHost vhost;
 
-        //public String redirect;
-
         public ProxyPath proxyPath;
 
         public HttpServletRequest request;
@@ -76,6 +75,8 @@ public abstract class RequestHandler {
          * Especially github webhooks which seem to close request quickly.
          */
         public LazyInitializer<byte[]> requestBody = Lazy.of( () -> IOUtils.toByteArray( request.getInputStream() ) );
+
+        public HttpRequestEvent ev;
 
     }
 
