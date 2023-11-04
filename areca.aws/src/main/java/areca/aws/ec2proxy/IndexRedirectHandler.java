@@ -39,9 +39,6 @@ public class IndexRedirectHandler
             LOG.info( "Sending redirect: " + probe.proxyPath.redirect );
             probe.response.sendRedirect( probe.proxyPath.redirect );
         }
-        else {
-            throw new SignalErrorResponseException( 404, "No such path: " + probe.request.getPathInfo() );
-        }
     }
 
 }
