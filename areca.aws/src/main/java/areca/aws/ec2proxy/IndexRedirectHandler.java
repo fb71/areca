@@ -34,7 +34,6 @@ public class IndexRedirectHandler
 
     @Override
     public void handle( Probe probe ) throws Exception {
-        // XXX
         var p = probe.proxyPath.path;
         if (probe.request.getPathInfo().equals( p ) ) {
             LOG.info( "Sending redirect: " + probe.proxyPath.redirect );

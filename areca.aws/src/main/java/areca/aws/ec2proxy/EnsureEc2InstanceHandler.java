@@ -16,6 +16,10 @@ package areca.aws.ec2proxy;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_SERVICES_STARTUP;
 import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.http.HttpConnectTimeoutException;
@@ -41,15 +45,14 @@ public class EnsureEc2InstanceHandler
        WAIT, LOADING_PAGE
     }
 
-    //private static Map<String,HttpResponse<InputStream>> pending = new ConcurrentHashMap<>();
+    private static Map<VHost,Thread> pending = new ConcurrentHashMap<>();
 
     // instance *******************************************
 
     protected Mode mode;
 
     protected EnsureEc2InstanceHandler( Mode mode ) {
-        super( notYetCommitted.and(
-                ec2InstanceIsRunning.negate() /*.or( p -> pending.containsKey( p.request.getPathInfo() ) )*/ ) );
+        super( notYetCommitted.and( ec2InstanceIsRunning.negate() ) );
         this.mode = mode;
     }
 
@@ -60,22 +63,30 @@ public class EnsureEc2InstanceHandler
         if (mode == Mode.LOADING_PAGE
                 && probe.request.getHeader( "Accept" ).contains( "text/html" )) {
 
-            new Thread( "Ec2InstanceStarter" ) { // XXX until instance is not running we start Threads for each reload
-                @Override public void run() {
-                    try {
-                        probe.vhost.updateRunning( false, __ -> {
-                            probe.aws.startInstance( probe.vhost.ec2id );
-                            // XXX let the subsequent AfterError handler try/load until success
-                            //Thread.sleep( 5000 );
-                            LOG.info( "Instance started: %s", getName() );
-                            return true;
-                        });
+            pending.computeIfAbsent( probe.vhost, __ -> {
+                var t = new Thread( "Ec2InstanceStarter" ) {
+                    @Override
+                    public void run() {
+                        try {
+                            probe.vhost.updateRunning( false, __ -> {
+                                probe.aws.startInstance( probe.vhost.ec2id );
+                                // waitForService( probe ); // XXX
+                                Thread.sleep( 8000 );
+                                LOG.info( "Instance is ready: %s", getName() );
+                                return true;
+                            });
+                        }
+                        catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        finally {
+                            pending.remove( probe.vhost );
+                        }
                     }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }.start();
+                };
+                t.start();
+                return t;
+            });
 
             probe.response.setStatus( 200 );
 
