@@ -16,7 +16,6 @@ package areca.aws.ec2proxy;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_SERVICES_STARTUP;
 import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import java.io.InputStream;
@@ -112,17 +111,17 @@ public class EnsureEc2InstanceHandler
                 var response = forward.sendRequest( probe );
                 // do not send error back to the client
                 // assuming that error status signals that service is not yet fully started
-                if (response.statusCode() < SC_BAD_REQUEST) {
+                if (response.statusCode() < 400) {
                     return response;
                 }
                 else {
-                    LOG.info( "Response: status code = %s", response.statusCode() );
+                    LOG.info( "Response: status = %s", response.statusCode() );
                     throw new HttpTimeoutException( "Response: status code =" + response.statusCode() );
                 }
             }
             catch (HttpTimeoutException|ConnectException e) {
                 LOG.info( "Waiting for connection: %s (%s) ()", probe.vhost.hostnames.get( 0 ), e );
-                Thread.sleep( 2000 );
+                Thread.sleep( 3000 );
             }
         }
         throw new HttpConnectTimeoutException( "No connection after: " + TIMEOUT_SERVICES_STARTUP.toSeconds() + "s" );
