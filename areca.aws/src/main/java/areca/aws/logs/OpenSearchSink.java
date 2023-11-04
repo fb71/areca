@@ -103,7 +103,7 @@ public class OpenSearchSink
             LOG.warn( "Wrong response code: %s (%s)", response.statusCode(), pretty );
         }
         else {
-            LOG.debug( "Service response: %s", response.body() );
+            LOG.debug( "OpenSearch response: %s", response.body() );
         }
     }
 

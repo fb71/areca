@@ -16,8 +16,6 @@ package areca.aws.ec2proxy;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_SERVICES_STARTUP;
 import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
-
 import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.http.HttpConnectTimeoutException;
@@ -68,8 +66,8 @@ public class EnsureEc2InstanceHandler
                         probe.vhost.updateRunning( false, __ -> {
                             probe.aws.startInstance( probe.vhost.ec2id );
                             // XXX let the subsequent AfterError handler try/load until success
-                            Thread.sleep( 5000 );
-                            LOG.info( "%s: instance started.", getName() );
+                            //Thread.sleep( 5000 );
+                            LOG.info( "Instance started: %s", getName() );
                             return true;
                         });
                     }
@@ -79,11 +77,12 @@ public class EnsureEc2InstanceHandler
                 }
             }.start();
 
-            probe.response.setStatus( SC_OK );
+            probe.response.setStatus( 200 );
 
-            var in = Thread.currentThread().getContextClassLoader().getResourceAsStream( "loading.html" );
-            IOUtils.copy( in, probe.response.getOutputStream() );
-            probe.response.flushBuffer();
+            try (var in = Thread.currentThread().getContextClassLoader().getResourceAsStream( "loading.html" )) {
+                IOUtils.copy( in, probe.response.getOutputStream() );
+                probe.response.flushBuffer();
+            }
         }
 
         // wait for response
