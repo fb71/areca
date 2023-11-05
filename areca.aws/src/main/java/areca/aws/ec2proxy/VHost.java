@@ -78,7 +78,7 @@ public class VHost {
 
     // instance *******************************************
 
-    AtomicBoolean           isRunning;
+    AtomicBoolean           isRunning = new AtomicBoolean();
 
     private volatile Instant lastAccess;
 
@@ -120,7 +120,7 @@ public class VHost {
 
     protected void init( AWS aws ) {
         if (ec2id != null) {
-            isRunning = new AtomicBoolean( aws.isInstanceRunning( ec2id ) );
+            isRunning.set( aws.isInstanceRunning( ec2id ) );
             touch();
 
             // idle check
@@ -141,6 +141,10 @@ public class VHost {
             HttpForwardServlet4.timer.scheduleAtFixedRate( idleCheck, interval, interval );
             LOG.info( "Idle check started: %s/%s, at interval: %s", hostnames.get( 0 ), ec2id, idle );
         }
+        else {
+            LOG.info( "No ec2id for: %s. Assuming running target host", hostnames.get( 0 ) );
+            isRunning.set( true );
+        }
     }
 
 
@@ -159,6 +163,7 @@ public class VHost {
 
 
     public <E extends Exception> void updateRunning( Boolean expected, FailableFunction<Boolean,Boolean,E> block ) throws E {
+        assert ec2id != null;
         if (expected == null || expected.booleanValue() == isRunning.get() ) {
             synchronized (isRunning) {
                 if (expected == null || expected.booleanValue() == isRunning.get() ) {

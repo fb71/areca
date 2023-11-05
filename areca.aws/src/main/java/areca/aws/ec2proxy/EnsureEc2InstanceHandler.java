@@ -52,7 +52,7 @@ public class EnsureEc2InstanceHandler
     protected Mode mode;
 
     protected EnsureEc2InstanceHandler( Mode mode ) {
-        super( notYetCommitted.and( ec2InstanceIsRunning.negate() ) );
+        super( notYetCommitted.and( probe -> probe.vhost.ec2id != null ).and( ec2InstanceIsRunning.negate() ) );
         this.mode = mode;
     }
 

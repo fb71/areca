@@ -39,7 +39,7 @@ public class EventCollector<P,S> {
 
     private static final XLogger LOG = XLogger.get( EventCollector.class );
 
-    public static final Duration INTERVAL = Duration.ofSeconds( 3 );
+    public static final Duration INTERVAL = Duration.ofSeconds( 5 );
 
     public static final int CHUNK_SIZE_MAX = 100;
 
