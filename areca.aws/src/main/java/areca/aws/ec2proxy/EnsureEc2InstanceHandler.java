@@ -72,7 +72,7 @@ public class EnsureEc2InstanceHandler
                             probe.vhost.updateRunning( false, __ -> {
                                 probe.aws.startInstance( probe.vhost.ec2id );
                                 // waitForService( probe ); // XXX
-                                Thread.sleep( isWbv ? 8000 : 5000 );
+                                Thread.sleep( 5000 );
                                 LOG.info( "Instance is ready: %s", getName() );
                                 return true;
                             });
