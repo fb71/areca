@@ -120,8 +120,12 @@ public class StraightForwardHandler
 //        var cookies = cm.get( new URI( probe.redirect ), new HashMap<>() );
 //        LOG.info( "################################### Response Cookie: %s", cookies );
 
-        IOUtils.copy( response.body(), probe.response.getOutputStream() );
-        probe.response.flushBuffer();
+        try (
+            var in = response.body();
+            var out = probe.response.getOutputStream();
+        ){
+            IOUtils.copy( in, out );
+        }
     }
 
 }

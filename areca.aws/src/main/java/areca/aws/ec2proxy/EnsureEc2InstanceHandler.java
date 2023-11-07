@@ -65,7 +65,6 @@ public class EnsureEc2InstanceHandler
 
             pending.computeIfAbsent( probe.vhost, __ -> {
                 var t = new Thread( "Ec2InstanceStarter" ) {
-                    boolean isWbv = probe.request.getPathInfo().contains( "wbv" ); // XXX
                     @Override
                     public void run() {
                         try {
