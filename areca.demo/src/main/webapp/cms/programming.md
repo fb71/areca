@@ -106,7 +106,7 @@ public class Person extends Entity {
 
     @Nullable
     @Queryable
-    @DefaultValue("Ellen")
+    @DefaultValue("Ellen Louise")
     public Property&lt;String&gt; firstname;
 
     @Nullable
