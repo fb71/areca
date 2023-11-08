@@ -177,6 +177,7 @@ public class HttpForwardServlet4
         // handle
         var requestHandlers = Arrays.asList(
                 new FuckOffHandler(),
+                new RobotsSitemapHandler(),
                 new IndexRedirectHandler(),
                 new EnsureEc2InstanceHandler( Mode.LOADING_PAGE ),
                 new StraightForwardHandler(),

@@ -39,7 +39,7 @@ public class FuckOffHandler
             "/wp-content/*" );
 
 
-    protected FuckOffHandler() {
+    public FuckOffHandler() {
         super( notYetCommitted );
     }
 
