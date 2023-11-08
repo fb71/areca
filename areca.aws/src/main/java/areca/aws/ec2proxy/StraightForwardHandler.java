@@ -108,6 +108,7 @@ public class StraightForwardHandler
 
 
     protected void handleResponse( Probe probe, HttpResponse<InputStream> response ) throws Exception {
+        LOG.info( "Got response: %s", response.statusCode() );
         probe.response.setStatus( response.statusCode() );
 
         // headers
