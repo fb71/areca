@@ -18,6 +18,9 @@ import static org.apache.commons.io.FilenameUtils.wildcardMatch;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.commons.io.FilenameUtils;
 
 import areca.aws.XLogger;
@@ -32,12 +35,16 @@ public class FuckOffHandler
     private static final XLogger LOG = XLogger.get( FuckOffHandler.class );
 
     public static List<String> RULES = Arrays.asList(
+            "*webalizer*",
             "*/.env",
             "*/*.asp?",
             "*/*.php",
             "/wp-includes/*",
             "/wp-content/*" );
 
+    // instance *******************************************
+
+    private static Map<String,Integer> blockedIPs = new ConcurrentHashMap<>();
 
     public FuckOffHandler() {
         super( notYetCommitted );
@@ -48,10 +55,19 @@ public class FuckOffHandler
     public void handle( Probe probe ) throws Exception {
         var path = probe.request.getPathInfo();
 
+        var ip = probe.request.getRemoteAddr();
+        if (blockedIPs.containsKey( ip )) {
+            var current = blockedIPs.computeIfPresent( ip, (__,count) -> count + 1 );
+            probe.response.sendError( 404, "Double fuck off!!!" );
+            LOG.info( "IP BLOCKED: %s (%s : %s)", path, ip, current );
+            return;
+        }
+
         for (String rule : RULES) {
             if (FilenameUtils.wildcardMatch( path, rule )) {
                 probe.response.sendError( 404, "Fuck Off!!!" );
-                LOG.info( "BLOCKED: %s (%s)", path, rule );
+                LOG.info( "BLOCKED: %s (%s) (%s / %s)", path, rule, ip, blockedIPs.size() );
+                blockedIPs.put( ip, 0 );
             }
         }
     }
