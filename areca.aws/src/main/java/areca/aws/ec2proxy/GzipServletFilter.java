@@ -87,7 +87,7 @@ public class GzipServletFilter
         public GzipResponseWrapper( HttpServletResponse response ) throws IOException {
             super( response );
             out = response.getOutputStream();
-            zip = new GZIPOutputStream( response.getOutputStream() );
+            zip = new GZIPOutputStream( response.getOutputStream(), true );
         }
 
         @Override
