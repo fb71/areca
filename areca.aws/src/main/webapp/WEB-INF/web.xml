@@ -5,16 +5,15 @@
       metadata-complete="true"
       version="3.1">
 
-    <!--filter>
-        <filter-name>VersioningFilter</filter-name>
-        <filter-class>areca.app.ResourceVersioningFilter</filter-class>
-      </filter>
-
-      <filter-mapping>
-          <filter-name>VersioningFilter</filter-name>
-          <servlet-name>default</servlet-name>
-          <dispatcher>REQUEST</dispatcher>
-      </filter-mapping-->
+    <!-- -->
+    <filter>
+        <filter-name>GzipFilter</filter-name>
+        <filter-class>areca.aws.ec2proxy.GzipServletFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>GzipFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
     <!-- HTTP -->
     <servlet>
