@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 
 import javax.servlet.Filter;
@@ -82,7 +83,7 @@ public class GzipServletFilter
             extends HttpServletResponseWrapper {
 
         private ServletOutputStream out;
-        private GZIPOutputStream zip;
+        private OutputStream zip;
         private int c;
 
         public GzipResponseWrapper( HttpServletResponse response ) throws IOException {
@@ -98,11 +99,19 @@ public class GzipServletFilter
 
         @Override
         public void addHeader( String name, String value ) {
-            if (name.equalsIgnoreCase( "Content-Length" )) {
-                super.addHeader( "X-Uncompressed-Content-Length", value );
+            if (name.equalsIgnoreCase( "Content-Encoding" )) {
+                // already gzipped
+                if (value.equalsIgnoreCase( "gzip" )) {
+                    LOG.info( "Already: %s : %s", name, value );
+                    zip = out;
+                    super.setHeader( name, value );
+                }
+                else {
+                    LOG.info( "Preventing header: %s : %s", name, value );
+                }
             }
-            else if (name.equalsIgnoreCase( "Content-Encoding" )) {
-                LOG.info( "Preventing header: %s : %s", name, value );
+            else if (name.equalsIgnoreCase( "Content-Length" )) {
+                super.addHeader( "X-Uncompressed-Content-Length", value );
             }
             else {
                 super.addHeader( name, value );
