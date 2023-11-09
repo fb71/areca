@@ -135,8 +135,9 @@ public class GzipServletFilter
                 }
                 @Override
                 public void close() throws IOException {
+                    zip.flush();
                     zip.close();
-                    flushBuffer();
+                    getResponse().flushBuffer();
                 }
             };
         }
