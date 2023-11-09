@@ -103,6 +103,7 @@ public class GzipServletFilter
                 // already gzipped
                 if (value.equalsIgnoreCase( "gzip" )) {
                     LOG.info( "Already: %s : %s", name, value );
+                    super.resetBuffer();
                     zip = out;
                     super.setHeader( name, value );
                 }
