@@ -66,7 +66,7 @@ public class GzipServletFilter
 
         if (StringUtils.contains( req.getHeader( "Accept-Encoding" ), "gzip" )
                 && COMPRESSIBLE.stream().anyMatch( mime -> req.getHeader( "Accept" ).contains( mime ) )) {
-            LOG.info( "GZIP: %s", req.getPathInfo() );
+            LOG.info( "GZIP: %s ? %s", req.getPathInfo(), req.getQueryString() );
             resp.setHeader( "Content-Encoding", "gzip" );
             chain.doFilter( request, new GzipResponseWrapper( resp ) );
         }
@@ -83,6 +83,7 @@ public class GzipServletFilter
 
         private ServletOutputStream out;
         private GZIPOutputStream zip;
+        private int c;
 
         public GzipResponseWrapper( HttpServletResponse response ) throws IOException {
             super( response );
@@ -92,26 +93,27 @@ public class GzipServletFilter
 
         @Override
         public void setHeader( String name, String value ) {
-            if (name.equals( "Content-Encoding" )) {
-                LOG.info( "Preventing header: %s : %s", name, value );
-            } else {
-                super.setHeader( name, value );
-            }
+            throw new RuntimeException( "..." );
         }
 
         @Override
         public void addHeader( String name, String value ) {
-            if (name.equals( "Content-Encoding" )) {
+            if (name.equalsIgnoreCase( "Content-Length" )) {
+                super.addHeader( "X-Uncompressed-Content-Length", value );
+            }
+            else if (name.equalsIgnoreCase( "Content-Encoding" )) {
                 LOG.info( "Preventing header: %s : %s", name, value );
-            } else {
+            }
+            else {
                 super.addHeader( name, value );
             }
         }
 
         @Override
         public void flushBuffer() throws IOException {
-            zip.flush();
+            zip.close();
             getResponse().flushBuffer();
+            LOG.info( "FLUSH BUFFER: %s", c );
         }
 
         @Override
@@ -120,6 +122,17 @@ public class GzipServletFilter
                 @Override
                 public void write( int b ) throws IOException {
                     zip.write( b );
+                    c += 1;
+                }
+                @Override
+                public void write( byte[] b ) throws IOException {
+                    zip.write( b );
+                    c += b.length;
+                }
+                @Override
+                public void write( byte[] b, int off, int len ) throws IOException {
+                    zip.write( b, off, len );
+                    c += len;
                 }
                 @Override
                 public void setWriteListener( WriteListener writeListener ) {
@@ -138,6 +151,7 @@ public class GzipServletFilter
                     zip.flush();
                     zip.close();
                     getResponse().flushBuffer();
+                    LOG.info( "CLOSED (%s bytes)", c );
                 }
             };
         }
