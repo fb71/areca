@@ -65,6 +65,7 @@ public class FuckOffHandler
         if (blockedIPs.containsKey( ip )) {
             var current = blockedIPs.computeIfPresent( ip, (__,count) -> count + 1 );
             probe.response.sendError( 404, "Double fuck off!!!" );
+            probe.response.flushBuffer();
             LOG.info( "IP BLOCKED: %s (%s : %s)", path, ip, current );
             return;
         }
@@ -72,6 +73,7 @@ public class FuckOffHandler
         for (String rule : RULES) {
             if (FilenameUtils.wildcardMatch( path, rule )) {
                 probe.response.sendError( 404, "Fuck Off!!!" );
+                probe.response.flushBuffer();
                 LOG.info( "BLOCKED: %s (%s) (%s / %s)", path, rule, ip, blockedIPs.size() );
                 blockedIPs.put( ip, 0 );
             }
