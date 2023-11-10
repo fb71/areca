@@ -35,6 +35,7 @@ public class FuckOffHandler
     private static final XLogger LOG = XLogger.get( FuckOffHandler.class );
 
     public static List<String> RULES = Arrays.asList(
+            "/.well-known*",
             "/joomla*",
             "*webalizer*",
             "*/.env",
