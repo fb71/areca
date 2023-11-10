@@ -90,7 +90,7 @@ public class EnsureEc2InstanceHandler
 
             probe.response.setStatus( 200 );
 
-            try (var in = Thread.currentThread().getContextClassLoader().getResourceAsStream( "loading.html" )) {
+            try (var in = Thread.currentThread().getContextClassLoader().getResourceAsStream( "loading3.html" )) {
                 IOUtils.copy( in, probe.response.getOutputStream() );
                 probe.response.flushBuffer();
             }
