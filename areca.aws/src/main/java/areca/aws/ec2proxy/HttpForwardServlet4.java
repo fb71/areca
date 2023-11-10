@@ -31,6 +31,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 
 import areca.aws.AWS;
 import areca.aws.XLogger;
@@ -119,6 +120,7 @@ public class HttpForwardServlet4
     }
 
 
+
     @Override
     public void destroy() {
         log( getClass().getSimpleName() + ": destroy ..." );
@@ -134,8 +136,18 @@ public class HttpForwardServlet4
     protected void service( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
         var ev = HttpRequestEvent.prepare( req, resp );
         LOG.info( "%s %s ?%s", req.getMethod(), ev.url, defaultIfEmpty( req.getQueryString(), "-" ) );
-        //LOG.info( "Path:'%s'", req.getPathInfo() );
 
+        // prevent container error page
+        resp = new HttpServletResponseWrapper( resp ) {
+            @Override
+            public void sendError( int sc, String msg ) throws IOException {
+                setStatus( sc );
+                try (var out = getOutputStream()) {
+                    out.write( msg.getBytes( "UTF8" ) );
+                }
+            }
+        };
+        // service
         try {
             doService( req, resp, ev );
         }

@@ -34,7 +34,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.function.Failable;
 
+import areca.aws.Lazy;
 import areca.aws.XLogger;
 
 /**
@@ -83,13 +85,21 @@ public class GzipServletFilter
             extends HttpServletResponseWrapper {
 
         private ServletOutputStream out;
-        private OutputStream zip;
+
+        /**
+         * Avoid initializing the Gzip stream as long as something is actually
+         * written, as this writes gzip header to the stream. This would cause
+         * encoding error if the delegate servlet sendError() or has already
+         * gzipped content.
+         */
+        private Lazy<OutputStream> zip;
+
         private int c;
 
         public GzipResponseWrapper( HttpServletResponse response ) throws IOException {
             super( response );
             out = response.getOutputStream();
-            zip = new GZIPOutputStream( response.getOutputStream(), true );
+            zip = Lazy.of( () -> new GZIPOutputStream( out, true ) );
         }
 
         @Override
@@ -103,8 +113,8 @@ public class GzipServletFilter
                 // already gzipped
                 if (value.equalsIgnoreCase( "gzip" )) {
                     LOG.info( "Already: %s : %s", name, value );
-                    super.resetBuffer();
-                    zip = out;
+                    //super.resetBuffer();
+                    zip = Lazy.of( () -> out );
                     super.setHeader( name, value );
                 }
                 else {
@@ -121,7 +131,7 @@ public class GzipServletFilter
 
         @Override
         public void flushBuffer() throws IOException {
-            zip.close();
+            zip.opt().ifPresent( Failable.asConsumer( z -> z.close() ) );
             getResponse().flushBuffer();
             LOG.info( "FLUSH BUFFER: %s", c );
         }
@@ -131,17 +141,17 @@ public class GzipServletFilter
             return new ServletOutputStream() {
                 @Override
                 public void write( int b ) throws IOException {
-                    zip.write( b );
+                    zip.get().write( b );
                     c += 1;
                 }
                 @Override
                 public void write( byte[] b ) throws IOException {
-                    zip.write( b );
+                    zip.get().write( b );
                     c += b.length;
                 }
                 @Override
                 public void write( byte[] b, int off, int len ) throws IOException {
-                    zip.write( b, off, len );
+                    zip.get().write( b, off, len );
                     c += len;
                 }
                 @Override
@@ -154,12 +164,12 @@ public class GzipServletFilter
                 }
                 @Override
                 public void flush() throws IOException {
-                    zip.flush();
+                    zip.get().flush();
                 }
                 @Override
                 public void close() throws IOException {
-                    zip.flush();
-                    zip.close();
+                    zip.get().flush();
+                    zip.get().close();
                     getResponse().flushBuffer();
                     LOG.info( "CLOSED (%s bytes)", c );
                 }

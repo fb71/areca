@@ -13,6 +13,7 @@
  */
 package areca.aws;
 
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import org.apache.commons.lang3.concurrent.ConcurrentException;
 import org.apache.commons.lang3.concurrent.LazyInitializer;
@@ -32,13 +33,30 @@ public class Lazy<T>
 
     private Callable<T> supplier;
 
+    private volatile boolean initialized;
+
     public Lazy( Callable<T> supplier ) {
         this.supplier = supplier;
+    }
+
+    public Optional<T> opt() {
+        return Optional.ofNullable( initialized ? get() : null );
+    }
+
+    @Override
+    public T get() {
+        try {
+            return super.get();
+        }
+        catch (ConcurrentException e) {
+            throw new RuntimeException( e );
+        }
     }
 
     @Override
     protected T initialize() throws ConcurrentException {
         try {
+            initialized = true;
             return supplier.call();
         }
         catch (RuntimeException e) {
