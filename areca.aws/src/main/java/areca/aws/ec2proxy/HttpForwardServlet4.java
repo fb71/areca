@@ -13,7 +13,9 @@
  */
 package areca.aws.ec2proxy;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.rightPad;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,6 +24,7 @@ import java.util.Map;
 import java.util.Timer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.CookieHandler;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -64,6 +67,13 @@ public class HttpForwardServlet4
 
     public static final String LOG_REQUEST = "requests";
     public static final String LOG_INSTANCE = "instance-status";
+
+    /**
+     * {@link ClassLoader#getResourceAsStream(String)}
+     */
+    public static InputStream resourceAsStream( String name ) {
+        return Thread.currentThread().getContextClassLoader().getResourceAsStream( name );
+    }
 
     // instance *******************************************
 
@@ -188,8 +198,8 @@ public class HttpForwardServlet4
 
         // handle
         var requestHandlers = Arrays.asList(
-                new FuckOffHandler(),
                 new RobotsSitemapHandler(),
+                new FuckOffHandler(),
                 new IndexRedirectHandler(),
                 new EnsureEc2InstanceHandler( Mode.LOADING_PAGE ),
                 new StraightForwardHandler(),
@@ -199,7 +209,7 @@ public class HttpForwardServlet4
         for (var handler : requestHandlers) {
             if (handler.canHandle( probe )) {
                 try {
-                    LOG.info( "============ %s ============", handler.getClass().getSimpleName() );
+                    LOG.info( rightPad( format( "========== %s ", handler.getClass().getSimpleName() ), 60, "=" ) );
                     handler.handle( probe );
                 }
                 catch (Exception e) {
@@ -209,6 +219,7 @@ public class HttpForwardServlet4
                 }
             }
         }
-        LOG.info( "------------------------------------------------------------------" );
+        //LOG.info( "------------------------------------------------------------" );
+        LOG.info( "____________________________________________________________" );
     }
 }

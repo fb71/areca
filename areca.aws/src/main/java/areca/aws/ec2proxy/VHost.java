@@ -99,6 +99,9 @@ public class VHost {
     public String           idleTimeout;
 
     @Expose
+    public String           robots;
+
+    @Expose
     @SerializedName("proxypaths")
     public List<ProxyPath>  proxypaths;
 

@@ -14,6 +14,9 @@
 package areca.aws.ec2proxy;
 
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
+
+import org.apache.commons.io.IOUtils;
+
 import areca.aws.XLogger;
 
 /**
@@ -32,8 +35,18 @@ public class RobotsSitemapHandler
     @Override
     public void handle( Probe probe ) throws Exception {
         if (probe.request.getPathInfo().equals( "/robots.txt" )) {
-            probe.response.sendError( 404, "No robots.txt yet." );
-            LOG.info( "No robots.txt: %s", probe.request.getPathInfo() );
+            if (probe.vhost.robots != null) {
+                LOG.info( "Robots: %s", probe.vhost.robots );
+                try (
+                    var in = HttpForwardServlet4.resourceAsStream( probe.vhost.robots );
+                    var out = probe.response.getOutputStream() ) {
+                    IOUtils.copy( in, out );
+                }
+            }
+            else {
+                LOG.info( "No robots.txt: %s", probe.request.getPathInfo() );
+                probe.response.sendError( 404, "No robots.txt." );
+            }
         }
     }
 
