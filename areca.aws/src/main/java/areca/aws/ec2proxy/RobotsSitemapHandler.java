@@ -45,7 +45,7 @@ public class RobotsSitemapHandler
             }
             else {
                 LOG.info( "No robots.txt: %s", probe.request.getPathInfo() );
-                probe.response.sendError( 404, "No robots.txt." );
+                probe.response.sendError( 404, "No robots.txt" );
             }
         }
     }
