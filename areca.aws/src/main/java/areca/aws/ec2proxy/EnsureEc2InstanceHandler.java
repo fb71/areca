@@ -172,7 +172,7 @@ public class EnsureEc2InstanceHandler
             try {
                 // wbv/mapzone has just "/" as path, which would give 404
                 var ping = probe.proxyPath.forward + defaultString( probe.proxyPath.ping );
-                LOG.info( "Sending request: %s", ping );
+                LOG.info( "PING: %s", ping );
                 var request = HttpRequest.newBuilder( new URI( ping ) ).timeout( TIMEOUT_REQUEST );
                 var response = probe.http.send( request.build(), BodyHandlers.ofInputStream() );
 
