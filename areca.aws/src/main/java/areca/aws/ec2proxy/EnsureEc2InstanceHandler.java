@@ -13,19 +13,24 @@
  */
 package areca.aws.ec2proxy;
 
+import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_REQUEST;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_SERVICES_STARTUP;
 import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.commons.lang3.StringUtils.contains;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ConnectException;
+import java.net.URI;
 import java.net.http.HttpConnectTimeoutException;
-import java.net.http.HttpResponse;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.time.Instant;
@@ -49,7 +54,6 @@ public class EnsureEc2InstanceHandler
     private static Map<VHost,Thread> pending = new ConcurrentHashMap<>();
 
     private static Map<String,Instant> allowedIPs = new ConcurrentHashMap<>();
-
 
     // instance *******************************************
 
@@ -115,8 +119,8 @@ public class EnsureEc2InstanceHandler
             try {
                 probe.vhost.updateRunning( false, ___ -> {
                     probe.aws.startInstance( probe.vhost.ec2id );
-                    // waitForService( probe ); // XXX
-                    Thread.sleep( 6000 );
+                    Thread.sleep( 3000 );
+                    waitForService( probe ); // XXX
                     LOG.info( "Instance is ready: %s", getName() );
                     return true;
                 });
@@ -144,22 +148,29 @@ public class EnsureEc2InstanceHandler
         probe.vhost.updateRunning( expected, __ -> {
             probe.aws.startInstance( probe.vhost.ec2id );
 
-            var response = waitForService( probe );
+            waitForService( probe );
+
+            var response = StraightForwardHandler.INSTANCE.sendRequest( probe );
             StraightForwardHandler.INSTANCE.handleResponse( probe, response );
             return true;
         });
     }
 
 
-    protected HttpResponse<InputStream> waitForService( Probe probe ) throws Exception {
+    protected void waitForService( Probe probe ) throws Exception {
         for (var start = Instant.now(); Duration.between( start, Instant.now() ).compareTo( TIMEOUT_SERVICES_STARTUP ) < 0;) {
             try {
-                StraightForwardHandler forward = new StraightForwardHandler();
-                var response = forward.sendRequest( probe );
+                // sending request without using the request from the probe, which is already done
+                var ping = probe.proxyPath.forward;
+                LOG.info( "Sending request: %s", ping );
+                var request = HttpRequest.newBuilder( new URI( ping ) ).timeout( TIMEOUT_REQUEST );
+                var response = probe.http.send( request.build(), BodyHandlers.ofInputStream() );
+
                 // do not send error back to the client
                 // assuming that error status signals that service is not yet fully started
-                if (response.statusCode() < 400) {
-                    return response;
+                var sc = response.statusCode();
+                if (sc < SC_BAD_REQUEST || sc == SC_UNAUTHORIZED || sc == SC_FORBIDDEN) {
+                    return;
                 }
                 else {
                     LOG.info( "Response: status = %s", response.statusCode() );
@@ -168,7 +179,7 @@ public class EnsureEc2InstanceHandler
             }
             catch (HttpTimeoutException|ConnectException e) {
                 LOG.info( "Waiting for connection: %s (%s) ()", probe.vhost.hostnames.get( 0 ), e );
-                Thread.sleep( 3000 );
+                Thread.sleep( 2000 );
             }
         }
         throw new HttpConnectTimeoutException( "No connection after: " + TIMEOUT_SERVICES_STARTUP.toSeconds() + "s" );
