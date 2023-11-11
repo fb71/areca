@@ -65,14 +65,10 @@ public class AWS {
 
         var response = ec2.describeInstances( request );
         Instance instance = response.reservations().get( 0 ).instances().get( 0 );
-        //String state = instance.state().name().name();
-        // if (state.compareTo( "RUNNING" ) == 0) {
-        LOG.info( "Image id: %s", instance.imageId() );
-        LOG.info( "Instance type: %s", instance.instanceType() );
+        //LOG.info( "Image id: %s", instance.imageId() );
+        LOG.info( "Instance type: %s =========", instance.instanceType() );
         LOG.info( "Instance state: %s", instance.state().name() );
-        var pubAddress = instance.publicIpAddress();
-        LOG.info( "Instance address: %s", pubAddress );
-        // }
+        LOG.info( "Instance address: %s", instance.publicIpAddress() );
         return instance;
     }
 

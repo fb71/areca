@@ -13,6 +13,8 @@
  */
 package areca.aws.ec2proxy;
 
+import static org.apache.commons.lang3.StringUtils.contains;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
@@ -33,7 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.Failable;
 
 import areca.aws.Lazy;
@@ -67,8 +68,8 @@ public class GzipServletFilter
         var req = (HttpServletRequest)request;
         var resp = (HttpServletResponse)response;
 
-        if (StringUtils.contains( req.getHeader( "Accept-Encoding" ), "gzip" )
-                && COMPRESSIBLE.stream().anyMatch( mime -> req.getHeader( "Accept" ).contains( mime ) )) {
+        if (contains( req.getHeader( "Accept-Encoding" ), "gzip" )
+                && COMPRESSIBLE.stream().anyMatch( mime -> contains( req.getHeader( "Accept" ), mime ) )) {
             LOG.info( "GZIP: %s ? %s", req.getPathInfo(), req.getQueryString() );
             resp.setHeader( "Content-Encoding", "gzip" );
             chain.doFilter( request, new GzipResponseWrapper( resp ) );

@@ -16,6 +16,7 @@ package areca.aws.ec2proxy;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_SERVICES_STARTUP;
 import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
 import static areca.aws.ec2proxy.Predicates.notYetCommitted;
+import static org.apache.commons.lang3.StringUtils.contains;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +31,6 @@ import java.time.Duration;
 import java.time.Instant;
 
 import org.apache.commons.io.IOUtils;
-
 import areca.aws.XLogger;
 
 /**
@@ -48,6 +48,9 @@ public class EnsureEc2InstanceHandler
 
     private static Map<VHost,Thread> pending = new ConcurrentHashMap<>();
 
+    private static Map<String,Instant> allowedIPs = new ConcurrentHashMap<>();
+
+
     // instance *******************************************
 
     protected Mode mode;
@@ -64,28 +67,31 @@ public class EnsureEc2InstanceHandler
     public void handle( Probe probe ) throws Exception {
         // favicon
         if (mode == Mode.LOADING_PAGE && probe.request.getPathInfo().startsWith( "/favicon" )) {
-           probe.response.sendError( 404, "No favicon during load." );
+            probe.response.sendError( 404, "No favicon during load." );
         }
         // send loading page
         else if (mode == Mode.LOADING_PAGE
-                && probe.request.getHeader( "Accept" ).contains( "text/html" )) {
+                && contains( probe.request.getHeader( "Accept" ), "text/html" )) {
 
-            // first page (no pending + no param)
-            if (!pending.containsKey( probe.vhost ) && probe.request.getParameter( "v" ) == null) {
-                sendResource( probe, 200, "loading-first.html" );
-            }
-            // loading (param is there)
-            else if (probe.request.getParameter( "v" ) != null) {
-                pending.computeIfAbsent( probe.vhost, __ -> new StartInstanceThread( probe ) );
-                probe.response.sendRedirect( probe.request.getPathInfo() ); // remove v=? param
+            var remoteIP = probe.request.getRemoteAddr();
+            if (!pending.containsKey( probe.vhost ) && !allowedIPs.containsKey( remoteIP )) {
+                // first page (no pending + no param)
+                if (probe.request.getParameter( "v" ) == null) {
+                    sendResource( probe, 200, "loading-first.html" );
+                }
+                // loading (param is there)
+                else if (probe.request.getParameter( "v" ) != null) {
+                    allowedIPs.put( remoteIP, Instant.now() );
+                    pending.computeIfAbsent( probe.vhost, __ -> new StartInstanceThread( probe ) );
+                    probe.response.sendRedirect( probe.request.getPathInfo() ); // remove v=? param
+                }
             }
             //
             else {
                 sendResource( probe, 200, "loading3.html" );
             }
         }
-
-        // wait for response
+        // just wait for response
         else {
             startInstance( probe, /*expect not running*/ false );
         }
@@ -110,7 +116,7 @@ public class EnsureEc2InstanceHandler
                 probe.vhost.updateRunning( false, ___ -> {
                     probe.aws.startInstance( probe.vhost.ec2id );
                     // waitForService( probe ); // XXX
-                    Thread.sleep( 5000 );
+                    Thread.sleep( 6000 );
                     LOG.info( "Instance is ready: %s", getName() );
                     return true;
                 });
