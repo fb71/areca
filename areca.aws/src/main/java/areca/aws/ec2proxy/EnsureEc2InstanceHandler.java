@@ -21,6 +21,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.commons.lang3.StringUtils.contains;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -120,8 +121,13 @@ public class EnsureEc2InstanceHandler
                 probe.vhost.updateRunning( false, ___ -> {
                     probe.aws.startInstance( probe.vhost.ec2id );
                     Thread.sleep( 3000 );
-                    waitForService( probe ); // XXX
-                    LOG.info( "Instance is ready: %s", getName() );
+                    try {
+                        waitForService( probe );
+                        LOG.info( "Instance is ready: %s", getName() );
+                    }
+                    catch (HttpTimeoutException e) {
+                        LOG.info( "Instance not ready after timeout. Running anyway: %s", getName() );
+                    }
                     return true;
                 });
             }
@@ -157,11 +163,15 @@ public class EnsureEc2InstanceHandler
     }
 
 
+    /**
+     * Sending ping requests without using the request from the probe, which is
+     * already done.
+     */
     protected void waitForService( Probe probe ) throws Exception {
         for (var start = Instant.now(); Duration.between( start, Instant.now() ).compareTo( TIMEOUT_SERVICES_STARTUP ) < 0;) {
             try {
-                // sending request without using the request from the probe, which is already done
-                var ping = probe.proxyPath.forward;
+                // wbv/mapzone has just "/" as path, which would give 404
+                var ping = probe.proxyPath.forward + defaultString( probe.proxyPath.ping );
                 LOG.info( "Sending request: %s", ping );
                 var request = HttpRequest.newBuilder( new URI( ping ) ).timeout( TIMEOUT_REQUEST );
                 var response = probe.http.send( request.build(), BodyHandlers.ofInputStream() );

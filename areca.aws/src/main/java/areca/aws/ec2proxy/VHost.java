@@ -118,6 +118,10 @@ public class VHost {
         @Expose
         @SerializedName("forward")
         public String forward;
+
+        @Expose
+        @SerializedName("ping")
+        public String ping;
     }
 
 
