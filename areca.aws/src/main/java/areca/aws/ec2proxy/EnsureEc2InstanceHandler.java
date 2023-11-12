@@ -22,7 +22,6 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultString;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -71,12 +70,15 @@ public class EnsureEc2InstanceHandler
     @Override
     public void handle( Probe probe ) throws Exception {
         // favicon
-        if (mode == Mode.LOADING_PAGE && probe.request.getPathInfo().startsWith( "/favicon" )) {
+        var pathInfo = probe.request.getPathInfo();
+        if (mode == Mode.LOADING_PAGE && pathInfo.startsWith( "/favicon" )) {
             probe.response.sendError( 404, "No favicon during load." );
         }
         // send loading page
-        else if (mode == Mode.LOADING_PAGE
-                && contains( probe.request.getHeader( "Accept" ), "text/html" )) {
+        else if (mode == Mode.LOADING_PAGE &&
+                (contains( probe.request.getHeader( "Accept" ), "text/html" )
+                || pathInfo.equals( probe.proxyPath.path ) // githup webhook or OGC have paths
+                || pathInfo.equals( probe.proxyPath.redirect ) )) {
 
             var remoteIP = probe.request.getRemoteAddr();
             if (!pending.containsKey( probe.vhost ) && !allowedIPs.containsKey( remoteIP )) {
@@ -88,7 +90,7 @@ public class EnsureEc2InstanceHandler
                 else if (probe.request.getParameter( "v" ) != null) {
                     allowedIPs.put( remoteIP, Instant.now() );
                     pending.computeIfAbsent( probe.vhost, __ -> new StartInstanceThread( probe ) );
-                    probe.response.sendRedirect( probe.request.getPathInfo() ); // remove v=? param
+                    probe.response.sendRedirect( pathInfo ); // remove v=? param
                 }
             }
             //
