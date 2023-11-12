@@ -132,7 +132,7 @@ public class VHost {
 
     protected void init( AWS aws ) {
         if (ec2id != null) {
-            isRunning.set( false ); // aws.isInstanceRunning( ec2id ) );
+            isRunning.set( aws.isInstanceRunning( ec2id ) );
             touch();
 
             // idle check
