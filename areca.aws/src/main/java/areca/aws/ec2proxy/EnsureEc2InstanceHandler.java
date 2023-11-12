@@ -78,6 +78,7 @@ public class EnsureEc2InstanceHandler
         else if (mode == Mode.LOADING_PAGE &&
                 (contains( probe.request.getHeader( "Accept" ), "text/html" )
                 || pathInfo.equals( probe.proxyPath.path ) // githup webhook or OGC have paths
+                || pathInfo.equals( probe.proxyPath.path + probe.proxyPath.ping )
                 || pathInfo.equals( probe.proxyPath.redirect ) )) {
 
             var remoteIP = probe.request.getRemoteAddr();
