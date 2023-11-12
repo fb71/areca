@@ -98,6 +98,7 @@ public class VHost {
     @SerializedName("idleTimeout")
     public String           idleTimeout;
 
+    /** The name of the robots.txt resource, or null. */
     @Expose
     public String           robots;
 
@@ -109,25 +110,29 @@ public class VHost {
 
         @Expose
         @SerializedName("path")
-        public String path;
+        public String   path;
 
         @Expose
         @SerializedName("redirect")
-        public String redirect;
+        public String   redirect;
 
         @Expose
         @SerializedName("forward")
-        public String forward;
+        public String   forward;
 
+        /** The URL to be used to check if the instance is running. */
         @Expose
         @SerializedName("ping")
-        public String ping;
+        public String   ping;
+
+        @Expose
+        public List<String> allowedServices;
     }
 
 
     protected void init( AWS aws ) {
         if (ec2id != null) {
-            isRunning.set( aws.isInstanceRunning( ec2id ) );
+            isRunning.set( false ); // aws.isInstanceRunning( ec2id ) );
             touch();
 
             // idle check

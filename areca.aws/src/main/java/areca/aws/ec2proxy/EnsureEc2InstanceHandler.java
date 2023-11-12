@@ -15,17 +15,15 @@ package areca.aws.ec2proxy;
 
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_REQUEST;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_SERVICES_STARTUP;
-import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
-import static areca.aws.ec2proxy.Predicates.notYetCommitted;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultString;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpConnectTimeoutException;
@@ -35,10 +33,14 @@ import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.time.Instant;
 
-import org.apache.commons.io.IOUtils;
 import areca.aws.XLogger;
 
 /**
+ * Makes sure that the EC2 instance {@link VHost#isRunning}.
+ * <p>
+ * When in {@link Mode#LOADING_PAGE} a loading.hml is send to text/html request,
+ * while {@link StartInstanceThread} is starting the instance. All other request are
+ * simply blocked until the instance is ready.
  *
  * @author Falko Bräutigam
  */
@@ -52,8 +54,6 @@ public class EnsureEc2InstanceHandler
     }
 
     private static Map<VHost,Thread> pending = new ConcurrentHashMap<>();
-
-    private static Map<String,Instant> allowedIPs = new ConcurrentHashMap<>();
 
     // instance *******************************************
 
@@ -74,30 +74,13 @@ public class EnsureEc2InstanceHandler
         if (mode == Mode.LOADING_PAGE && pathInfo.startsWith( "/favicon" )) {
             probe.response.sendError( 404, "No favicon during load." );
         }
-        // send loading page
+        // loading page
         else if (mode == Mode.LOADING_PAGE &&
-                (contains( probe.request.getHeader( "Accept" ), "text/html" )
-                || pathInfo.equals( probe.proxyPath.path ) // githup webhook or OGC have paths
-                || pathInfo.equals( probe.proxyPath.path + probe.proxyPath.ping )
-                || pathInfo.equals( probe.proxyPath.redirect ) )) {
-
-            var remoteIP = probe.request.getRemoteAddr();
-            if (!pending.containsKey( probe.vhost ) && !allowedIPs.containsKey( remoteIP )) {
-                // first page (no pending + no param)
-                if (probe.request.getParameter( "v" ) == null) {
-                    sendResource( probe, 200, "loading-first.html" );
-                }
-                // loading (param is there)
-                else if (probe.request.getParameter( "v" ) != null) {
-                    allowedIPs.put( remoteIP, Instant.now() );
-                    pending.computeIfAbsent( probe.vhost, __ -> new StartInstanceThread( probe ) );
-                    probe.response.sendRedirect( pathInfo ); // remove v=? param
-                }
+                contains( probe.request.getHeader( "Accept" ), "text/html" )) {
+            if (!pending.containsKey( probe.vhost )) {
+                pending.computeIfAbsent( probe.vhost, __ -> new StartInstanceThread( probe ) );
             }
-            //
-            else {
-                sendResource( probe, 200, "loading3.html" );
-            }
+            sendResource( probe, 200, "loading3.html" );
         }
         // just wait for response
         else {
@@ -142,16 +125,6 @@ public class EnsureEc2InstanceHandler
             }
         }
     }
-
-    protected void sendResource( Probe probe, int status, String name ) throws IOException {
-        probe.response.setStatus( status );
-        try (
-            var in = HttpForwardServlet4.resourceAsStream( name );
-            var out = probe.response.getOutputStream() ) {
-            IOUtils.copy( in, out );
-        }
-    }
-
 
     protected void startInstance( Probe probe, Boolean expected ) throws Exception {
         probe.vhost.updateRunning( expected, __ -> {

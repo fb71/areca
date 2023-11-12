@@ -13,8 +13,6 @@
  */
 package areca.aws.ec2proxy;
 
-import static areca.aws.ec2proxy.Predicates.notYetCommitted;
-
 import areca.aws.XLogger;
 
 /**

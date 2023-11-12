@@ -15,6 +15,7 @@ package areca.aws.ec2proxy;
 
 import java.util.function.Predicate;
 
+import java.io.IOException;
 import java.net.http.HttpClient;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +35,12 @@ import areca.aws.logs.HttpRequestEvent;
  */
 public abstract class RequestHandler {
 
+    public static final Predicate<Probe> ec2InstanceIsRunning = probe -> probe.vhost.isRunning.get();
+
+    public static final Predicate<Probe> notYetCommitted = probe -> !probe.response.isCommitted();
+
+    // instance *******************************************
+
     protected Predicate<Probe> predicate;
 
     protected RequestHandler( Predicate<Probe> predicate ) {
@@ -45,6 +52,15 @@ public abstract class RequestHandler {
     }
 
     public abstract void handle( Probe probe ) throws Exception;
+
+    protected void sendResource( Probe probe, int status, String name ) throws IOException {
+        probe.response.setStatus( status );
+        try (
+            var in = HttpForwardServlet4.resourceAsStream( name );
+            var out = probe.response.getOutputStream() ) {
+            IOUtils.copy( in, out );
+        }
+    }
 
     /**
      *

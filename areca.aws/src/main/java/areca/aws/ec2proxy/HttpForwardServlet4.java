@@ -201,6 +201,7 @@ public class HttpForwardServlet4
                 new RobotsSitemapHandler(),
                 new FuckOffHandler(),
                 new IndexRedirectHandler(),
+                new PreventRobotStartupHandler(),
                 new EnsureEc2InstanceHandler( Mode.LOADING_PAGE ),
                 new StraightForwardHandler(),
                 new EnsureEc2InstanceHandler.AfterError( Mode.LOADING_PAGE ),

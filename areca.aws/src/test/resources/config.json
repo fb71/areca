@@ -19,7 +19,8 @@
                 },
                 {
                     "path": "/echo",
-                    "forward": "https://postman-echo.com/get"
+                    "forward": "https://postman-echo.com/get",
+                    "allowedServices": ["*/webhook"]
                 },
                 {
                     "path": "/",

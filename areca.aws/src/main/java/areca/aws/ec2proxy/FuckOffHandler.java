@@ -13,7 +13,6 @@
  */
 package areca.aws.ec2proxy;
 
-import static areca.aws.ec2proxy.Predicates.notYetCommitted;
 import static org.apache.commons.io.FilenameUtils.wildcardMatch;
 
 import java.util.Arrays;
@@ -44,7 +43,7 @@ public class FuckOffHandler
             "*webalizer*",
             "*/.env",
             "*/*.asp?",
-            "*/*.php",
+            "*/*.php*",
             "/wp-includes/*",
             "/wp-content/*" );
 

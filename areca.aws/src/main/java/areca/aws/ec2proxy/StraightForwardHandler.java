@@ -16,8 +16,6 @@ package areca.aws.ec2proxy;
 import static areca.aws.ec2proxy.HttpForwardServlet4.FORBIDDEN_HEADERS;
 import static areca.aws.ec2proxy.HttpForwardServlet4.METHODS_WITH_BODY;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_REQUEST;
-import static areca.aws.ec2proxy.Predicates.ec2InstanceIsRunning;
-import static areca.aws.ec2proxy.Predicates.notYetCommitted;
 
 import java.io.InputStream;
 import java.net.URI;
