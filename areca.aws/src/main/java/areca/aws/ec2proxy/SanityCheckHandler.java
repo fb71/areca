@@ -33,8 +33,7 @@ public class SanityCheckHandler
     @Override
     public void handle( Probe probe ) throws Exception {
         if (notYetCommitted.test( probe )) {
-            LOG.warn( "No handler found!\n    %s",
-                    url( probe.request ) );
+            LOG.warn( "No handler found!\n    %s", url( probe.request ) );
             probe.response.sendError( 500, "No handler found." );
         }
     }

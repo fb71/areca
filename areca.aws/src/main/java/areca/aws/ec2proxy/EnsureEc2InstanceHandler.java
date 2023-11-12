@@ -53,7 +53,7 @@ public class EnsureEc2InstanceHandler
        WAIT, LOADING_PAGE
     }
 
-    private static Map<VHost,Thread> pending = new ConcurrentHashMap<>();
+    private static final Map<VHost,Thread> pending = new ConcurrentHashMap<>();
 
     // instance *******************************************
 
@@ -132,8 +132,8 @@ public class EnsureEc2InstanceHandler
 
             waitForService( probe );
 
-            var response = StraightForwardHandler.INSTANCE.sendRequest( probe );
-            StraightForwardHandler.INSTANCE.handleResponse( probe, response );
+            var forward = StraightForwardHandler.instance.get();
+            forward.handleResponse( probe, forward.sendRequest( probe ) );
             return true;
         });
     }

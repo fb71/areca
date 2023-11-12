@@ -13,10 +13,8 @@
  */
 package areca.aws.ec2proxy;
 
-import static java.util.Objects.requireNonNullElseGet;
 import static org.apache.commons.lang3.StringUtils.contains;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,7 +36,7 @@ public class PreventRobotStartupHandler
 
     private static final XLogger LOG = XLogger.get( PreventRobotStartupHandler.class );
 
-    private static Map<String,Instant> allowedIPs = new ConcurrentHashMap<>();
+    private static final Map<String,Instant> allowedIPs = new ConcurrentHashMap<>();
 
     public PreventRobotStartupHandler() {
         super( notYetCommitted
@@ -54,7 +52,7 @@ public class PreventRobotStartupHandler
         if (pathInfo.startsWith( "/favicon" )) {
             probe.response.sendError( 404, "No favicon during load." );
         }
-        // Captcha page
+        // Captcha page for text/html
         else if (contains( probe.request.getHeader( "Accept" ), "text/html" ) ) {
             // first page (no pending + no param)
             if (probe.request.getParameter( "v" ) == null) {
@@ -68,12 +66,13 @@ public class PreventRobotStartupHandler
         }
         // allowed services
         else {
-            var allowedServices = requireNonNullElseGet( probe.proxyPath.allowedServices, () -> Collections.<String>emptyList() );
-            for (String allowedPath : allowedServices) {
-                var path = probe.request.getPathInfo();
-                if (FilenameUtils.wildcardMatch( path, allowedPath )) {
-                    allowedIPs.put( probe.request.getRemoteAddr(), Instant.now() );
-                    return;
+            if (probe.proxyPath.allowedServices != null) {
+                for (String allowedPath : probe.proxyPath.allowedServices) {
+                    var path = probe.request.getPathInfo();
+                    if (FilenameUtils.wildcardMatch( path, allowedPath )) {
+                        allowedIPs.put( probe.request.getRemoteAddr(), Instant.now() );
+                        return; // let this request pass
+                    }
                 }
             }
             // anything else -> redirect to captcha page

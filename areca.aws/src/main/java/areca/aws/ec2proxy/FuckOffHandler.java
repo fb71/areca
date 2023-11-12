@@ -33,7 +33,7 @@ public class FuckOffHandler
 
     private static final XLogger LOG = XLogger.get( FuckOffHandler.class );
 
-    public static List<String> RULES = Arrays.asList(
+    public static final List<String> RULES = Arrays.asList(
             "/backup*",
             "/wp/*",
             "/crossdomain.xml",
@@ -47,9 +47,9 @@ public class FuckOffHandler
             "/wp-includes/*",
             "/wp-content/*" );
 
-    // instance *******************************************
+    private static final Map<String,Integer> blockedIPs = new ConcurrentHashMap<>();
 
-    private static Map<String,Integer> blockedIPs = new ConcurrentHashMap<>();
+    // instance *******************************************
 
     public FuckOffHandler() {
         super( notYetCommitted );
@@ -59,8 +59,8 @@ public class FuckOffHandler
     @Override
     public void handle( Probe probe ) throws Exception {
         var path = probe.request.getPathInfo();
-
         var ip = probe.request.getRemoteAddr();
+
         if (blockedIPs.containsKey( ip )) {
             var current = blockedIPs.computeIfPresent( ip, (__,count) -> count + 1 );
             probe.response.sendError( 404, "Fuck off!!!" );

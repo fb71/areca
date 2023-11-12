@@ -17,6 +17,8 @@ import static areca.aws.ec2proxy.HttpForwardServlet4.FORBIDDEN_HEADERS;
 import static areca.aws.ec2proxy.HttpForwardServlet4.METHODS_WITH_BODY;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_REQUEST;
 
+import java.util.function.Supplier;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -25,6 +27,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 
 import org.apache.commons.io.IOUtils;
 
+import areca.aws.Lazy;
 import areca.aws.XLogger;
 
 /**
@@ -36,7 +39,8 @@ public class StraightForwardHandler
 
     private static final XLogger LOG = XLogger.get( StraightForwardHandler.class );
 
-    public static final StraightForwardHandler INSTANCE = new StraightForwardHandler();
+    /** */
+    public static Supplier<StraightForwardHandler> instance = new Lazy<>( () -> new StraightForwardHandler() );
 
     public StraightForwardHandler() {
         super( notYetCommitted

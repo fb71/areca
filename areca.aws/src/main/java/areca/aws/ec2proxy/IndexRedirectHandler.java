@@ -24,8 +24,6 @@ public class IndexRedirectHandler
 
     private static final XLogger LOG = XLogger.get( IndexRedirectHandler.class );
 
-    public static final IndexRedirectHandler INSTANCE = new IndexRedirectHandler();
-
     protected IndexRedirectHandler() {
         super( notYetCommitted.and( probe -> probe.proxyPath.redirect != null ) );
     }

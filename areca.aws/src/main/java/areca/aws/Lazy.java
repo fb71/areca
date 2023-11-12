@@ -15,6 +15,8 @@ package areca.aws;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
+
 import org.apache.commons.lang3.concurrent.ConcurrentException;
 import org.apache.commons.lang3.concurrent.LazyInitializer;
 
@@ -23,7 +25,8 @@ import org.apache.commons.lang3.concurrent.LazyInitializer;
  * @author Falko Bräutigam
  */
 public class Lazy<T>
-        extends LazyInitializer<T> {
+        extends LazyInitializer<T>
+        implements Supplier<T> {
 
     public static <R> Lazy<R> of( Callable<R> supplier ) {
         return new Lazy<>( supplier );
