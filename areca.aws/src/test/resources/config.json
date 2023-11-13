@@ -1,7 +1,7 @@
 {
     "vhosts": [
         {
-            "hostnames": ["localhost"],
+            "hostnames": ["--localhost"],
             "ec2id": "i-024c0875fea9dc39d",
             "idleTimeout": "PT60M",
             "proxypaths": [
@@ -29,7 +29,7 @@
             ] 
         },
         {
-            "hostnames": ["--localhost"],
+            "hostnames": ["localhost"],
             "--ec2id": "i-0a943c0ae2e2f1edd",
             "idleTimeout": "PT60M",
             "robots": "robots-disallow.txt",

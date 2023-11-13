@@ -16,8 +16,8 @@ package areca.aws.logs;
 import areca.aws.logs.EventCollector.Event;
 import areca.aws.logs.EventCollector.EventTransform;
 
-
 /**
+ * Non-pretty json for {@link OpenSearchSink} + simple event logging.
  *
  * @author Falko Bräutigam
  */
@@ -25,8 +25,19 @@ public class GsonEventTransformer<P>
         extends EventTransform<P,String> {
 
     @Override
-    public String apply( Event<P> event ) {
-        return OpenSearchSink.gson.toJson( event.data );
+    public String apply( Event<P> ev ) {
+//        if (ev.data instanceof HttpRequestEvent) {
+//            var data = (HttpRequestEvent)ev.data;
+//            OpenSearchSink.LOG.debug( "%s: %s %s - %s (%s)", data.vhost, data.method, data.url, data.status, data.error );
+//        }
+//        else if (ev.data instanceof Ec2InstanceEvent) {
+//            var data = (Ec2InstanceEvent)ev.data;
+//            OpenSearchSink.LOG.debug( "%s: %s -> %s", data.vhost, data.isRunningBefore, data.isRunningAfter );
+//        }
+//        else {
+//            OpenSearchSink.LOG.debug( "No log for: %s", ev.data.getClass().getSimpleName() );
+//        }
+        return OpenSearchSink.gson.toJson( ev.data );
     }
 
 }

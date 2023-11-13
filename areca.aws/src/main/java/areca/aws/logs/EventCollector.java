@@ -129,7 +129,7 @@ public class EventCollector<P,S> {
             while (!stopRequested) {
                 try {
                     var chunk = new HashMap<Event<Object>,S>( CHUNK_SIZE_MAX * 2 );
-                    for (var ev = queue.take(); ev != null && chunk.size() <= CHUNK_SIZE_MAX; ev = queue.poll( INTERVAL.toMillis(), MILLISECONDS )) {
+                    for (var ev = queue.take(); ev != null && chunk.size() < CHUNK_SIZE_MAX; ev = queue.poll( INTERVAL.toMillis(), MILLISECONDS )) {
                         //LOG.debug( "Event taken: %s", event );
                         var _ev = ev;
                         chunk.put( (Event<Object>)_ev, transforms.stream()

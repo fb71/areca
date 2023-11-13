@@ -17,6 +17,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Base64.Encoder;
 import java.util.Map;
 
 import java.lang.reflect.Modifier;
@@ -48,9 +49,7 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 public class OpenSearchSink
         extends EventSink<String> {
 
-    private static final byte[] EOL = "\n".getBytes( UTF_8 );
-
-    private static final XLogger LOG = XLogger.get( OpenSearchSink.class );
+    static final XLogger LOG = XLogger.get( OpenSearchSink.class );
 
     public static final Duration HTTP_TIMEOUT = Duration.ofSeconds( 30 );
 
@@ -58,6 +57,10 @@ public class OpenSearchSink
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
             .excludeFieldsWithModifiers( Modifier.PRIVATE )
             .create();
+
+    private static final byte[] EOL = "\n".getBytes( UTF_8 );
+
+    private static final Encoder BASE64 = Base64.getEncoder();
 
     // instance *******************************************
 
@@ -88,9 +91,9 @@ public class OpenSearchSink
 
         Iterable<byte[]> body2 = () -> events.entrySet().stream()
                 .flatMap( entry -> {
-                    LOG.debug( "%s", entry.getValue() );
+                    Event<Object> ev = entry.getKey();
                     return Arrays.stream( new byte[][] {
-                        IndexCommand.create( entry.getKey().type, idCount++ ).json().getBytes( UTF_8 ), EOL,
+                        IndexCommand.create( ev.type, idCount++ ).json().getBytes( UTF_8 ), EOL,
                         entry.getValue().getBytes( UTF_8 ), EOL } );
                 })
                 .iterator();
@@ -99,7 +102,7 @@ public class OpenSearchSink
         var request = HttpRequest.newBuilder( new URI( url + "_bulk" + "?filter_path=took,errors" ) )
                 .method( "POST", BodyPublishers.ofByteArrays( body2 ) )
                 .header( "Content-Type", "application/json" )
-                .header( "Authorization", "Basic " + Base64.getEncoder().encodeToString( auth.getBytes() ) )
+                .header( "Authorization", "Basic " + BASE64.encodeToString( auth.getBytes() ) )
                 .timeout( HTTP_TIMEOUT );
 
         var response = http.send( request.build(), HttpResponse.BodyHandlers.ofString() );
@@ -110,7 +113,7 @@ public class OpenSearchSink
             LOG.warn( "Wrong response code: %s (%s)", response.statusCode(), pretty );
         }
         else {
-            LOG.debug( "OpenSearch response: %s", response.body() );
+            LOG.debug( "Response (OpenSearch): %s", response.body() );
         }
     }
 
