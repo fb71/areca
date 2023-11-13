@@ -13,6 +13,9 @@
  */
 package areca.aws.logs;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 
@@ -44,6 +47,8 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
  */
 public class OpenSearchSink
         extends EventSink<String> {
+
+    private static final byte[] EOL = "\n".getBytes( UTF_8 );
 
     private static final XLogger LOG = XLogger.get( OpenSearchSink.class );
 
@@ -81,16 +86,18 @@ public class OpenSearchSink
         // https://opensearch.org/docs/1.2/opensearch/rest-api/document-apis/bulk/
         // https://docs.aws.amazon.com/opensearch-service/latest/developerguide/gsg.html
 
-        var body = new StringBuilder( 4096 ); // XXX streaming?
-        for (var entry : events.entrySet()) {
-            body.append( gson.toJson( IndexCommand.create( entry.getKey().type, ""+idCount++ ) ) ).append( "\n" );
-            body.append( entry.getValue() ).append( "\n" );
-        }
-        LOG.debug( "LOG: \n%s", body.toString() );
+        Iterable<byte[]> body2 = () -> events.entrySet().stream()
+                .flatMap( entry -> {
+                    LOG.debug( "%s", entry.getValue() );
+                    return Arrays.stream( new byte[][] {
+                        IndexCommand.create( entry.getKey().type, idCount++ ).json().getBytes( UTF_8 ), EOL,
+                        entry.getValue().getBytes( UTF_8 ), EOL } );
+                })
+                .iterator();
 
         String auth = credentials.getLeft() + ":" + credentials.getRight();
         var request = HttpRequest.newBuilder( new URI( url + "_bulk" + "?filter_path=took,errors" ) )
-                .method( "POST", BodyPublishers.ofString( body.toString() ) )
+                .method( "POST", BodyPublishers.ofByteArrays( body2 ) )
                 .header( "Content-Type", "application/json" )
                 .header( "Authorization", "Basic " + Base64.getEncoder().encodeToString( auth.getBytes() ) )
                 .timeout( HTTP_TIMEOUT );
@@ -113,6 +120,10 @@ public class OpenSearchSink
      */
     protected static class IndexCommand {
 
+        public static IndexCommand create( String _index, long _id ) {
+            return create( _index, String.valueOf( _id ) );
+        }
+
         public static IndexCommand create( String _index, String _id ) {
             var result = new IndexCommand();
             var payload = new Payload();
@@ -120,6 +131,10 @@ public class OpenSearchSink
             payload._id = _id;
             result.create = payload;
             return result;
+        }
+
+        public String json() {
+            return gson.toJson( this );
         }
 
         public Payload create;
