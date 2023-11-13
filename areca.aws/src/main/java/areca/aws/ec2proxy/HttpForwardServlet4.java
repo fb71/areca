@@ -151,6 +151,7 @@ public class HttpForwardServlet4
         resp = new HttpServletResponseWrapper( resp ) {
             @Override
             public void sendError( int sc, String msg ) throws IOException {
+                LOG.info( "Sending error: %s - %s", sc, msg );
                 setStatus( sc );
                 try (var out = getOutputStream()) {
                     out.write( msg.getBytes( "UTF8" ) );

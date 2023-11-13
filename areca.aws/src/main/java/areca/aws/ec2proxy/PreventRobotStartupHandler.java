@@ -13,6 +13,7 @@
  */
 package areca.aws.ec2proxy;
 
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.commons.lang3.StringUtils.contains;
 
 import java.util.Map;
@@ -75,10 +76,8 @@ public class PreventRobotStartupHandler
                     }
                 }
             }
-            // anything else -> redirect to captcha page
-            probe.response.sendRedirect( probe.proxyPath.redirect != null
-                    ? probe.proxyPath.redirect
-                    : probe.proxyPath.path );
+            // anything else (requested anything but text/html)
+            probe.response.sendError( SC_UNAUTHORIZED, "If you are not a robot, please ask the site admin." );
         }
     }
 }
