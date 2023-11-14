@@ -1,7 +1,7 @@
 {
     "vhosts": [
         {
-            "hostnames": ["localhost"],
+            "hostnames": ["--localhost"],
             "ec2id": "i-024c0875fea9dc39d",
             "idleTimeout": "PT60M",
             "proxypaths": [
@@ -29,11 +29,15 @@
             ] 
         },
         {
-            "hostnames": ["--localhost"],
-            "--ec2id": "i-0a943c0ae2e2f1edd",
+            "hostnames": ["localhost"],
+            "--ec2id": "i-0a83af91ff36e8383",
             "idleTimeout": "PT60M",
             "robots": "robots-disallow.txt",
             "proxypaths": [
+                {
+                    "path": "/up/",
+                    "forward": "https://ulrike-philipp.de/"
+                },
                 {
                     "path": "/echo",
                     "forward": "https://postman-echo.com/get"

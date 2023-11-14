@@ -41,10 +41,12 @@ import areca.aws.Lazy;
 import areca.aws.XLogger;
 
 /**
+ * Servlet {@link Filter} and {@link RequestHandler} that gzip compresses response.
  *
  * @author Falko Bräutigam
  */
 public class GzipServletFilter
+        extends RequestHandler
         implements Filter {
 
     private static final XLogger LOG = XLogger.get( GzipServletFilter.class );
@@ -53,6 +55,11 @@ public class GzipServletFilter
             "*/*", "text/html", "text/xml", "text/plain", "text/css", "text/javascript",
             "application/x-javascript", "application/javascript", "application/json", "application/xml" );
 
+    // instance *******************************************
+
+    public GzipServletFilter() {
+        super( notYetCommitted );
+    }
 
     @Override
     public void init( FilterConfig filterConfig ) throws ServletException { }
@@ -60,6 +67,16 @@ public class GzipServletFilter
     @Override
     public void destroy() { }
 
+
+    @Override
+    public void handle( Probe probe ) throws Exception {
+        if (contains( probe.request.getHeader( "Accept-Encoding" ), "gzip" )
+                && COMPRESSIBLE.stream().anyMatch( mime -> contains( probe.request.getHeader( "Accept" ), mime ) )) {
+            LOG.info( "GZIP: %s ? %s", probe.request.getPathInfo(), probe.request.getQueryString() );
+            probe.response.setHeader( "Content-Encoding", "gzip" );
+            probe.response = new GzipResponseWrapper( probe.response );
+        }
+    }
 
     @Override
     public void doFilter( ServletRequest request, ServletResponse response, FilterChain chain )

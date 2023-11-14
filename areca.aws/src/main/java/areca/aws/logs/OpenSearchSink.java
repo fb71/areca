@@ -91,6 +91,7 @@ public class OpenSearchSink
 
         Iterable<byte[]> body2 = () -> events.entrySet().stream()
                 .flatMap( entry -> {
+                    //LOG.debug( "%s\n", entry.getValue() );
                     Event<Object> ev = entry.getKey();
                     return Arrays.stream( new byte[][] {
                         IndexCommand.create( ev.type, idCount++ ).json().getBytes( UTF_8 ), EOL,

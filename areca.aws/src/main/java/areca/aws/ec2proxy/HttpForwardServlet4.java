@@ -14,7 +14,6 @@
 package areca.aws.ec2proxy;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.rightPad;
 
 import java.util.Arrays;
@@ -34,14 +33,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-
 import areca.aws.AWS;
 import areca.aws.XLogger;
 import areca.aws.ec2proxy.EnsureEc2InstanceHandler.Mode;
 import areca.aws.logs.EventCollector;
 import areca.aws.logs.GsonEventTransformer;
-import areca.aws.logs.HttpRequestEvent;
+import areca.aws.logs.LogRequestHandler;
 import areca.aws.logs.OpenSearchSink;
 
 /**
@@ -144,44 +141,23 @@ public class HttpForwardServlet4
 
     @Override
     protected void service( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
-        var ev = HttpRequestEvent.prepare( req, resp );
-        LOG.info( "%s %s ?%s", req.getMethod(), ev.url, defaultIfEmpty( req.getQueryString(), "-" ) );
-
-        // prevent container error page
-        resp = new HttpServletResponseWrapper( resp ) {
-            @Override
-            public void sendError( int sc, String msg ) throws IOException {
-                LOG.info( "Sending error: %s - %s", sc, msg );
-                setStatus( sc );
-                try (var out = getOutputStream()) {
-                    out.write( msg.getBytes( "UTF8" ) );
-                }
-            }
-        };
-        // service
         try {
-            doService( req, resp, ev );
+            doService( req, resp );
         }
         catch (SignalErrorResponseException e) {
-            ev.error = e.toString();
-            resp.sendError( e.status, e.getMessage() );
+            resp.sendError( e.status, e.getClass().getSimpleName() + ": " + e.getMessage() );
         }
         catch (Exception e) {
-            ev.error = e.toString();
             e.printStackTrace();
-            resp.sendError( 500, e.getMessage() );
-        }
-        finally {
-            logs.publish( LOG_REQUEST, ev.complete() );
+            resp.sendError( 500, e.getClass().getSimpleName() + ": " + e.getMessage() );
         }
     }
 
 
-    protected void doService( HttpServletRequest req, HttpServletResponse resp, HttpRequestEvent ev ) throws Exception {
+    protected void doService( HttpServletRequest req, HttpServletResponse resp ) throws Exception {
         var probe = new RequestHandler.Probe( req, resp );
         probe.aws = aws;
         probe.http = http;
-        probe.ev = ev;
 
         // vhost
         probe.vhost = vhosts.stream()
@@ -194,10 +170,11 @@ public class HttpForwardServlet4
                 .filter( path -> req.getPathInfo().startsWith( path.path ) ).findAny()
                 .orElseThrow( () -> new SignalErrorResponseException( 404, "No such path: " + req.getPathInfo() ) );
 
-        ev.vhost = probe.vhost.hostnames.get( 0 );
-
         // handle
         var requestHandlers = Arrays.asList(
+                new GzipServletFilter(),
+                new SimpleErrorPageHandler(),
+                new LogRequestHandler(),
                 new RobotsSitemapHandler(),
                 new FuckOffHandler(),
                 new IndexRedirectHandler(),

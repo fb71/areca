@@ -13,33 +13,38 @@
  */
 package areca.aws.ec2proxy;
 
-import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponseWrapper;
 
 import areca.aws.XLogger;
 
 /**
+ * Prevent container error page.
  *
  * @author Falko Bräutigam
  */
-public class SanityCheckHandler
+public class SimpleErrorPageHandler
         extends RequestHandler {
 
-    private static final XLogger LOG = XLogger.get( SanityCheckHandler.class );
+    private static final XLogger LOG = XLogger.get( SimpleErrorPageHandler.class );
 
-    protected SanityCheckHandler() {
+    public SimpleErrorPageHandler() {
         super( notYetCommitted );
     }
 
     @Override
     public void handle( Probe probe ) throws Exception {
-        if (notYetCommitted.test( probe )) {
-            LOG.warn( "No handler found for: %s", url( probe.request ) );
-            probe.response.sendError( 500, "No handler found." );
-        }
+        probe.response = new HttpServletResponseWrapper( probe.response ) {
+            @Override
+            public void sendError( int sc, String msg ) throws IOException {
+                LOG.info( "Sending error: %s - %s", sc, msg );
+                setStatus( sc );
+                try (var out = getOutputStream()) {
+                    out.write( msg.getBytes( "UTF8" ) );
+                }
+            }
+        };
     }
 
-    protected String url( HttpServletRequest req ) {
-        return String.format( "%s://%s:%s/%s ?%s",
-                req.getScheme(), req.getServerName(), req.getServerPort(), req.getRequestURI(), req.getQueryString() );
-    }
 }

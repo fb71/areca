@@ -6,14 +6,14 @@
       version="3.1">
 
     <!-- -->
-    <filter>
+    <!--filter>
         <filter-name>GzipFilter</filter-name>
         <filter-class>areca.aws.ec2proxy.GzipServletFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>GzipFilter</filter-name>
         <url-pattern>/*</url-pattern>
-    </filter-mapping>
+    </filter-mapping-->
 
     <!-- HTTP -->
     <servlet>
