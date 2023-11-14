@@ -164,7 +164,6 @@ public class HttpForwardServlet4
         }
         catch (SignalErrorResponseException e) {
             ev.error = e.toString();
-            LOG.info( "Response: %s - %s", e.status, e.getMessage() );
             resp.sendError( e.status, e.getMessage() );
         }
         catch (Exception e) {
