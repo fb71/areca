@@ -187,7 +187,7 @@ public class HttpForwardServlet4
         for (var handler : requestHandlers) {
             if (handler.canHandle( probe )) {
                 try {
-                    LOG.info( rightPad( format( "********* %s ", handler.getClass().getSimpleName() ), 60, "*" ) );
+                    LOG.info( rightPad( format( "====== %s ", handler.getClass().getSimpleName() ), 60, "=" ) );
                     handler.handle( probe );
                 }
                 catch (Exception e) {
@@ -197,7 +197,7 @@ public class HttpForwardServlet4
                 }
             }
         }
-        LOG.info( "------------------------------------------------------------" );
-        //LOG.info( "____________________________________________________________" );
+        //LOG.info( "------------------------------------------------------------" );
+        LOG.info( "____________________________________________________________" );
     }
 }

@@ -13,7 +13,7 @@
  */
 package areca.aws.ec2proxy;
 
-import org.apache.commons.io.IOUtils;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import areca.aws.XLogger;
 
@@ -27,24 +27,19 @@ public class RobotsSitemapHandler
     private static final XLogger LOG = XLogger.get( RobotsSitemapHandler.class );
 
     public RobotsSitemapHandler() {
-        super( notYetCommitted );
+        super( notYetCommitted
+                .and( p -> p.request.getPathInfo().equals( "/robots.txt" ) ) );
     }
 
     @Override
     public void handle( Probe probe ) throws Exception {
-        if (probe.request.getPathInfo().equals( "/robots.txt" )) {
-            if (probe.vhost.robots != null) {
-                LOG.info( "Robots: %s", probe.vhost.robots );
-                try (
-                    var in = HttpForwardServlet4.resourceAsStream( probe.vhost.robots );
-                    var out = probe.response.getOutputStream() ) {
-                    IOUtils.copy( in, out );
-                }
-            }
-            else {
-                LOG.info( "No robots.txt: %s", probe.request.getPathInfo() );
-                probe.response.sendError( 404, "No robots.txt" );
-            }
+        if (probe.vhost.robots != null) {
+            LOG.info( "Robots: %s", probe.vhost.robots );
+            sendResource( probe, SC_OK, probe.vhost.robots );
+        }
+        else {
+            LOG.info( "No robots.txt: %s", probe.request.getPathInfo() );
+            probe.response.sendError( 404, "No robots.txt" );
         }
     }
 

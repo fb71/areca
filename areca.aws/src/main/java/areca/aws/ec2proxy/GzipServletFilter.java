@@ -72,7 +72,7 @@ public class GzipServletFilter
     public void handle( Probe probe ) throws Exception {
         if (contains( probe.request.getHeader( "Accept-Encoding" ), "gzip" )
                 && COMPRESSIBLE.stream().anyMatch( mime -> contains( probe.request.getHeader( "Accept" ), mime ) )) {
-            LOG.info( "GZIP: %s ? %s", probe.request.getPathInfo(), probe.request.getQueryString() );
+            LOG.info( ":: %s ? %s", probe.request.getPathInfo(), probe.request.getQueryString() );
             probe.response.setHeader( "Content-Encoding", "gzip" );
             probe.response = new GzipResponseWrapper( probe.response );
         }
