@@ -18,97 +18,97 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.squareup</groupId>
-      <artifactId>javapoet</artifactId>
-      <version>1.12.1</version>
-      <scope>compile</scope>
+        <groupId>com.squareup</groupId>
+        <artifactId>javapoet</artifactId>
+        <version>1.12.1</version>
+        <scope>compile</scope>
     </dependency>
-    
+
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.9</version>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.9</version>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
-      <!-- Compiler -->
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
-        <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-        </configuration>
-        <executions>
-          <!-- Annotation processor -->
-          <execution>
-            <id>annotation-processor</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
+        <!-- Compiler -->
+        <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.1</version>
             <configuration>
-              <proc>none</proc>
-              <includes>
-                <include>**/ReflectAnnotationProcessor.java</include>
-              </includes>
+                <source>${java.version}</source>
+                <target>${java.version}</target>
             </configuration>
-          </execution>
-          <!-- Regular sources -->
-          <execution>
-            <id>default-compile</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <configuration>
-              <annotationProcessors>
-                <annotationProcessor>areca.common.reflect.ReflectAnnotationProcessor</annotationProcessor>
-              </annotationProcessors>
-              <excludes>
-                <exclude>**/ReflectAnnotationProcessor.java</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-        </executions>
+            <executions>
+                <!-- Annotation processor -->
+                <execution>
+                    <id>annotation-processor</id>
+                    <phase>generate-sources</phase>
+                    <goals>
+                        <goal>compile</goal>
+                    </goals>
+                    <configuration>
+                        <proc>none</proc>
+                        <includes>
+                            <include>**/ReflectAnnotationProcessor.java</include>
+                        </includes>
+                    </configuration>
+                </execution>
+                <!-- Regular sources -->
+                <execution>
+                    <id>default-compile</id>
+                    <phase>compile</phase>
+                    <goals>
+                        <goal>compile</goal>
+                    </goals>
+                    <configuration>
+                        <annotationProcessors>
+                            <annotationProcessor>areca.common.reflect.ReflectAnnotationProcessor</annotationProcessor>
+                        </annotationProcessors>
+                        <excludes>
+                            <exclude>**/ReflectAnnotationProcessor.java</exclude>
+                        </excludes>
+                    </configuration>
+                </execution>
+            </executions>
       </plugin>
 
       <!-- Unpack dependencies for Annotation processor.jar -->
       <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-                <execution>
-                    <id>unpack</id>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>unpack</goal>
-                    </goals>
-                    <configuration>
-                        <artifactItems>
-                            <artifactItem>
-                                <groupId>areca</groupId>
-                                <artifactId>areca.common</artifactId>
-                                <version>0.0.1-SNAPSHOT</version>
-                            </artifactItem>
-                            <artifactItem>
-                                <groupId>com.squareup</groupId>
-                                <artifactId>javapoet</artifactId>
-                                <version>1.12.1</version>
-                                <type>jar</type>
-                            </artifactItem>
-                            <artifactItem>
-                                <groupId>org.apache.commons</groupId>
-                                <artifactId>commons-lang3</artifactId>
-                                <version>3.9</version>
-                            </artifactItem>
-                        </artifactItems>
-                        <outputDirectory>${project.build.directory}/processor.jar</outputDirectory>
-                    </configuration>
-                </execution>
-            </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>unpack</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>unpack</goal>
+                </goals>
+                <configuration>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>areca</groupId>
+                            <artifactId>areca.common</artifactId>
+                            <version>0.0.1-SNAPSHOT</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>com.squareup</groupId>
+                            <artifactId>javapoet</artifactId>
+                            <version>1.12.1</version>
+                            <type>jar</type>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.apache.commons</groupId>
+                            <artifactId>commons-lang3</artifactId>
+                            <version>3.9</version>
+                        </artifactItem>
+                    </artifactItems>
+                    <outputDirectory>${project.build.directory}/processor.jar</outputDirectory>
+                </configuration>
+            </execution>
+        </executions>
       </plugin>
         
       <!-- Annotation processor.jar (for Eclipse) -->

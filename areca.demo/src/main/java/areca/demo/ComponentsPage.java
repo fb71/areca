@@ -13,7 +13,6 @@
  */
 package areca.demo;
 
-import static areca.ui.Orientation.VERTICAL;
 import static areca.ui.component2.Events.EventType.SELECT;
 
 import java.util.ArrayList;

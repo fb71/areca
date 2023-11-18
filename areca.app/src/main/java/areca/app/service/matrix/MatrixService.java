@@ -196,7 +196,7 @@ public class MatrixService
                 LOG.info( "Start event handling..." );
 
                 Platform.schedule( 3000, () -> {
-                    for (var user : matrix.getUsers()) {
+//                    for (var user : matrix.getUsers()) {
 //                        LOG.info( "Profile: %s (%s)", user.displayName(), user.userId() );
 //                        matrix.getProfileInfo( user.userId(), "avatar_url" ).then( info -> {
 //                            MatrixClient.console( info );
@@ -205,7 +205,7 @@ public class MatrixService
 //                                LOG.info( "Avatar: %s", http );
 //                            });
 //                        });
-                    }
+//                    }
                 });
             });
         }

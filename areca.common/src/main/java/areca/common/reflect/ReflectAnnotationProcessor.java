@@ -41,6 +41,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import org.apache.commons.lang3.StringUtils;
 
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -144,7 +145,7 @@ public class ReflectAnnotationProcessor
             // class
             Builder classBuilder = TypeSpec.classBuilder( infoTypeName )
                     .addModifiers( Modifier.PUBLIC, Modifier.FINAL )
-                    //.addAnnotation( AnnotationSpec.builder( SuppressWarnings.class ).addMember( "value", "\"unchecked\"" ).build() )
+                    .addAnnotation( AnnotationSpec.builder( SuppressWarnings.class ).addMember( "value", "\"all\"" ).build() )
                     .superclass( ParameterizedTypeName.get( ClassName.get( ClassInfo.class ), rawTypeName ) );
 
             // INFO/instance field
@@ -530,6 +531,7 @@ public class ReflectAnnotationProcessor
 
             // class
             Builder classBuilder = TypeSpec.classBuilder( infoTypeName )
+                    .addAnnotation( AnnotationSpec.builder( SuppressWarnings.class ).addMember( "value", "\"all\"" ).build() )
                     .addModifiers( Modifier.PUBLIC )
                     .addSuperinterface( annotation.asType() )
                     .superclass( AnnotationInfo.class );

@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author Falko Bräutigam
  */
+@SuppressWarnings("rawtypes")
 public class XLogger {
 
     public static XLogger get( Class cl ) {
