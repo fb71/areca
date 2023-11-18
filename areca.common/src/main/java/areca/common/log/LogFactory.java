@@ -74,8 +74,8 @@ public class LogFactory {
 
             this.level = Sequence.of( levels.entrySet() )
                     .filter( entry -> cl.getName().startsWith( entry.getKey() ) )
-                    .reduce( (e1,e2) -> e1.getKey().length() > e2.getKey().length() ? e1 : e2 )
-                    .ifPresentMap( entry -> entry.getValue() )
+                    .reduce( (e1,e2) -> e1.getKey().length() > e2.getKey().length() ? e1 : e2 ) // FIXME does not seem to work correctly
+                    .map( entry -> entry.getValue() )
                     .orElse( Level.DEFAULT );
         }
 

@@ -39,6 +39,10 @@ public class RasterLayout
         return new RasterLayout().componentSize.set( Size.of( width, height ) );
     }
 
+    public static RasterLayout withColums( int colums ) {
+        return new RasterLayout().columns.set( colums );
+    }
+
     // instance *******************************************
 
     public ReadWrite<RasterLayout,Integer>  spacing = Property.rw( this, "spacing", 0 );
