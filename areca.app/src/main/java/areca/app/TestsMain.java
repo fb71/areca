@@ -29,7 +29,7 @@ public class TestsMain {
                             areca.common.test.SequenceOpTest.info,
                             areca.common.test.SameStackEventManagerTest.info,
                             areca.common.test.AsyncEventManagerTest.info,
-                            areca.common.test.UIEventManagerTest.info,
+                            areca.ui.test.UIEventManagerTest.info,
                             areca.common.test.IdleAsyncEventManagerTest.info,
 //                            areca.common.test.ThreadedEventManagerTest.info,
                             areca.common.test.RuntimeTest.info,

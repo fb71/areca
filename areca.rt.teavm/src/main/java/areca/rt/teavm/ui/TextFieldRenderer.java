@@ -38,7 +38,7 @@ public class TextFieldRenderer
     public static final ClassInfo<TextFieldRenderer> TYPE = TextFieldRendererClassInfo.instance();
 
     static void _start() {
-        UIComponentEvent.manager
+        UIComponentEvent.manager()
                 .subscribe( new TextFieldRenderer() )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof TextField );
     }

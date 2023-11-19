@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.event;
+package areca.ui.component2;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -19,17 +19,17 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.EventObject;
 import java.util.List;
-
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Promise.Completable;
 import areca.common.Timer;
 import areca.common.base.Sequence;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
- * Async delivering (UI) events via
+ * Async delivering UI/render events via
  * {@link Platform#requestAnimationFrame(areca.common.base.Consumer.RConsumer)}.
  *
  * @deprecated In favour of EventHandlers.
@@ -81,7 +81,7 @@ public class UIEventManager
         while (!eventQueue.isEmpty() && t.elapsed( MILLISECONDS ) < MAX_TIME_PER_FRAME) {
             var queued = eventQueue.pollFirst();
             count ++;
-            for (EventHandlerInfo handler : queued.handlers) {
+            for (var handler : queued.handlers) {
                 handler.perform( queued.ev );
             }
             if (queued.promise != null) {
@@ -103,11 +103,11 @@ public class UIEventManager
 
         public EventObject              ev;
 
-        public List<EventHandlerInfo>   handlers;
+        public List<EventHandlerInfoImpl> handlers;
 
         public Completable<Void>        promise;
 
-        protected Event( EventObject ev, List<EventHandlerInfo> handlers ) {
+        protected Event( EventObject ev, List<EventHandlerInfoImpl> handlers ) {
             this.ev = ev;
             this.handlers = handlers;
         }
@@ -128,6 +128,7 @@ public class UIEventManager
         public void run() {
             var expunged = Sequence.of( handlers )
                     .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.get() )
+                    .map( handler -> (EventHandlerInfo)handler )
                     .toSet();
 
             if (!expunged.isEmpty()) {

@@ -210,13 +210,13 @@ public abstract class EventManagerTest {
     }
 
 
-    static class Event1 extends EventObject {
+    public static class Event1 extends EventObject {
         public Event1() { super( null ); }
         public Event1( Object source ) { super( source ); }
     }
 
 
-    static class Event2 extends EventObject {
+    public static class Event2 extends EventObject {
         public Event2() { super( null ); }
         public Event2( Object source ) { super( source ); }
     }

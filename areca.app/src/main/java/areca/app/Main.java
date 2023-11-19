@@ -73,7 +73,7 @@ public class Main {
         // Gallery
         else if (hash.equals( "#gallery" )) {
             catchAll( __ -> {
-                //UIComponentEvent.manager;
+                //UIComponentEvent.manager();
                 UIComponentRenderer.start();
                 var doc = Window.current().getDocument();
                 var appSize = Size.of( doc.getBody().getClientWidth(), doc.getBody().getClientHeight() );

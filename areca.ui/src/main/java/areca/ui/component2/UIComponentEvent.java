@@ -15,8 +15,8 @@ package areca.ui.component2;
 
 import java.util.EventObject;
 
+import areca.common.Session;
 import areca.common.event.EventManager;
-import areca.common.event.UIEventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.PropertyChangedEvent;
@@ -36,7 +36,9 @@ public abstract class UIComponentEvent
      *
      * XXX replace with EventHandlers
      */
-    public static final EventManager manager = new UIEventManager();
+    public static EventManager manager() {
+        return Session.instanceOf( UIEventManager.class );
+    }
 
 
     /** */

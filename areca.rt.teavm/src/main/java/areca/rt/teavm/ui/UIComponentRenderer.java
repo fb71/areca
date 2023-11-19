@@ -67,7 +67,7 @@ public class UIComponentRenderer
     }
 
     static void _start() {
-        UIComponentEvent.manager
+        UIComponentEvent.manager()
                 .subscribe( new UIComponentRenderer() )
                 .performIf( ev -> ev instanceof UIComponentEvent && ev.getSource() instanceof UIComponent );
     }

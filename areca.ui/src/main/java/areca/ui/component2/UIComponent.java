@@ -213,7 +213,7 @@ public abstract class UIComponent {
 
 
     protected UIComponent() {
-        UIComponentEvent.manager.publish( new UIComponentEvent.ComponentConstructedEvent( this ) );
+        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentConstructedEvent( this ) );
     }
 
 
@@ -223,7 +223,7 @@ public abstract class UIComponent {
     protected void attachedTo( UIComposite newParent ) {
         Assert.isNull( parent, "parent should not be set before init()" );
         this.parent = Assert.notNull( newParent  );
-        UIComponentEvent.manager.publish( new UIComponentEvent.ComponentAttachedEvent( this, newParent ) );
+        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentAttachedEvent( this, newParent ) );
     }
 
 
@@ -233,7 +233,7 @@ public abstract class UIComponent {
     protected void detachedFrom( @SuppressWarnings("hiding") UIComposite parent ) {
         Assert.that( this.parent == parent, "no parent" );
         this.parent = null;
-        UIComponentEvent.manager.publish( new UIComponentEvent.ComponentDetachedEvent( this ) );
+        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentDetachedEvent( this ) );
     }
 
 
@@ -267,7 +267,7 @@ public abstract class UIComponent {
             if (parent != null) {
                 parent.components.remove( this );
             }
-            UIComponentEvent.manager.publish( new UIComponentEvent.ComponentDisposedEvent( this ) );
+            UIComponentEvent.manager().publish( new UIComponentEvent.ComponentDisposedEvent( this ) );
         }
     }
 

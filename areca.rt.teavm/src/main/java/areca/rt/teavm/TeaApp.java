@@ -32,6 +32,7 @@ import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.App;
 import areca.ui.Size;
 import areca.ui.component2.UIComposite;
+import areca.ui.component2.UIEventManager;
 
 /**
  *
@@ -45,6 +46,7 @@ public class TeaApp
     public TeaApp() {
         SessionScoper.setInstance( new SessionScoper.JvmSessionScoper() );
         Session.registerFactory( EventManager.class, () -> new IdleAsyncEventManager() );
+        Session.registerFactory( UIEventManager.class, () -> new UIEventManager() );
         Platform.impl = new TeaPlatform();
         UIComponentRenderer.start();
     }

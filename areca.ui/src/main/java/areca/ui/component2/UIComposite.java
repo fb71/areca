@@ -36,7 +36,7 @@ public class UIComposite
 //    static {
 //        var updates = new HashSet<UIComposite>();
 //
-//        UIComponentEvent.manager
+//        UIComponentEvent.manager()
 //                .subscribe( (PropertyChangedEvent<UIComposite> ev) -> {
 //                    updates.add( (UIComposite)ev.getSource().component() );
 //                    if (updates.size() == 1) {

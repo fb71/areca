@@ -40,7 +40,7 @@ public class LinkRenderer
     public static final ClassInfo<LinkRenderer> TYPE = LinkRendererClassInfo.instance();
 
     static void _start() {
-        UIComponentEvent.manager
+        UIComponentEvent.manager()
                 .subscribe( new LinkRenderer() )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Link );
     }

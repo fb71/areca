@@ -11,17 +11,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.common.test;
+package areca.ui.test;
 
 import areca.common.Assert;
 import areca.common.Promise;
-import areca.common.event.UIEventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
+import areca.common.test.EventManagerTest;
 import areca.common.testrunner.Before;
 import areca.common.testrunner.Skip;
 import areca.common.testrunner.Test;
+import areca.ui.component2.UIEventManager;
 
 /**
  *

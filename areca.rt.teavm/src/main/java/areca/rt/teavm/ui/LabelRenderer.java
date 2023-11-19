@@ -37,7 +37,7 @@ public class LabelRenderer {
     public static final ClassInfo<LabelRenderer> TYPE = LabelRendererClassInfo.instance();
 
     static void _start() {
-        UIComponentEvent.manager
+        UIComponentEvent.manager()
                 .subscribe( new LabelRenderer() )
                 .performIf( ev -> {
                     if (ev instanceof ComponentConstructedEvent) {

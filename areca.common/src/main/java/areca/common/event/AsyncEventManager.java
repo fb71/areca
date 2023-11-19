@@ -67,7 +67,7 @@ public class AsyncEventManager
                 var handlersBefore = handlers.size();
                 Timer t = Timer.start();
                 for (Event queued : stable) {
-                    for (EventHandlerInfo handler : queued.handlers) {
+                    for (var handler : queued.handlers) {
                         handler.perform( queued.ev );
                     }
                 }
@@ -87,9 +87,9 @@ public class AsyncEventManager
 
         public EventObject              ev;
 
-        public List<EventHandlerInfo>   handlers;
+        public List<EventHandlerInfoImpl> handlers;
 
-        protected Event( EventObject ev, List<EventHandlerInfo> handlers ) {
+        protected Event( EventObject ev, List<EventHandlerInfoImpl> handlers ) {
             this.ev = ev;
             this.handlers = handlers;
         }

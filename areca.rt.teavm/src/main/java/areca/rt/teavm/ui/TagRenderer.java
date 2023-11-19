@@ -38,7 +38,7 @@ public class TagRenderer {
     public static final ClassInfo<TagRenderer> TYPE = TagRendererClassInfo.instance();
 
     static void _start() {
-        UIComponentEvent.manager
+        UIComponentEvent.manager()
                 .subscribe( new TagRenderer() )
                 .performIf( ev -> {
                     if (ev instanceof ComponentConstructedEvent) {

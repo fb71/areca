@@ -37,7 +37,7 @@ public class TextRenderer
     public static final ClassInfo<TextRenderer> TYPE = TextRendererClassInfo.instance();
 
     static void _start() {
-        UIComponentEvent.manager
+        UIComponentEvent.manager()
                 .subscribe( new TextRenderer() )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Text );
     }

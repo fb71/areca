@@ -47,7 +47,7 @@ public class IdleAsyncEventManager
     public Promise<Void> publish2( EventObject ev ) {
         var stableHandlers = handlers;
         return Platform.scheduler.schedule( BACKGROUND, () -> {
-            for (EventHandlerInfo handler : stableHandlers) {
+            for (var handler : stableHandlers) {
                 handler.perform( ev );
             }
             LOG.debug( "Handlers: %s (%s)", stableHandlers.size(), handlers.size() );

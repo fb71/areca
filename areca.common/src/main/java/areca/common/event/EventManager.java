@@ -63,7 +63,7 @@ public abstract class EventManager {
     public BiConsumer<EventObject,Throwable>    defaultOnError;
 
     /** Copy-on-Write */
-    protected List<EventHandlerInfo>            handlers = Collections.emptyList();
+    protected List<EventHandlerInfoImpl>        handlers = Collections.emptyList();
 
     @SuppressWarnings("rawtypes")
     protected Map<Pair,MethodInfo>              methodCache = new HashMap<>( 128 );
@@ -100,13 +100,13 @@ public abstract class EventManager {
 
 
     public EventHandlerInfo subscribe( Object annotatedOrListener ) {
-        EventHandlerInfo newHandler = new EventHandlerInfo( annotatedOrListener );
+        var newHandler = new EventHandlerInfoImpl( annotatedOrListener );
 
-        List<EventHandlerInfo> newHandlers = new ArrayList<>( handlers.size() + 1 );
+        var newHandlers = new ArrayList<EventHandlerInfoImpl>( handlers.size() + 1 );
         // XXX arraycopy?
-        for (EventHandlerInfo cursor : handlers) {
+        for (var cursor : handlers) {
             if (cursor.handler == annotatedOrListener) {
-                throw new IllegalStateException( "Event handler already subscribed!" );
+                throw new IllegalStateException( "Event handler already subscribed! " );
             }
             newHandlers.add( cursor );
         }
@@ -117,10 +117,10 @@ public abstract class EventManager {
     }
 
 
-    protected void unsubscribe( Set<EventHandlerInfo> remove ) {
+    protected void unsubscribe( Set<? extends EventHandlerInfo> remove ) {
         var t = Timer.start();
-        List<EventHandlerInfo> newHandlers = new ArrayList<>( handlers.size() - remove.size() );
-        for (EventHandlerInfo handler : handlers) {
+        var newHandlers = new ArrayList<EventHandlerInfoImpl>( handlers.size() - remove.size() );
+        for (var handler : handlers) {
             if (!remove.contains( handler )) {
                 newHandlers.add( handler );
             }
@@ -177,21 +177,7 @@ public abstract class EventManager {
     /**
      *
      */
-    public class EventHandlerInfo {
-
-        protected Object                    handler;
-
-        protected BiConsumer<EventObject,Throwable>         onError = defaultOnError;
-
-        protected Predicate<EventObject,RuntimeException>   performIf;
-
-        protected Supplier<Boolean,RuntimeException>        unsubscribeIf;
-
-
-        public EventHandlerInfo( Object handler ) {
-            this.handler = notNull( handler );
-        }
-
+    public interface EventHandlerInfo {
 
         /**
          * For multiple invocations of this method the predicates are composed
@@ -200,6 +186,34 @@ public abstract class EventManager {
          * @param performIf
          * @return this
          */
+        EventHandlerInfo performIf( RPredicate<EventObject> performIf );
+
+        EventHandlerInfo unsubscribeIf( RSupplier<Boolean> unsubscribeIf );
+
+        <E extends EventObject> EventHandlerInfo performIf( Class<E> type, RPredicate<E> performIf );
+    }
+
+    /**
+     *
+     */
+    public class EventHandlerInfoImpl
+            implements EventHandlerInfo {
+
+        protected Object                    handler;
+
+        public BiConsumer<EventObject,Throwable>         onError = defaultOnError;
+
+        public Predicate<EventObject,RuntimeException>   performIf;
+
+        public Supplier<Boolean,RuntimeException>        unsubscribeIf;
+
+
+        public EventHandlerInfoImpl( Object handler ) {
+            this.handler = notNull( handler );
+        }
+
+
+        @Override
         @SuppressWarnings("hiding")
         public EventHandlerInfo performIf( RPredicate<EventObject> performIf ) {
             Assert.notNull( performIf );
@@ -208,6 +222,7 @@ public abstract class EventManager {
         }
 
 
+        @Override
         @SuppressWarnings({"hiding", "unchecked"})
         public <E extends EventObject> EventHandlerInfo performIf( Class<E> type, RPredicate<E> performIf ) {
             Assert.notNull( performIf );
@@ -219,6 +234,7 @@ public abstract class EventManager {
         }
 
 
+        @Override
         @SuppressWarnings("hiding")
         public EventHandlerInfo unsubscribeIf( RSupplier<Boolean> unsubscribeIf ) {
             Assert.isNull( this.unsubscribeIf );
@@ -227,7 +243,7 @@ public abstract class EventManager {
         }
 
 
-        protected void perform( EventObject ev ) {
+        public void perform( EventObject ev ) {
             try {
                 // filter
                 if (performIf != null && !performIf.test( ev )) {
@@ -235,7 +251,7 @@ public abstract class EventManager {
                 }
                 // dispose
                 if (unsubscribeIf != null && unsubscribeIf.supply()) {
-                    EventManager.this.unsubscribe( Collections.singleton( EventHandlerInfo.this ) );
+                    EventManager.this.unsubscribe( Collections.singleton( EventHandlerInfoImpl.this ) );
                     return;
                 }
                 // perform: listener
