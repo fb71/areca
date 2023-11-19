@@ -32,7 +32,7 @@ import areca.common.log.LogFactory.Log;
  * Async delivering (UI) events via
  * {@link Platform#requestAnimationFrame(areca.common.base.Consumer.RConsumer)}.
  *
- * @deprecated In favor of EventHandlers.
+ * @deprecated In favour of EventHandlers.
  * @author Falko Bräutigam
  */
 public class UIEventManager

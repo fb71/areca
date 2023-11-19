@@ -19,10 +19,16 @@ import org.teavm.jso.browser.Window;
 import org.teavm.jso.dom.html.HTMLBodyElement;
 import org.teavm.jso.dom.html.HTMLElement;
 
+import areca.common.Platform;
+import areca.common.Session;
+import areca.common.SessionScoper;
 import areca.common.base.Consumer;
 import areca.common.event.EventCollector;
+import areca.common.event.EventManager;
+import areca.common.event.IdleAsyncEventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.App;
 import areca.ui.Size;
 import areca.ui.component2.UIComposite;
@@ -35,6 +41,13 @@ public class TeaApp
         extends App {
 
     private static final Log LOG = LogFactory.getLog( TeaApp.class );
+
+    public TeaApp() {
+        SessionScoper.setInstance( new SessionScoper.JvmSessionScoper() );
+        Session.registerFactory( EventManager.class, () -> new IdleAsyncEventManager() );
+        Platform.impl = new TeaPlatform();
+        UIComponentRenderer.start();
+    }
 
     /**
      * Automatically sets proper size of the rootWindow and handles update events.

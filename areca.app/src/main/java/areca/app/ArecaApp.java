@@ -46,8 +46,6 @@ import areca.common.Promise;
 import areca.common.Timer;
 import areca.common.WaitFor;
 import areca.common.base.Consumer.RConsumer;
-import areca.common.event.EventManager;
-import areca.common.event.IdleAsyncEventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
@@ -104,10 +102,6 @@ public class ArecaApp extends TeaApp {
      */
     public static String hostname() {
         return Location.current().getHostName();
-    }
-
-    static {
-        EventManager.setInstance( new IdleAsyncEventManager() );
     }
 
     public static final List<ClassInfo<? extends Entity>> APP_ENTITY_TYPES = asList(

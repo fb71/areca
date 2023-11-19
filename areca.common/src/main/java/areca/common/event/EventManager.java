@@ -31,6 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import areca.common.Assert;
 import areca.common.Promise;
+import areca.common.Session;
 import areca.common.Timer;
 import areca.common.base.Opt;
 import areca.common.base.Predicate;
@@ -50,16 +51,12 @@ public abstract class EventManager {
 
     private static final Log LOG = LogFactory.getLog( EventManager.class );
 
-    private static EventManager INSTANCE = new SameStackEventManager();
-
+    /**
+     * The instance for the current application session.
+     */
     public static EventManager instance() {
-        return INSTANCE;
+        return Session.instanceOf( EventManager.class );
     }
-
-    public static void setInstance( EventManager manager ) {
-        INSTANCE = manager;
-    }
-
 
     // instance *******************************************
 
