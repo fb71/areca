@@ -1,0 +1,414 @@
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local("Material Icons"), local("MaterialIcons-Regular"), url(../fonts/MaterialIcons-Regular.woff2) format("woff2"), url(../fonts/MaterialIcons-Regular.woff) format("woff"), url(../fonts/MaterialIcons-Regular.ttf) format("truetype");
+}
+.material-icons, .Tagged:after {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-weight: normal;
+  font-style: normal;
+  src: url("../fonts/Roboto-Regular.woff2");
+}
+@font-face {
+  font-family: 'Roboto';
+  font-weight: 500;
+  font-style: normal;
+  src: url("fonts/Roboto-Medium.woff2");
+}
+@font-face {
+  font-family: 'Roboto';
+  font-weight: bold;
+  font-style: normal;
+  src: url("fonts/Roboto-Bold.woff2");
+}
+/* To get root window height */
+html, body {
+  height: 100%;
+  margin: 0px;
+}
+
+body {
+  background-color: #343332;
+  color: #d0d0d0;
+  font-family: Roboto, arial, sans-serif;
+  font-size: 14px;
+}
+
+.UIComponent {
+  position: absolute;
+  border: 0px solid #515151;
+  border-radius: 6px;
+  transition: top 0.75s, left 0.75s, width 0.75s, height 0.75s, transform 0.75s, opacity 0.75s, background-color 0.75s, color 0.75s;
+  box-sizing: border-box;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+
+.UIComposite {
+  font-family: Roboto, arial, sans-serif;
+  font-size: 14px;
+  color: #d0d0d0;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE 10+ */
+  overflow-y: visible;
+  overflow-x: visible;
+}
+.UIComposite ::-webkit-scrollbar {
+  display: none;
+  /* Chrome Safari */
+}
+
+.ScrollableComposite {
+  overflow-y: scroll;
+  overflow-x: visible;
+}
+.ScrollableComposite ::-webkit-scrollbar {
+  display: none;
+  /* Chrome Safari */
+}
+
+.Separator {
+  border-top: 1px solid #515151;
+  border-bottom: none;
+  overflow: visible;
+}
+
+a, .Link {
+  color: #7fb4e8;
+  text-decoration: none;
+}
+
+a:hover, .Link:hover {
+  color: #aacdf0;
+  text-decoration: underline;
+}
+
+a:active, .Link:active {
+  margin-top: 1px;
+  color: #c0daf4;
+}
+
+.Button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  padding: 7px 12px;
+  background-color: #151414;
+  border-color: #2a2928 !important;
+  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.5);
+  overflow: visible;
+}
+
+.Button:hover:enabled {
+  background-color: #1d1c1c;
+  color: #eaeaea;
+}
+
+.Button:active:enabled {
+  margin-top: 2px;
+  box-shadow: none;
+  color: #f6f6f6;
+}
+
+.Button:disabled {
+  box-shadow: none;
+  color: #777777;
+}
+
+.Button span, .Button img {
+  position: relative;
+}
+
+.Button img {
+  height: 100%;
+}
+
+pre.Text {
+  margin: 0px;
+  font-family: Roboto, arial, sans-serif;
+  font-size: 14px;
+}
+
+.TextField {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background-color: inherit;
+  padding: 0px 7px;
+  border-bottom: 1px solid #a16634;
+  border-radius: 2px;
+}
+
+.TextField:focus {
+  border-bottom: 2px solid #a16634;
+  color: #eaeaea;
+  outline: none;
+}
+
+.ListCell {
+  background-color: #a16634;
+}
+
+.Bordered {
+  border: 1px solid #515151;
+  border-radius: 6px;
+}
+
+.Progress {
+  color: #008000;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.Progress::-moz-progress-bar {
+  background: #008000;
+}
+
+.Progress::-webkit-progress-value {
+  background: #008000;
+  border-radius: 4px;
+}
+
+.Progress::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.RootWindow {
+  position: relative;
+  background-color: #343332;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.VisualClickFeedbackStart, .VisualClickFeedbackEnd {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background-color: #d0d0d0;
+  border-radius: 40px;
+  opacity: 50%;
+}
+
+.VisualClickFeedbackEnd {
+  transform: scale(5);
+  transition: all 0.4s;
+  opacity: 0%;
+}
+
+.Labeled:before {
+  content: attr(data-label);
+  height: 12px;
+  line-height: 12px;
+  text-align: left;
+  display: block;
+  color: #909090;
+  font-size: 10px;
+  position: absolute;
+  top: -7px;
+  left: 7px;
+}
+
+.Badged:before {
+  content: attr(data-badge);
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  display: block;
+  border-radius: 50%;
+  background: #975924;
+  border: 1px solid #9d9d9d;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  top: -4px;
+  left: -4px;
+}
+
+.Badged-NorthEast:before {
+  left: auto;
+  right: -4px;
+}
+
+.Tagged:after {
+  content: attr(data-tag);
+  height: 20px;
+  line-height: 20px;
+  text-align: left;
+  display: block;
+  color: #59626b;
+  font-size: 21px;
+  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  top: -4px;
+  left: auto;
+  right: -2px;
+}
+
+.PageStackLayout-Top {
+  transition: none;
+  transform: scale(0.2);
+  opacity: 0;
+}
+
+.Closing {
+  transition: all 0.5s ease-in;
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.Paning {
+  transition: all 0.35s ease-out;
+}
+
+.PageContainer {
+  background-color: #343332;
+}
+
+.PageHeader {
+  background-color: #a16634;
+  border-bottom: 1px solid #b07849;
+  border-radius: 0px;
+}
+
+.PageTitle {
+  font-size: 21px;
+}
+
+.PageHeaderItem {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.PageHeaderItem:hover:enabled {
+  background-color: #ba7234;
+}
+
+.PageHeaderItem:active:enabled {
+  box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/**
+ * 
+ */
+.ProgressContainer {
+  background-color: #151414;
+  border-top: 1px solid #444241 !important;
+  border-radius: 0px;
+  font-size: 12px !important;
+  color: #848484;
+}
+
+.StartPage .Labeled:before {
+  background-color: #343332;
+  padding: 0px 7px 0px 7px;
+}
+
+.ContactButton, .AnchorButton {
+  font-size: 12px;
+  border-radius: 20px;
+  padding: 5px 5px;
+  box-shadow: 0px 1px 7px rgba(0, 0, 0, 0.5);
+  background-color: #3e3d3c;
+  border: 1px solid #464544 !important;
+}
+
+.ContactButton:hover:enabled, .AnchorButton:hover:enabled {
+  background-color: #464544;
+}
+
+.AnchorButton:after {
+  color: #6b6967;
+}
+
+.HasUnreadMessages:after {
+  color: #ca7934;
+}
+
+.MessageCard {
+  background-color: #3e3d3c;
+  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.MessageCard-outgoing {
+  background-color: #36404a;
+}
+
+.MessageCard-selected {
+  color: #dddddd;
+  background-color: #585755;
+  box-shadow: 0px 1px 8px rgba(0, 0, 0, 0.5);
+  transform: scale(1.02);
+}
+
+.MessageCard span {
+  overflow: hidden;
+}
+
+.MessageCard .Button {
+  border: none !important;
+  box-shadow: none;
+  background-color: inherit;
+  color: #dea676;
+}
+
+.MessageCard .FromText,
+.MessageCard .DateText,
+.MessagesPage .TypingText,
+.MessagesPage .SubjectText {
+  color: #9d9d9d;
+  font-size: 10px;
+}
+
+.MessagesPage .SubjectLink {
+  font-size: 10px;
+}
+
+.MessageCard .DateText {
+  text-align: right;
+}
+
+.MessagesPage .TypingText {
+  margin-top: -5px;
+  margin-left: 10px;
+}
+
+.MessagesPage .MessageTextInput {
+  background-color: #2c2b2b;
+  border-radius: 6px;
+}
+
+/*# sourceMappingURL=areca-dark.css.map */

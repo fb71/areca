@@ -51,7 +51,6 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.rt.teavm.SimpleBrowserHistoryStrategy;
 import areca.rt.teavm.TeaApp;
-import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.Size;
 import areca.ui.component2.Progress;
 import areca.ui.component2.Text;
@@ -166,8 +165,6 @@ public class ArecaApp extends TeaApp {
     public void createUI( @SuppressWarnings("hiding") boolean debug ) {
         this.debug = debug;
         Promise.setDefaultErrorHandler( defaultErrorHandler() );
-
-        UIComponentRenderer.start();
 
         super.createUI( rootWindow -> {
             //VisualActionFeedback.start();
