@@ -32,6 +32,7 @@ import areca.ui.Align;
 import areca.ui.Color;
 import areca.ui.Position;
 import areca.ui.Size;
+import areca.ui.component2.Property.PropertyContainer;
 import areca.ui.component2.Property.ReadOnly;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Property.ReadWrites;
@@ -42,15 +43,19 @@ import areca.ui.layout.LayoutManager;
  *
  * @author falko
  */
-public abstract class UIComponent {
+public abstract class UIComponent
+        implements PropertyContainer {
 
     private static final Log LOG = LogFactory.getLog( UIComponent.class );
+
+    //public static final UIComponent     PROTO = new UIComponent() {};
 
     public static final String          PROP_CSS_CLASSES = "cssClasses";
     public static final String          PROP_CSS_STYLES = "cssStyles";
     public static final String          PROP_BG_COLOR = "bgColor";
     public static final String          PROP_SIZE = "size";
     public static final String          PROP_POSITION = "position";
+    public static final String          PROP_EVENTS = "events";
 
     private static volatile int         ID_COUNT;
 
@@ -64,7 +69,21 @@ public abstract class UIComponent {
 
     private List<UIComponentDecorator>  decorators;
 
+    private List<Property<?,?>>         properties = new ArrayList<>();
+
     public Object                       htmlElm;
+
+
+    @Override
+    public void registerProperty( Property<?,?> prop ) {
+        properties.add( prop );
+    }
+
+
+    @Override
+    public List<Property<?,?>> allProperties() {
+        return properties;
+    }
 
     /**
      * The tooltip of this component.
@@ -177,6 +196,8 @@ public abstract class UIComponent {
     // methods ********************************************
 
     {
+        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentConstructingEvent( this ) );
+
         // init CSS classes
         Set<String> classes = new HashSet<>();
         for (Class<?> cl=getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
@@ -279,6 +300,16 @@ public abstract class UIComponent {
 
     public int id() {
         return id;
+    }
+
+
+    /**
+     * The unique ID of a component is automatically set by the framework.
+     * Change it only if you really have to and you know what you are doing.
+     */
+    public UIComponent setId( int newId ) {
+        this.id = newId;
+        return this;
     }
 
 

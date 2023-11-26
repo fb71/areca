@@ -16,7 +16,9 @@ package areca.ui.component2;
 import java.util.Collection;
 import java.util.EventObject;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
+
 import areca.common.Assert;
 import areca.common.base.BiConsumer.RBiConsumer;
 import areca.common.base.Opt;
@@ -62,12 +64,16 @@ public abstract class Property<C,T> {
 
     protected String    name;
 
-    protected EventHandlers handlers = new EventHandlers();
+    protected EventHandlers handlers = EventHandlers.create();
 
 
     protected Property( C component, String name ) {
         this.component = component;
         this.name = name;
+
+        if (component instanceof PropertyContainer) {
+            ((PropertyContainer)component).registerProperty( this );
+        }
     }
 
     @Override
@@ -381,4 +387,13 @@ public abstract class Property<C,T> {
         }
     }
 
+    /**
+     *
+     */
+    public static interface PropertyContainer {
+
+        void registerProperty( Property<?,?> prop );
+
+        List<Property<?,?>> allProperties();
+    }
 }

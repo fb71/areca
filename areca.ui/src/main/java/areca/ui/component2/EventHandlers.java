@@ -22,6 +22,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import areca.common.Platform;
 import areca.common.Promise;
+import areca.common.Session;
 import areca.common.Timer;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.log.LogFactory;
@@ -37,7 +38,7 @@ import areca.ui.component2.Property.PropertyChangedEvent;
  * @author Falko Bräutigam
  */
 @SuppressWarnings("rawtypes")
-class EventHandlers {
+public class EventHandlers {
 
     private static final Log LOG = LogFactory.getLog( EventHandlers.class );
 
@@ -50,10 +51,15 @@ class EventHandlers {
     private static Promise<Void>    async;
 
 
+    public static EventHandlers create() {
+        return Session.createInstance( EventHandlers.class );
+    }
+
+
     // instance *******************************************
 
     // copy-on-write
-    private RConsumer[]             handlers = {};
+    protected RConsumer[]           handlers = {};
 
 
     public <T extends EventObject> void add( RConsumer<T> consumer ) {

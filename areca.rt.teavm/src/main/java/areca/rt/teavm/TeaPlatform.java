@@ -24,6 +24,7 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.ajax.XMLHttpRequest;
 import org.teavm.jso.browser.Window;
 
+import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Platform.HttpRequest;
 import areca.common.Platform.HttpResponse;
@@ -51,6 +52,7 @@ public class TeaPlatform
         return new Completable<Void>() {
 
             int id = Window.requestAnimationFrame( timestamp -> {
+                Assert.that( !isCanceled() );
                 callback.accept( timestamp );
                 complete( null );
             });
@@ -69,6 +71,7 @@ public class TeaPlatform
         return new Completable<Void>() {
 
             int id = _requestIdleCallback( deadline -> {
+                Assert.that( !isCanceled() );
                 callback.accept( new IdleDeadline() {
                     @Override public double timeRemaining() { return deadline.timeRemaining(); }
                 });
@@ -102,16 +105,23 @@ public class TeaPlatform
 
     @Override
     public <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
-        Completable<R> promise = new Completable<>();
-        Window.setTimeout( () -> {
-            try {
-                promise.complete( task.call() );
+        return new Completable<R>() {
+            private int id = Window.setTimeout( () -> {
+                try {
+                    Assert.that( !isCanceled() );
+                    complete( task.call() );
+                }
+                catch (Throwable e) {
+                    completeWithError( e );
+                }
+            }, delayMillis );
+
+            @Override
+            public void cancel() {
+                Window.clearTimeout( id );
+                super.cancel();
             }
-            catch (Throwable e) {
-                promise.completeWithError( e );
-            }
-        }, delayMillis );
-        return promise;
+        };
     }
 
 
@@ -157,36 +167,43 @@ public class TeaPlatform
 
             @Override
             protected Promise<HttpResponse> doSubmit( Object jsonOrStringData ) {
-                var promise = new Promise.Completable<HttpResponse>();
+                var promise = new Promise.Completable<HttpResponse>() {
+                    @Override public void cancel() {
+                        request.abort();
+                        super.cancel();
+                    }
+                };
                 request.open( method, url, true ); //, username, password );
                 username.ifPresent( v -> request.setRequestHeader( "X-auth-username", v ) );
                 password.ifPresent( v -> request.setRequestHeader( "X-auth-password", v ) );
                 headers.forEach( (n,v) -> request.setRequestHeader( n, v ) );
                 overrideMimeType.ifPresent( mimeType -> request.overrideMimeType( mimeType ) );
                 request.onComplete( () -> {
-                    promise.complete( new HttpResponse() {
-                        @Override
-                        public int status() {
-                            return request.getStatus();
-                        }
-                        @Override
-                        public Object content() {
-                            return request.getResponse();
-                        }
-                        @Override
-                        public String text() {
-                            return request.getResponseText();
-                        }
-                        @Override
-                        @SuppressWarnings("unchecked")
-                        public <R> R json() {
-                            return (R)request.getResponse();
-                        }
-                        @Override
-                        public Object xml() {
-                            return request.getResponseXML();
-                        }
-                    });
+                    if (!promise.isCanceled()) {
+                        promise.complete( new HttpResponse() {
+                            @Override
+                            public int status() {
+                                return request.getStatus();
+                            }
+                            @Override
+                            public Object content() {
+                                return request.getResponse();
+                            }
+                            @Override
+                            public String text() {
+                                return request.getResponseText();
+                            }
+                            @Override
+                            @SuppressWarnings("unchecked")
+                            public <R> R json() {
+                                return (R)request.getResponse();
+                            }
+                            @Override
+                            public Object xml() {
+                                return request.getResponseXML();
+                            }
+                        });
+                    }
                 });
                 timer = Timer.start();
                 if (jsonOrStringData == null) {

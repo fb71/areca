@@ -26,6 +26,7 @@ import java.util.Deque;
 import java.util.List;
 import areca.common.Assert;
 import areca.common.Platform;
+import areca.common.Session;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.event.EventManager;
@@ -46,15 +47,12 @@ public class Pageflow {
 
     private static final Log LOG = LogFactory.getLog( Pageflow.class );
 
-    private static Pageflow     instance;
-
     public static Pageflow start( UIComposite rootContainer ) {
-        Assert.isNull( instance );
-        return instance = new Pageflow( rootContainer );
+        return Session.setInstance( new Pageflow( rootContainer ) );
     }
 
     public static Pageflow current() {
-        return Assert.notNull( instance, "Pageflow not start()ed yet." );
+        return Session.instanceOf( Pageflow.class );
     }
 
     /**

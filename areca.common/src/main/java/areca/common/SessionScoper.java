@@ -60,7 +60,7 @@ public abstract class SessionScoper {
 
         public void bind( Session session ) {
             Assert.isNull( sessions.get() );
-            sessions.set( session );
+            sessions.set( Assert.notNull( session ) );
         }
 
         public void unbind( Session session ) {

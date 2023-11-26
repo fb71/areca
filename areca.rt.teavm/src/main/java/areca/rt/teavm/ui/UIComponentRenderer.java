@@ -32,6 +32,7 @@ import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
+import areca.ui.component2.UIComponentEvent.ComponentConstructingEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDisposedEvent;
 
@@ -76,6 +77,11 @@ public class UIComponentRenderer
 
     protected HTMLElement htmlElm( UIComponent c ) {
         return Assert.notNull( (HTMLElement)c.htmlElm, "No htmlElm for: " + c.getClass().getSimpleName() );
+    }
+
+
+    @EventHandler( ComponentConstructingEvent.class )
+    public void componentConstructing( ComponentConstructingEvent ev ) {
     }
 
 

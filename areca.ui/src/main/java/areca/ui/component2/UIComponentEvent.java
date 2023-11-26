@@ -31,7 +31,7 @@ public abstract class UIComponentEvent
     private static final Log LOG = LogFactory.getLog( UIComponentEvent.class );
 
     /**
-     * Component lifecycle and {@link PropertyChangedEvent}s. For internal use
+     * Component lifecycle (and {@link PropertyChangedEvent}s). For internal use
      * while rendering.
      *
      * XXX replace with EventHandlers
@@ -40,6 +40,15 @@ public abstract class UIComponentEvent
         return Session.instanceOf( UIEventManager.class );
     }
 
+
+    /** */
+    public static class ComponentConstructingEvent
+            extends UIComponentEvent {
+
+        public ComponentConstructingEvent( UIComponent source ) {
+            super( source );
+        }
+    }
 
     /** */
     public static class ComponentConstructedEvent

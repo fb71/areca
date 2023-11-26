@@ -42,12 +42,18 @@ public class RowLayout
         return new RowLayout();
     }
 
-
     /**
      * Returns a new instance with {@link #fillHeight} and {@link #fillWidth} true.
      */
     public static RowLayout filled() {
         return new RowLayout().fillHeight.set( true ).fillWidth.set( true );
+    }
+
+    /**
+     * Returns a new instance with {@link #vertical()} true.
+     */
+    public static RowLayout verticals() {
+        return new RowLayout().vertical();
     }
 
     // instance *******************************************

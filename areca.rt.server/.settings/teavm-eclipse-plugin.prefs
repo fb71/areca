@@ -1,0 +1,12 @@
+default-compile/cacheDirectory=${workspace_loc\:/areca.rt.server}/target/teavm-cache
+default-compile/classes=
+default-compile/copySources=true
+default-compile/debugInformation=true
+default-compile/enabled=true
+default-compile/externalTool=teavm-eclipse-m2e-plugin.tool
+default-compile/incremental=false
+default-compile/mainClass=areca.rt.server.client.ClientApp
+default-compile/sourceMaps=true
+default-compile/targetDirectory=${workspace_loc\:/areca.rt.server}/target/generated/js/teavm
+default-compile/targetFileName=app.js
+eclipse.preferences.version=1
