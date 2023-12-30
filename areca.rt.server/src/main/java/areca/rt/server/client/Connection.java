@@ -30,6 +30,7 @@ import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.server.client.JSClient2ServerMessage.JSClickEvent;
+import areca.rt.server.servlet.ArecaUIServer;
 import areca.ui.App.RootWindow;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
@@ -45,6 +46,7 @@ import areca.ui.component2.UIComposite;
 import areca.ui.pageflow.PageContainer;
 
 /**
+ * The client (browser) side connection to an {@link ArecaUIServer}.
  *
  * @author Falko Bräutigam
  */
