@@ -23,7 +23,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
- * Mimics the JS/Browser event loop on the servert side.
+ * Mimics the JS/Browser event loop on the server side.
  * <p>
  * There is one {@link EventLoop} per {@link Session}. Implementation is not
  * thread-safe as this implemantation expects that everything runs in one single
@@ -35,8 +35,8 @@ public class EventLoop {
 
     private static final Log LOG = LogFactory.getLog( EventLoop.class );
 
-    protected class Task {
-        private String label;
+    protected static class Task {
+        public String label;
         public Runnable task;
         public long scheduled;
 
@@ -58,7 +58,7 @@ public class EventLoop {
     }
 
     /**
-     * Execute pending tasks until queue is empty.
+     * Executes pending tasks until queue is empty.
      */
     public void execute( int timeframeMillis ) {
         // one loop can add more tasks to the queue
