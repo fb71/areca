@@ -42,15 +42,22 @@ public class InternalTestsPage
 
     private PageContainer ui;
 
+    private ScrollableComposite scrollable;
+
+
     @Override
     protected UIComponent onCreateUI( UIComposite parent ) {
         ui = new PageContainer( this, parent );
         ui.title.set( "Tests" );
 
         ui.body.layout.set( new FillLayout() );
-        ui.body.add( new Text() {{
-            content.set( "Waiting...  " );
-        }});
+        scrollable = ui.body.add( new ScrollableComposite() {{
+            layout.set( RowLayout.filled().margins( Size.of( 15, 15 ) ) );
+            add( new Text() {{
+                content.set( "Waiting...  " );
+            }});
+        }} );
+
         Platform.schedule( 1000, () -> runTests() );
         return ui;
     }
@@ -58,11 +65,8 @@ public class InternalTestsPage
 
     protected void runTests() {
         try {
-            ui.body.components.disposeAll();
-            ui.body.add( new ScrollableComposite() {{
-                ui.body.layout.set( RowLayout.filled().margins( Size.of( 15, 15 ) ) );
-                HtmlTestRunnerDecorator.rootElm = (HTMLElement)htmlElm;
-            }} );
+            scrollable.components.disposeAll();
+            HtmlTestRunnerDecorator.rootElm = (HTMLElement)scrollable.htmlElm;
             doRunTests();
         }
         catch (Exception e) {

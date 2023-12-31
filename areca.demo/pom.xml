@@ -171,13 +171,13 @@
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>9.4.53.v20231009</version>
                 <configuration>
-                    <scanIntervalSeconds>1</scanIntervalSeconds>
+                    <scanIntervalSeconds>10</scanIntervalSeconds>
                     <!--webAppSourceDirectory>${project.build.directory}/${project.build.finalName}</webAppSourceDirectory-->
                     <webApp>
                         <contextPath>/areca.demo</contextPath>
                         <resourceBases>
                             ${project.basedir}/src/main/webapp,
-                            ${project.build.directory}/generated
+                            ${project.build.directory}/generated/js
                         </resourceBases>
                     </webApp>
                 </configuration>
