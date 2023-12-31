@@ -8,5 +8,5 @@ default-compile/incremental=false
 default-compile/mainClass=areca.rt.server.client.ClientApp
 default-compile/sourceMaps=true
 default-compile/targetDirectory=${workspace_loc\:/areca.rt.server}/target/generated/js/teavm
-default-compile/targetFileName=app.js
+default-compile/targetFileName=areca-rt-server.js
 eclipse.preferences.version=1

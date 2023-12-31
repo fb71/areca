@@ -48,12 +48,11 @@
     </dependencies>
 
     <build>
+        <!-- 
+          In META-INF/resources wird es direkt vom servlet ausgeliefert
+        -->
         <resources>
             <resource>
-                <!-- 
-                  Put resources in classes/ inside jar so that ResourceServlet can read them.
-                  With the line below it *should* work with DefaultServlet (but doesn't?).
-                -->
                 <targetPath>META-INF/resources</targetPath>
                 <directory>${project.build.directory}/generated/js</directory>
                 <includes>
@@ -105,7 +104,7 @@
                         <configuration>
                             <!-- This configuration conforms to the settings of the WAR plugin -->
                             <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
-                            <targetFileName>app.js</targetFileName>
+                            <targetFileName>areca-rt-server.js</targetFileName>
                             <mainClass>areca.rt.server.client.ClientApp</mainClass>
                             <minifying>false</minifying>
                             <debugInformationGenerated>true</debugInformationGenerated>
@@ -119,6 +118,22 @@
                             <targetType>JAVASCRIPT</targetType>
                             <outOfProcess>false</outOfProcess>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Resources: after generating ../teavm/js -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>default-resources</id>
+                        <!-- here the phase you need -->
+                        <phase>package</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
