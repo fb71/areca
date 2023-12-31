@@ -50,9 +50,9 @@ public class InternalTestsPage
         ui = new PageContainer( this, parent );
         ui.title.set( "Tests" );
 
-        ui.body.layout.set( new FillLayout() );
+        ui.body.layout.set( RowLayout.filled().margins( Size.of( 15, 15 ) ) );
         scrollable = ui.body.add( new ScrollableComposite() {{
-            layout.set( RowLayout.filled().margins( Size.of( 15, 15 ) ) );
+            layout.set( new FillLayout() );
             add( new Text() {{
                 content.set( "Waiting...  " );
             }});
