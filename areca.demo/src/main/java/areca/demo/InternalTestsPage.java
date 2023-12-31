@@ -21,10 +21,13 @@ import areca.common.log.LogFactory.Log;
 import areca.common.testrunner.AsyncAwareTestRunner;
 import areca.common.testrunner.LogDecorator;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
+import areca.ui.Size;
+import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.FillLayout;
+import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageContainer;
 
@@ -56,7 +59,10 @@ public class InternalTestsPage
     protected void runTests() {
         try {
             ui.body.components.disposeAll();
-            HtmlTestRunnerDecorator.rootElm = (HTMLElement)ui.body.htmlElm;
+            ui.body.add( new ScrollableComposite() {{
+                ui.body.layout.set( RowLayout.filled().margins( Size.of( 15, 15 ) ) );
+                HtmlTestRunnerDecorator.rootElm = (HTMLElement)htmlElm;
+            }} );
             doRunTests();
         }
         catch (Exception e) {

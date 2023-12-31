@@ -16,6 +16,12 @@
     <dependencies>
         <dependency>
             <groupId>areca</groupId>
+            <artifactId>areca.common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>areca</groupId>
             <artifactId>areca.ui</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
@@ -157,6 +163,25 @@
                     </packagingExcludes>
                 </configuration>
             </plugin>
+
+            <!-- Jetty -->
+            <!-- https://portail.capsana.ca/doc/9.4.5.v20170502/jetty-maven-plugin.html -->
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>9.4.53.v20231009</version>
+                <configuration>
+                    <scanIntervalSeconds>1</scanIntervalSeconds>
+                    <!--webAppSourceDirectory>${project.build.directory}/${project.build.finalName}</webAppSourceDirectory-->
+                    <webApp>
+                        <contextPath>/areca.demo</contextPath>
+                        <resourceBases>
+                            ${project.basedir}/src/main/webapp,
+                            ${project.build.directory}/generated
+                        </resourceBases>
+                    </webApp>
+                </configuration>
+            </plugin>
         </plugins>
         
         <pluginManagement>
@@ -175,8 +200,8 @@
                                 <!-- sleep -->
                                 <pluginExecution>
                                     <pluginExecutionFilter>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-antrun-plugin</artifactId>
                                         <versionRange>[1.0,)</versionRange>
                                         <goals>
                                             <goal>run</goal>
