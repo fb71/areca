@@ -139,7 +139,7 @@
                     <execution>
                         <!-- Main app -->
                         <id>default-compile</id>
-                        <phase>compile</phase>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>compile</goal>
                         </goals>

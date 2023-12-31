@@ -575,11 +575,10 @@ public class ReflectAnnotationProcessor
     }
 
     private static void log( Object... parts ) {
-        System.out.print( "REFLECT: " );
-        for (Object part : parts) {
-            System.out.print( part != null ? part.toString() : "[null]" );
-        }
-        //Arrays.stream( parts ).forEach( part -> System.out.print( part.toString() ) );
-        System.out.println();
+//        System.out.print( "REFLECT: " );
+//        for (Object part : parts) {
+//            System.out.print( part != null ? part.toString() : "[null]" );
+//        }
+//        System.out.println();
     }
 }

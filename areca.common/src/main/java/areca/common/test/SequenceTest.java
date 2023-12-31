@@ -21,13 +21,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
 import java.io.IOException;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+
 import areca.common.Assert;
 import areca.common.base.Sequence;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.Test;
 
@@ -38,7 +41,7 @@ import areca.common.testrunner.Test;
 @Test
 public class SequenceTest {
 
-    private static final Logger LOG = Logger.getLogger( SequenceTest.class.getName() );
+    private static final Log LOG = LogFactory.getLog( SequenceTest.class );
 
     public static final ClassInfo<SequenceTest> info = SequenceTestClassInfo.instance();
 

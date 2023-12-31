@@ -17,6 +17,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 
+import java.time.Duration;
+
+import areca.common.Assert;
 import areca.common.Session;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -35,6 +38,8 @@ public class EventLoop {
 
     private static final Log LOG = LogFactory.getLog( EventLoop.class );
 
+    public static final Duration POLLING_TIMEOUT = Duration.ofMillis( 250 );
+
     protected static class Task {
         public String label;
         public Runnable task;
@@ -51,9 +56,20 @@ public class EventLoop {
 
     private Deque<Task>         queue = new ArrayDeque<>( 128 );
 
+    private volatile int        pollingRequests;
+
+
+    public void requestPolling() {
+        pollingRequests ++;
+    }
+
+    public void releasePolling() {
+        pollingRequests --;
+        Assert.that( pollingRequests >= 0 );
+    }
 
     public void enqueue( String label, Runnable task, int delayMillis ) {
-        LOG.info( "enqueue(): %s - %s ms", label, delayMillis );
+        LOG.debug( "enqueue(): %s - %s ms", label, delayMillis );
         queue.addLast( new Task( task, now() + delayMillis, label ) );
     }
 
@@ -83,10 +99,17 @@ public class EventLoop {
 
     public long pendingWait() {
         Sequence.of( queue ).forEach( t -> LOG.info( "pendingWait(): %s: %s", t.label, t.scheduled - now() ) );
-        return Sequence.of( queue )
+        var result = Sequence.of( queue )
                 .map( t -> t.scheduled ).reduce( Math::min )
                 .map( minScheduled -> Math.max( 0, minScheduled - now() ) )
                 .orElse( -1l );
+
+        if (pollingRequests > 0) {
+            return result == -1l ? POLLING_TIMEOUT.toMillis() : Math.min( result, POLLING_TIMEOUT.toMillis() );
+        }
+        else {
+            return result;
+        }
     }
 
     protected long now() {

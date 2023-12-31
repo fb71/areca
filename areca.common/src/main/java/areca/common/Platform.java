@@ -15,8 +15,9 @@ package areca.common;
 
 import java.util.concurrent.Callable;
 
-import areca.common.base.Sequence;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Sequence;
+import areca.common.base.Supplier.RSupplier;
 
 /**
  *
@@ -93,12 +94,18 @@ public abstract class Platform {
     }
 
 
+    protected static void waitForCondition( RSupplier<Boolean> condition, Object target ) {
+        impl.waitForCondition( condition, target );
+    }
+
     /**
      *
      */
     public interface PlatformImpl {
 
         public <R> Promise<R> schedule( int delayMillis, Callable<R> task );
+
+        public void waitForCondition( RSupplier<Boolean> condition, Object target );
 
         public HttpRequest xhr( String method, String url );
 

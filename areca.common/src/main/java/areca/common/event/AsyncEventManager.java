@@ -42,7 +42,8 @@ public class AsyncEventManager
 
 
     public AsyncEventManager() {
-        new ExpungeThread().run();
+        LOG.warn( "No expunge thread!" );
+        //new ExpungeThread().run();
     }
 
 
@@ -111,7 +112,7 @@ public class AsyncEventManager
             if (!expunged.isEmpty()) {
                 unsubscribe( expunged );
             }
-            Platform.schedule( 3000, this );
+            Platform.schedule( 60000, this );
         }
     }
 

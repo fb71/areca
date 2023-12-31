@@ -487,17 +487,7 @@ public class Promise<T> {
      * Just for testing!
      */
     public Opt<T> waitForResult() {
-        if (!done) {
-            synchronized (this) {
-                while (!done) {
-                    try {
-                        wait();
-                    }
-                    catch (InterruptedException e) {
-                    }
-                }
-            }
-        }
+        Platform.waitForCondition( () -> done || canceled, this );
         return Opt.of( waitForResult );
     }
 

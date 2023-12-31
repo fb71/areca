@@ -15,13 +15,23 @@ package areca.rt.server;
 
 import java.util.concurrent.Callable;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpRequest.Builder;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
+
 import areca.common.Platform;
 import areca.common.Platform.HttpRequest;
+import areca.common.Platform.HttpResponse;
 import areca.common.Platform.IdleDeadline;
 import areca.common.Promise;
 import areca.common.Promise.Completable;
 import areca.common.Session;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -33,6 +43,25 @@ public class ServerPlatform
         implements Platform.PlatformImpl {
 
     private static final Log LOG = LogFactory.getLog( ServerPlatform.class );
+
+    public static final Duration HTTP_TIMEOUT = Duration.ofSeconds( 30 );
+
+    // instance *******************************************
+
+    private HttpClient      http = HttpClient.newBuilder().connectTimeout( HTTP_TIMEOUT ).build();
+
+
+    @Override
+    public void waitForCondition( RSupplier<Boolean> condition, Object target ) {
+        var eventLoop = Session.instanceOf( EventLoop.class );
+
+        eventLoop.execute( -1 );
+        while( !condition.get() ) {
+            try { Thread.sleep( eventLoop.pendingWait() ); } catch (InterruptedException e) { }
+            eventLoop.execute( -1 );
+        }
+    }
+
 
     @Override
     public <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
@@ -50,6 +79,7 @@ public class ServerPlatform
         return promise;
     }
 
+
     @Override
     public Promise<Void> requestAnimationFrame( RConsumer<Double> callback ) {
         Completable<Void> promise = new Completable<>();
@@ -66,6 +96,7 @@ public class ServerPlatform
         }, 0 );
         return promise;
     }
+
 
     @Override
     public Promise<Void> requestIdleCallback( RConsumer<IdleDeadline> callback ) {
@@ -89,10 +120,102 @@ public class ServerPlatform
         return promise;
     }
 
+
     @Override
     public HttpRequest xhr( String method, String url ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        try {
+            return new HttpRequest() {
+
+                private Builder b = java.net.http.HttpRequest.newBuilder()
+                        .uri( new URI( url ) )
+                        .timeout( HTTP_TIMEOUT );
+
+                @Override
+                public HttpRequest onReadyStateChange( RConsumer<ReadyState> handler ) {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+
+                @Override
+                public HttpRequest authenticate( String username, String password ) {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+
+                @Override
+                public HttpRequest addHeader( String name, String value ) {
+                    b.header( name, value );
+                    return this;
+                }
+
+                @Override
+                public HttpRequest overrideMimeType( String mimeType ) {
+                    // XXX Auto-generated method stub
+                    throw new RuntimeException( "not yet implemented." );
+                }
+
+                @Override
+                protected Promise<HttpResponse> doSubmit( Object jsonOrStringData ) {
+                    b = jsonOrStringData == null
+                        ? b.method( method, BodyPublishers.noBody() )
+                        : b.method( method, BodyPublishers.ofString( (String)jsonOrStringData ) );
+
+                    var request = b.build();
+                    var future = http.sendAsync( request, BodyHandlers.ofString() );
+
+                    var promise = new Promise.Completable<HttpResponse>() {
+                        @Override public void cancel() {
+                            future.cancel( true );
+                            super.cancel();
+                        }
+                    };
+
+                    var eventLoop = Session.instanceOf( EventLoop.class );
+                    eventLoop.requestPolling();
+                    future.whenComplete( (response,e) -> {
+                        LOG.warn( "XHR: whenComplete(): ...");
+                        eventLoop.releasePolling();
+                        eventLoop.enqueue( "xhr", () -> {
+                            LOG.warn( "XHR: enqueued(): ...");
+                            if (e != null) {
+                                promise.completeWithError( e );
+                            }
+                            else {
+                                promise.complete( new HttpResponse() {
+                                    @Override
+                                    public int status() {
+                                        return response.statusCode();
+                                    }
+                                    @Override
+                                    public Object content() {
+                                        // XXX Auto-generated method stub
+                                        throw new RuntimeException( "not yet implemented." );
+                                    }
+                                    @Override
+                                    public String text() {
+                                        return response.body();
+                                    }
+                                    @Override
+                                    public <R> R json() {
+                                        // XXX Auto-generated method stub
+                                        throw new RuntimeException( "not yet implemented." );
+                                    }
+                                    @Override
+                                    public Object xml() {
+                                        // XXX Auto-generated method stub
+                                        throw new RuntimeException( "not yet implemented." );
+                                    }
+                                } );
+                            }
+                        }, 0);
+                    });
+                    return promise;
+                }
+            };
+        }
+        catch (URISyntaxException e) {
+            throw new RuntimeException( e );
+        }
     }
 
 }

@@ -34,6 +34,7 @@ import areca.common.Promise.Completable;
 import areca.common.Timer;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Opt;
+import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -122,6 +123,22 @@ public class TeaPlatform
                 super.cancel();
             }
         };
+    }
+
+
+    @Override
+    public void waitForCondition( RSupplier<Boolean> condition, Object target ) {
+        if (!condition.get()) {
+            synchronized (target) {
+                while (!condition.get()) {
+                    try {
+                        target.wait();
+                    }
+                    catch (InterruptedException e) {
+                    }
+                }
+            }
+        }
     }
 
 

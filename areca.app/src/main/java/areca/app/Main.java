@@ -21,10 +21,8 @@ import areca.common.base.Consumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
-import areca.common.test.SequenceOpTest;
 import areca.common.testrunner.AsyncAwareTestRunner;
 import areca.common.testrunner.LogDecorator;
-import areca.common.testrunner.TestRunner;
 import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
 import areca.rt.teavm.ui.UIComponentRenderer;
@@ -50,28 +48,8 @@ public class Main {
         String hash = Window.current().getLocation().getHash();
         LOG.info( "URL hash: %s", hash );
 
-        // TestsMain
-        if (hash.equals( "#tests" )) {
-            TestsMain.main( args );
-            LOG.info( "done." );
-        }
-        // runtime
-        else if (hash.equals( "#runtime" )) {
-            catchAll( __ -> {
-                new TestRunner()
-                        //.addTests( areca.common.test.UIEventManagerTest.info )
-                        //.addTests( areca.rt.teavm.test.TeavmRuntimeTest.info )
-                        //.addTests( areca.common.test.RuntimeTest.info )
-                        //.addTests( areca.common.test.AsyncTests.info )
-                        .addTests( areca.common.test.SchedulerTest.info )
-                        //.addTests( areca.common.test.IdleAsyncEventManagerTest.info )
-                        //.addTests( areca.common.test.AsyncEventManagerTest.info )
-                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
-                        .run();
-            });
-        }
         // Gallery
-        else if (hash.equals( "#gallery" )) {
+        if (hash.equals( "#gallery" )) {
             catchAll( __ -> {
                 //UIComponentEvent.manager();
                 UIComponentRenderer.start();
@@ -79,19 +57,6 @@ public class Main {
                 var appSize = Size.of( doc.getBody().getClientWidth(), doc.getBody().getClientHeight() );
                 LOG.info( "BODY: " + appSize );
                 GalleryMain.createApp( appSize );
-            });
-        }
-        // #m2
-        else if (hash.equals( "#m2" )) {
-            catchAll( __ -> {
-                new TestRunner()
-                        //.addTests( org.polymap.model2.test2.SimpleModelTest.info )
-                        .addTests( org.polymap.model2.test2.SimpleQueryTest.info )
-                        .addTests( org.polymap.model2.test2.RuntimeTest.info )
-                        .addTests( org.polymap.model2.test2.AssociationsTest.info )
-                        .addTests( org.polymap.model2.test2.ComplexModelTest.info )
-                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
-                        .run();
             });
         }
         // #mail
@@ -123,17 +88,6 @@ public class Main {
                 new AsyncAwareTestRunner()
                         .addTests( areca.app.service.matrix.MatrixTest.info )
                         .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
-                        .run();
-            });
-        }
-        // #bench
-        else if (hash.equals( "#bench" )) {
-            catchAll( __ -> {
-                LogFactory.setPackageLevel( areca.common.event.AsyncEventManager.class, DEBUG );
-                new TestRunner()
-                        .addTests( BenchTest.info, SequenceOpTest.info )
-                        .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
-                        .run()
                         .run();
             });
         }

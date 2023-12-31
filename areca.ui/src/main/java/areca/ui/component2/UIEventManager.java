@@ -32,7 +32,7 @@ import areca.common.log.LogFactory.Log;
  * Async delivering UI/render events via
  * {@link Platform#requestAnimationFrame(areca.common.base.Consumer.RConsumer)}.
  *
- * @deprecated In favour of EventHandlers.
+ * @deprecated_ In favour of EventHandlers.
  * @author Falko Bräutigam
  */
 public class UIEventManager
@@ -50,7 +50,8 @@ public class UIEventManager
 
 
     public UIEventManager() {
-        new ExpungeThread().run();
+        LOG.warn( "No expunge thread!" );
+        // new ExpungeThread().run();
     }
 
 
@@ -134,7 +135,7 @@ public class UIEventManager
             if (!expunged.isEmpty()) {
                 unsubscribe( expunged );
             }
-            Platform.schedule( 3000, this );
+            Platform.schedule( 5000, this );
         }
     }
 

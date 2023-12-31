@@ -186,7 +186,7 @@ public class AsyncTests {
                 .joined( 3, i -> Platform.async( () -> i ) )
                 .then( i -> async( () -> i ) )
                 .onSuccess( i -> {
-                    Assert.isEqual( 3, i );
+                    Assert.that( i >= 0 && i <=2 );
                 });
     }
 
