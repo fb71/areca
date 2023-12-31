@@ -15,15 +15,11 @@ package areca.demo;
 
 import org.teavm.jso.dom.html.HTMLElement;
 
-import org.polymap.model2.test2.SimpleQueryTest;
-
 import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.common.test.SequenceOpTest;
 import areca.common.testrunner.AsyncAwareTestRunner;
 import areca.common.testrunner.LogDecorator;
-import areca.common.testrunner.TestRunner;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
@@ -57,23 +53,11 @@ public class InternalTestsPage
     }
 
 
-    @SuppressWarnings("unchecked")
     protected void runTests() {
         try {
             ui.body.components.disposeAll();
             HtmlTestRunnerDecorator.rootElm = (HTMLElement)ui.body.htmlElm;
-            new TestRunner()
-                    .addTests(
-                            //BenchTest.info,
-                            SequenceOpTest.info
-                    )
-                    .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
-                    .run();
-
-            new AsyncAwareTestRunner()
-                    .addTests( SimpleQueryTest.info )
-                    .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
-                    .run();
+            doRunTests();
         }
         catch (Exception e) {
             LOG.debug( "Exception: %s -->   ", e );
@@ -83,4 +67,36 @@ public class InternalTestsPage
         }
     }
 
+
+    @SuppressWarnings("unchecked")
+    public static void doRunTests() {
+        new AsyncAwareTestRunner()
+                .addTests(
+                        areca.common.test.AnnotationTest.info,
+                        areca.common.test.SequenceTest.info,
+                        areca.common.test.SequenceOpTest.info,
+                        areca.common.test.SameStackEventManagerTest.info,
+                        areca.common.test.AsyncEventManagerTest.info,
+                        areca.ui.test.UIEventManagerTest.info,
+                        areca.common.test.IdleAsyncEventManagerTest.info,
+                        // areca.common.test.ThreadedEventManagerTest.info,
+                        areca.common.test.RuntimeTest.info,
+                        areca.common.test.AsyncTests.info,
+                        areca.common.test.SchedulerTest.info
+                        )
+                .addTests(
+                        areca.rt.teavm.test.TeavmRuntimeTest.info )
+                .addTests(
+                        org.polymap.model2.test2.SimpleModelTest.info,
+                        org.polymap.model2.test2.SimpleQueryTest.info,
+                        org.polymap.model2.test2.AssociationsTest.info,
+                        org.polymap.model2.test2.ComplexModelTest.info,
+                        org.polymap.model2.test2.RuntimeTest.info
+                        )
+
+                //.addTests( areca.app.service.imap.ImapTest.info )
+                //.addTests( areca.app.service.carddav.CardDavTest.info )
+                .addDecorators( HtmlTestRunnerDecorator.info, LogDecorator.info )
+                .run();
+    }
 }
