@@ -99,7 +99,7 @@ public class HttpForwardServlet4
                     //LOG.debug( "############## cookie: %s", uri );
                     responseHeaders.entrySet().stream()
                             .filter( entry -> entry.getKey().startsWith( "set-cookie" ) )
-                            .forEach( entry -> LOG.info( "    %s : %s", entry.getKey(), entry.getValue() ) );
+                            .forEach( entry -> LOG.debug( "    %s : %s", entry.getKey(), entry.getValue() ) );
                 }
             };
             System.setProperty( "jdk.httpclient.allowRestrictedHeaders", "host" );

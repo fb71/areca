@@ -20,6 +20,7 @@ import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_REQUEST;
 import java.util.function.Supplier;
 
 import java.io.InputStream;
+import java.net.HttpCookie;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -72,7 +73,9 @@ public class StraightForwardHandler
 
         // METHOD
         if (METHODS_WITH_BODY.contains( probe.request.getMethod() ) ) {
-            request.method( probe.request.getMethod(), HttpRequest.BodyPublishers.ofByteArray( probe.requestBody.get() ) );
+            var body = probe.requestBody.get();
+            //LOG.info( "BODY: %s", new String( body, "UTF8" ) );
+            request.method( probe.request.getMethod(), HttpRequest.BodyPublishers.ofByteArray( body ) );
         }
         else {
             request.method( probe.request.getMethod(), HttpRequest.BodyPublishers.noBody() );
@@ -85,7 +88,7 @@ public class StraightForwardHandler
             if (!FORBIDDEN_HEADERS.contains( name.toLowerCase() )) {
                 probe.request.getHeaders( name ).asIterator()
                         .forEachRemaining( value -> request.headers( name, value ) );
-                //LOG.debug( "Header: %s: %s", name, Collections.list( probe.request.getHeaders( name ) ) );
+                //LOG.info( "Header: %s: %s", name, Collections.list( probe.request.getHeaders( name ) ) );
             }
         });
         if (probe.request.getHeader( "Expect" ) != null) {
@@ -116,7 +119,20 @@ public class StraightForwardHandler
         // headers
         response.headers().map().forEach( (name,values) -> {
             //LOG.debug( "Response Header: %s: %s", name, values );
-            values.forEach( value -> probe.response.addHeader( name, value ) );
+
+            if (name.equalsIgnoreCase( "set-cookie" )) {
+                LOG.info( "%s: %s", name, values );
+                for (var value : values) {
+                    var cookie = HttpCookie.parse( name + ":" + value ).get( 0 );
+                    cookie.setVersion( 1 );
+                    cookie.setPath( null );
+                    LOG.info( "       -> %s", cookie.toString() );
+                    probe.response.addHeader( name, cookie.toString() );
+                }
+            }
+            else {
+                values.forEach( value -> probe.response.addHeader( name, value ) );
+            }
         });
 
 //        var cm = probe.http.cookieHandler().get();

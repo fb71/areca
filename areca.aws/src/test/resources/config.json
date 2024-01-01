@@ -35,6 +35,10 @@
             "robots": "robots-disallow.txt",
             "proxypaths": [
                 {
+                    "path": "/ragtime.cc/",
+                    "forward": "http://deploy.fb71.org/ragtime.cc-0.0.1-SNAPSHOT/"
+                },
+                {
                     "path": "/up/",
                     "forward": "https://ulrike-philipp.de/"
                 },
