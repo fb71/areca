@@ -73,13 +73,26 @@ public class EventLoop {
         queue.addLast( new Task( task, now() + delayMillis, label ) );
     }
 
+
     /**
-     * Executes pending tasks until queue is empty.
+     * Executes pending tasks until queue is empty, no matter how long this may
+     * take.
+     */
+    public void execute() {
+        execute( -1 );
+    }
+
+    /**
+     * Executes pending tasks until queue is empty or the given timeframe exceeds.
+     *
+     * @param timeframeMillis
      */
     public void execute( int timeframeMillis ) {
+        var deadline = timeframeMillis == -1 ? Long.MAX_VALUE : now() + timeframeMillis;
+
         // one loop can add more tasks to the queue
-        var c = 0;
-        for (var moreWork = true; moreWork; c++) {
+        var hasMoreWork = true;
+        for (var c = 0; hasMoreWork && now() < deadline; c++) {
             LOG.info( "______ Run %s (queue: %s) ______", c, queue.size() );
             var _now = now();
             var canRun = new ArrayList<Task>( queue.size() );
@@ -93,7 +106,7 @@ public class EventLoop {
             for (Task task : canRun) {
                 task.task.run();
             }
-            moreWork = !canRun.isEmpty();
+            hasMoreWork = !canRun.isEmpty();
         }
     }
 

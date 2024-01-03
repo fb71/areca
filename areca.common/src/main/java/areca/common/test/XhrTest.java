@@ -13,11 +13,14 @@
  */
 package areca.common.test;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.commons.lang3.StringUtils;
 
 import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Promise;
+import areca.common.Promise.CancelledException;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
@@ -35,14 +38,33 @@ public class XhrTest {
 
     public static final ClassInfo<XhrTest> info = XhrTestClassInfo.instance();
 
+    public static final String URL_GET = "https://www.google.de";
+
     @Test
     public Promise<?> simpleGetTest() {
-        return Platform.xhr( "GET", "https://www.google.de" )
+        return Platform.xhr( "GET", URL_GET )
                 .submit()
                 .onSuccess( response -> {
                     Assert.isEqual( 200, response.status() );
                     LOG.warn( StringUtils.abbreviate( response.text(), 256 ) );
                 });
+    }
+
+    @Test
+    public void cancelTest() {
+        var flag = new AtomicBoolean();
+        var result = Platform.xhr( "GET", URL_GET )
+                .submit()
+                .onSuccess( response -> {
+                    Assert.fail( "This must not be reached." );
+                })
+                .onError( e -> {
+                    Assert.isType( CancelledException.class, e, "Wrong exception type" );
+                    flag.set( true );
+                });
+        result.cancel();
+        result.waitForResult();
+        Assert.that( flag.get(), "onError() was not reached." );
     }
 
 }

@@ -26,6 +26,14 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
+ * Advanced task scheduler based on the {@link Platform}s requestIdleCallback
+ * priority queue.
+ * <p>
+ * In contrast to the main event loop ({@link Platform#async(Callable)}) tasks run
+ * only if, and only as long as, the runtime decides that there is idle time. So we
+ * don't break browser rendering and animations.
+ * <p>
+ * Also we (plan to) do some priority handling to add even finer grained control.
  *
  * @author Falko Bräutigam
  */

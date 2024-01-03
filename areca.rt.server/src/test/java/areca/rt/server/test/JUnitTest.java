@@ -15,185 +15,221 @@ package areca.rt.server.test;
 
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import areca.common.Assert;
+import areca.common.AssertionException;
 import areca.common.Platform;
+import areca.common.Promise;
+import areca.common.Promise.CancelledException;
 import areca.common.Session;
-import areca.common.SessionScoper;
-import areca.common.SessionScoper.ThreadBoundSessionScoper;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.common.testrunner.LogDecorator;
-import areca.common.testrunner.TestRunner;
 import areca.rt.server.EventLoop;
-import areca.rt.server.ServerPlatform;
 
 /**
  * JUnit test runner for Areca core tests, running inside the JVM.
  *
  * @author Falko Bräutigam
  */
-@SuppressWarnings("unchecked")
-class JUnitTest {
+class JUnitTest extends JUnitTestBase {
 
     private static final Log LOG = LogFactory.getLog( JUnitTest.class );
 
-    private static ThreadBoundSessionScoper sessionScope = new ThreadBoundSessionScoper();
-
-    private Session session;
-
-    @BeforeAll
-    protected static void setup() {
-        Platform.impl = new ServerPlatform();
-        SessionScoper.setInstance( sessionScope );
-    }
-
-    @BeforeEach
-    protected void bindSession() {
-        session = new Session();
-        sessionScope.bind( session );
-        Assertions.assertSame( session, Session.current() );
-        Session.setInstance( new EventLoop() );
-    }
-
-    @AfterEach
-    protected void unbindSession() {
-        // execute the EventLoop after each test
-        Session.instanceOf( EventLoop.class ).execute( -1 );
-
-        sessionScope.unbind( session );
-        session.dispose();
-        session = null;
-    }
-
-    // tests **********************************************
-
     @Test
-    void sequenceTest() {
-        new TestRunner()
-                .addTests( areca.common.test.SequenceTest.info )
-                .addDecorators( LogDecorator.info )
-                .run();
+    public void sequenceTest() {
+        execute( areca.common.test.SequenceTest.info );
     }
 
     @Test
-    void sequenceOpTest() {
-        new TestRunner()
-                .addTests( areca.common.test.SequenceOpTest.info )
-                .addDecorators( LogDecorator.info )
-                .run();
+    public void sequenceOpTest() {
+        execute( areca.common.test.SequenceOpTest.info );
     }
 
     @Test
     public void simpleAsyncTest() {
-        var flag = new AtomicBoolean();
-        Platform.async( () -> flag.set( true ) );
+        execute( () -> {
+            var flag = new AtomicBoolean();
 
-        Session.instanceOf( EventLoop.class ).execute( -1 );
-        Assert.that( flag.get()  );
+            var async = Platform.async( () -> flag.compareAndSet( false, true ) );
+            Assert.that( !async.isCompleted()  );
+            Assert.that( !async.isCanceled()  );
+
+            async.waitForResult();
+            //Session.instanceOf( EventLoop.class ).execute();
+            Assert.that( async.isCompleted()  );
+            Assert.that( !async.isCanceled()  );
+            Assert.that( flag.get()  );
+        });
+    }
+
+
+    @Test
+    public void simpleAsyncCancelTest() {
+        execute( () -> {
+            var flag = new AtomicBoolean();
+            var error = new AtomicReference<>();
+
+            var async = Platform
+                    .async( () -> flag.compareAndSet( false, true ) )
+                    .onError( e -> error.set( Assert.isType( CancelledException.class, e ) ) )
+                    .onSuccess( __ -> Assert.that( false, "must never reach this" ) );
+
+            async.cancel();
+            async.cancel();
+            Assert.that( async.isCanceled()  );
+            Assert.that( async.isCompleted()  );
+            Assert.notNull( error.get()  );
+
+            async.waitForResult();
+
+            Assert.that( async.isCompleted()  );
+            Assert.that( async.isCanceled()  );
+            Assert.that( !flag.get()  );
+        });
     }
 
 
     @Test
     public void simpleAsyncSuccessTest() {
-        var flag = new AtomicBoolean();
-        Platform.async( () -> null )
-                .onSuccess( __ -> flag.set( true ) );
+        execute( () -> {
+            var flag = new AtomicBoolean();
+            Platform.async( () -> null ).onSuccess( __ -> flag.set( true ) );
 
-        Session.instanceOf( EventLoop.class ).execute( -1 );
-        Assert.that( flag.get()  );
+            Session.instanceOf( EventLoop.class ).execute();
+            Assert.that( flag.get()  );
+        });
+    }
+
+    @Test
+    public void promiseJoinTest() {
+        execute( () -> {
+            var a1 = Platform.async( () -> 1 );
+            var a2 = Platform.async( () -> 2 );
+            var a3 = a1.join( a2 );
+            a3.waitForResult();
+            Assert.that( a3.isCompleted() );
+        });
     }
 
 
     @Test
-    public void xhrTest() throws InterruptedException {
-        new TestRunner()
-                .addTests( areca.common.test.XhrTest.info )
-                .addDecorators( LogDecorator.info )
-                .run();
+    public void promiseJoinedTest() {
+        execute( () -> {
+            var async = Promise
+                    .joined( 4, i -> Platform.async( () -> {
+                        LOG.info( "JOIN: " + i );
+                        return i;
+                    }))
+                    .onSuccess( i -> LOG.info( "JOIN: onSuccess(): %s", i ) )
+                    .reduce2( 0, (r,i) -> r + i )
+                    .onSuccess( count -> {
+                        Assert.isEqual( 6, count.intValue() );
+                    });
 
-//        Thread.sleep( 1000 );
-//        Session.instanceOf( EventLoop.class ).execute( -1 );
-//        Assert.that( tests.isComplete() );
+            async.waitForResult( result -> {
+                Assert.isEqual( 6, result );
+            });
+        });
+    }
+
+
+    @Test
+    public void promiseOnSuccessCompleteStateTest() {
+        execute( () -> {
+            var a1 = Platform.async( () -> 1 )
+                    .onSuccess( (self,result) -> Assert.that( self.isComplete() ) );
+            a1.waitForResult();
+        });
+    }
+
+
+    @Test
+    public void promiseOnSuccessError() {
+        execute( () -> {
+            var error = new AtomicReference<>();
+            var async = Platform.async( () -> "1" )
+                    .onSuccess( i -> {
+                        LOG.info( "Result: " + i );
+                        Assert.that( false, "Error in onSuccess()" );
+                    })
+                    .onError( e -> {
+                        error.set( Assert.isType( AssertionException.class, e ) );
+                    });
+
+            async.waitForResult();
+            Assert.notNull( error.get() );
+        });
+    }
+
+
+    @Test
+    public void promiseCancelFromHandlerTest() {
+        execute( () -> {
+            var error = new AtomicReference<>();
+            Platform.async( () -> 1 )
+                    .map( ( i, self ) -> {
+                        self.cancel();
+                        self.complete( i );
+                    })
+                    .onError( e -> {
+                        error.set( Assert.isType( CancelledException.class, e ) );
+                    })
+                    .onSuccess( value -> {
+                        throw new IllegalStateException( "Result after error" );
+                    });
+        });
+    }
+
+
+
+    @Test
+    public void xhrTest() throws InterruptedException {
+        execute( areca.common.test.XhrTest.info );
     }
 
 
     @Test
     public void asyncTest() {
-        new TestRunner()
-                .addTests( areca.common.test.AsyncTests.info )
-                .addDecorators( LogDecorator.info )
-                .run();
+        execute( areca.common.test.AsyncTests.info );
     }
 
 
     @Test
     public void runtimeTest() {
-        new TestRunner()
-                .addTests( areca.common.test.RuntimeTest.info )
-                .addDecorators( LogDecorator.info )
-                .run();
+        execute( areca.common.test.RuntimeTest.info );
     }
 
-//    @Test
-//    public void schedulerTest() {
-//        new AsyncTestRunner()
-//                .addTests( areca.common.test.SchedulerTest.info )
-//                .addDecorators( LogDecorator.info )
-//                .run();
-//    }
+    @Test
+    public void schedulerTest() {
+        execute( areca.common.test.SchedulerTest.info );
+    }
 
     @Test
     public void asyncEventManagerTest() {
-        new TestRunner()
-                .addTests( areca.common.test.AsyncEventManagerTest.info )
-                .addDecorators( LogDecorator.info )
-                .run();
+        execute( areca.common.test.AsyncEventManagerTest.info );
     }
 
     @Test
     public void idleAsyncEventManagerTest() {
-        new TestRunner()
-                .addTests( areca.common.test.IdleAsyncEventManagerTest.info )
-                .addDecorators( LogDecorator.info )
-                .run();
+        execute( areca.common.test.IdleAsyncEventManagerTest.info );
     }
 
     @Test
     public void sameStackEventManagerTest() {
-        new TestRunner()
-                .addTests( areca.common.test.SameStackEventManagerTest.info )
-                .addDecorators( LogDecorator.info )
-                .run();
+        execute( areca.common.test.SameStackEventManagerTest.info );
+    }
+
+    @Test
+    public void annotationTest() {
+        execute( areca.common.test.AnnotationTest.info );
     }
 
     @Test
     public void uiEventManagerTest() {
-        new TestRunner()
-                .addTests( areca.ui.test.UIEventManagerTest.info )
-                .addDecorators( LogDecorator.info )
-                .run();
-    }
-
-    void test() {
-        new TestRunner()
-                // .addTests( areca.common.test.UIEventManagerTest.info )
-                // .addTests( areca.rt.teavm.test.TeavmRuntimeTest.info )
-                .addTests( areca.common.test.RuntimeTest.info )
-                // .addTests( areca.common.test.AsyncTests.info )
-                //.addTests( areca.common.test.SchedulerTest.info )
-                // .addTests( areca.common.test.IdleAsyncEventManagerTest.info )
-                // .addTests( areca.common.test.AsyncEventManagerTest.info )
-                .addDecorators( LogDecorator.info )
-                .run();
-
-//        fail( "Not yet implemented" );
+        execute( areca.ui.test.UIEventManagerTest.info );
     }
 
 }

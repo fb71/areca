@@ -16,6 +16,7 @@ package areca.common;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
 
@@ -38,7 +39,7 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-public class Promise<T> {
+public abstract class Promise<T> {
 
     private static final Log LOG = LogFactory.getLog( Promise.class );
 
@@ -158,10 +159,6 @@ public class Promise<T> {
 
     protected volatile T            waitForResult;
 
-    protected volatile boolean      canceled;
-
-    protected volatile boolean      done;
-
     protected Throwable             error;
 
     protected List<BiConsumer<HandlerSite,T,?>> onSuccess = new ArrayList<>();
@@ -169,19 +166,31 @@ public class Promise<T> {
     protected List<RConsumer<Throwable>> onError = new ArrayList<>();
 
 
-    public void cancel() {
-        canceled = true;
-    }
+    /**
+     * Depending on current state:
+     * <ul>
+     * <li>Not yet completed: complete this Promise with {@link CancelledException}.
+     * Prevent any subsequent results to be consumed.</li>
+     * <li>Already cancelled: do nothing</li>
+     * <li>Already completed: do nothing</li>
+     * </ul>
+     */
+    public abstract void cancel();
 
 
+    /**
+     * True if the Promise was {@link #cancel()}ed by client code.
+     */
     public boolean isCanceled() {
-        return canceled;
+        return error instanceof CancelledException;
     }
 
 
-    public boolean isDone() {
-        return done;
-    }
+    /**
+     * True if this Promise has received (all) results, or if an error occured, or if
+     * it {@link #isCanceled()}.
+     */
+    public abstract boolean isCompleted();
 
 
     /**
@@ -441,7 +450,9 @@ public class Promise<T> {
 
 
     public <E extends Exception> Promise<T> onSuccess( BiConsumer<HandlerSite,T,E> consumer ) {
-        Assert.that( !isDone(), "Promise is already completed." );
+        if (isCompleted()) {
+            LOG.warn( "Promise is already completed." );
+        }
         onSuccess.add( consumer );
         return this;
     }
@@ -454,7 +465,9 @@ public class Promise<T> {
 
 
     public Promise<T> onError( RConsumer<Throwable> consumer ) {
-        Assert.that( !isDone(), "Promise is already completed." );
+        if (isCompleted()) {
+            LOG.warn( "Promise is already completed." );
+        }
         onError.add( consumer );
         return this;
     }
@@ -487,7 +500,7 @@ public class Promise<T> {
      * Just for testing!
      */
     public Opt<T> waitForResult() {
-        Platform.waitForCondition( () -> done || canceled, this );
+        Platform.waitForCondition( () -> isCompleted(), this );
         return Opt.of( waitForResult );
     }
 
@@ -529,16 +542,22 @@ public class Promise<T> {
     public static class Completable<T>
             extends Promise<T> {
 
-        private boolean complete;
-
-        private int index;
-
         private HandlerSite site = new HandlerSite() {
             @Override public void cancel() { Completable.this.cancel(); }
             @Override public boolean isCanceled() { return Completable.this.isCanceled(); }
-            @Override public boolean isComplete() { return complete; }
+            @Override public boolean isComplete() { return aboutToComplete; }
             @Override public int index() { return index; }
         };
+
+        protected enum State {
+            INITIALIZED, CONSUMING, COMPLETED, CANCELED;
+        }
+
+        private State           state = State.INITIALIZED;
+
+        private boolean         aboutToComplete;
+
+        private int             index;
 
         private List<Promise<?>> upstreams = new ArrayList<>();
 
@@ -553,84 +572,105 @@ public class Promise<T> {
 
 
         @Override
-        public void cancel() {
-            if (!isCanceled()) {
-                upstreams.forEach( upstream -> upstream.cancel() );
-                super.cancel();
+        public boolean isCompleted() {
+            return state.ordinal() >= State.COMPLETED.ordinal();
+        }
+
+
+        /**
+         *
+         */
+        protected void raiseState( State newState, Runnable ifSuccessful ) {
+            //LOG.info( "[%s] : %s -> %s", StringUtils.right( ""+hashCode(), 3 ), state, newState );
+
+            // CANCELLED or ERROR
+            if (state == State.CANCELED || error != null) {
+                // do nothing
             }
+            // -> CANCELLED
+            else if (newState == State.CANCELED) {
+                if (state == State.COMPLETED) {
+                    // do nothing
+                }
+                else {
+                    setState( newState, ifSuccessful );
+                }
+            }
+            // downgrade not allowed
+            else if (newState.ordinal() < state.ordinal()) {
+                throw new IllegalStateException( "Wrong state raise: " + state + " -> " + newState );
+            }
+            // -> CONSUMING
+            else if (newState == State.CONSUMING) {
+                setState( newState, ifSuccessful );
+            }
+            // -> COMPLETED
+            else if (newState == State.COMPLETED) {
+                // error in onSuccess() handler results in: COMPLETED -> COMPLETED; ok
+                // -> no check if already COMPLETED
+                aboutToComplete = true;
+                setState( newState, ifSuccessful );
+            }
+        }
+
+
+        protected void setState( State newState, Runnable task ) {
+            //LOG.info( "[%s] %s\t-> %s", StringUtils.right( ""+hashCode(), 3 ), state, newState );
+            state = newState;
+            task.run();
+        }
+
+
+        @Override
+        public void cancel() {
+            completeWithError( new CancelledException() );
+            raiseState( State.CANCELED, () -> {
+                upstreams.forEach( upstream -> upstream.cancel() );
+            });
         }
 
 
         public void complete( T value ) {
-            //LOG.debug( "complete(): %s", value );
-            complete = true;
-            consumeResult( value );
-            notifyComplete();
+            raiseState( State.COMPLETED, () -> {
+                waitForResult = value;
+                doConsume( value );
+                notifyComplete();
+            });
         }
 
 
         public void consumeResult( T value ) {
-            // cancelled -> do nothing
-            if (isCanceled()) {
-                if (error == null) {
-                    completeWithError( new CancelledException() );
-                }
-                return;
-            }
-            // already done with error
-            else if (error != null) {
-                LOG.debug( "SKIPPING result after error: " + value );
-                return;
-            }
-            // done without error -> programming error
-            else if (isDone()) {
-                LOG.warn( "CONSUME after COMPLETE: " + value != null ? value.getClass().getName() : "null" );
-                throw new IllegalStateException();
-            }
-            // not done, not cancelled -> normal
-            else {
-                waitForResult = value;
-                for (var consumer : onSuccess) {
-                    try {
-                        consumer.accept( site, value );
-                    }
-                    catch (Throwable e) {
-                        // INFO enabled means debug is on
-                        // XXX if debug=true the defaultErrorHandler should throw the exception for TeaVM
-                        // XXX but it's not happening :(
-                        if (LOG.isLevelEnabled( Level.INFO )) {
-                            throw (RuntimeException)e;
-                        } else {
-                            LOG.warn( e.toString(), e );
-                        }
-                        completeWithError( e );
-                        break;
-                    }
-                }
+            raiseState( State.CONSUMING, () -> {
+                doConsume( value );
                 ++index;
+            });
+        }
+
+
+        protected void doConsume( T value ) {
+            for (var consumer : onSuccess) {
+                try {
+                    consumer.accept( site, value );
+                }
+                catch (Throwable e) {
+                    // INFO enabled means debug is on
+                    // XXX if debug=true the defaultErrorHandler should throw the exception for TeaVM
+                    // XXX but it does not happen :(
+                    if (LOG.isLevelEnabled( Level.INFO )) {
+                        throw (RuntimeException)e;
+                    } else {
+                        LOG.warn( e.toString(), e );
+                    }
+                    completeWithError( e );
+                    break;
+                }
             }
         }
 
 
         public void completeWithError( Throwable e ) {
-            if (!isCanceled()) {
-                cancel(); // avoid more errors/results after this error
-            }
-
-            // already done with error
-            if (error != null) {
-                LOG.info( "SKIPPING error after error: " + e );
-                //throw (RuntimeException)Platform.rootCause( e );
-            }
-            // done without error -> programming error
-            else if (isDone()) {
-                LOG.warn( "ERROR after COMPLETE:" + e );
-                //throw (RuntimeException)Platform.rootCause( e );
-            }
-            // not done, not cancelled -> normal
-            else {
+            raiseState( State.COMPLETED, () -> {
                 try {
-                    complete = true;
                     error = e;
                     if (onError.isEmpty()) {
                         LOG.info( "Default error handler: %s", e.toString() );
@@ -645,20 +685,13 @@ public class Promise<T> {
                 finally {
                     notifyComplete();
                 }
-            }
+            });
         }
 
 
         protected void notifyComplete() {
-            //LOG.debug( "complete()" );
-            if (!done) {
-                synchronized (this) {
-                    //onSuccess = null; // help GC(?)
-                    //onError = null;
-                    //upstreams = null;
-                    done = true;
-                    notifyAll();
-                }
+            synchronized (this) {
+                notifyAll();
             }
         }
     }

@@ -153,7 +153,7 @@ public class ArecaUIServer
                 }
 
                 // event loop
-                eventLoop.execute( -1 );
+                eventLoop.execute();
 
                 // response
                 var responseMsg = new JsonServer2ClientMessage();

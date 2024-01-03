@@ -42,39 +42,45 @@ public class AsyncTests {
     @Test(expected = CancelledException.class)
     public Promise<?> cancelPromiseTest() {
         var result = async( () -> "1" )
-                .then( s -> async( () -> Integer.valueOf( s ) ) );
+                // check if parent was cancelled too
+                .onSuccess( __ -> Assert.fail( "Result after cancel" ) )
+                .then( s -> async( () -> Integer.valueOf( s ) ) )
+                .onSuccess( __ -> Assert.fail( "Result after cancel" ) );
         result.cancel();
-        Assert.isEqual( true, result.isCanceled() );
+        Assert.that( result.isCanceled() );
         return result;
     }
 
 
     @Test(expected = CancelledException.class)
     public Promise<?> cancelJoinedPromiseTest() {
-        var result = Promise.joined( 10, i -> async( () -> i ) )
-                .reduce2( 0, (r,next) -> r += next );
+        var result = Promise.joined( 2, i -> async( () -> i ) )
+                // check if parent was cancelled too
+                .onSuccess( __ -> Assert.fail( "Result after cancel" ) )
+                .reduce2( 0, (r,next) -> r += next )
+                .onSuccess( __ -> Assert.fail( "Result after cancel" ) );
         result.cancel();
-        Assert.isEqual( true, result.isCanceled() );
+        Assert.that( result.isCanceled() );
         return result;
     }
 
 
     @Test(expected = CancelledException.class)
     public Promise<?> cancelFromWithinJoinedPromiseTest() {
-        return Promise.joined( 10, i -> async( () -> i ) )
+        return Promise.joined( 2, i -> async( () -> i ) )
                 .map( (i,self) -> {
                     self.cancel();
                     self.complete( i );
                 })
                 .onSuccess( value -> {
-                    throw new IllegalStateException( "Result after error" );
+                    throw new IllegalStateException( "Result after cancel" );
                 });
     }
 
 
     @Test(expected = AssertionException.class)
     public Promise<?> cancelAfterErrorTest() {
-        return Promise.joined( 10, i -> async( () -> i ) )
+        return Promise.joined( 2, i -> async( () -> i ) )
                 .reduce2( 0, (r,next) -> Assert.isNull( next, "never null" ) )
                 .onSuccess( value -> {
                     throw new IllegalStateException( "Result after error" );
@@ -84,7 +90,7 @@ public class AsyncTests {
 
     @Test(expected = AssertionException.class)
     public Promise<?> cancelAfterErrorTest2() {
-        return Promise.joined( 10, i -> async( () -> Assert.isNull( i, "never null" ) ) )
+        return Promise.joined( 2, i -> async( () -> Assert.isNull( i, "never null" ) ) )
                 .reduce2( 0, (r,next) -> r + next )
                 .onSuccess( value -> {
                     throw new IllegalStateException( "Result after error" );
@@ -129,12 +135,11 @@ public class AsyncTests {
                     Assert.that( 1==2, "..." );
                     return "1";
                 })
-//                .onError( e -> {
-//                    LOG.info( "Error: %s", e );
-//                    Assert.isEqual( 1, e );
-//                })
+                .onError( e -> {
+                    Assert.isType( AssertionException.class, e );
+                })
                 .onSuccess( i -> {
-                    LOG.info( "Result: " + i );
+                    Assert.that( false, "must never reach this" );
                 });
     }
 

@@ -14,6 +14,7 @@
 package areca.rt.server;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -55,10 +56,13 @@ public class ServerPlatform
     public void waitForCondition( RSupplier<Boolean> condition, Object target ) {
         var eventLoop = Session.instanceOf( EventLoop.class );
 
-        eventLoop.execute( -1 );
+        eventLoop.execute();
         while( !condition.get() ) {
-            try { Thread.sleep( eventLoop.pendingWait() ); } catch (InterruptedException e) { }
-            eventLoop.execute( -1 );
+            try {
+                Thread.sleep( eventLoop.pendingWait() );
+            }
+            catch (InterruptedException e) { }
+            eventLoop.execute();
         }
     }
 
@@ -124,6 +128,9 @@ public class ServerPlatform
     @Override
     public HttpRequest xhr( String method, String url ) {
         try {
+//            if (!url.startsWith( "http:" ) && !url.startsWith( "https:" )) {
+//                url = ServletContext...
+//            }
             return new HttpRequest() {
 
                 private Builder b = java.net.http.HttpRequest.newBuilder()
@@ -178,7 +185,9 @@ public class ServerPlatform
                         eventLoop.enqueue( "xhr", () -> {
                             LOG.warn( "XHR: enqueued(): ...");
                             if (e != null) {
-                                promise.completeWithError( e );
+                                if (!(e instanceof CancellationException)) {
+                                    promise.completeWithError( e );
+                                }
                             }
                             else {
                                 promise.complete( new HttpResponse() {

@@ -30,6 +30,13 @@ public class Assert {
     }
 
 
+    public static void fail( String... msgs ) throws AssertionException {
+        if (enabled) {
+            throw new AssertionException( message( msgs, "condition not met" ) );
+        }
+    }
+
+
     public static void that( boolean cond, String... msgs ) throws AssertionException {
         if (enabled && !cond) {
             throw new AssertionException( message( msgs, "condition not met" ) );
