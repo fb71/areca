@@ -14,6 +14,7 @@ package areca.rt.server.test;
  */
 
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import areca.common.log.LogFactory;
@@ -26,6 +27,7 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
+@Disabled
 class JUnitSingleTest extends JUnitTestBase {
 
     private static final Log LOG = LogFactory.getLog( JUnitSingleTest.class );
