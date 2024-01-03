@@ -132,14 +132,33 @@ public class AsyncTests {
     @Test(expected = AssertionException.class)
     public Promise<?> promiseError() {
         return async( () -> {
-                    Assert.that( 1==2, "..." );
+                    Assert.fail( "error in async" );
                     return "1";
                 })
                 .onError( e -> {
                     Assert.isType( AssertionException.class, e );
                 })
                 .onSuccess( i -> {
-                    Assert.that( false, "must never reach this" );
+                    Assert.fail( "must never reach this" );
+                });
+    }
+
+
+    @Test(expected = AssertionException.class)
+    public Promise<?> promiseMapError() {
+        return async( () -> {
+                    return "1";
+                })
+                .map( i -> {
+                    Assert.fail( "error in async" );
+                    return i;
+                })
+                .onError( e -> {
+                    //Assert.fail( "error in onError()" );
+                    Assert.isType( AssertionException.class, e );
+                })
+                .onSuccess( i -> {
+                    Assert.fail( "must never reach this" );
                 });
     }
 
@@ -151,8 +170,7 @@ public class AsyncTests {
                     return "1";
                 })
                 .onSuccess( i -> {
-                    LOG.info( "Result: " + i );
-                    Assert.isEqual( "falsch", i );
+                    Assert.fail( "error in onSuccess()" );
                 });
     }
 
@@ -160,14 +178,14 @@ public class AsyncTests {
     @Test(expected = AssertionException.class)
     public Promise<Integer> cascadedPromiseError() {
         return async( () -> {
-                    Assert.isEqual( 1, 2, "..." );
+                    Assert.fail( "error in async" );
                     return "1";
                 })
                 .then( s -> {
-                    return Platform.async( () -> Integer.valueOf( s ) );
+                    return async( () -> Integer.valueOf( s ) );
                 })
                 .onSuccess( i -> {
-                    LOG.info( "Result: " + i );
+                    Assert.fail( "must never reach this" );
                 });
     }
 
