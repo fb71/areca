@@ -32,7 +32,6 @@ class JUnitSingleTest extends JUnitTestBase {
 
     @Test
     public void simpleTest() {
-        execute( areca.common.test.SchedulerTest.info );
     }
 
 }

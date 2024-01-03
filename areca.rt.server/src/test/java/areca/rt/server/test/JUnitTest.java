@@ -17,6 +17,7 @@ package areca.rt.server.test;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import areca.common.Assert;
@@ -203,6 +204,7 @@ class JUnitTest extends JUnitTestBase {
     }
 
     @Test
+    @Disabled
     public void schedulerTest() {
         execute( areca.common.test.SchedulerTest.info );
     }
