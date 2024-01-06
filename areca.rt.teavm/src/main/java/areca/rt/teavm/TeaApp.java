@@ -46,11 +46,11 @@ public class TeaApp
 
     public TeaApp() {
         LOG.info( "Setting default event managers..." );
+        Platform.impl = new TeaPlatform();
         SessionScoper.setInstance( new SessionScoper.JvmSessionScoper() );
         Session.registerFactory( EventManager.class, () -> new IdleAsyncEventManager() );
         Session.registerFactory( UIEventManager.class, () -> new UIEventManager() );
         Session.registerFactory( EventHandlers.class, () -> new EventHandlers() );
-        Platform.impl = new TeaPlatform();
         UIComponentRenderer.start();
     }
 

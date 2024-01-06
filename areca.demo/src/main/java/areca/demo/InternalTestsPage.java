@@ -15,6 +15,8 @@ package areca.demo;
 
 import org.teavm.jso.dom.html.HTMLElement;
 
+import org.polymap.model2.test2.RepoSupplier;
+
 import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -80,6 +82,8 @@ public class InternalTestsPage
 
     @SuppressWarnings("unchecked")
     public static void doRunTests() {
+        RepoSupplier.teavm();
+
         new AsyncAwareTestRunner()
                 .addTests(
                         areca.common.test.AnnotationTest.info,

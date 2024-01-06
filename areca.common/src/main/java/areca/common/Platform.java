@@ -29,6 +29,15 @@ public abstract class Platform {
 
     public static Scheduler scheduler = new Scheduler();
 
+    /**
+     * Returns true if the current Platform runs in the JVM.
+     * Returns false if the current Platform runs in the Browser/JavaScript.
+     */
+    public static boolean isJVM() {
+        return Assert.notNull( impl, "Platform not (yet) initialized." )
+                .getClass().getSimpleName().contains( "Server" );
+    }
+
 
     public static <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
         return impl.schedule( delayMillis, task );

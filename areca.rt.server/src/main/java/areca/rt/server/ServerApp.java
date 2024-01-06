@@ -38,10 +38,10 @@ public abstract class ServerApp
 
     public static void init() throws Exception {
         LOG.info( "Setting default event managers..." );
+        Platform.impl = new ServerPlatform();
         Session.registerFactory( EventManager.class, () -> new SameStackEventManager() ); // XXX
         Session.registerFactory( UIEventManager.class, () -> new ServerUIEventManager() );
         Session.registerFactory( EventHandlers.class, () -> new ServerUIEventHandlers() );
-        Platform.impl = new ServerPlatform();
     }
 
     // instance *******************************************

@@ -1,4 +1,10 @@
 package areca.rt.server.test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+
+import areca.common.Assert;
 /*
  * Copyright (C) 2023, the @authors. All rights reserved.
  *
@@ -12,12 +18,6 @@ package areca.rt.server.test;
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import areca.common.Platform;
 import areca.common.Session;
 import areca.common.SessionScoper;
@@ -46,8 +46,13 @@ class JUnitTestBase {
 
     @BeforeAll
     protected static void setup() {
-        Platform.impl = new ServerPlatform();
-        SessionScoper.setInstance( sessionScope );
+        if (Platform.impl == null) {
+            Platform.impl = new ServerPlatform();
+            SessionScoper.setInstance( sessionScope );
+        }
+        else {
+            Assert.isType( ServerPlatform.class, Platform.impl );
+        }
     }
 
     @BeforeEach

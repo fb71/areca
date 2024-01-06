@@ -12,12 +12,9 @@ package areca.rt.server.test;
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-
-
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import areca.common.Assert;
@@ -31,23 +28,13 @@ import areca.common.log.LogFactory.Log;
 import areca.rt.server.EventLoop;
 
 /**
- * JUnit test runner for Areca core tests, running inside the JVM.
+ * Tests of the Server/JVM Platform.
  *
  * @author Falko Bräutigam
  */
-class JUnitTest extends JUnitTestBase {
+public class ServerTests extends JUnitTestBase {
 
-    private static final Log LOG = LogFactory.getLog( JUnitTest.class );
-
-    @Test
-    public void sequenceTest() {
-        execute( areca.common.test.SequenceTest.info );
-    }
-
-    @Test
-    public void sequenceOpTest() {
-        execute( areca.common.test.SequenceOpTest.info );
-    }
+    private static final Log LOG = LogFactory.getLog( ServerTests.class );
 
     @Test
     public void simpleAsyncTest() {
@@ -182,56 +169,6 @@ class JUnitTest extends JUnitTestBase {
                         throw new IllegalStateException( "Result after error" );
                     });
         });
-    }
-
-
-
-    @Test
-    public void xhrTest() throws InterruptedException {
-        execute( areca.common.test.XhrTest.info );
-    }
-
-
-    @Test
-    public void asyncTest() {
-        execute( areca.common.test.AsyncTests.info );
-    }
-
-
-    @Test
-    public void runtimeTest() {
-        execute( areca.common.test.RuntimeTest.info );
-    }
-
-    @Test
-    @Disabled
-    public void schedulerTest() {
-        execute( areca.common.test.SchedulerTest.info );
-    }
-
-    @Test
-    public void asyncEventManagerTest() {
-        execute( areca.common.test.AsyncEventManagerTest.info );
-    }
-
-    @Test
-    public void idleAsyncEventManagerTest() {
-        execute( areca.common.test.IdleAsyncEventManagerTest.info );
-    }
-
-    @Test
-    public void sameStackEventManagerTest() {
-        execute( areca.common.test.SameStackEventManagerTest.info );
-    }
-
-    @Test
-    public void annotationTest() {
-        execute( areca.common.test.AnnotationTest.info );
-    }
-
-    @Test
-    public void uiEventManagerTest() {
-        execute( areca.ui.test.UIEventManagerTest.info );
     }
 
 }

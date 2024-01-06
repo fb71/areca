@@ -13,9 +13,9 @@
  */
 package areca.rt.server;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import java.time.Duration;
 
@@ -54,7 +54,7 @@ public class EventLoop {
 
     // instance *******************************************
 
-    private Deque<Task>         queue = new ArrayDeque<>( 128 );
+    private Queue<Task>         queue = new ConcurrentLinkedDeque<>();
 
     private volatile int        pollingRequests;
 
@@ -63,14 +63,15 @@ public class EventLoop {
         pollingRequests ++;
     }
 
-    public void releasePolling() {
+    public void releasePolling( String label, Runnable task, int delayMillis ) {
+        enqueue( label, task, delayMillis );
         pollingRequests --;
         Assert.that( pollingRequests >= 0 );
     }
 
     public void enqueue( String label, Runnable task, int delayMillis ) {
         LOG.debug( "enqueue(): %s - %s ms", label, delayMillis );
-        queue.addLast( new Task( task, now() + delayMillis, label ) );
+        queue.add( new Task( task, now() + delayMillis, label ) );
     }
 
 
@@ -111,7 +112,7 @@ public class EventLoop {
     }
 
     public long pendingWait() {
-        Sequence.of( queue ).forEach( t -> LOG.info( "pendingWait(): %s: %s", t.label, t.scheduled - now() ) );
+        Sequence.of( queue ).forEach( t -> LOG.info( "pendingWait(): %s [%s]", t.scheduled - now(), t.label ) );
         var result = Sequence.of( queue )
                 .map( t -> t.scheduled ).reduce( Math::min )
                 .map( minScheduled -> Math.max( 0, minScheduled - now() ) )

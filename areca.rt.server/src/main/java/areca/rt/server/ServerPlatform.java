@@ -181,8 +181,7 @@ public class ServerPlatform
                     eventLoop.requestPolling();
                     future.whenComplete( (response,e) -> {
                         LOG.warn( "XHR: whenComplete(): ...");
-                        eventLoop.releasePolling();
-                        eventLoop.enqueue( "xhr", () -> {
+                        eventLoop.releasePolling( "xhr", () -> {
                             LOG.warn( "XHR: enqueued(): ...");
                             if (e != null) {
                                 if (!(e instanceof CancellationException)) {

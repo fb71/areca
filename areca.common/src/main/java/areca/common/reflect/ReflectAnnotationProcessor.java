@@ -430,7 +430,8 @@ public class ReflectAnnotationProcessor
                         if (typeName.startsWith( "()" )) {
                             typeName = typeName.substring( 2 );
                         }
-                        codeBlock.add( "($L) new Object[] $L;", typeName, valueCode );
+                        var rawTypeName = StringUtils.substringBefore( typeName, "<" ); // XXX
+                        codeBlock.add( "($L) new $L[] $L;", typeName, rawTypeName, valueCode );
                     }
                     else {
                         codeBlock.add( "$L;", valueCode );

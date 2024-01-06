@@ -56,6 +56,10 @@ public class Lazy<T,E extends Exception>
     }
 
 
+    public T $() throws E {
+        return supply();
+    }
+
     @Override
     public T supply() throws E {
         return supply( Assert.notNull( delegate, "Lazy was initialized without supplier." ) );
