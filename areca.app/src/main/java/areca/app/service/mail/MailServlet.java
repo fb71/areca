@@ -552,7 +552,7 @@ public class MailServlet extends HttpServlet {
             this.params = params;
             Properties props = new Properties();
             props.put( "mail.imap.ssl.enable", "true");
-            props.put( "mail.imap.ssl.trust", params.host.value);
+            props.put( "mail.imap.ssl.trust", "*" ); //params.host.value);
             props.put( "mail.imap.timeout", "7000");
             props.put( "mail.imap.connectiontimeout", "5000");
             //props.put("mail.smtp.starttls.enable", "true");

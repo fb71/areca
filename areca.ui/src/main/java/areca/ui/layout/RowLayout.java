@@ -117,7 +117,7 @@ public class RowLayout
                 freeHeight -= constraints.height.opt().orElse( 0 ) + spacing.value();
                 freeCount += constraints.height.opt().isPresent() ? 0 : 1;
             }
-            int freeComponentHeight = (freeHeight + spacing.value()) / freeCount;
+            int freeComponentHeight = freeCount > 0 ? (freeHeight + spacing.value()) / freeCount : 0;
 
             // components
             int cTop = margins.value().height();

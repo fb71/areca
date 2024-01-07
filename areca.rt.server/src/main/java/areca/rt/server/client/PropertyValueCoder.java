@@ -26,6 +26,7 @@ import areca.ui.component2.Events.EventHandler;
 import areca.ui.component2.Property;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Property.ReadWrites;
+import areca.ui.component2.Text.Format;
 
 /**
  *
@@ -68,6 +69,10 @@ public class PropertyValueCoder {
             else if (value instanceof Size) {
                 return String.format( "S:%s:%s", ((Size)value).width(), ((Size)value).height() );
             }
+            else if (value instanceof Enum) {
+                var v = (Enum)value;
+                return String.format( "e:%s:%s", v.getClass().getName(), v.toString() );
+            }
         }
         //LOG.warn( "Missing property: " + prop );
         return "missing";
@@ -100,6 +105,17 @@ public class PropertyValueCoder {
                 case 'S': {
                     var parts = split( value, ":" );
                     ((ReadWrite<?,Size>)prop).set( Size.of( parseInt( parts[0] ), parseInt( parts[1] ) ) );
+                    break;
+                }
+                case 'e': {
+                    var parts = split( value, ":" );
+                    Enum v = null;
+                    if (parts[0].equals( Format.class.getName() )) {
+                        v = Format.valueOf( parts[1] );
+                    } else {
+                        throw new RuntimeException( "Unknown enum type: " + parts[0] );
+                    }
+                    ((ReadWrite<?,Format>)prop).set( (Format)v );
                     break;
                 }
                 default: {
