@@ -49,6 +49,11 @@ public class TeaPlatform
 
 
     @Override
+    public void dispose() {
+    }
+
+
+    @Override
     public Promise<Void> requestAnimationFrame( RConsumer<Double> callback ) {
         return new Completable<Void>() {
 

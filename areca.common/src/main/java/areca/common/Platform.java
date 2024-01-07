@@ -112,6 +112,8 @@ public abstract class Platform {
      */
     public interface PlatformImpl {
 
+        public void dispose();
+
         public <R> Promise<R> schedule( int delayMillis, Callable<R> task );
 
         public void waitForCondition( RSupplier<Boolean> condition, Object target );

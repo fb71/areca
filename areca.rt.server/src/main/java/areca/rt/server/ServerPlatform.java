@@ -32,6 +32,7 @@ import areca.common.Promise;
 import areca.common.Promise.Completable;
 import areca.common.Session;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Lazy.RLazy;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -49,7 +50,16 @@ public class ServerPlatform
 
     // instance *******************************************
 
-    private HttpClient      http = HttpClient.newBuilder().connectTimeout( HTTP_TIMEOUT ).build();
+    /** One HttpClient for all {@link Session}s */
+    private RLazy<HttpClient>   http = new RLazy<>( () -> HttpClient.newBuilder().connectTimeout( HTTP_TIMEOUT ).build() );
+
+
+    @Override
+    public void dispose() {
+        if (http != null) {
+            http = null; // XXX no close()/stop() API!?? :(
+        }
+    }
 
 
     @Override
@@ -128,6 +138,7 @@ public class ServerPlatform
     @Override
     public HttpRequest xhr( String method, String url ) {
         try {
+            // check internal/relative URLs on server
 //            if (!url.startsWith( "http:" ) && !url.startsWith( "https:" )) {
 //                url = ServletContext...
 //            }
@@ -168,7 +179,7 @@ public class ServerPlatform
                         : b.method( method, BodyPublishers.ofString( (String)jsonOrStringData ) );
 
                     var request = b.build();
-                    var future = http.sendAsync( request, BodyHandlers.ofString() );
+                    var future = http.get().sendAsync( request, BodyHandlers.ofString() );
 
                     var promise = new Promise.Completable<HttpResponse>() {
                         @Override public void cancel() {

@@ -20,6 +20,7 @@ import areca.common.event.EventManager;
 import areca.common.event.SameStackEventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.rt.server.servlet.ArecaUIServer;
 import areca.ui.App;
 import areca.ui.Size;
 import areca.ui.component2.EventHandlers;
@@ -38,12 +39,29 @@ public abstract class ServerApp
 
     private static final Log LOG = LogFactory.getLog( ServerApp.class );
 
+    /**
+     * Static global initializer called by the {@link ArecaUIServer#init()}.
+     * <p/>
+     * Sub-classes must not call super method!
+     */
     public static void init() throws Exception {
         LOG.info( "Setting default event managers..." );
         Platform.impl = new ServerPlatform();
         Session.registerFactory( EventManager.class, () -> new SameStackEventManager() ); // XXX
         Session.registerFactory( UIEventManager.class, () -> new ServerUIEventManager() );
         Session.registerFactory( EventHandlers.class, () -> new ServerUIEventHandlers() );
+    }
+
+    /**
+     * Static global destructor called by the {@link ArecaUIServer#destroy()}.
+     * <p/>
+     * Sub-classes must not call super method!
+     */
+    public static void dispose() throws Exception {
+        if (Platform.impl != null) {
+            Platform.impl.dispose();
+            Platform.impl = null;
+        }
     }
 
     // instance *******************************************

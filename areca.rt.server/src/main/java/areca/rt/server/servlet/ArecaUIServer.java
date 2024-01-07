@@ -15,10 +15,13 @@ package areca.rt.server.servlet;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import java.util.LinkedList;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -72,12 +75,21 @@ public class ArecaUIServer
             appClass = Opt.of( getServletConfig().getInitParameter( "areca.appclass" ) )
                     .map( classname -> (Class<ServerApp>)Class.forName( classname ) )
                     .orElseThrow( () -> new ServletException( "No parameter: areca.appclass" ) );
-            var init = appClass.getMethod( "init", new Class[0] );
-            init.invoke( null );
+
+            // find/call all static init()
+            var reverse = new LinkedList<Method>();
+            for (Class c = appClass; c != null; c = c.getSuperclass()) {
+                Sequence.of( c.getMethods() )
+                        .first( m -> m.getName().equals( "init" ) && Modifier.isStatic( m.getModifiers() ) )
+                        .ifPresent( m -> reverse.addFirst( m ) );
+            }
+            for (var m : reverse) {
+                m.invoke( null );
+            }
 
             Session.registerFactory( ServerApp.class, () -> appClass.newInstance() );
         }
-        catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        catch (Exception e) {
             throw new ServletException( e );
         }
     }
@@ -87,9 +99,12 @@ public class ArecaUIServer
     public void destroy() {
         try {
             if (appClass != null) {
-                Sequence.of( appClass.getMethods() )
-                        .first( m -> m.getName().equals( "dispose" ) )
-                        .ifPresent( dispose -> dispose.invoke( null ) );
+                // find/call all static dispose()
+                for (Class c = appClass; c != null; c = c.getSuperclass()) {
+                    Sequence.of( c.getMethods() )
+                            .first( m -> m.getName().equals( "dispose" ) && Modifier.isStatic( m.getModifiers() ) )
+                            .ifPresent( m -> m.invoke( null ) );
+                }
             }
         }
         catch (Exception e) {
@@ -106,10 +121,10 @@ public class ArecaUIServer
         if (startSession) {
             synchronized (httpSession) {
                 if (session != null) {
-                    LOG.info( "Session: dispose!" );
+                    LOG.info( "Session: DISPOSE" );
                     session.dispose();
                 }
-                LOG.info( "Session: START!" );
+                LOG.info( "Session: START" );
                 session = new Session();
                 httpSession.setAttribute( "areca.session", session );
 
