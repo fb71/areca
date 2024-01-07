@@ -28,6 +28,8 @@ import areca.ui.component2.UIEventManager;
 
 /**
  * An Areca app running on the server. :)
+ * <p/>
+ * There is one instance per Session.
  *
  * @author Falko Bräutigam
  */

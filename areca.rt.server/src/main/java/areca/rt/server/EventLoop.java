@@ -94,7 +94,7 @@ public class EventLoop {
         // one loop can add more tasks to the queue
         var hasMoreWork = true;
         for (var c = 0; hasMoreWork && now() < deadline; c++) {
-            LOG.info( "______ Run %s (queue: %s) ______", c, queue.size() );
+            LOG.debug( "______ Run %s (queue: %s) ______", c, queue.size() );
             var _now = now();
             var canRun = new ArrayList<Task>( queue.size() );
             for (var it = queue.iterator(); it.hasNext();) {
@@ -112,7 +112,9 @@ public class EventLoop {
     }
 
     public long pendingWait() {
-        Sequence.of( queue ).forEach( t -> LOG.info( "pendingWait(): %s [%s]", t.scheduled - now(), t.label ) );
+        Sequence.of( queue ).forEach( t ->
+                LOG.debug( "pendingWait(): %s [%s]", t.scheduled - now(), t.label ) );
+
         var result = Sequence.of( queue )
                 .map( t -> t.scheduled ).reduce( Math::min )
                 .map( minScheduled -> Math.max( 0, minScheduled - now() ) )

@@ -58,6 +58,9 @@ public class LogFactory {
         levels.put( packageName, level );
     }
 
+    public static Object[] a( Object... args ) {
+        return args;
+    }
 
     /**
      *
@@ -93,16 +96,15 @@ public class LogFactory {
         protected void log( Level msgLevel, String msg, Object[] args, Throwable e ) {
             if (isLevelEnabled( msgLevel )) {
                 //Platform.scheduler.schedule( Priority.DECORATION, () -> {
-                    doLog( msgLevel, msg, args, null );
+                    doLog( msgLevel, msg, args, e );
                 //});
             }
         }
 
-        protected void log2( Level msgLevel, String msg, RSupplier<Object>[] args, Throwable e ) {
+        protected void log2( Level msgLevel, String msg, RSupplier<Object[]> args, Throwable e ) {
             if (isLevelEnabled( msgLevel )) {
                 //Platform.scheduler.schedule( Priority.DECORATION, () -> {
-                    var supplied = Sequence.of( args ).map( supplier -> supplier.get() ).toArray( Object[]::new );
-                    doLog( msgLevel, msg, supplied, null );
+                    doLog( msgLevel, msg, args.get(), e );
                 //});
             }
         }
@@ -119,8 +121,7 @@ public class LogFactory {
             log( Level.INFO, format, args, null );
         }
 
-        @SafeVarargs
-        public final void info2( String format, RSupplier<Object>... args ) {
+        public final void info( String format, RSupplier<Object[]> args ) {
             log2( Level.INFO, format, args, null );
         }
 
@@ -128,9 +129,8 @@ public class LogFactory {
             log( Level.DEBUG, format, args, null );
         }
 
-        @SafeVarargs
-        public final void debug2( String format, RSupplier<Object>... args ) {
-            log( Level.DEBUG, format, args, null );
+        public final void debug( String format, RSupplier<Object[]> args ) {
+            log2( Level.DEBUG, format, args, null );
         }
 
         public boolean isLevelEnabled( Level l ) {
