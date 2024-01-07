@@ -218,11 +218,7 @@ public class UIComponentRenderer
                     ((MouseEvent)_htmlEv).stopPropagation();
                     ((MouseEvent)_htmlEv).preventDefault();
                     try {
-                        handler.consumer.accept( new UIEvent( c ) {
-                            {
-                                this.htmlEv = _htmlEv;
-                                this.type = handler.type;
-                            }
+                        handler.consumer.accept( new UIEvent( c, _htmlEv, handler.type ) {
                             @Override
                             public Position clientPos() {
                                 return Position.of( ((MouseEvent)_htmlEv).getClientX(), ((MouseEvent)_htmlEv).getClientY() );

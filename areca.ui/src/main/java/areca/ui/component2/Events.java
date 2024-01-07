@@ -46,6 +46,8 @@ public class Events
         ACTION,
         /** Pseudo event: show context sensitive actions (right click or long tap) */
         CONTEXT,
+        /** {@link TextField} content has been changed */
+        TEXT,
 
         CLICK,
         CONTEXTMENU,
@@ -109,8 +111,10 @@ public class Events
 
         public EventType        type;
 
-        public UIEvent( UIComponent source ) {
+        public UIEvent( UIComponent source, Object htmlEv, EventType type ) {
             super( source );
+            this.htmlEv = htmlEv;
+            this.type = type;
         }
 
         @Override

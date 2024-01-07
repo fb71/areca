@@ -26,6 +26,7 @@ import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Platform.HttpResponse;
 import areca.common.Promise;
+import areca.common.Promise.CancelledException;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -36,7 +37,9 @@ import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.Property.PropertyChangedEvent;
+import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
+import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructingEvent;
@@ -63,7 +66,7 @@ public class Connection {
 
     private Map<Integer,UIComponent>    components = new HashMap<>( 512 );
 
-    /** Pending (click) events to be send to the server. */
+    /** Pending events to be send to the server. */
     private Deque<JSClickEvent>         clickEvents = new ArrayDeque<>();
 
     private Promise<?>                  pendingWait;
@@ -146,6 +149,7 @@ public class Connection {
                 var prop = Sequence.of( component.allProperties() )
                         .first( p -> p.name().equals( ev.propName() ) )
                         .orElseError();
+
                 // Events
                 if (ev.propNewValue().startsWith( "E:")) {
                     Assert.that( ev.propOldValue().length() <= 2 ); // no old values
@@ -153,7 +157,7 @@ public class Connection {
                     for (var eventTypeName : split( value, ":" )) {
                         var eventType = EventType.valueOf( eventTypeName );
                         component.events.on( eventType, _ev -> {
-                            onClick( component, _ev );
+                            onComponentEvent( component, _ev );
                         });
                     }
                 }
@@ -168,23 +172,47 @@ public class Connection {
         }
     }
 
+    private Promise<Void> throttle;
 
     /**
      * Called when the user has clicked on a component or any other {@link EventType}.
      */
-    protected void onClick( UIComponent component, UIEvent ev ) {
+    protected void onComponentEvent( UIComponent component, UIEvent ev ) {
         var jsev = JSClickEvent.create();
         jsev.setEventType( ev.type.toString() );
         jsev.setComponentId( component.id() );
         //jsev.setPosition( )
+
+        int delay = 0;
+        if (ev.type == EventType.TEXT) {
+            jsev.setContent( ((TextField)component).content.get() );
+            delay = 250;
+        }
+
         clickEvents.add( jsev );
 
-        Assert.isNull( pendingRequest );
-        if (pendingWait != null) {
-            pendingWait.cancel();
-            pendingWait = null;
+        if (throttle != null) {
+            throttle.cancel();
         }
-        readServer( false );
+        throttle = Platform.schedule( delay, () -> {
+            LOG.info( "THROTTLE: %s events", clickEvents.size() );
+
+            Assert.isNull( pendingRequest );
+            if (pendingWait != null) {
+                pendingWait.cancel();
+                pendingWait = null;
+            }
+            readServer( false );
+
+            throttle = null;
+            return null;
+        });
+        throttle.onError( e -> {
+            // prevent default error handler
+            if (!(e instanceof CancelledException)) {
+                throw (RuntimeException)e;
+            }
+        });
     }
 
 
@@ -192,8 +220,10 @@ public class Connection {
     private UIComponent createInstance( String classname ) {
         switch (classname) {
             case PACKAGE_UI_COMPONENTS + ".UIComposite" : return new UIComposite();
+            case PACKAGE_UI_COMPONENTS + ".ScrollableComposite" : return new ScrollableComposite();
             case PACKAGE_UI_COMPONENTS + ".Text" : return new Text();
             case PACKAGE_UI_COMPONENTS + ".Button" : return new Button();
+            case PACKAGE_UI_COMPONENTS + ".TextField" : return new TextField();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );

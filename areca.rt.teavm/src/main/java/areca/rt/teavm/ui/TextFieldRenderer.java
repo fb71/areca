@@ -13,14 +13,19 @@
  */
 package areca.rt.teavm.ui;
 
+import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.html.HTMLInputElement;
 import org.teavm.jso.dom.html.HTMLTextAreaElement;
 
+import areca.common.Platform;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
+import areca.ui.Position;
+import areca.ui.component2.Events;
+import areca.ui.component2.Events.EventType;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
@@ -57,10 +62,13 @@ public class TextFieldRenderer
                 LOG.debug( "Set: %s", newValue );
                 textarea.setValue( newValue != null ? newValue : "" );
             });
-            htmlElm( c ).addEventListener( "input", htmlEv -> {
-                //((MouseEvent)_htmlEv).stopPropagation();
-                //htmlEv.preventDefault();
+            textarea.addEventListener( "input", htmlEv -> {
+                htmlEv.stopPropagation();
+                htmlEv.preventDefault();
+
                 c.content.rawSet( textarea.getValue() );
+                LOG.debug( "Text: %s", textarea.getValue() );
+                propagateEvent( c, htmlEv );
             });
         }
         // input
@@ -73,11 +81,38 @@ public class TextFieldRenderer
                 input.setValue( newValue != null ? newValue : "" );
             });
 
-            htmlElm( c ).addEventListener( "input", htmlEv -> {
-                //((MouseEvent)_htmlEv).stopPropagation();
-                //htmlEv.preventDefault();
+            LOG.info( "Register listener: %s", "input" );
+            input.addEventListener( "input", htmlEv -> {
+                htmlEv.stopPropagation();
+                htmlEv.preventDefault();
+
                 c.content.rawSet( input.getValue() );
+                LOG.debug( "Text: %s", input.getValue() );
+                propagateEvent( c, htmlEv );
             });
+        }
+    }
+
+
+    protected void propagateEvent( TextField c, Event htmlEv ) {
+        for (var handler : c.events) {
+            if (handler.type == EventType.TEXT) {
+                try {
+                    LOG.debug( "Handler: ..." );
+                    var uiev = new Events.UIEvent( c, htmlEv, handler.type ) {
+                        @Override public Position clientPos() {
+                            return null;
+                            //return Position.of( ((MouseEvent)_htmlEv).getClientX(), ((MouseEvent)_htmlEv).getClientY() );
+                        }
+                    };
+                    handler.consumer.accept( uiev );
+                }
+                catch (Exception e) {
+                    Throwable rootCause = Platform.rootCause( e );
+                    LOG.info( "Root cause: %s : %s", rootCause, rootCause.getMessage() );
+                    throw (RuntimeException)e; // help TeaVM to print proper stack
+                }
+            }
         }
     }
 

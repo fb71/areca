@@ -18,7 +18,7 @@ import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 
 /**
- * Client to server message.
+ * Client -> server message.
  */
 abstract class JSClient2ServerMessage
         implements JSObject {
@@ -49,5 +49,8 @@ abstract class JSClient2ServerMessage
 
         @JSProperty("componentId")
         public abstract void setComponentId( int v );
+
+        @JSProperty("content")
+        public abstract void setContent( String v );
     }
 }

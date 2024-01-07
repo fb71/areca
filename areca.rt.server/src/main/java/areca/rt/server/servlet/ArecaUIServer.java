@@ -35,6 +35,7 @@ import areca.common.SessionScoper;
 import areca.common.SessionScoper.ThreadBoundSessionScoper;
 import areca.common.Timer;
 import areca.common.base.Opt;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.server.EventLoop;
@@ -42,6 +43,7 @@ import areca.rt.server.ServerApp;
 import areca.ui.Position;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
+import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 
 /**
@@ -77,6 +79,21 @@ public class ArecaUIServer
         }
         catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             throw new ServletException( e );
+        }
+    }
+
+
+    @Override
+    public void destroy() {
+        try {
+            if (appClass != null) {
+                Sequence.of( appClass.getMethods() )
+                        .first( m -> m.getName().equals( "dispose" ) )
+                        .ifPresent( dispose -> dispose.invoke( null ) );
+            }
+        }
+        catch (Exception e) {
+            LOG.warn( "Error during destroy()", e );
         }
     }
 
@@ -141,10 +158,13 @@ public class ArecaUIServer
 
                 // request: handle click events
                 if (msg != null) {
-                    eventLoop.enqueue( "client click", () -> {
+                    eventLoop.enqueue( "client event", () -> {
                         for (var event : msg.events) {
                             var component = collector.componentForId( event.componentId );
                             var eventType = EventType.valueOf( event.eventType );
+                            if (eventType == EventType.TEXT) {
+                                ((TextField)component).content.rawSet( event.content );
+                            }
                             component.events.values()
                                     .filter( handler -> handler.type.equals( eventType ) )
                                     .forEach( handler -> handler.consumer.accept( new ServerUIEvent( component, eventType ) ) );
@@ -178,8 +198,7 @@ public class ArecaUIServer
     protected class ServerUIEvent extends UIEvent {
 
         public ServerUIEvent( UIComponent source, EventType type ) {
-            super( source );
-            this.type = type;
+            super( source, null, type );
         }
 
         @Override

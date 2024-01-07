@@ -32,6 +32,7 @@ class JsonClient2ServerMessage {
         public String eventType;
         public String position;
         public Integer componentId;
+        public String content;
     }
 
 }
