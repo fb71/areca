@@ -14,8 +14,9 @@ package areca.rt.server.test;
  */
 
 
+import java.io.File;
+
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.polymap.model2.test2.PerformanceTest;
@@ -25,24 +26,25 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
- * JUnit test runner for Areca core tests, running inside the JVM.
- * <p>
- * Just a single test for better debugging.
+ * JUnit test runner for {@link PerformanceTest}.
  *
  * @author Falko Bräutigam
  */
-@Disabled
-class JUnitSingleTest extends JUnitTestBase {
+class Model2PerformanceTest extends JUnitTestBase {
 
-    private static final Log LOG = LogFactory.getLog( JUnitSingleTest.class );
+    private static final Log LOG = LogFactory.getLog( Model2PerformanceTest.class );
 
     @BeforeAll
-    protected static void setupLogging() {
-        RepoSupplier.no2();
+    protected static void setupStore() {
+        RepoSupplier.no2( new File( "/tmp/" + Model2PerformanceTest.class.getSimpleName() ) );
+        // RepoSupplier.no2();
+
+//        LogFactory.setPackageLevel( No2Store.class, Level.DEBUG );
+//        LogFactory.setPackageLevel( SimpleModelTest.class, Level.DEBUG );
     }
 
     @Test
-    public void theOnlyTest() {
+    public void performanceTest() {
         execute( PerformanceTest.info );
     }
 

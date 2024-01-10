@@ -71,7 +71,9 @@ class JUnitTestBase {
     }
 
     protected void execute( ClassInfo<?>... tests ) {
-        execute( () -> new TestRunner().addTests( tests ).addDecorators( LogDecorator.info ).run() );
+        execute( () -> new TestRunner()
+                .addTests( tests )
+                .addDecorators( LogDecorator.info ).run() );
     }
 
     protected void execute( Runnable task ) {

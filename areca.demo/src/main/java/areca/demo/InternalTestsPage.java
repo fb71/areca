@@ -105,7 +105,8 @@ public class InternalTestsPage
                         org.polymap.model2.test2.SimpleQueryTest.info,
                         org.polymap.model2.test2.AssociationsTest.info,
                         org.polymap.model2.test2.ComplexModelTest.info,
-                        org.polymap.model2.test2.RuntimeTest.info
+                        org.polymap.model2.test2.RuntimeTest.info,
+                        org.polymap.model2.test2.PerformanceTest.info
                         )
 
                 //.addTests( areca.app.service.imap.ImapTest.info )
