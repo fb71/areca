@@ -82,7 +82,7 @@ public class ServerPlatform
         Completable<R> promise = new Completable<>();
         Session.instanceOf( EventLoop.class ).enqueue( "schedule", () -> {
             try {
-                if (!promise.isCanceled()) {
+                if (!promise.isCanceled()) { // XXX
                     promise.complete( task.call() );
                 }
             }

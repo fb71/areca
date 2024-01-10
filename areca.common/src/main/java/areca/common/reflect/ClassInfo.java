@@ -76,7 +76,7 @@ public abstract class ClassInfo<T>
     protected ClassInfo() {
         // either literal access via instance variable or via of() static method.
         classInfos.put( type(), this );
-        LOG.info( "init: %s", type().getName() );
+        LOG.debug( "init: %s", type().getName() );
     }
 
     @Override

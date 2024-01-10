@@ -13,8 +13,7 @@
  */
 package areca.common;
 
-import static areca.common.log.LogFactory.Level.INFO;
-
+import static areca.common.log.LogFactory.Level.DEBUG;
 import java.util.ArrayDeque;
 import java.util.Comparator;
 import java.util.Deque;
@@ -89,8 +88,8 @@ public class Scheduler {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     protected void process( IdleDeadline deadline ) {
-        if (LOG.isLevelEnabled( INFO )) { // LOG potentially uses Scheduler
-            System.out.println( LOG.format( INFO, "Queue: %d, remaining: %s", queue.size(), deadline.timeRemaining() ) );
+        if (LOG.isLevelEnabled( DEBUG )) { // LOG potentially uses Scheduler
+            System.out.println( LOG.format( DEBUG, "Queue: %d, remaining: %s", queue.size(), deadline.timeRemaining() ) );
         }
         //var now = now();
 
@@ -111,8 +110,8 @@ public class Scheduler {
             peek = queue.peek();
             count ++;
         }
-        if (LOG.isLevelEnabled( INFO )) {
-            System.out.println( LOG.format( INFO, "  processed: %d, queue: %d, remaining: %s, async: %s", count, queue.size(), deadline.timeRemaining(), async ) );
+        if (LOG.isLevelEnabled( DEBUG )) {
+            System.out.println( LOG.format( DEBUG, "  processed: %d, queue: %d, remaining: %s, async: %s", count, queue.size(), deadline.timeRemaining(), async ) );
         }
 
         // schedule next loop

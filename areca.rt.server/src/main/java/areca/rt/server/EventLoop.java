@@ -26,11 +26,16 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
- * Mimics the JS/Browser event loop on the server side.
- * <p>
+ * Implements the JS/Browser event loop on the server side.
+ * <p/>
  * There is one {@link EventLoop} per {@link Session}. Implementation is not
  * thread-safe as this implemantation expects that everything runs in one single
  * thread.
+ * <p/>
+ * This implementation handles scheduled/pending tasks, which maybe better belongs to
+ * {@link ServerPlatform#schedule(int, java.util.concurrent.Callable)} logic
+ * (comparable to {@link #requestPolling()} logic of
+ * {@link ServerPlatform#xhr(String, String)}.
  *
  * @author Falko Bräutigam
  */

@@ -77,7 +77,7 @@ public abstract class ServerApp
         return super.createUI( rootWindow -> {
             // XXX set the size of the root composite
             rootWindow.size.defaultsTo( () -> {
-                return Size.of( 450, 500 );
+                return Size.of( 400, 500 );
             });
 
 //            var throttle = new EventCollector<>( 750 );

@@ -13,12 +13,17 @@
  */
 package areca.common.testrunner;
 
+import static areca.common.log.ConsoleColors.GREEN;
+import static areca.common.log.ConsoleColors.RED_BRIGHT;
+import static areca.common.log.ConsoleColors.RESET;
+import static areca.common.log.ConsoleColors.YELLOW;
 import static org.apache.commons.lang3.StringUtils.leftPad;
 import static org.apache.commons.lang3.StringUtils.rightPad;
 
 import java.util.logging.Logger;
 
 import areca.common.Platform;
+import areca.common.log.ConsoleColors;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.common.testrunner.TestRunner.TestMethod;
@@ -40,17 +45,17 @@ public class LogDecorator
     public static final ClassInfo<LogDecorator> info = LogDecoratorClassInfo.instance();
 
     protected void println( String s ) {
-        System.out.println( s );
+        System.out.println( ConsoleColors.PURPLE + s + RESET );
     }
 
     @Override
     public void preRun( TestRunner runner ) {
-        println( "Running tests..." );
+        //println( "Running tests..." );
     }
 
     @Override
     public void postRun( TestRunner runner ) {
-        println( "done." );
+        //println( "done." );
     }
 
     @Override
@@ -66,21 +71,21 @@ public class LogDecorator
     @Override
     public void postTestMethod( TestMethod m, TestResult testResult ) {
         if (testResult.getStatus() == TestStatus.PASSED) {
-            println( leftPad( "--| ok (" + testResult.elapsedTime() + ")", LINE_LENGHT, ' ' ) );
+            println( GREEN + leftPad( "--| ok (" + testResult.elapsedTime() + ")", LINE_LENGHT, ' ' ) );
         }
         else if (testResult.getStatus() == TestStatus.SKIPPED) {
-            println( leftPad( "--| skipped (" + testResult.elapsedTime() + ")", LINE_LENGHT, ' ' ) );
+            println( YELLOW + leftPad( "--| skipped (" + testResult.elapsedTime() + ")", LINE_LENGHT, ' ' ) );
         }
         else {
             Throwable e = testResult.getException();
             if (e != null) {
-                println( leftPad( "--| failed (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")", LINE_LENGHT, ' ' ) );
+                println( RED_BRIGHT + leftPad( "--| failed", LINE_LENGHT, ' ' ) );
                 Throwable cause = Platform.rootCause( e );
-                System.out.println( "Root cause: " + cause );
+                println( "Root cause: " + cause );
                 throw (RuntimeException)cause;
                 //cause.printStackTrace( System.err );
             } else {
-                println( leftPad( "--| failed (no exception)", LINE_LENGHT, ' ' ) );
+                println( RED_BRIGHT + leftPad( "--| failed (no exception)", LINE_LENGHT, ' ' ) );
             }
         }
     }

@@ -58,6 +58,9 @@ public class LogFactory {
         levels.put( packageName, level );
     }
 
+    /**
+     * For use with {@link Log#info(String, RSupplier)}.
+     */
     public static Object[] a( Object... args ) {
         return args;
     }
@@ -66,6 +69,13 @@ public class LogFactory {
      *
      */
     public static class Log {
+
+        private static final Map<Level,String> COLORS = new HashMap<>() {{
+            put( Level.DEBUG, ConsoleColors.BLACK_BRIGHT );
+            put( Level.INFO, "" ); // ConsoleColors.RESET );
+            put( Level.WARN, ConsoleColors.YELLOW );
+            put( Level.ERROR, ConsoleColors.RED );
+        }};
 
         protected final String  prefix;
 
@@ -89,8 +99,10 @@ public class LogFactory {
 
         private void doLog( Level msgLevel, String msg, Object[] args, Throwable e ) {
             @SuppressWarnings("resource")
-            var out = msgLevel.ordinal() >= Level.WARN.ordinal() ? System.err : System.out;
-            out.println( format( msgLevel, msg, args ) );
+            var out = msgLevel.ordinal() >= Level.ERROR.ordinal() ? System.err : System.out;
+            var color = COLORS.get( msgLevel );
+            var reset = ConsoleColors.RESET;
+            out.println( color + format( msgLevel, msg, args ) + reset );
         }
 
         protected void log( Level msgLevel, String msg, Object[] args, Throwable e ) {
@@ -115,6 +127,10 @@ public class LogFactory {
 
         public void warn( String msg, Throwable e ) {
             log( Level.WARN, msg, null, e );
+        }
+
+        public void warn( String format, Object... args ) {
+            log( Level.WARN, format, args, null );
         }
 
         public void info( String format, Object... args ) {

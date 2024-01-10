@@ -80,12 +80,11 @@ public class Assert {
         return actual;
     }
 
-    @SuppressWarnings("unchecked")
-    public static <R> R isType( Class<?> expected, Object actual, String... msgs ) throws AssertionException {
+    public static <R> R isType( Class<R> expected, Object actual, String... msgs ) throws AssertionException {
         if (enabled && actual != null && !expected.isAssignableFrom( actual.getClass() )) {
             throw new AssertionException( expected, actual, message( msgs, "not expected type" ) );
         }
-        return (R)actual;
+        return expected.cast( actual );
     }
 
 
