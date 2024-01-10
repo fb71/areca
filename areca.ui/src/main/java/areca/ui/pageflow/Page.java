@@ -47,6 +47,7 @@ public abstract class Page {
     /**
      * Denotes one or more methods of a pojo page which are called after all
      * {@link Context} variables are injected and before the page is opened.
+     * @see Page#init(PageSite)
      */
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
@@ -57,6 +58,7 @@ public abstract class Page {
      * Denotes one or more methods of a pojo page which are called when the page is
      * about to close. The method must return a value of type {@link Boolean} or
      * boolean.
+     * @see Page#close()
      */
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
@@ -66,12 +68,16 @@ public abstract class Page {
     /**
      * Denotes one or more methods of a pojo page which are called after
      * the page is closed in order to dispose all resources.
+     * @see Page#dispose()
      */
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD})
     public @interface Dispose {}
 
+    /**
+     * @see Page#createUI(UIComposite)
+     */
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD})

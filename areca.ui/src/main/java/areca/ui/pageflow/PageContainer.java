@@ -118,7 +118,8 @@ public class PageContainer
                         bordered.set( false );
                         cssClasses.add( CSS_HEADER_ITEM );
                         action.label.opt().ifPresent( v -> label.set( v ) );
-                        action.icon.opt().ifPresent( v -> icon.set( v ) );
+                        //action.icon.opt().ifPresent( v -> icon.set( v ) );
+                        action.icon.onInitAndChange( (v,__) -> icon.set( v ) );
                         action.description.opt().ifPresent( v -> tooltip.set( v ) );
                         events.on( SELECT, ev -> {
                             try {
