@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,17 +11,27 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.ui.modeladapter;
+
+import areca.common.base.Opt;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public interface SingleValueAdapter<T>
-        extends ModelAdapter {
+public abstract class ModelValue<V>
+        extends ModelValueBase {
 
-    public T getValue();
+    public abstract V get();
 
-    public void setValue( T value );
+    public V $() {
+        return get();
+    }
+
+    public Opt<V> opt() {
+        return Opt.of( get() );
+    }
+
+    public abstract void set( V value );
 
 }

@@ -22,7 +22,7 @@ import areca.ui.component2.UIComposite;
 import areca.ui.form.UI.NO_TRANSFORMER;
 import areca.ui.form.UI.NO_VALIDATOR;
 import areca.ui.form.UI.NO_VIEWER;
-import areca.ui.viewer.ModelAdapter;
+import areca.ui.viewer.modeladapter.ModelValueBase;
 
 /**
  * Renders a Form with {@link UI} specified fields.
@@ -49,8 +49,8 @@ public class FormRenderer {
 
                     Assert.that( f.genericType() instanceof ParameterizedType, "Form field has to be ParameterizedType: " + f.name() );
                     var type = (ParameterizedType)f.genericType();
-                    Assert.that( ModelAdapter.class.isAssignableFrom( type.getRawType() ), "Form field has to be of type ModeAdapter: " + f.name() );
-                    ModelAdapter adapter = (ModelAdapter)f.get( form );
+                    Assert.that( ModelValueBase.class.isAssignableFrom( type.getRawType() ), "Form field has to be of type ModeAdapter: " + f.name() );
+                    var adapter = (ModelValueBase)f.get( form );
                     Assert.notNull( adapter, "Adapter is mandatory." );
                     fb.adapter( adapter );
 

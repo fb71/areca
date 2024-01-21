@@ -129,4 +129,15 @@ class AnnotatedPage
             });
         }
     }
+
+    @Override
+    protected boolean onClose() {
+        for (MethodInfo m : pageInfo.methods()) {
+            if (m.annotation( Page.Close.class ).isPresent()) {
+                return (Boolean)m.invokeThrowingRuntimeException( delegate );
+            }
+        }
+        return true;
+    }
+
 }

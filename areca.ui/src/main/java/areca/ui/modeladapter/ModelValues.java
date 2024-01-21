@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,25 +11,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.ui.modeladapter;
 
-import java.util.List;
+import areca.common.base.Sequence;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class Chunk {
+public abstract class ModelValues<V>
+        extends ModelValueBase
+        implements Iterable<V> {
 
-    private int     firstResult;
+    public abstract int count();
 
-    private int     maxResults;
-
-    public Chunk( int firstResult, int maxResults ) {
-        this.firstResult = firstResult;
-        this.maxResults = maxResults;
+    public Sequence<V,RuntimeException> sequence() {
+        return Sequence.of( this );
     }
-
-    public abstract void setResults( List<?> results );
-
 }

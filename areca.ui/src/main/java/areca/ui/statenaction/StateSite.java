@@ -22,4 +22,13 @@ public interface StateSite {
 
     public StateBuilder createState( Object newState );
 
+    /**
+     * Deactivate and dispose this State.
+     * <p/>
+     * XXX Should be done automatically when {@link State.Dispose} is called?
+     */
+    void dispose();
+
+    public boolean isDisposed();
+
 }

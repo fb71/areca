@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,36 +11,39 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.ui.modeladapter;
 
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component2.UIComponent;
 
 /**
+ * A {@link ModelValue} that holds a simple POJO as value.
  *
  * @author Falko Bräutigam
  */
-public class ListViewer
-        extends Viewer<SingleValueAdapter<?>> {
+public class Pojo<V>
+        extends ModelValue<V> {
 
-    private static final Log log = LogFactory.getLog( ListViewer.class );
+    private static final Log LOG = LogFactory.getLog( Pojo.class );
 
-    @Override
-    public UIComponent create() {
-        throw new RuntimeException( "not implemented yet." );
+    private V value;
+
+    public Pojo() {
+    }
+
+    public Pojo( V value ) {
+        this.value = value;
     }
 
     @Override
-    public void store() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public V get() {
+        return value;
     }
 
     @Override
-    public void load() {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+    public void set( V value ) {
+        this.value = value;
+        fireChangeEvent();
     }
 
 }

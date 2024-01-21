@@ -21,6 +21,8 @@ import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.FillLayout;
 import areca.ui.layout.RowConstraints;
+import areca.ui.modeladapter.ModelValue;
+import areca.ui.modeladapter.ModelValueBase;
 
 /**
  *
@@ -32,14 +34,14 @@ public class ViewerBuilder {
     private static final Log LOG = LogFactory.getLog( ViewerBuilder.class );
 
     public interface TransformerMapping<M>
-            extends Function<SingleValueAdapter<M>, ModelValueTransformer<M,?>, RuntimeException> {
+            extends Function<ModelValue<M>, ModelValueTransformer<M,?>, RuntimeException> {
     }
 
     // instance *******************************************
 
     protected Viewer                    viewer;
 
-    protected ModelAdapter              adapter;
+    protected ModelValueBase            adapter;
 
     protected ModelValueTransformer     transformer;
 
@@ -53,7 +55,7 @@ public class ViewerBuilder {
     }
 
     @SuppressWarnings("hiding")
-    public ViewerBuilder adapter( ModelAdapter adapter ) {
+    public ViewerBuilder adapter( ModelValueBase adapter ) {
         this.adapter = adapter;
         return this;
     }
@@ -73,7 +75,7 @@ public class ViewerBuilder {
 
     public UIComponent create() {
         Assert.notNull( adapter, "Adapter is mandatory for building a viewer!" );
-        if (adapter instanceof SingleValueAdapter) {
+        if (adapter instanceof ModelValue) {
             viewer.init( new TransformingSingleValueAdapter() );
         }
         else {
@@ -101,11 +103,11 @@ public class ViewerBuilder {
      *
      */
     protected class TransformingSingleValueAdapter
-            implements SingleValueAdapter {
+            extends ModelValue {
 
         @Override
-        public Object getValue() {
-            Object value = ((SingleValueAdapter)adapter).getValue();
+        public Object get() {
+            Object value = ((ModelValue)adapter).get();
             if (transformer != null) {
                 value = transformer.transform2UI( value );
             }
@@ -117,14 +119,14 @@ public class ViewerBuilder {
 
         @Override
         @SuppressWarnings("unchecked")
-        public void setValue( Object value ) {
+        public void set( Object value ) {
             if (transformer != null) {
                 value = transformer.transform2Model( value );
             }
             if (validator != null) {
                 throw new RuntimeException( "not yet implemented: validator" );
             }
-            ((SingleValueAdapter)adapter).setValue( value );
+            ((ModelValue)adapter).set( value );
         }
     }
 

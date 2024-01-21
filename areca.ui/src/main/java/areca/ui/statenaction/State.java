@@ -48,8 +48,8 @@ public interface State {
     public @interface Dispose {}
 
     /**
-     * Denotes a context variable to be injected into a page. Context variables are
-     * passed/shared between {@link State}s.
+     * Denotes a context variable to be injected into a {@link State}. Context
+     * variables are passed/shared between {@link State}s.
      */
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
@@ -62,6 +62,14 @@ public interface State {
         /** This context variable is required to be not null. */
         boolean required() default true;
     }
+
+    /**
+     * Denotes a model member of a {@link State}.
+     */
+    @Documented
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.FIELD})
+    public @interface Model {}
 
     /**
      * Creates a new stack of {@link State}s. This method is mainly used

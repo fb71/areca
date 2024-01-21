@@ -80,7 +80,7 @@ public class UIEventCollector {
             events.add( new JsonUIComponentEvent( ev ) );
         }
         else {
-            LOG.info( "SKIP: %s (%s)", prop.name(), prop.component() );
+            LOG.debug( "SKIP: %s (%s)", prop.name(), prop.component() );
         }
     }
 

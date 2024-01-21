@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,19 +11,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.ui.modeladapter;
 
-import areca.common.base.Consumer;
+import areca.common.event.EventListener;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public interface ListModelAdapter<T>
-        extends ModelAdapter {
-
-    public void size( Consumer<Integer,RuntimeException> size );
-
-    public void loadElements( Chunk chunk );
+@FunctionalInterface
+public interface ModelChangeListener
+        extends EventListener<ModelChangeEvent> {
 
 }

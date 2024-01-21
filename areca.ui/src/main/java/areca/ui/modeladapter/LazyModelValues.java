@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,12 +11,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.ui.modeladapter;
+
+import areca.common.Promise;
+import areca.common.base.Opt;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public interface ModelAdapter {
+public abstract class LazyModelValues<V>
+        extends ModelValueBase {
+
+    public abstract Promise<Integer> count();
+
+    public abstract Promise<Opt<V>> load( int first, int max );
 
 }

@@ -24,6 +24,8 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.form.Form;
+import areca.ui.modeladapter.ModelValue;
+import areca.ui.modeladapter.Pojo;
 import areca.ui.viewer.TextFieldViewer;
 
 /**
@@ -35,7 +37,7 @@ public class MatrixSettingsPage2
 
     private static final Log LOG = LogFactory.getLog( MatrixSettingsPage2.class );
 
-    protected SingleValue<String>       password = new SingleValue<>( "" );
+    protected ModelValue<String>        password = new Pojo<>( "" );
 
 
     public MatrixSettingsPage2() {
@@ -64,7 +66,7 @@ public class MatrixSettingsPage2
     protected Promise<?> checkSettings( MatrixSettings settings ) {
         Completable<?> result = new Completable();
         var matrix = MatrixClient.create( ArecaApp.proxiedUrl( settings.baseUrl.get() ) );
-        matrix.loginWithPassword( settings.username.get(), password.getValue() )
+        matrix.loginWithPassword( settings.username.get(), password.get() )
                 .then( credentials -> {
                     LOG.info( "Logged in: %s", credentials.userd() );
                     settings.accessToken.set( credentials.accessToken() );

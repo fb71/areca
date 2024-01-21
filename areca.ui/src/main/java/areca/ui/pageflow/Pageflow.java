@@ -88,6 +88,8 @@ public class Pageflow {
 
         List<Scoped>    context = new ArrayList<>();
 
+        boolean         closed;
+
 
         @Override
         public String toString() {
@@ -106,6 +108,12 @@ public class Pageflow {
         @Override
         public void close() {
             Pageflow.this.close( clientPage );
+            closed = true;
+        }
+
+        @Override
+        public boolean isClosed() {
+            return closed;
         }
 
         protected Opt<Scoped> _local( Class<?> type, String scope ) {

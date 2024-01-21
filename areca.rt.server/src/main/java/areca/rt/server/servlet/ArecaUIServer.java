@@ -149,7 +149,7 @@ public class ArecaUIServer
     @Override
     protected void doPost( HttpServletRequest request, HttpServletResponse response ) throws ServletException, IOException {
         try {
-            LOG.info( "------ Request ------------------------------------------------------------");
+            LOG.debug( "------ Request ------------------------------------------------------------");
             var t = Timer.start();
 
             // request: handle click events
@@ -157,7 +157,7 @@ public class ArecaUIServer
             try (var in = new InputStreamReader( request.getInputStream(), UTF_8 )) {
                 if (in.ready()) {
                     _msg = gson.fromJson( in, JsonClient2ServerMessage.class );
-                    LOG.info( "Received: %s", notPretty.toJson( _msg ));
+                    LOG.debug( "Received: %s", notPretty.toJson( _msg ));
                 }
             }
             var msg = _msg;
@@ -198,7 +198,7 @@ public class ArecaUIServer
                 try (var out = new OutputStreamWriter( response.getOutputStream(), UTF_8 )) {
                     gson.toJson( responseMsg, out );
                 }
-                LOG.info( "UI events send: %s (%s)", responseMsg.uiEvents.size(), t.elapsedHumanReadable() );
+                LOG.debug( "UI events send: %s (%s)", responseMsg.uiEvents.size(), t.elapsedHumanReadable() );
             });
         }
         catch (Exception e) {

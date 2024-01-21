@@ -184,6 +184,8 @@ public abstract class Page {
          */
         public abstract void close();
 
+        public abstract boolean isClosed();
+
         public <R> R context( Class<R> type ) {
             return context( type, Page.Context.DEFAULT_SCOPE );
         }

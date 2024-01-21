@@ -16,6 +16,7 @@ package areca.ui.statenaction;
 import areca.common.event.EventListener;
 
 /**
+ * Listen to {@link State} lifecycle events.
  *
  * @author Falko Bräutigam
  */

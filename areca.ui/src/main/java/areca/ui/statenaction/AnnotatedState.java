@@ -19,6 +19,7 @@ import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
+import areca.ui.modeladapter.ModelValueBase;
 
 /**
  *
@@ -42,6 +43,24 @@ public class AnnotatedState
 
     public void init() {
         invokeAction( State.Init.class );
+    }
+
+
+    /**
+     * Does not invoke dispose action because this method call was triggered by that
+     * action.
+     */
+    public void dispose() {
+        for (var f : classInfo.fields()) {
+            f.annotation( State.Model.class ).ifPresent( a -> {
+                if (ModelValueBase.class.isAssignableFrom( f.type() )) {
+                    var modelValue = (ModelValueBase)f.get( state );
+                    if (modelValue != null) {
+                        modelValue.dispose();
+                    }
+                }
+            });
+        }
     }
 
 

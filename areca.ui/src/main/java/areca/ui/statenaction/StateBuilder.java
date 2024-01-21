@@ -26,4 +26,16 @@ public interface StateBuilder {
      */
     void activate();
 
+    /**
+     * Register a listener for {@link StateChangeEvent State lifecycle events}. The
+     * listener is unsubscribed when the State is disposed.
+     *
+     * @param annotatedOrListener {@link StateChangeListener} or an annotated class.
+     */
+    StateBuilder onChange( Object annotatedOrListener );
+
+    default StateBuilder onChange( StateChangeListener l ) {
+        return onChange( (Object)l );
+    }
+
 }

@@ -16,16 +16,29 @@ package areca.ui.statenaction;
 import java.util.EventObject;
 
 import areca.common.Assert;
+import areca.common.Promise;
+import areca.common.event.EventManager;
 
 /**
+ * {@link State} lifecycle event.
  *
  * @author Falko Bräutigam
  */
 public class StateChangeEvent extends EventObject  {
 
     public enum EventType {
-        INITIALIZING, INITIALIZED, DISPOSING, DISPOSED
+        /*INITIALIZING,*/ INITIALIZED, /*DISPOSING,*/ DISPOSED
     }
+
+    static void publish( EventType eventType, Object state ) {
+        EventManager.instance().publish( new StateChangeEvent( state, eventType ) );
+    }
+
+    static Promise<Void> publish2( EventType eventType, Object state ) {
+        return EventManager.instance().publish2( new StateChangeEvent( state, eventType ) );
+    }
+
+    // instance *******************************************
 
     public EventType type;
 
@@ -40,6 +53,11 @@ public class StateChangeEvent extends EventObject  {
     @Override
     public Object getSource() {
         return super.getSource();
+    }
+
+    @Override
+    public String toString() {
+        return String.format( "%s[type = %s, state = %s]", getClass().getSimpleName(), type, getSource().getClass().getSimpleName() );
     }
 
 }

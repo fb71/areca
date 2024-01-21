@@ -19,14 +19,14 @@ import areca.common.base.Lazy.RLazy;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.viewer.SingleValueAdapter;
+import areca.ui.modeladapter.ModelValue;
 
 /**
  *
  * @author Falko Bräutigam
  */
 public class PropertyAdapter<T>
-        implements SingleValueAdapter<T> {
+        extends ModelValue<T> {
 
     private static final Log LOG = LogFactory.getLog( PropertyAdapter.class );
 
@@ -39,13 +39,13 @@ public class PropertyAdapter<T>
 
 
     @Override
-    public T getValue() {
+    public T get() {
         return prop.supply().get();
     }
 
 
     @Override
-    public void setValue( T value ) {
+    public void set( T value ) {
         prop.supply().set( value );
     }
 

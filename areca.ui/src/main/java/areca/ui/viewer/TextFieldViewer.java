@@ -20,6 +20,7 @@ import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
+import areca.ui.modeladapter.ModelValue;
 
 /**
  *
@@ -27,7 +28,7 @@ import areca.ui.component2.UIComponent;
  */
 @RuntimeInfo
 public class TextFieldViewer
-        extends Viewer<SingleValueAdapter<String>> {
+        extends Viewer<ModelValue<String>> {
 
     private static final Log LOG = LogFactory.getLog( TextFieldViewer.class );
 
@@ -48,12 +49,12 @@ public class TextFieldViewer
 
     @Override
     public void store() {
-        model.setValue( textField.content.opt().orNull() );
+        model.set( textField.content.opt().orNull() );
     }
 
     @Override
     public void load() {
-        textField.content.set( model.getValue() );
+        textField.content.set( model.get() );
     }
 
 }

@@ -14,9 +14,14 @@
 package areca.ui.statenaction;
 
 import areca.common.Assert;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
+import areca.common.reflect.GenericType.ClassType;
+import areca.common.reflect.GenericType.ParameterizedType;
+import areca.ui.modeladapter.ModelValue;
+import areca.ui.statenaction.StateChangeEvent.EventType;
 
 /**
  * The runtime/site of a State.
@@ -34,6 +39,11 @@ class StateHolder
 
     private ContextVariables context;
 
+    private boolean         disposed;
+
+    /**  */
+    private boolean         disposeEventDelivered;
+
     /**
      * StateHolder for a root/start State, with no State and no parent.
      */
@@ -50,6 +60,28 @@ class StateHolder
     }
 
 
+    public void init() {
+        injectContext( state );
+        new AnnotatedState( state ).init();
+        StateChangeEvent.publish( EventType.INITIALIZED, state );
+    }
+
+
+    @Override
+    public void dispose() {
+        disposed = true;
+        new AnnotatedState( state ).dispose();
+        StateChangeEvent.publish2( EventType.DISPOSED, state )
+                .onSuccess( __ -> disposeEventDelivered = true );
+    }
+
+
+    @Override
+    public boolean isDisposed() {
+        return disposed;
+    }
+
+
     @Override
     public StateBuilder createState( Object newState ) {
         return new StateBuilder() {
@@ -63,25 +95,49 @@ class StateHolder
             }
 
             @Override
+            public StateBuilder onChange( Object annotatedOrListener ) {
+                EventManager.instance().subscribe( annotatedOrListener )
+                        .performIf( StateChangeEvent.class, ev -> ev.getSource() == result.state )
+                        .unsubscribeIf( () -> result.disposeEventDelivered );
+                return this;
+            }
+
+            @Override
             public void activate() {
-                result.injectContext( result.state );
-                new AnnotatedState( result.state ).init();
+                result.init();
             }
         };
     }
 
 
 
+    @SuppressWarnings("unchecked")
     protected void injectContext( Object part ) {
         for (var f : ClassInfo.of( part ).fields()) {
             // @State.Context
             f.annotation( State.Context.class ).ifPresent( a -> {
-                var value = context.entry( (Class<?>)f.type(), a.scope() ).orNull();
-                if (value == null && a.required()) {
-                    throw new IllegalStateException( "Context variable of type: '" + f.type().getSimpleName()
-                            + "' required but absent in context of: " + part.getClass().getSimpleName() );
+                var value = (Object)null;
+                // ModelValue
+                if (ModelValue.class.isAssignableFrom( f.type() )) {
+                    var type = (ParameterizedType)f.genericType();
+                    var typeArg = ((ClassType)type.getActualTypeArguments()[0]).getRawType();
+                    value = context.entry( typeArg, a.scope() ).orNull();
+                    if (value == null && a.required()) {
+                        throw new IllegalStateException( "Context variable of type: '" + f.type().getSimpleName()
+                                + "' required but absent in context of: " + part.getClass().getSimpleName() );
+                    }
+                    var modelValue = ModelValue.class.cast( f.get( part ) );
+                    modelValue.set( value );
                 }
-                f.set( part, f.type().cast( value ) );
+                // simple field
+                else {
+                    value = context.entry( (Class<?>)f.type(), a.scope() ).orNull();
+                    if (value == null && a.required()) {
+                        throw new IllegalStateException( "Context variable of type: '" + f.type().getSimpleName()
+                                + "' required but absent in context of: " + part.getClass().getSimpleName() );
+                    }
+                    f.set( part, f.type().cast( value ) );
+                }
                 LOG.debug( "inject: %s = %s", f.name(), value != null ? value : "null" );
             });
 //            // Part
