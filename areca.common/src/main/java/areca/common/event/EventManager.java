@@ -105,7 +105,8 @@ public abstract class EventManager {
         var newHandlers = new ArrayList<EventHandlerInfoImpl>( handlers.size() + 1 );
         // XXX arraycopy?
         for (var cursor : handlers) {
-            if (cursor.handler == annotatedOrListener) {
+            if (cursor.handler == annotatedOrListener
+                    && (cursor.unsubscribeIf == null || !cursor.unsubscribeIf.get())) {
                 throw new IllegalStateException( "Event handler already subscribed! " );
             }
             newHandlers.add( cursor );
@@ -138,21 +139,6 @@ public abstract class EventManager {
     protected int keyOf( Object annotatedOrListener ) {
         return System.identityHashCode( annotatedOrListener );
     }
-
-
-//    /**
-//     * Fire the given events.
-//     * <p>
-//     * The triggered event handlers may publish new events. The caller has to make
-//     * sure that any event queue can handle insert during iteration.
-//     *
-//     * @param events
-//     */
-//    protected void fireEvent( EventObject ev ) {
-//        for (EventHandlerInfo handler : handlers) {
-//            handler.perform( ev );
-//        }
-//    }
 
 
     /**
@@ -237,8 +223,10 @@ public abstract class EventManager {
         @Override
         @SuppressWarnings("hiding")
         public EventHandlerInfo unsubscribeIf( RSupplier<Boolean> unsubscribeIf ) {
-            Assert.isNull( this.unsubscribeIf );
-            this.unsubscribeIf = notNull( unsubscribeIf );
+            var current = this.unsubscribeIf;
+            this.unsubscribeIf = current != null
+                    ? () -> current.get() || unsubscribeIf.get()
+                    : unsubscribeIf;
             return this;
         }
 
@@ -249,7 +237,7 @@ public abstract class EventManager {
                 if (performIf != null && !performIf.test( ev )) {
                     return;
                 }
-                // dispose
+                // unsubscribe
                 if (unsubscribeIf != null && unsubscribeIf.supply()) {
                     EventManager.this.unsubscribe( Collections.singleton( EventHandlerInfoImpl.this ) );
                     return;
@@ -277,12 +265,10 @@ public abstract class EventManager {
                 });
                 try {
                     method.invoke( handler, ev );
-                    return;
                 }
                 catch (InvocationTargetException e) {
                     throw (RuntimeException)e.getTargetException();
                 }
-
             }
             catch (Throwable e) {
                 onError.accept( ev, e );
