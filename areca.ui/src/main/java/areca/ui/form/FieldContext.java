@@ -20,18 +20,19 @@ import areca.ui.component2.Label;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.viewer.Viewer;
-import areca.ui.viewer.ViewerHolder;
+import areca.ui.viewer.ViewerContext;
 import areca.ui.viewer.model.ModelBase;
 
 /**
+ * Extends {@link ViewerContext} by a {@link #label(String)}.
  *
  * @author Falko Bräutigam
  */
-public class FieldHolder<M extends ModelBase>
-        extends ViewerHolder<M>
+public class FieldContext<M extends ModelBase>
+        extends ViewerContext<M>
         implements FieldBuilder<M> {
 
-    private static final Log LOG = LogFactory.getLog( FieldHolder.class );
+    private static final Log LOG = LogFactory.getLog( FieldContext.class );
 
     private String label;
 
@@ -41,7 +42,7 @@ public class FieldHolder<M extends ModelBase>
     }
 
 
-    public FieldHolder<M> label( @SuppressWarnings("hiding") String label ) {
+    public FieldContext<M> label( @SuppressWarnings("hiding") String label ) {
         this.label = label;
         return this;
     }

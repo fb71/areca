@@ -28,13 +28,13 @@ import areca.ui.viewer.model.ModelBase;
  */
 public class Form {
 
-    protected List<FieldHolder<?>> fields = new ArrayList<>();
+    protected List<FieldContext<?>> fields = new ArrayList<>();
 
     protected List<EventListener<ViewerInputChangeEvent>> listeners = new ArrayList<>();
 
 
     public FieldBuilder<ModelBase> newField() {
-        return new FieldHolder<>() {
+        return new FieldContext<>() {
             { fields.add( this ); }
             @Override
             public UIComponent create() {

@@ -27,14 +27,15 @@ import areca.ui.viewer.model.ModelBase.ValidationResult;
 import areca.ui.viewer.transform.ValidatingModel;
 
 /**
+ * The context of a {@link Viewer} that puts together the viewer, model and
+ * validation.
  *
  * @author Falko Bräutigam
  */
-//@SuppressWarnings("rawtypes")
-public class ViewerHolder<M extends ModelBase>
+public class ViewerContext<M extends ModelBase>
         implements ViewerBuilder<M> {
 
-    private static final Log LOG = LogFactory.getLog( ViewerHolder.class );
+    private static final Log LOG = LogFactory.getLog( ViewerContext.class );
 
     protected Viewer<M>     viewer;
 
