@@ -45,11 +45,12 @@ public abstract class ServerApp
      * Sub-classes must not call super method!
      */
     public static void init() throws Exception {
-        LOG.info( "Setting default event managers..." );
         Platform.impl = new ServerPlatform();
+        LOG.info( "Platform: %s", Platform.impl.getClass().getSimpleName() );
         Session.registerFactory( EventManager.class, () -> new SameStackEventManager() ); // XXX
         Session.registerFactory( UIEventManager.class, () -> new ServerUIEventManager() );
         Session.registerFactory( EventHandlers.class, () -> new ServerUIEventHandlers() );
+        LOG.info( "Default event manager: %s", SameStackEventManager.class.getSimpleName() );
     }
 
     /**

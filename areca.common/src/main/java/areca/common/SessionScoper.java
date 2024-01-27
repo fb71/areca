@@ -58,6 +58,10 @@ public abstract class SessionScoper {
 
         private static ThreadLocal<Session> sessions = new ThreadLocal<>();
 
+        public static ThreadBoundSessionScoper instance() {
+            return Assert.notNull( (ThreadBoundSessionScoper)instance, "No SessionScoper set" );
+        }
+
         public void bind( Session session ) {
             Assert.isNull( sessions.get() );
             sessions.set( Assert.notNull( session ) );

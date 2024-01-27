@@ -58,9 +58,9 @@ public class ArecaUIServer
 
     private static final Log LOG = LogFactory.getLog( ArecaUIServer.class );
 
-    private Class<ServerApp> appClass;
+    private static ThreadBoundSessionScoper sessionScope = new ThreadBoundSessionScoper();
 
-    private ThreadBoundSessionScoper sessionScope = new ThreadBoundSessionScoper();
+    private Class<ServerApp> appClass;
 
     private Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -70,8 +70,11 @@ public class ArecaUIServer
     @Override
     @SuppressWarnings({"unchecked", "deprecation"})
     public void init() throws ServletException {
-        SessionScoper.setInstance( sessionScope );
         try {
+            // servlet needs <load-on-startup>1</load-on-startup> if other servlets
+            SessionScoper.setInstance( sessionScope );
+            LOG.warn( "Session scope: %s", ThreadBoundSessionScoper.instance().getClass().getSimpleName() );
+
             appClass = Opt.of( getServletConfig().getInitParameter( "areca.appclass" ) )
                     .map( classname -> (Class<ServerApp>)Class.forName( classname ) )
                     .orElseThrow( () -> new ServletException( "No parameter: areca.appclass" ) );

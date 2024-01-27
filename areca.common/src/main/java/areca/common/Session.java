@@ -56,7 +56,7 @@ public class Session {
 
 
     public static Session current() {
-        return SessionScoper.instance.currentSession();
+        return Assert.notNull( SessionScoper.instance, "No SessionScoper.instance present!" ).currentSession();
     }
 
     /**
