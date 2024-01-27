@@ -101,16 +101,16 @@ public class CarddavSettingsPage
         protected void buildForm() {
             add( form.newField().label( "URL" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().url ) )
+                    .model( new PropertyAdapter<>( () -> settings.get().url ) )
                     //.validator( URL... )
                     .create() );
             add( form.newField().label( "Username" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().username ) )
+                    .model( new PropertyAdapter<>( () -> settings.get().username ) )
                     .create() );
             add( form.newField().label( "Password" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().pwd ) )
+                    .model( new PropertyAdapter<>( () -> settings.get().pwd ) )
                     .create() );
         }
 

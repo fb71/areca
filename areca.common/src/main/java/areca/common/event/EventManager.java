@@ -130,7 +130,7 @@ public abstract class EventManager {
         if (handlers.size()-remove.size() != newHandlers.size()) {
             LOG.info( "!!!Unsubscribe: expected:%s != newHandlers:%s", handlers.size()-remove.size(), newHandlers.size() );
         }
-        LOG.debug( "Expunged: %s, now: %s (%s) (%s)", remove.size(), newHandlers.size(),
+        LOG.warn( "unsubscribed: %s, now: %s (%s) (%s)", remove.size(), newHandlers.size(),
                 t.elapsedHumanReadable(), getClass().getSimpleName() );
         handlers = newHandlers;
     }

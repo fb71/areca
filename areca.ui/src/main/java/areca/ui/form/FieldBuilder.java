@@ -13,51 +13,16 @@
  */
 package areca.ui.form;
 
-import areca.common.Assert;
-import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Log;
-import areca.ui.component2.Label;
-import areca.ui.component2.UIComponent;
-import areca.ui.component2.UIComposite;
-import areca.ui.viewer.Viewer;
 import areca.ui.viewer.ViewerBuilder;
+import areca.ui.viewer.model.ModelBase;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class FieldBuilder
-        extends ViewerBuilder {
+public interface FieldBuilder<M extends ModelBase>
+         extends ViewerBuilder<M> {
 
-    private static final Log LOG = LogFactory.getLog( FieldBuilder.class );
-
-    private String                      label;
-
-
-    Viewer<?> _viewer() {
-        return viewer;
-    }
-
-
-    public FieldBuilder label( @SuppressWarnings("hiding") String label ) {
-        this.label = label;
-        return this;
-    }
-
-
-    @Override
-    public UIComponent create() {
-        var result = super.create();
-        if (label != null) {
-            new Label( result ).content.set( label );
-        }
-        return result;
-    }
-
-
-    public UIComponent create( UIComposite parent ) {
-        Assert.isNull( label, "Label is not supported yet." );
-        return parent.add( create() );
-    }
+    public FieldBuilder<M> label( String label );
 
 }

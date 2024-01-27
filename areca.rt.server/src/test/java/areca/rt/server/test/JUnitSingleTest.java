@@ -15,13 +15,15 @@ package areca.rt.server.test;
 
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import org.polymap.model2.test2.PerformanceTest;
+import org.polymap.model2.store.no2.No2Store;
+import org.polymap.model2.test2.ComplexModelTest;
 import org.polymap.model2.test2.RepoSupplier;
+import org.polymap.model2.test2.SimpleModelTest;
 
 import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 
 /**
@@ -31,19 +33,21 @@ import areca.common.log.LogFactory.Log;
  *
  * @author Falko Bräutigam
  */
-@Disabled
 class JUnitSingleTest extends JUnitTestBase {
 
     private static final Log LOG = LogFactory.getLog( JUnitSingleTest.class );
 
     @BeforeAll
     protected static void setupLogging() {
+        LogFactory.setPackageLevel( No2Store.class, Level.DEBUG );
+        LogFactory.setPackageLevel( SimpleModelTest.class, Level.DEBUG );
         RepoSupplier.no2();
     }
 
     @Test
     public void theOnlyTest() {
-        execute( PerformanceTest.info );
+        LOG.info( "hallo!?");
+        execute( ComplexModelTest.info );
     }
 
 }

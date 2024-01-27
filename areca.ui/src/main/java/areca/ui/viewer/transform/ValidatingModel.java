@@ -10,23 +10,25 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.ui.viewer.transform;
 
-import areca.ui.component2.UIComponent;
 import areca.ui.viewer.model.ModelBase;
+import areca.ui.viewer.model.ModelBase.ValidationResult;
 
 /**
- * Provides a fluent interface to create a {@link Viewer} with transformation and
- * validation.
  *
+ * @param <V>
  * @author Falko Bräutigam
  */
-public interface ViewerBuilder<M extends ModelBase> {
+public interface ValidatingModel<V> {
 
-    <R extends M> ViewerBuilder<R> viewer( Viewer<R> viewer );
-
-    ViewerBuilder<M> model( M adapter );
-
-    UIComponent create();
+    /**
+     * Checks if the given value would cause an error if send to the backend via
+     * {@link #set(Object)}.
+     *
+     * @return {@link ModelBase#VALID} or other result that describes the validation
+     *         error.
+     */
+    ValidationResult validate( V value );
 
 }

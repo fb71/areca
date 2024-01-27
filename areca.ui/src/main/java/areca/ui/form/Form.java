@@ -16,24 +16,65 @@ package areca.ui.form;
 import java.util.ArrayList;
 import java.util.List;
 
+import areca.common.base.Sequence;
+import areca.common.event.EventListener;
+import areca.ui.component2.UIComponent;
+import areca.ui.viewer.Viewer.ViewerInputChangeEvent;
+import areca.ui.viewer.model.ModelBase;
+
 /**
  *
  * @author Falko Bräutigam
  */
 public class Form {
 
-    protected List<FieldBuilder>    fields = new ArrayList<>();
+    protected List<FieldHolder<?>> fields = new ArrayList<>();
+
+    protected List<EventListener<ViewerInputChangeEvent>> listeners = new ArrayList<>();
 
 
-    public FieldBuilder newField() {
-        return new FieldBuilder() {{ fields.add( this ); }};
+    public FieldBuilder<ModelBase> newField() {
+        return new FieldHolder<>() {
+            { fields.add( this ); }
+            @Override
+            public UIComponent create() {
+                var result = super.create();
+                listeners.forEach( l -> subscribe( l ) );
+                return result;
+            }
+        };
     }
+
+
+    public boolean isChanged() {
+        return Sequence.of( fields ).anyMatches( f -> f.isChanged() );
+    }
+
+
+    public boolean isValid() {
+        return Sequence.of( fields ).allMatch( f -> f.isValid() );
+    }
+
+
+    public void subscribe( EventListener<ViewerInputChangeEvent> l ) {
+        fields.forEach( f -> f._viewer().subscribe( new EventListener<ViewerInputChangeEvent>() {
+            @Override public void handle( ViewerInputChangeEvent ev ) {
+                l.handle( ev );
+            }
+        }));
+        listeners.add( l );
+    }
+
 
     public void submit() {
         fields.forEach( f -> f._viewer().store() );
     }
 
     public void revert() {
+        fields.forEach( f -> f._viewer().load() );
+    }
+
+    public void load() {
         fields.forEach( f -> f._viewer().load() );
     }
 

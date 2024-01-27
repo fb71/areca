@@ -74,19 +74,19 @@ public class ContactPage extends Page {
             var form = new Form();
             add( form.newField().label( "First" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> contact.firstname ) )
+                    .model( new PropertyAdapter<>( () -> contact.firstname ) )
                     .create() );
             add( form.newField().label( "Last" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> contact.lastname ) )
+                    .model( new PropertyAdapter<>( () -> contact.lastname ) )
                     .create() );
             add( form.newField().label( "Email" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> contact.email ) )
+                    .model( new PropertyAdapter<>( () -> contact.email ) )
                     .create() );
             add( form.newField().label( "Phone" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> contact.phone ) )
+                    .model( new PropertyAdapter<>( () -> contact.phone ) )
                     .create() );
         }});
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,20 +11,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.ui.viewer.model;
+
+import areca.common.event.EventListener;
 
 /**
  *
- * @param <M> Type of the model value.
- * @param <U> Type of the user interface value.
  * @author Falko Bräutigam
  */
-public interface ModelValueTransformer<M,U> {
-
-    public U transform2UI( M value );
-
-    public default M transform2Model( U value ) {
-        throw new RuntimeException( "Implement this method if the field is modifiable." );
-    }
+@FunctionalInterface
+public interface ModelChangeListener
+        extends EventListener<ModelChangeEvent> {
 
 }

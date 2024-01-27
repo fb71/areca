@@ -20,8 +20,8 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.GenericType.ClassType;
 import areca.common.reflect.GenericType.ParameterizedType;
-import areca.ui.modeladapter.ModelValue;
 import areca.ui.statenaction.StateChangeEvent.EventType;
+import areca.ui.viewer.model.Model;
 
 /**
  * The runtime/site of a State.
@@ -117,8 +117,8 @@ class StateHolder
             // @State.Context
             f.annotation( State.Context.class ).ifPresent( a -> {
                 var value = (Object)null;
-                // ModelValue
-                if (ModelValue.class.isAssignableFrom( f.type() )) {
+                // Model
+                if (Model.class.isAssignableFrom( f.type() )) {
                     var type = (ParameterizedType)f.genericType();
                     var typeArg = ((ClassType)type.getActualTypeArguments()[0]).getRawType();
                     value = context.entry( typeArg, a.scope() ).orNull();
@@ -126,7 +126,7 @@ class StateHolder
                         throw new IllegalStateException( "Context variable of type: '" + f.type().getSimpleName()
                                 + "' required but absent in context of: " + part.getClass().getSimpleName() );
                     }
-                    var modelValue = ModelValue.class.cast( f.get( part ) );
+                    var modelValue = Model.class.cast( f.get( part ) );
                     modelValue.set( value );
                 }
                 // simple field

@@ -18,9 +18,10 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
+import areca.ui.component2.Events.EventType;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
-import areca.ui.modeladapter.ModelValue;
+import areca.ui.viewer.model.Model;
 
 /**
  *
@@ -28,7 +29,7 @@ import areca.ui.modeladapter.ModelValue;
  */
 @RuntimeInfo
 public class TextFieldViewer
-        extends Viewer<ModelValue<String>> {
+        extends Viewer<Model<String>> {
 
     private static final Log LOG = LogFactory.getLog( TextFieldViewer.class );
 
@@ -40,11 +41,18 @@ public class TextFieldViewer
     public UIComponent create() {
         Assert.isNull( textField );
         textField = new TextField() {{
-//            events.on( EventType.SELECT, ev -> {
-//                content.set(  )
-//            });
+            events.on( EventType.TEXT, ev -> {
+                LOG.info( "TextFieldViewer: %s", content.get() );
+                fireEvent( content.get(), null );
+            });
         }};
+        model.subscribe( ev -> load() ).unsubscribeIf( () -> textField.isDisposed() );
         return textField;
+    }
+
+    @Override
+    protected boolean isDisposed() {
+        return Assert.notNull( textField, "No field has been created yet for this viewer." ).isDisposed();
     }
 
     @Override

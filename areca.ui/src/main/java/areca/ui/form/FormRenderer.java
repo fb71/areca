@@ -19,10 +19,8 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.GenericType.ParameterizedType;
 import areca.ui.component2.UIComposite;
-import areca.ui.form.UI.NO_TRANSFORMER;
-import areca.ui.form.UI.NO_VALIDATOR;
 import areca.ui.form.UI.NO_VIEWER;
-import areca.ui.viewer.modeladapter.ModelValueBase;
+import areca.ui.viewer.model.ModelBase;
 
 /**
  * Renders a Form with {@link UI} specified fields.
@@ -49,19 +47,13 @@ public class FormRenderer {
 
                     Assert.that( f.genericType() instanceof ParameterizedType, "Form field has to be ParameterizedType: " + f.name() );
                     var type = (ParameterizedType)f.genericType();
-                    Assert.that( ModelValueBase.class.isAssignableFrom( type.getRawType() ), "Form field has to be of type ModeAdapter: " + f.name() );
-                    var adapter = (ModelValueBase)f.get( form );
+                    Assert.that( ModelBase.class.isAssignableFrom( type.getRawType() ), "Form field has to be of type ModeAdapter: " + f.name() );
+                    var adapter = (ModelBase)f.get( form );
                     Assert.notNull( adapter, "Adapter is mandatory." );
-                    fb.adapter( adapter );
+                    fb.model( adapter );
 
                     if (ui.viewer() != NO_VIEWER.class) {
                         fb.viewer( ClassInfo.of( ui.viewer() ).newInstance() );
-                    }
-                    if (ui.transformer() != NO_TRANSFORMER.class) {
-                        fb.transformer( ClassInfo.of( ui.transformer() ).newInstance() );
-                    }
-                    if (ui.validator() != NO_VALIDATOR.class) {
-                        fb.validator( ClassInfo.of( ui.validator() ).newInstance() );
                     }
                     container.add( fb.create() );
                 }

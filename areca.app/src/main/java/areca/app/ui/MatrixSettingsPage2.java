@@ -24,9 +24,9 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.form.Form;
-import areca.ui.modeladapter.ModelValue;
-import areca.ui.modeladapter.Pojo;
 import areca.ui.viewer.TextFieldViewer;
+import areca.ui.viewer.model.Model;
+import areca.ui.viewer.model.Pojo;
 
 /**
  *
@@ -37,7 +37,7 @@ public class MatrixSettingsPage2
 
     private static final Log LOG = LogFactory.getLog( MatrixSettingsPage2.class );
 
-    protected ModelValue<String>        password = new Pojo<>( "" );
+    protected Model<String>     password = new Pojo<>( "" );
 
 
     public MatrixSettingsPage2() {
@@ -100,15 +100,15 @@ public class MatrixSettingsPage2
         protected void buildForm() {
             add( form.newField().label( "Base URL" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().baseUrl ) )
+                    .model( new PropertyAdapter<>( () -> settings.get().baseUrl ) )
                     .create() );
             add( form.newField().label( "Username" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().username ) )
+                    .model( new PropertyAdapter<>( () -> settings.get().username ) )
                     .create() );
             add( form.newField().label( "Password" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( password )
+                    .model( password )
                     .create() );
         }
 

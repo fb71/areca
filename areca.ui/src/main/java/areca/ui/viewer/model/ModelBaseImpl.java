@@ -11,27 +11,30 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.modeladapter;
+package areca.ui.viewer.model;
 
-import areca.common.base.Opt;
+import areca.common.event.EventManager;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public abstract class ModelValue<V>
-        extends ModelValueBase {
+public abstract class ModelBaseImpl
+        implements ModelBase {
 
-    public abstract V get();
+//    private boolean disposed;
+//
+//    public void dispose() {
+//        this.disposed = true;
+//    }
+//
+//    public boolean isDisposed() {
+//        return disposed;
+//    }
 
-    public V $() {
-        return get();
+
+    protected void fireChangeEvent() {
+        EventManager.instance().publish( new ModelChangeEvent( this ) );
     }
-
-    public Opt<V> opt() {
-        return Opt.of( get() );
-    }
-
-    public abstract void set( V value );
 
 }

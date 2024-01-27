@@ -20,8 +20,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import areca.ui.component2.UIComponent;
-import areca.ui.viewer.ModelValueTransformer;
-import areca.ui.viewer.ModelValueValidator;
 import areca.ui.viewer.Viewer;
 
 /**
@@ -39,16 +37,7 @@ public @interface UI {
         @Override public UIComponent create() { throw new UnsupportedOperationException(); }
         @Override public void store() { throw new UnsupportedOperationException(); }
         @Override public void load() { throw new UnsupportedOperationException(); }
-    }
-
-    @SuppressWarnings("rawtypes")
-    public class NO_TRANSFORMER implements ModelValueTransformer {
-        @Override public Object transform2UI( Object value ) { throw new UnsupportedOperationException(); }
-    }
-
-    @SuppressWarnings("rawtypes")
-    public class NO_VALIDATOR implements ModelValueValidator {
-        @Override public ValidationResult validate( Object value ) { throw new UnsupportedOperationException(); }
+        @Override protected boolean isDisposed() { throw new UnsupportedOperationException(); }
     }
 
     // interface ******************************************
@@ -62,9 +51,4 @@ public @interface UI {
 
     //public Class<? extends ModelAdapter> adapter(); // default ModelAdapter.class;
 
-    @SuppressWarnings("rawtypes")
-    public Class<? extends ModelValueTransformer> transformer() default NO_TRANSFORMER.class;
-
-    @SuppressWarnings("rawtypes")
-    public Class<? extends ModelValueValidator> validator() default NO_VALIDATOR.class;
 }

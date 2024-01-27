@@ -11,24 +11,28 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.modeladapter;
+package areca.ui.viewer.model;
 
-import java.util.EventObject;
+import areca.common.base.Opt;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class ModelChangeEvent
-        extends EventObject {
+public interface Model<V>
+        extends ModelBase {
 
-    public ModelChangeEvent( ModelValueBase source ) {
-        super( source );
+    public abstract V get();
+
+    public abstract void set( V value );
+
+
+    public default V $() {
+        return get();
     }
 
-    @Override
-    public ModelValueBase getSource() {
-        return (ModelValueBase)super.getSource();
+    public default Opt<V> opt() {
+        return Opt.of( get() );
     }
 
 }

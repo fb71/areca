@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.modeladapter;
+package areca.ui.viewer.model;
 
 import areca.common.Promise;
 import areca.common.base.Opt;
@@ -20,8 +20,8 @@ import areca.common.base.Opt;
  *
  * @author Falko Bräutigam
  */
-public abstract class LazyModelValues<V>
-        extends ModelValueBase {
+public interface LazyListModel<V>
+        extends ModelBase {
 
     public abstract Promise<Integer> count();
 

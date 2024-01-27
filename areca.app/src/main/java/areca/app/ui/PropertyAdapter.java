@@ -19,30 +19,29 @@ import areca.common.base.Lazy.RLazy;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.modeladapter.ModelValue;
+import areca.ui.viewer.model.Model;
+import areca.ui.viewer.model.ModelBaseImpl;
 
 /**
  *
  * @author Falko Bräutigam
  */
 public class PropertyAdapter<T>
-        extends ModelValue<T> {
+        extends ModelBaseImpl
+        implements Model<T> {
 
     private static final Log LOG = LogFactory.getLog( PropertyAdapter.class );
 
     protected RLazy<Property<T>>        prop;
 
-
     protected PropertyAdapter( RSupplier<Property<T>> supplier ) {
         this.prop = new RLazy<>( supplier );
     }
-
 
     @Override
     public T get() {
         return prop.supply().get();
     }
-
 
     @Override
     public void set( T value ) {

@@ -18,8 +18,8 @@ import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.form.Form;
 import areca.ui.form.UI;
-import areca.ui.modeladapter.ModelValue;
 import areca.ui.viewer.TextFieldViewer;
+import areca.ui.viewer.model.Model;
 
 @RuntimeInfo
 public class ContactForm extends Form {
@@ -29,10 +29,10 @@ public class ContactForm extends Form {
     Contact             contact;
 
     @UI(viewer = TextFieldViewer.class)
-    ModelValue<String>  firstname = new PropertyAdapter<>( () -> contact.firstname );
+    Model<String>  firstname = new PropertyAdapter<>( () -> contact.firstname );
 
     @UI(viewer = TextFieldViewer.class)
-    ModelValue<String>  lastname = new PropertyAdapter<>( () -> contact.lastname );
+    Model<String>  lastname = new PropertyAdapter<>( () -> contact.lastname );
 
 
     public ContactForm( Contact contact ) {

@@ -59,7 +59,7 @@ public interface State {
 
         String scope() default DEFAULT_SCOPE;
 
-        /** This context variable is required to be not null. */
+        /** This context variable is required. */
         boolean required() default true;
     }
 

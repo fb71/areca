@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -11,20 +11,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.viewer;
+package areca.ui.viewer.model;
+
+import areca.common.base.Sequence;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public interface ModelValueValidator<T> {
+public interface ListModel<V>
+        extends ModelBase, Iterable<V> {
 
-    public ValidationResult validate( T value );
+    public int count();
 
-    /**
-     * ???
-     */
-    public class ValidationResult {
-
+    public default Sequence<V,RuntimeException> sequence() {
+        return Sequence.of( this );
     }
+
 }

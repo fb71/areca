@@ -11,16 +11,35 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.modeladapter;
-
-import areca.common.event.EventListener;
+package areca.ui.viewer.model;
 
 /**
+ * A {@link Model} that holds a simple POJO as value.
  *
  * @author Falko Bräutigam
  */
-@FunctionalInterface
-public interface ModelChangeListener
-        extends EventListener<ModelChangeEvent> {
+public class Pojo<V>
+        extends ModelBaseImpl
+        implements Model<V> {
+
+    private V value;
+
+    public Pojo() {
+    }
+
+    public Pojo( V value ) {
+        this.value = value;
+    }
+
+    @Override
+    public V get() {
+        return value;
+    }
+
+    @Override
+    public void set( V value ) {
+        this.value = value;
+        fireChangeEvent();
+    }
 
 }

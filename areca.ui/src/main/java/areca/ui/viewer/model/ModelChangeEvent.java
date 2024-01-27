@@ -11,21 +11,25 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.modeladapter;
+package areca.ui.viewer.model;
 
-import areca.common.base.Sequence;
+import java.util.EventObject;
 
 /**
+ * Signals that a {@link ModelBase viewer model} has changed.
  *
  * @author Falko Bräutigam
  */
-public abstract class ModelValues<V>
-        extends ModelValueBase
-        implements Iterable<V> {
+public class ModelChangeEvent
+        extends EventObject {
 
-    public abstract int count();
-
-    public Sequence<V,RuntimeException> sequence() {
-        return Sequence.of( this );
+    public ModelChangeEvent( ModelBase source ) {
+        super( source );
     }
+
+    @Override
+    public ModelBase getSource() {
+        return (ModelBase)super.getSource();
+    }
+
 }

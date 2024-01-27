@@ -22,8 +22,8 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.form.Form;
-import areca.ui.viewer.Number2StringTransformer;
 import areca.ui.viewer.TextFieldViewer;
+import areca.ui.viewer.transform.Number2StringTransform;
 
 /**
  *
@@ -95,24 +95,24 @@ public class SmtpSettingsPage
         protected void buildForm() {
             add( form.newField().label( "Email Address" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().from ) )
+                    .model( new PropertyAdapter<>( () -> settings.get().from ) )
                     .create() );
             add( form.newField().label( "Username" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().username ) )
+                    .model( new PropertyAdapter<>( () -> settings.get().username ) )
                     .create() );
             add( form.newField().label( "Password" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().pwd ) )
+                    .model( new PropertyAdapter<>( () -> settings.get().pwd ) )
                     .create() );
             add( form.newField().label( "Host" )
                     .viewer( new TextFieldViewer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().host ) )
+                    .model( new PropertyAdapter<>( () -> settings.get().host ) )
                     .create() );
             add( form.newField().label( "Port" )
                     .viewer( new TextFieldViewer() )
-                    .transformer( new Number2StringTransformer() )
-                    .adapter( new PropertyAdapter<>( () -> settings.get().port ) )
+                    .model( new Number2StringTransform(
+                            new PropertyAdapter<Integer>( () -> settings.get().port ) ) )
                     .create() );
         }
 
