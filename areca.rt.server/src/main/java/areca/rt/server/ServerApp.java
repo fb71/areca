@@ -76,17 +76,12 @@ public abstract class ServerApp
     @Override
     public <E extends Exception> UIComposite createUI( Consumer<UIComposite,E> initializer ) throws E {
         return super.createUI( rootWindow -> {
-            // XXX set the size of the root composite
+            // XXX the very first request (containing the size of the rootWindow)
+            // is handled *after* main() method run; so the rootWIndow needs a reasonable size
+            // although it is re-sized right after
             rootWindow.size.defaultsTo( () -> {
-                return Size.of( 400, 500 );
+                return Size.of( 500, 500 );
             });
-
-//            var throttle = new EventCollector<>( 750 );
-//            Window.current().addEventListener( "resize", ev -> {
-//                throttle.collect( new EventObject( body ), __ -> {
-//                    rootWindow.size.set( elementSize( body ) );
-//                });
-//            });
 
             rootWindow.size.onChange( (newSize,__) -> rootWindow.layout() );
             initializer.accept( rootWindow );

@@ -13,6 +13,7 @@
  */
 package areca.rt.server.client;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import org.teavm.jso.browser.Window;
@@ -24,7 +25,10 @@ import areca.common.base.Consumer.RConsumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
+import areca.rt.server.client.JSClient2ServerMessage.JSClickEvent;
 import areca.rt.teavm.TeaApp;
+import areca.ui.Size;
+import areca.ui.component2.UIComponent;
 
 /**
  * Ultra light client based on TeaVM runtime.
@@ -51,9 +55,19 @@ public class ClientApp
         try {
             // UI
             new ClientApp().createUI( rootWindow -> {
-                new Connection( rootWindow ).start();
+                var conn = new Connection( rootWindow );
+
+                conn.enqueueClickEvent( JSResizeEvent.create( rootWindow, rootWindow.size.get() ) );
+                rootWindow.size.onChange( (newSize, oldSize) -> {
+                    if (!Objects.equals( newSize, oldSize )) {
+                        LOG.info( "RESIZE: %s (%s)", newSize, oldSize );
+                        conn.enqueueClickEvent( JSResizeEvent.create( rootWindow, newSize ) );
+                    }
+                });
 
                 //SimpleBrowserHistoryStrategy.start( Pageflow.current() );
+
+                conn.start();
             });
         }
         catch (Throwable e) {
@@ -63,6 +77,20 @@ public class ClientApp
             throw (Exception)rootCause;
         }
     }
+
+
+    public static abstract class JSResizeEvent
+            extends JSClickEvent {
+
+        public static JSResizeEvent create( UIComponent window, Size newSize ) {
+            var result = JSClickEvent.create();
+            result.setComponentId( window.id() );
+            result.setEventType( "resize" );
+            result.setContent( String.format( "%s:%s", newSize.width(), newSize.height() ) );
+            return result.cast();
+        }
+    }
+
 
     /**
      * Helps to handle exceptions in any code that is not handled

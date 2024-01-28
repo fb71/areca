@@ -25,6 +25,7 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.rt.server.servlet.JsonServer2ClientMessage.JsonUIComponentEvent;
+import areca.ui.App.RootWindow;
 import areca.ui.component2.Property.PropertyChangedEvent;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
@@ -35,7 +36,7 @@ import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDisposedEvent;
 
 /**
- * A collector of all UI 'render' events: {@link UIComponentEvent} and
+ * A collector of all UI render events: {@link UIComponentEvent} and
  * {@link PropertyChangedEvent}.
  *
  * @author Falko Bräutigam
@@ -58,16 +59,17 @@ public class UIEventCollector {
 
 
     public List<JsonUIComponentEvent> events() {
-        try {
-            return events;
-        } finally {
-            events = new ArrayList<>( 512 );
-        }
+        try { return events; } finally { events = new ArrayList<>( 512 ); }
     }
 
 
     public UIComponent componentForId( Integer componentId ) {
         return Assert.notNull( components.get( componentId ), "No such componentId: " + componentId );
+    }
+
+    /** The RootWindow component */
+    public UIComponent rootWindow() {
+        return components.values().stream().filter( c -> c instanceof RootWindow ).findAny().get();
     }
 
 

@@ -66,12 +66,16 @@ public class Connection {
 
     private Map<Integer,UIComponent>    components = new HashMap<>( 512 );
 
-    /** Pending events to be send to the server. */
+    /** Pending events to be send to the server (click, text, resize, ..) */
     private Deque<JSClickEvent>         clickEvents = new ArrayDeque<>();
 
     private Promise<?>                  pendingWait;
 
     private Promise<HttpResponse>       pendingRequest;
+
+    private Promise<Void>               clientEventThrottle;
+
+    private boolean                     isStarted;
 
 
     public Connection( UIComposite rootWindow ) {
@@ -79,8 +83,10 @@ public class Connection {
     }
 
 
-    public void start() {
+    public Connection start() {
         readServer( true );
+        isStarted = true;
+        return this;
     }
 
 
@@ -90,7 +96,7 @@ public class Connection {
         send.setEvents( Sequence.of( clickEvents ).toArray( JSClickEvent[]::new ) );
         clickEvents.clear();
         var json = JSON.stringify( send );
-        LOG.info( "Sending request: %s", json );
+        LOG.warn( "Sending request: %s", json );
         pendingRequest = Platform.xhr( "POST", "ui" )
                 .submit( json )
                 .onSuccess( response -> {
@@ -114,7 +120,7 @@ public class Connection {
 
 
     protected void readUIEvents( JSServer2ClientMessage msg ) {
-        LOG.info( "Server message: uiEvents = %s", msg.uiEvents().length );
+        LOG.info( "Received: %s render events", msg.uiEvents().length );
         for (var ev : msg.uiEvents()) {
             //LOG.info( "Event: %s", ev.eventType() );
 
@@ -172,8 +178,6 @@ public class Connection {
         }
     }
 
-    private Promise<Void> throttle;
-
     /**
      * Called when the user has clicked on a component or any other {@link EventType}.
      */
@@ -190,11 +194,15 @@ public class Connection {
         }
 
         clickEvents.add( jsev );
+        sendClientEvents( delay );
+    }
 
-        if (throttle != null) {
-            throttle.cancel();
+
+    protected void sendClientEvents( int throttleDelay ) {
+        if (clientEventThrottle != null) {
+            clientEventThrottle.cancel();
         }
-        throttle = Platform.schedule( delay, () -> {
+        clientEventThrottle = Platform.schedule( throttleDelay, () -> {
             LOG.info( "THROTTLE: %s events", clickEvents.size() );
 
             Assert.isNull( pendingRequest );
@@ -204,10 +212,10 @@ public class Connection {
             }
             readServer( false );
 
-            throttle = null;
+            clientEventThrottle = null;
             return null;
         });
-        throttle.onError( e -> {
+        clientEventThrottle.onError( e -> {
             // prevent default error handler
             if (!(e instanceof CancelledException)) {
                 throw (RuntimeException)e;
@@ -215,6 +223,14 @@ public class Connection {
         });
     }
 
+
+
+    public void enqueueClickEvent( JSClickEvent ev ) {
+        clickEvents.add( ev );
+        if (isStarted) {
+            sendClientEvents( 0 );
+        }
+    }
 
 
     private UIComponent createInstance( String classname ) {

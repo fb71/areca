@@ -13,6 +13,7 @@
  */
 package areca.rt.server.servlet;
 
+import static java.lang.Integer.parseInt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.LinkedList;
@@ -29,6 +30,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -44,6 +47,7 @@ import areca.common.log.LogFactory.Log;
 import areca.rt.server.EventLoop;
 import areca.rt.server.ServerApp;
 import areca.ui.Position;
+import areca.ui.Size;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.TextField;
@@ -178,14 +182,27 @@ public class ArecaUIServer
                 if (msg != null) {
                     eventLoop.enqueue( "client event", () -> {
                         for (var event : msg.events) {
-                            var component = collector.componentForId( event.componentId );
-                            var eventType = EventType.valueOf( event.eventType );
-                            if (eventType == EventType.TEXT) {
-                                ((TextField)component).content.rawSet( event.content );
+                            // resize
+                            if (event.eventType.equals( "resize" )) {
+                                LOG.info( "RESIZE: %s", event.content );
+                                var parts = StringUtils.split( event.content, ":" );
+                                var size = Size.of( parseInt( parts[0] ), parseInt( parts[1] ) );
+                                var component = event.componentId == 0
+                                        ? collector.rootWindow()
+                                        : collector.componentForId( event.componentId );
+                                component.size.set( size );
                             }
-                            component.events.values()
-                                    .filter( handler -> handler.type.equals( eventType ) )
-                                    .forEach( handler -> handler.consumer.accept( new ServerUIEvent( component, eventType ) ) );
+                            // click, text, ..
+                            else {
+                                var component = collector.componentForId( event.componentId );
+                                var eventType = EventType.valueOf( event.eventType );
+                                if (eventType == EventType.TEXT) {
+                                    ((TextField)component).content.rawSet( event.content );
+                                }
+                                component.events.values()
+                                        .filter( handler -> handler.type.equals( eventType ) )
+                                        .forEach( handler -> handler.consumer.accept( new ServerUIEvent( component, eventType ) ) );
+                            }
                         }
                     }, 0 );
                 }
@@ -201,7 +218,7 @@ public class ArecaUIServer
                 try (var out = new OutputStreamWriter( response.getOutputStream(), UTF_8 )) {
                     gson.toJson( responseMsg, out );
                 }
-                LOG.debug( "UI events send: %s (%s)", responseMsg.uiEvents.size(), t.elapsedHumanReadable() );
+                LOG.debug( "Sent: %s render events (%s)", responseMsg.uiEvents.size(), t.elapsedHumanReadable() );
             });
         }
         catch (Exception e) {
@@ -221,7 +238,6 @@ public class ArecaUIServer
 
         @Override
         public Position clientPos() {
-            // XXX Auto-generated method stub
             throw new RuntimeException( "not yet implemented." );
         }
     }

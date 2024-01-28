@@ -45,6 +45,22 @@ public class Size {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + height;
+        result = prime * result + width;
+        return result;
+    }
+
+    @Override
+    public boolean equals( Object other ) {
+        return other instanceof Size
+                ? width == ((Size)other).width && height == ((Size)other).height
+                : false;
+    }
+
+    @Override
     public String toString() {
         return "Size[width=" + width + ", height=" + height + "]";
     }
