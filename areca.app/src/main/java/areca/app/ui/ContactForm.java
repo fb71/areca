@@ -16,9 +16,9 @@ package areca.app.ui;
 import areca.app.model.Contact;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
-import areca.ui.form.Form;
-import areca.ui.form.UI;
 import areca.ui.viewer.TextFieldViewer;
+import areca.ui.viewer.form.Form;
+import areca.ui.viewer.form.UI;
 import areca.ui.viewer.model.Model;
 
 @RuntimeInfo

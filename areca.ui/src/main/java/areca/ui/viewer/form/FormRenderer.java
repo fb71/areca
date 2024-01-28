@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.form;
+package areca.ui.viewer.form;
 
 import areca.common.Assert;
 import areca.common.log.LogFactory;
@@ -19,7 +19,7 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.GenericType.ParameterizedType;
 import areca.ui.component2.UIComposite;
-import areca.ui.form.UI.NO_VIEWER;
+import areca.ui.viewer.form.UI.NO_VIEWER;
 import areca.ui.viewer.model.ModelBase;
 
 /**

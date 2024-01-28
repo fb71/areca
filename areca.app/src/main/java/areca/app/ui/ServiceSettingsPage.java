@@ -38,11 +38,11 @@ import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
-import areca.ui.form.Form;
 import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
 import areca.ui.pageflow.Page;
 import areca.ui.pageflow.PageContainer;
+import areca.ui.viewer.form.Form;
 
 /**
  *

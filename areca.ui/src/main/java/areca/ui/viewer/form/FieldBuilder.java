@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.ui.form;
+package areca.ui.viewer.form;
 
 import areca.ui.viewer.ViewerBuilder;
 import areca.ui.viewer.model.ModelBase;
