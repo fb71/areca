@@ -36,6 +36,7 @@ import areca.ui.App.RootWindow;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
+import areca.ui.component2.Link;
 import areca.ui.component2.Property.PropertyChangedEvent;
 import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
@@ -240,6 +241,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".Text" : return new Text();
             case PACKAGE_UI_COMPONENTS + ".Button" : return new Button();
             case PACKAGE_UI_COMPONENTS + ".TextField" : return new TextField();
+            case PACKAGE_UI_COMPONENTS + ".Link" : return new Link();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );
