@@ -14,6 +14,7 @@
 package areca.ui.component2;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,20 +70,24 @@ public abstract class UIComponent
 
     private List<UIComponentDecorator>  decorators;
 
-    private List<Property<?,?>>         properties = new ArrayList<>();
+    private Map<String,Property<?,?>>   properties = new HashMap<>( 32 );
 
     public Object                       htmlElm;
 
 
     @Override
     public void registerProperty( Property<?,?> prop ) {
-        properties.add( prop );
+        properties.put( prop.name(), prop );
     }
 
 
     @Override
-    public List<Property<?,?>> allProperties() {
-        return properties;
+    public Iterable<Property<?,?>> properties() {
+        return properties.values();
+    }
+
+    public Property<?,?> propertyForName( String name ) {
+        return properties.get( name );
     }
 
     /**

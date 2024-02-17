@@ -13,15 +13,21 @@
  */
 package areca.rt.server.servlet;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-import areca.rt.server.client.PropertyValueCoder;
+import areca.common.base.Opt;
+import areca.ui.Position;
+import areca.ui.Size;
+import areca.ui.component2.Events.EventHandler;
 import areca.ui.component2.Property.PropertyChangedEvent;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
+import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -43,9 +49,8 @@ class JsonServer2ClientMessage {
         public Integer  parentId;
 
         public String   propName;
-        public String   propValueType;
-        public String   propNewValue;
-        public String   propOldValue;
+        public Object   propNewValue;
+        //public Object   propOldValue;
 
         protected JsonUIComponentEvent( UIComponent component ) {
             this.componentId = component.id();
@@ -71,13 +76,121 @@ class JsonServer2ClientMessage {
             //this.parentId = ev.getSource().parent().id();
         }
 
-        public JsonUIComponentEvent( PropertyChangedEvent<?> ev ) {
-            this( (UIComponent)ev.getSource().component() );
-            this.eventType = ev.getClass().getSimpleName();
-            this.propName = ev.getSource().name();
-            this.propValueType = ev.optNewValue().map( v -> v.getClass().getName() ).orElse( "null" );
-            this.propNewValue = PropertyValueCoder.encode( ev.getSource(), ev.optNewValue().orNull() );
-            this.propOldValue = PropertyValueCoder.encode( ev.getSource(), ev.optOldValue().orNull() );
+        public static Opt<JsonUIComponentEvent> createFrom( PropertyChangedEvent<?> ev ) {
+            var result = new JsonUIComponentEvent( (UIComponent)ev.getSource().component() );
+            result.eventType = ev.getClass().getSimpleName();
+            result.propName = ev.getSource().name();
+
+            if (result.propName.equals( UIComposite.PROP_COMPONENTS )) {
+                return Opt.absent();
+            }
+            else {
+                result.propNewValue = encodeValue( ev.optNewValue().orNull() );
+                //result.propOldValue = encodeValue( ev.optOldValue().orNull() );
+                return Opt.of( result );
+            }
+        }
+    }
+
+
+    protected static JsonPropertyValueBase encodeValue( Object value ) {
+        if (value == null) {
+            return new JsonPropertyValueBase( "null" );
+        }
+        // primitive
+        String type = value.getClass().getName();
+        if (value instanceof String
+                || value instanceof Boolean
+                || value instanceof Number) {
+            return new JsonPrimitivePropertyValue( type, value.toString() );
+        }
+        // Enum
+        else if (value instanceof Enum) {
+            return new JsonPrimitivePropertyValue( type, value.toString() );
+        }
+        // Size
+        else if (value instanceof Size) {
+            var s = (Size)value;
+            return new JsonPrimitiveTuplePropertyValue( type, Integer.toString( s.width() ), Integer.toString( s.height() ) );
+        }
+        // Position
+        else if (value instanceof Position) {
+            var p = (Position)value;
+            return new JsonPrimitiveTuplePropertyValue( type, Integer.toString( p.x() ), Integer.toString( p.y() ) );
+        }
+        // EventHandler
+        else if (value instanceof EventHandler) {
+            return new JsonPrimitivePropertyValue( "EventHandler", ((EventHandler)value).type.toString() );
+        }
+        // Collection
+        else if (value instanceof Collection) {
+            var result = new JsonCollectionPropertyValue( "collection" );
+            for (var v : (Collection)value) {
+                var encoded = encodeValue( v );
+                if (encoded.type.equals( "missing" )) {
+                    return encoded;
+                }
+                else {
+                    result.values.add( encoded );
+                }
+            }
+            return result;
+        }
+        else {
+            return new JsonPropertyValueBase( "missing" );
+        }
+    }
+
+    /**
+     *
+     */
+    public static class JsonPropertyValueBase {
+
+        public String   type;
+
+        protected JsonPropertyValueBase( String type ) {
+            this.type = type;
+        }
+    }
+
+    /**
+     *
+     */
+    public static class JsonCollectionPropertyValue
+            extends JsonPropertyValueBase {
+
+        public List<Object> values = new ArrayList<>();
+
+        protected JsonCollectionPropertyValue( String type ) {
+            super( type );
+        }
+    }
+
+    /**
+     *
+     */
+    public static class JsonPrimitivePropertyValue
+            extends JsonPropertyValueBase {
+
+        public String   value;
+
+        protected JsonPrimitivePropertyValue( String type, String value ) {
+            super( type );
+            this.value = value;
+        }
+    }
+
+    /**
+     *
+     */
+    public static class JsonPrimitiveTuplePropertyValue
+            extends JsonPrimitivePropertyValue {
+
+        public String   value2;
+
+        protected JsonPrimitiveTuplePropertyValue( String type, String value, String value2 ) {
+            super( type, value );
+            this.value2 = value2;
         }
     }
 }

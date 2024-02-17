@@ -28,7 +28,10 @@ import areca.ui.layout.LayoutManager;
 public class UIComposite
         extends UIComponent {
 
-    public ReadWrite<UIComposite,LayoutManager> layout = Property.rw( this, "layout" );
+    public static final String PROP_COMPONENTS = "components";
+    public static final String PROP_LAYOUT = "layout";
+
+    public ReadWrite<UIComposite,LayoutManager> layout = Property.rw( this, PROP_LAYOUT );
 
     public Children             components = new Children();
 
@@ -113,7 +116,7 @@ public class UIComposite
             extends ReadWrites<UIComposite,UIComponent> {
 
         protected Children() {
-            super( UIComposite.this, "components" );
+            super( UIComposite.this, PROP_COMPONENTS );
             rawSet( new ArrayList<>() );
         }
 

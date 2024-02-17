@@ -16,7 +16,6 @@ package areca.ui.component2;
 import java.util.Collection;
 import java.util.EventObject;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import areca.common.Assert;
@@ -394,6 +393,6 @@ public abstract class Property<C,T> {
 
         void registerProperty( Property<?,?> prop );
 
-        List<Property<?,?>> allProperties();
+        Iterable<Property<?,?>> properties();
     }
 }

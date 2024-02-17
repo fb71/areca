@@ -13,11 +13,11 @@
  */
 package areca.rt.server.client;
 
-import static org.apache.commons.lang3.StringUtils.split;
-
+import static areca.rt.server.client.JSServer2ClientMessage.VALUE_MISSING;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.teavm.jso.json.JSON;
@@ -38,6 +38,7 @@ import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.Link;
 import areca.ui.component2.Property.PropertyChangedEvent;
+import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
 import areca.ui.component2.TextField;
@@ -153,24 +154,28 @@ public class Connection {
             // property
             else if (PropertyChangedEvent.class.getSimpleName().equals( ev.eventType() )) {
                 var component = components.get( ev.componentId() );
-                var prop = Sequence.of( component.allProperties() )
-                        .first( p -> p.name().equals( ev.propName() ) )
-                        .orElseError();
+                var prop = Assert.notNull( component.propertyForName( ev.propName() ) );
 
+                @SuppressWarnings("unchecked")
+                var rw = (ReadWrite<?,Object>)prop;
+                var value = JSServer2ClientMessage.decodeValue( ev.propNewValue().cast() );
+
+                if (value == VALUE_MISSING) {
+                }
                 // Events
-                if (ev.propNewValue().startsWith( "E:")) {
-                    Assert.that( ev.propOldValue().length() <= 2 ); // no old values
-                    var value = ev.propNewValue().substring( 2 );
-                    for (var eventTypeName : split( value, ":" )) {
-                        var eventType = EventType.valueOf( eventTypeName );
-                        component.events.on( eventType, _ev -> {
+                else if (value instanceof List
+                        && !((List)value).isEmpty()
+                        && ((List)value).get( 0 ) instanceof EventType) {
+                    Assert.that( component.events.$().isEmpty(), "..." );
+                    for (var v : (List)value) {
+                        component.events.on( (EventType)v, _ev -> {
                             onComponentEvent( component, _ev );
                         });
                     }
                 }
-                // component + property
+                // normal
                 else {
-                    PropertyValueCoder.decode( prop, ev.propNewValue() );
+                    rw.set( value );
                 }
             }
             else {
