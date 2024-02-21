@@ -58,11 +58,12 @@ public class Assert {
     }
 
 
-    public static void isEqual( Object expected, Object actual, String... msgs ) throws AssertionException {
+    public static <R> R isEqual( R expected, R actual, String... msgs ) throws AssertionException {
         if (enabled && !Objects.equals( actual, expected )) {
             var defaultMsg = String.format( "not equal: expected = %s, actual = %s", expected, actual);
             throw new AssertionException( expected, actual, message( msgs, defaultMsg ) );
         }
+        return actual;
     }
 
 

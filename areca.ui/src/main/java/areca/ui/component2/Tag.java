@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import areca.ui.component2.Property.ReadWrites;
 
 /**
- * A
+ * A ...
  *
  * @author Falko Bräutigam
  */
@@ -30,10 +30,6 @@ public class Tag
      */
     public ReadWrites<Tag,String> icons = Property.rws( this, "icons", new ArrayList<>() );
 
-
-    public Tag( UIComponent decorated ) {
-        super( decorated );
-    }
 
 //    @Override
 //    public void dispose() {

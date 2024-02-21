@@ -36,6 +36,7 @@ import areca.ui.App.RootWindow;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
+import areca.ui.component2.Label;
 import areca.ui.component2.Link;
 import areca.ui.component2.Property.PropertyChangedEvent;
 import areca.ui.component2.Property.ReadWrite;
@@ -43,11 +44,15 @@ import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Text;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComponentDecorator;
 import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructingEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDisposedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorAttachedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorDetachedEvent;
 import areca.ui.component2.UIComposite;
+import areca.ui.component2.UIElement;
 import areca.ui.pageflow.PageContainer;
 
 /**
@@ -66,7 +71,7 @@ public class Connection {
     /** The RootWindow on the client side */
     private UIComposite                 rootWindow;
 
-    private Map<Integer,UIComponent>    components = new HashMap<>( 512 );
+    private Map<Integer,UIElement>      components = new HashMap<>( 512 );
 
     /** Pending events to be send to the server (click, text, resize, ..) */
     private Deque<JSClickEvent>         clickEvents = new ArrayDeque<>();
@@ -126,7 +131,7 @@ public class Connection {
         for (var ev : msg.uiEvents()) {
             //LOG.info( "Event: %s", ev.eventType() );
 
-            // constructed
+            // constructing
             if (ComponentConstructingEvent.class.getSimpleName().equals( ev.eventType() )) {
                 var component = ev.componentClass().equals( RootWindow.class.getName() )
                         ? rootWindow
@@ -137,12 +142,12 @@ public class Connection {
             // attached
             else if (ComponentAttachedEvent.class.getSimpleName().equals( ev.eventType() )) {
                 var parent = (UIComposite)components.get( ev.parentId() );
-                var component = components.get( ev.componentId() );
+                var component = (UIComponent)components.get( ev.componentId() );
                 parent.add( component );
             }
             // detached
             else if (ComponentDetachedEvent.class.getSimpleName().equals( ev.eventType() )) {
-                var component = components.get( ev.componentId() );
+                var component = (UIComponent)components.get( ev.componentId() );
                 //Assert.isEqual( ev.parentId(), component.parent().id() );
                 component.parent().components.remove( component ).orElseError();
             }
@@ -153,8 +158,8 @@ public class Connection {
             }
             // property
             else if (PropertyChangedEvent.class.getSimpleName().equals( ev.eventType() )) {
-                var component = components.get( ev.componentId() );
-                var prop = Assert.notNull( component.propertyForName( ev.propName() ) );
+                var element = components.get( ev.componentId() );
+                var prop = Assert.notNull( element.propertyForName( ev.propName() ) );
 
                 @SuppressWarnings("unchecked")
                 var rw = (ReadWrite<?,Object>)prop;
@@ -166,6 +171,7 @@ public class Connection {
                 else if (value instanceof List
                         && !((List)value).isEmpty()
                         && ((List)value).get( 0 ) instanceof EventType) {
+                    var component = (UIComponent)element;
                     Assert.that( component.events.$().isEmpty(), "..." );
                     for (var v : (List)value) {
                         component.events.on( (EventType)v, _ev -> {
@@ -177,6 +183,18 @@ public class Connection {
                 else {
                     rw.set( value );
                 }
+            }
+            // decorator attached
+            else if (DecoratorAttachedEvent.class.getSimpleName().equals( ev.eventType() )) {
+                var component = Assert.notNull( (UIComponent)components.get( ev.parentId() ), "No such component: " + ev.parentId() );
+                var decorator = Assert.notNull( (UIComponentDecorator)components.get( ev.componentId() ) );
+                component.addDecorator( decorator );
+            }
+            // decorator detached
+            else if (DecoratorDetachedEvent.class.getSimpleName().equals( ev.eventType() )) {
+                var component = Assert.notNull( (UIComponent)components.get( ev.parentId() ), "No such component: " + ev.parentId() );
+                var decorator = Assert.notNull( (UIComponentDecorator)components.get( ev.componentId() ) );
+                component.decorators.remove( decorator );
             }
             else {
                 throw new RuntimeException( "mehr arbeit: " + ev.eventType() );
@@ -239,7 +257,7 @@ public class Connection {
     }
 
 
-    private UIComponent createInstance( String classname ) {
+    private UIElement createInstance( String classname ) {
         switch (classname) {
             case PACKAGE_UI_COMPONENTS + ".UIComposite" : return new UIComposite();
             case PACKAGE_UI_COMPONENTS + ".ScrollableComposite" : return new ScrollableComposite();
@@ -247,6 +265,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".Button" : return new Button();
             case PACKAGE_UI_COMPONENTS + ".TextField" : return new TextField();
             case PACKAGE_UI_COMPONENTS + ".Link" : return new Link();
+            case PACKAGE_UI_COMPONENTS + ".Label" : return new Label();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );

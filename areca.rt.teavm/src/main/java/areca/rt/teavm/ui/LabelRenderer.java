@@ -15,6 +15,7 @@ package areca.rt.teavm.ui;
 
 import org.teavm.jso.dom.html.HTMLElement;
 
+import areca.common.Assert;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -23,7 +24,9 @@ import areca.common.reflect.RuntimeInfo;
 import areca.ui.component2.Label;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
-import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorAttachedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorDetachedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorEventBase;
 
 /**
  *
@@ -39,21 +42,16 @@ public class LabelRenderer {
     static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new LabelRenderer() )
-                .performIf( ev -> {
-                    if (ev instanceof ComponentConstructedEvent) {
-                        return ((UIComponentEvent)ev).getSource().decorators().anyMatches( Label.class::isInstance );
-                    }
-                    return false;
-                });
+                .performIf( DecoratorEventBase.class, ev -> ev.getSource() instanceof Label );
     }
 
 
     // instance *******************************************
 
-    @EventHandler( ComponentConstructedEvent.class )
-    public void componentConstructed( ComponentConstructedEvent ev ) {
-        UIComponent c = ev.getSource();
-        Label label = (Label)c.decorators().filter( Label.class::isInstance ).single();
+    @EventHandler( DecoratorAttachedEvent.class )
+    public void attached( DecoratorAttachedEvent ev ) {
+        Label label = (Label)ev.getSource();
+        UIComponent c = Assert.isEqual( ev.decorated, label.decorated() );
 
         label.content.onInitAndChange( (content,__) -> {
             if (content != null) {
@@ -64,5 +62,14 @@ public class LabelRenderer {
                 c.cssClasses.remove( "Labeled" );
             }
         });
+    }
+
+
+    @EventHandler( DecoratorDetachedEvent.class )
+    public void detached( DecoratorDetachedEvent ev ) {
+        UIComponent c = ev.decorated;
+
+        ((HTMLElement)c.htmlElm).removeAttribute( "data-label" );
+        c.cssClasses.remove( "Labeled" );
     }
 }

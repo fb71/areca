@@ -22,9 +22,9 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.component2.Tag;
-import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
-import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorAttachedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorEventBase;
 
 /**
  *
@@ -40,21 +40,16 @@ public class TagRenderer {
     static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new TagRenderer() )
-                .performIf( ev -> {
-                    if (ev instanceof ComponentConstructedEvent) {
-                        return ((UIComponentEvent)ev).getSource().decorators().anyMatches( Tag.class::isInstance );
-                    }
-                    return false;
-                });
+                .performIf( DecoratorEventBase.class, ev -> ev.getSource() instanceof Tag );
     }
 
 
     // instance *******************************************
 
-    @EventHandler( ComponentConstructedEvent.class )
-    public void componentConstructed( ComponentConstructedEvent ev ) {
-        UIComponent c = ev.getSource();
-        Tag tag = (Tag)c.decorators().filter( Tag.class::isInstance ).single();
+    @EventHandler( DecoratorAttachedEvent.class )
+    public void attached( DecoratorAttachedEvent ev ) {
+        var tag = (Tag)ev.getSource();
+        var c = tag.decorated();
 
         tag.icons.onInitAndChange( (icons,__) -> {
             if (icons.size() > 1) {
@@ -71,4 +66,11 @@ public class TagRenderer {
             });
         });
     }
+
+
+//    @EventHandler( DecoratorDetachedEvent.class )
+//    public void detached( DecoratorDetachedEvent ev ) {
+//        var badge = (Badge)ev.getSource();
+//        var c = badge.decorated();
+//    }
 }

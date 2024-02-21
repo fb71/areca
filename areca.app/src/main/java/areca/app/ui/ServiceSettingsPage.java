@@ -175,7 +175,7 @@ public abstract class ServiceSettingsPage<S extends Entity>
 
         protected Button createCheckButton( RSupplier<Promise<?>> checker ) {
             return new Button() {{
-                var badge = new Badge( this );
+                var badge = addDecorator( new Badge() ).get();
                 label.set( "CHECK" );
                 events.on( EventType.SELECT, ev -> {
                     badge.content.set( "..." );
@@ -203,7 +203,7 @@ public abstract class ServiceSettingsPage<S extends Entity>
 
         protected Button createSubmitButton() {
             return new Button() {{
-                var badge = new Badge( this );
+                var badge = addDecorator( new Badge() ).get();
                 label.set( "SUBMIT" );
                 status.onInitAndChange( (newStatus, __) -> {
                     enabled.set( status.value() == Status.VALID );

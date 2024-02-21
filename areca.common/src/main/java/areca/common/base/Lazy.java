@@ -50,11 +50,9 @@ public class Lazy<T,E extends Exception>
     public Lazy() {
     }
 
-
     public Lazy( Supplier<T,E> delegate ) {
         this.delegate = Assert.notNull( delegate );
     }
-
 
     public T $() throws E {
         return supply();
@@ -64,7 +62,6 @@ public class Lazy<T,E extends Exception>
     public T supply() throws E {
         return supply( Assert.notNull( delegate, "Lazy was initialized without supplier." ) );
     }
-
 
     public T supply( Supplier<T,E> supplier ) throws E {
         if (!initialized) {
@@ -76,5 +73,16 @@ public class Lazy<T,E extends Exception>
             }
         }
         return value;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public <EE extends Exception> Lazy<T,E> ifInitialized( Consumer<T,EE> consumer ) throws EE {
+        if (initialized) {
+            consumer.accept( value );
+        }
+        return this;
     }
 }

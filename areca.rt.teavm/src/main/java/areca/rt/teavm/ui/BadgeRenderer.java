@@ -21,9 +21,10 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.component2.Badge;
-import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
-import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorAttachedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorDetachedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorEventBase;
 
 /**
  *
@@ -39,21 +40,16 @@ public class BadgeRenderer {
     static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new BadgeRenderer() )
-                .performIf( ev -> {
-                    if (ev instanceof ComponentConstructedEvent) {
-                        return ((UIComponentEvent)ev).getSource().decorators().anyMatches( Badge.class::isInstance );
-                    }
-                    return false;
-                });
+                .performIf( DecoratorEventBase.class, ev -> ev.getSource() instanceof Badge );
     }
 
 
     // instance *******************************************
 
-    @EventHandler( ComponentConstructedEvent.class )
-    public void componentConstructed( ComponentConstructedEvent ev ) {
-        UIComponent c = ev.getSource();
-        Badge badge = (Badge)c.decorators().filter( Badge.class::isInstance ).single();
+    @EventHandler( DecoratorAttachedEvent.class )
+    public void attached( DecoratorAttachedEvent ev ) {
+        var badge = (Badge)ev.getSource();
+        var c = badge.decorated();
 
         badge.content.onInitAndChange( (content,__) -> {
             if (content != null) {
@@ -66,5 +62,14 @@ public class BadgeRenderer {
                 c.cssClasses.remove( "Badged-NorthEast" );
             }
         });
+    }
+
+
+    @EventHandler( DecoratorDetachedEvent.class )
+    public void detached( DecoratorDetachedEvent ev ) {
+        var c = ev.decorated;
+        ((HTMLElement)c.htmlElm).removeAttribute( "data-badge" );
+        c.cssClasses.remove( "Badged" );
+        c.cssClasses.remove( "Badged-NorthEast" );
     }
 }

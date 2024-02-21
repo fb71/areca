@@ -64,7 +64,9 @@ public class UIComposite
 
 
     /**
-     *
+     * Adds a {@link UIComponent} child the this composite.
+     * <p>
+     * Shortcut to <code>{@link #components}.add()</code>
      */
     @SuppressWarnings("unchecked")
     public <C extends UIComponent,E extends Exception> C add( C component ) throws E {

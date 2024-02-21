@@ -70,11 +70,12 @@ public class UIComponentRenderer
     static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new UIComponentRenderer() )
-                .performIf( ev -> ev instanceof UIComponentEvent && ev.getSource() instanceof UIComponent );
+                .performIf( UIComponentEvent.class, ev -> ev.getSource() instanceof UIComponent );
     }
 
     // instance *******************************************
 
+    @SuppressWarnings("unchecked")
     protected HTMLElement htmlElm( UIComponent c ) {
         return Assert.notNull( (HTMLElement)c.htmlElm, "No htmlElm for: " + c.getClass().getSimpleName() );
     }
@@ -87,7 +88,7 @@ public class UIComponentRenderer
 
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
-        UIComponent c = ev.getSource();
+        UIComponent c = (UIComponent)ev.getSource();
         LOG.debug( "CONSTRUCTED: " + c.getClass().getName() );
         HTMLElement htmlElm = htmlElm( c );
 
@@ -280,7 +281,7 @@ public class UIComponentRenderer
     @EventHandler( ComponentDisposedEvent.class )
     public void componentDisposed( ComponentDisposedEvent ev ) {
         LOG.debug( "DISPOSED: " + ev.getSource().getClass().getName() );
-        var htmlElm = htmlElm( ev.getSource() );
+        var htmlElm = htmlElm( (UIComponent)ev.getSource() );
         Assert.isNull( htmlElm.getParentNode() );
     }
 

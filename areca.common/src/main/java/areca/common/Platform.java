@@ -30,8 +30,8 @@ public abstract class Platform {
     public static Scheduler scheduler = new Scheduler();
 
     /**
-     * Returns true if the current Platform runs in the JVM.
-     * Returns false if the current Platform runs in the Browser/JavaScript.
+     * Returns true if the current Platform runs in the JVM,
+     * false if the current Platform runs in the Browser/JavaScript.
      */
     public static boolean isJVM() {
         return Assert.notNull( impl, "Platform not (yet) initialized." )

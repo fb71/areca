@@ -18,9 +18,9 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.ReadWrite;
 
 /**
- * A label decoration.
+ * Decorates an {@link UIComponent} with a label.
  * <p/>
- * Does not work for {@link TextField}! (yet?)
+ * XXX Does not work for {@link TextField}! (yet?)
  *
  * @author Falko Bräutigam
  */
@@ -35,18 +35,9 @@ public class Label
     public ReadWrite<Label,String> content = new ReadWrite<>( this, "content" );
 
 
-    public Label( UIComponent decorated ) {
-        super( decorated );
-        if (decorated instanceof TextField) {
-            throw new IllegalArgumentException( "Unfortunatelly Label does not work directly with TextField :(" );
-        }
-    }
-
-
     @Override
     public void dispose() {
         content.set( null );
         super.dispose();
     }
-
 }

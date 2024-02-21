@@ -34,11 +34,6 @@ public class Badge
     public ReadWrite<Badge,String> content = Property.rw( this, "content" );
 
 
-    public Badge( UIComponent decorated ) {
-        super( decorated );
-    }
-
-
     @Override
     public void dispose() {
         content.set( null );

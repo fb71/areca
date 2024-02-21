@@ -45,7 +45,8 @@ public class BadgeTest {
         parent.add( new Button() {{
             label.set( "Count" );
             layoutConstraints.set( new RowConstraints() {{width.set( 80 );}} );
-            var badge = new Badge( this ).content.set( "5" );
+            var badge = new Badge().content.set( "5" );
+            addDecorator( badge );
             events.on( EventType.SELECT, ev -> {
                 badge.content.set( "60" );
             });
@@ -54,7 +55,8 @@ public class BadgeTest {
         parent.add( new Button() {{
             label.set( "Appear" );
             layoutConstraints.set( new RowConstraints() {{width.set( 80 );}} );
-            var badge = new Badge( this );
+            var badge = new Badge();
+            addDecorator( badge );
             events.on( EventType.SELECT, ev -> {
                 badge.content.set( "7" );
             });
@@ -63,7 +65,8 @@ public class BadgeTest {
         parent.add( new Button() {{
             label.set( "Disappear" );
             layoutConstraints.set( new RowConstraints() {{width.set( 90 );}} );
-            var badge = new Badge( this ).content.set( "5" );
+            var badge = new Badge().content.set( "5" );
+            addDecorator( badge );
             events.on( EventType.SELECT, ev -> {
                 badge.content.set( null );
                 //badge.dispose();

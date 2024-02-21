@@ -81,7 +81,7 @@ public class TextFieldRenderer
                 input.setValue( newValue != null ? newValue : "" );
             });
 
-            LOG.info( "Register listener: %s", "input" );
+            LOG.debug( "Register listener: %s", "input" );
             input.addEventListener( "input", htmlEv -> {
                 htmlEv.stopPropagation();
                 htmlEv.preventDefault();

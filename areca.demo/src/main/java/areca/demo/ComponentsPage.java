@@ -115,7 +115,7 @@ public class ComponentsPage {
 
     protected UIComponent decorate( String _label, TextField t ) {
         return new UIComposite() {{
-            new Label( this ).content.set( _label );
+            addDecorator( new Label().content.set( _label ) );
             layoutConstraints.set( RowConstraints.height( 35 ) );
             layout.set( FillLayout.defaults() );
             add( t );

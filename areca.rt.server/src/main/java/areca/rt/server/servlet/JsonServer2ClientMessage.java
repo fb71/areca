@@ -27,7 +27,10 @@ import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
+import areca.ui.component2.UIComponentEvent.ComponentEventBase;
+import areca.ui.component2.UIComponentEvent.DecoratorEventBase;
 import areca.ui.component2.UIComposite;
+import areca.ui.component2.UIElement;
 
 /**
  *
@@ -52,7 +55,7 @@ class JsonServer2ClientMessage {
         public Object   propNewValue;
         //public Object   propOldValue;
 
-        protected JsonUIComponentEvent( UIComponent component ) {
+        protected JsonUIComponentEvent( UIElement component ) {
             this.componentId = component.id();
             this.componentClass = Stream.iterate( (Class)component.getClass(), cl -> cl.getSuperclass() )
                     .filter( cl -> !cl.isAnonymousClass() )
@@ -67,21 +70,27 @@ class JsonServer2ClientMessage {
         }
 
         public JsonUIComponentEvent( ComponentAttachedEvent ev ) {
-            this( (UIComponentEvent)ev );
+            this( (ComponentEventBase)ev );
             this.parentId = ev.parent.id();
         }
 
         public JsonUIComponentEvent( ComponentDetachedEvent ev ) {
-            this( (UIComponentEvent)ev );
+            this( (ComponentEventBase)ev );
             //this.parentId = ev.getSource().parent().id();
         }
 
+        public JsonUIComponentEvent( DecoratorEventBase ev ) {
+            this( (UIComponentEvent)ev );
+            this.parentId = ev.decorated.id();
+        }
+
         public static Opt<JsonUIComponentEvent> createFrom( PropertyChangedEvent<?> ev ) {
-            var result = new JsonUIComponentEvent( (UIComponent)ev.getSource().component() );
+            var result = new JsonUIComponentEvent( (UIElement)ev.getSource().component() );
             result.eventType = ev.getClass().getSimpleName();
             result.propName = ev.getSource().name();
 
-            if (result.propName.equals( UIComposite.PROP_COMPONENTS )) {
+            if (result.propName.equals( UIComposite.PROP_COMPONENTS )
+                    || result.propName.equals( UIComponent.PROP_DECORATORS )) {
                 return Opt.absent();
             }
             else {

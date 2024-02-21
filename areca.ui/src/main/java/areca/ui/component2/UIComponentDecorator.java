@@ -13,28 +13,50 @@
  */
 package areca.ui.component2;
 
+import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.component2.UIComponentEvent.DecoratorAttachedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorDetachedEvent;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class UIComponentDecorator {
+public abstract class UIComponentDecorator
+        extends UIElement {
 
     private static final Log LOG = LogFactory.getLog( UIComponentDecorator.class );
 
     private UIComponent         decorated;
 
 
-    public UIComponentDecorator( UIComponent decorated ) {
-        this.decorated = decorated;
-        this.decorated.attachDecorator( this );
+    public UIComponent decorated() {
+        return decorated;
     }
 
 
+    @Override
     public void dispose() {
-        //decorated.dettachDecorator( );
+        if (decorated != null) {
+            decorated.decorators.remove( this );
+            Assert.isNull( decorated );
+        }
+        super.dispose();
+    }
+
+
+    protected void decoratorAttachedTo( UIComponent newDecorated ) {
+        Assert.isNull( decorated, "This decorator is attached to another UIComponent." );
+        this.decorated = Assert.notNull( newDecorated  );
+        UIComponentEvent.manager().publish( new DecoratorAttachedEvent( this, newDecorated ) );
+    }
+
+
+    protected void decoratorDetachedFrom( UIComponent component ) {
+        Assert.isSame( decorated, component, "This decorator is not attached to this UIComponent." );
+        this.decorated = null;
+        UIComponentEvent.manager().publish( new DecoratorDetachedEvent( this, component ) );
     }
 
 }

@@ -14,9 +14,7 @@
 package areca.ui.component2;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -26,14 +24,12 @@ import areca.common.Assert;
 import areca.common.base.Function;
 import areca.common.base.Function.RFunction;
 import areca.common.base.Opt;
-import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Align;
 import areca.ui.Color;
 import areca.ui.Position;
 import areca.ui.Size;
-import areca.ui.component2.Property.PropertyContainer;
 import areca.ui.component2.Property.ReadOnly;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Property.ReadWrites;
@@ -45,7 +41,7 @@ import areca.ui.layout.LayoutManager;
  * @author falko
  */
 public abstract class UIComponent
-        implements PropertyContainer {
+        extends UIElement {
 
     private static final Log LOG = LogFactory.getLog( UIComponent.class );
 
@@ -57,38 +53,13 @@ public abstract class UIComponent
     public static final String          PROP_SIZE = "size";
     public static final String          PROP_POSITION = "position";
     public static final String          PROP_EVENTS = "events";
-
-    private static volatile int         ID_COUNT;
-
-    private int                         id = ID_COUNT++;
-
-    private boolean                     disposed;
+    public static final String          PROP_DECORATORS = "decorators";
 
     private UIComposite                 parent;
 
     private Map<String,Object>          data;
 
-    private List<UIComponentDecorator>  decorators;
-
-    private Map<String,Property<?,?>>   properties = new HashMap<>( 32 );
-
     public Object                       htmlElm;
-
-
-    @Override
-    public void registerProperty( Property<?,?> prop ) {
-        properties.put( prop.name(), prop );
-    }
-
-
-    @Override
-    public Iterable<Property<?,?>> properties() {
-        return properties.values();
-    }
-
-    public Property<?,?> propertyForName( String name ) {
-        return properties.get( name );
-    }
 
     /**
      * The tooltip of this component.
@@ -195,14 +166,52 @@ public abstract class UIComponent
     public ReadWrite<?,Boolean>             focus = Property.rw( this, "focus" );
 
     /** */
-    public Events events = new Events( this );
+    public Events                           events = new Events( this );
 
+    public Decorators                       decorators = new Decorators();
+
+    /**
+     *
+     */
+    public class Decorators
+            extends ReadWrites<UIComponent,UIComponentDecorator> {
+
+        protected Decorators() {
+            super( UIComponent.this, PROP_DECORATORS );
+            rawSet( new ArrayList<>() );
+        }
+
+        @Override
+        public Opt<UIComponentDecorator> add( UIComponentDecorator add ) {
+            Assert.that( !TextField.class.isInstance( add ), "Unfortunatelly Label does not work directly with TextField :(" );
+            return super.add( Assert.notNull( add ) ).ifPresent( __ -> {
+                add.decoratorAttachedTo( UIComponent.this );
+            });
+        }
+
+        @Override
+        public Opt<UIComponentDecorator> remove( UIComponentDecorator remove ) {
+            return super.remove( remove ).ifPresent( __ -> {
+                remove.decoratorDetachedFrom( UIComponent.this );
+            });
+        }
+
+        public void disposeAll() {
+            new ArrayList<>( value ).forEach( d -> d.dispose() );
+            Assert.isEqual( 0, size(), "Number of decorators after disposeAll(): " + size() );
+        }
+
+        public int size() {
+            return value.size();
+        }
+    }
 
     // methods ********************************************
 
+    /**
+     * Init
+     */
     {
-        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentConstructingEvent( this ) );
-
         // init CSS classes
         Set<String> classes = new HashSet<>();
         for (Class<?> cl=getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
@@ -238,11 +247,6 @@ public abstract class UIComponent
     }
 
 
-    protected UIComponent() {
-        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentConstructedEvent( this ) );
-    }
-
-
     /**
      * Called when this component is added to the component hierarchy.
      */
@@ -257,20 +261,20 @@ public abstract class UIComponent
      * Called when this component is added to the component hierarchy.
      */
     protected void detachedFrom( @SuppressWarnings("hiding") UIComposite parent ) {
-        Assert.that( this.parent == parent, "no parent" );
+        Assert.isSame( this.parent, parent, "wrong parent" );
         this.parent = null;
         UIComponentEvent.manager().publish( new UIComponentEvent.ComponentDetachedEvent( this ) );
     }
 
 
-    protected void attachDecorator( UIComponentDecorator decorator ) {
-        decorators = decorators != null ? decorators : new ArrayList<>();
-        decorators.add( decorator );
-    }
-
-
-    public Sequence<UIComponentDecorator,RuntimeException> decorators() {
-        return decorators != null ? Sequence.of( decorators ) : Sequence.of();
+    /**
+     * Adds a {@link UIComponentDecorator} to the component.
+     * <p>
+     * Shortcut to: <code>{@link #decorators}.add(...)</code>
+     */
+    @SuppressWarnings( "unchecked" )
+    public <R extends UIComponentDecorator> Opt<R> addDecorator( R decorator ) {
+        return (Opt<R>)decorators.add( decorator );
     }
 
 
@@ -283,38 +287,16 @@ public abstract class UIComponent
             LOG.info( "DISPOSE: already disposed! (%s)", getClass().getName() );
         }
         else {
-            disposed = true;
             events.dispose();
-            if (decorators != null) {
-                decorators.forEach( deco -> deco.dispose() );
-                decorators = null;
-            }
+
+            decorators.disposeAll();
+
             data = null;
             if (parent != null) {
                 parent.components.remove( this );
             }
-            UIComponentEvent.manager().publish( new UIComponentEvent.ComponentDisposedEvent( this ) );
+            super.dispose();
         }
-    }
-
-
-    public boolean isDisposed() {
-        return disposed;
-    }
-
-
-    public int id() {
-        return id;
-    }
-
-
-    /**
-     * The unique ID of a component is automatically set by the framework.
-     * Change it only if you really have to and you know what you are doing.
-     */
-    public UIComponent setId( int newId ) {
-        this.id = newId;
-        return this;
     }
 
 

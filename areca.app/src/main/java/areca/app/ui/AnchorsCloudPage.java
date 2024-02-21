@@ -184,7 +184,7 @@ public class AnchorsCloudPage
 //        };
 
         // tag
-        var tag = new Tag( btn );
+        var tag = btn.addDecorator( new Tag() ).get();
         anchor.storeRef( ContactAnchorSynchronizer.ContactAnchorStoreRef.class ).ifPresent( __ -> {
             tag.icons.add( "face" );
         });
@@ -423,7 +423,7 @@ public class AnchorsCloudPage
                     position.set( Position.of( margins, top ) );
                     size.set( Size.of( viewSize.width() - (margins*2), 1 ) );
 
-                    new Label( this ).content.set( label );
+                    addDecorator( new Label().content.set( label ) );
                 }});
             }
 

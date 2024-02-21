@@ -656,10 +656,10 @@ public abstract class Promise<T> {
                     // INFO enabled means debug is on
                     // XXX if debug=true the defaultErrorHandler should throw the exception for TeaVM
                     // XXX but it does not happen :(
-                    if (LOG.isLevelEnabled( Level.INFO )) {
+                    if (!Platform.isJVM() && LOG.isLevelEnabled( Level.INFO )) {
                         throw (RuntimeException)e;
                     } else {
-                        LOG.warn( e.toString(), e );
+                        LOG.warn( "doConsume(): %s", e.toString() );
                     }
                     completeWithError( e );
                     break;

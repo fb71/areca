@@ -45,7 +45,7 @@ public abstract class UIComponentEvent
     public static class ComponentConstructingEvent
             extends UIComponentEvent {
 
-        public ComponentConstructingEvent( UIComponent source ) {
+        public ComponentConstructingEvent( UIElement source ) {
             super( source );
         }
     }
@@ -54,14 +54,28 @@ public abstract class UIComponentEvent
     public static class ComponentConstructedEvent
             extends UIComponentEvent {
 
-        public ComponentConstructedEvent( UIComponent source ) {
+        public ComponentConstructedEvent( UIElement source ) {
             super( source );
         }
     }
 
     /** */
-    public static class ComponentAttachedEvent
+    public static abstract class ComponentEventBase
             extends UIComponentEvent {
+
+        public ComponentEventBase( UIComponent source ) {
+            super( source );
+        }
+
+        @Override
+        public UIComponent getSource() {
+            return (UIComponent)super.getSource();
+        }
+    }
+
+    /** */
+    public static class ComponentAttachedEvent
+            extends ComponentEventBase {
 
         public UIComposite parent;
 
@@ -73,7 +87,7 @@ public abstract class UIComponentEvent
 
     /** */
     public static class ComponentDetachedEvent
-            extends UIComponentEvent {
+            extends ComponentEventBase {
 
         public ComponentDetachedEvent( UIComponent source ) {
             super( source );
@@ -81,23 +95,61 @@ public abstract class UIComponentEvent
     }
 
     /** */
+    public static abstract class DecoratorEventBase
+            extends UIComponentEvent {
+
+        public UIComponent decorated;
+
+        public DecoratorEventBase( UIComponentDecorator source, UIComponent decorated ) {
+            super( source );
+            this.decorated = decorated;
+        }
+
+        @Override
+        public UIComponentDecorator getSource() {
+            return (UIComponentDecorator)super.getSource();
+        }
+    }
+
+    /** */
+    public static class DecoratorAttachedEvent
+            extends DecoratorEventBase {
+
+        public DecoratorAttachedEvent( UIComponentDecorator source, UIComponent decorated ) {
+            super( source, decorated );
+        }
+    }
+
+    /** */
+    public static class DecoratorDetachedEvent
+            extends DecoratorEventBase {
+
+        public DecoratorDetachedEvent( UIComponentDecorator source, UIComponent decorated ) {
+            super( source, decorated );
+        }
+    }
+
+    /** */
     public static class ComponentDisposedEvent
             extends UIComponentEvent {
 
-        public ComponentDisposedEvent( UIComponent source ) {
+        public ComponentDisposedEvent( UIElement source ) {
             super( source );
         }
     }
 
     // instance *******************************************
 
-    public UIComponentEvent( UIComponent source ) {
+    /**
+     * @param source {@link UIComponent} or {@link UIComponentDecorator}.
+     */
+    public UIComponentEvent( UIElement source ) {
         super( source );
     }
 
     @Override
-    public UIComponent getSource() {
-        return (UIComponent)super.getSource();
+    public UIElement getSource() {
+        return (UIElement)super.getSource();
     }
 
     @Override

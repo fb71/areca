@@ -34,6 +34,9 @@ import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructingEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDisposedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorAttachedEvent;
+import areca.ui.component2.UIComponentEvent.DecoratorDetachedEvent;
+import areca.ui.component2.UIElement;
 
 /**
  * A collector of all UI render events: {@link UIComponentEvent} and
@@ -48,7 +51,7 @@ public class UIEventCollector {
 
     public static final ClassInfo<UIEventCollector> TYPE = UIEventCollectorClassInfo.instance();
 
-    private Map<Integer,UIComponent>    components = new HashMap<>();
+    private Map<Integer,UIElement>      components = new HashMap<>( 512 );
 
     private List<JsonUIComponentEvent>  events = new ArrayList<>( 512 );
 
@@ -64,22 +67,23 @@ public class UIEventCollector {
 
 
     public UIComponent componentForId( Integer componentId ) {
-        return Assert.notNull( components.get( componentId ), "No such componentId: " + componentId );
+        return Assert.notNull( (UIComponent)components.get( componentId ), "No such componentId: " + componentId );
     }
 
     /** The RootWindow component */
     public UIComponent rootWindow() {
-        return components.values().stream().filter( c -> c instanceof RootWindow ).findAny().get();
+        return (UIComponent)components.values().stream().filter( c -> c instanceof RootWindow ).findAny().get();
     }
 
 
     @EventHandler( PropertyChangedEvent.class )
     public void propertyChanged( PropertyChangedEvent ev ) {
         var prop = ev.getSource();
-        if (prop.component() instanceof UIComponent) {
+        if (prop.component() instanceof UIElement) {
             LOG.debug( "PROPERTY: %s", prop.name() );
-            Assert.notNull( components.get( ((UIComponent)prop.component()).id() ) );
-            JsonUIComponentEvent.createFrom( ev ).ifPresent( json -> events.add( json ) );
+            Assert.notNull( components.get( ((UIElement)prop.component()).id() ) );
+            JsonUIComponentEvent.createFrom( ev )
+                    .ifPresent( json -> events.add( json ) );
         }
         else {
             LOG.debug( "SKIP: %s (%s)", prop.name(), prop.component() );
@@ -125,4 +129,19 @@ public class UIEventCollector {
         events.add( new JsonUIComponentEvent( ev ) );
     }
 
+
+    @EventHandler( DecoratorAttachedEvent.class )
+    public void decoratorAttached( DecoratorAttachedEvent ev ) {
+        var decorator = ev.getSource();
+        LOG.debug( "DECORATOR: %s", decorator.getClass().getName() );
+        events.add( new JsonUIComponentEvent( ev ) );
+    }
+
+
+    @EventHandler( DecoratorDetachedEvent.class )
+    public void decoratorDetached( DecoratorDetachedEvent ev ) {
+        var component = ev.getSource();
+        LOG.debug( "DECORATOR detached:: %s", component.getClass().getName() );
+        events.add( new JsonUIComponentEvent( ev ) );
+    }
 }

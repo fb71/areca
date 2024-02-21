@@ -52,7 +52,7 @@ public class FieldContext<M extends ModelBase>
     public UIComponent create() {
         var result = super.create();
         if (label != null) {
-            new Label( result ).content.set( label );
+            result.addDecorator( new Label().content.set( label ) );
         }
         return result;
     }

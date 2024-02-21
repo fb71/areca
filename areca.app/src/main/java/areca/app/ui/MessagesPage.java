@@ -495,13 +495,13 @@ public class MessagesPage extends Page {
             });
 
             if (message.unread.get()) {
-                new Badge( this ) {{
+                addDecorator( new Badge() {{
                     content.set( "X" );
                     message.onLifecycle( State.AFTER_REFRESH, ev -> {
                         content.set( message.unread.get() ? "X" : null );
                     })
                     .unsubscribeIf( () -> isDisposed() );
-                }};
+                }});
             }
         }
 

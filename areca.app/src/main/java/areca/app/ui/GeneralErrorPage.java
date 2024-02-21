@@ -89,7 +89,7 @@ public class GeneralErrorPage
             layoutConstraints.set( new RowConstraints().height.set( 50 ) );
             label.set( "SEND REPORT" );
 
-            var ok = new Badge( this );
+            var ok = addDecorator( new Badge() ).get();
             events.on( EventType.SELECT, ev -> {
                 var msg = new TransportMessage() {{
                     receipient = new EmailAddress( "falko@polymap.de" );

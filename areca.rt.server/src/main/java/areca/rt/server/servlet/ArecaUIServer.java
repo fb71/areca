@@ -24,6 +24,7 @@ import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -83,7 +84,7 @@ public class ArecaUIServer
                     .map( classname -> (Class<ServerApp>)Class.forName( classname ) )
                     .orElseThrow( () -> new ServletException( "No parameter: areca.appclass" ) );
 
-            // find/call all static init()
+            // call all static init()
             var reverse = new LinkedList<Method>();
             for (Class c = appClass; c != null; c = c.getSuperclass()) {
                 Sequence.of( c.getMethods() )
@@ -91,7 +92,13 @@ public class ArecaUIServer
                         .ifPresent( m -> reverse.addFirst( m ) );
             }
             for (var m : reverse) {
-                m.invoke( null );
+                var params = m.getParameterTypes();
+                if (params.length == 1 && params[0].equals( ServletContext.class )) {
+                    m.invoke( null, getServletContext() );
+                }
+                else {
+                    m.invoke( null );
+                }
             }
 
             Session.registerFactory( ServerApp.class, () -> appClass.newInstance() );
