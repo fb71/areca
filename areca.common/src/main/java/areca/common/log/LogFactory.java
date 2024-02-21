@@ -13,11 +13,18 @@
  */
 package areca.common.log;
 
+import static areca.common.log.ConsoleColors.BLACK_BRIGHT;
+import static areca.common.log.ConsoleColors.RED;
+import static areca.common.log.ConsoleColors.RED_BOLD;
+import static areca.common.log.ConsoleColors.RESET;
+import static areca.common.log.ConsoleColors.YELLOW;
+import static areca.common.log.ConsoleColors.YELLOW_BOLD;
 import static org.apache.commons.lang3.StringUtils.abbreviate;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import areca.common.base.Sequence;
 import areca.common.base.Supplier.RSupplier;
@@ -70,11 +77,11 @@ public class LogFactory {
      */
     public static class Log {
 
-        private static final Map<Level,String> COLORS = new HashMap<>() {{
-            put( Level.DEBUG, ConsoleColors.BLACK_BRIGHT );
-            put( Level.INFO, "" ); // ConsoleColors.RESET );
-            put( Level.WARN, ConsoleColors.YELLOW );
-            put( Level.ERROR, ConsoleColors.RED );
+        private static final Map<Level,Pair<String,String>> COLORS = new HashMap<>() {{
+            put( Level.DEBUG, Pair.of( BLACK_BRIGHT, BLACK_BRIGHT ) );
+            put( Level.INFO,  Pair.of( "", "" ) ); // ConsoleColors.RESET );
+            put( Level.WARN,  Pair.of( YELLOW_BOLD, YELLOW ) );
+            put( Level.ERROR, Pair.of( RED_BOLD, RED ) );
         }};
 
         protected final String  prefix;
@@ -94,30 +101,30 @@ public class LogFactory {
 
         public String format( Level msgLevel, String msg, Object... args ) {
             var formatted = args != null ? String.format( msg, args ) : msg;
-            return String.format( "[%-5s] %-20s: %s", msgLevel, abbreviate(prefix,20), formatted );
+            var c1 = COLORS.get( msgLevel ).getLeft();
+            var c2 = COLORS.get( msgLevel ).getRight();
+            return String.format( "[%s%-5s%s] %s%-20s%s:%s %s%s%s",
+                    c1, msgLevel, RESET,
+                    BLACK_BRIGHT, abbreviate( prefix, 20 ), BLACK_BRIGHT, RESET,
+                    c2, formatted, RESET );
         }
 
         private void doLog( Level msgLevel, String msg, Object[] args, Throwable e ) {
             @SuppressWarnings("resource")
             var out = msgLevel.ordinal() >= Level.ERROR.ordinal() ? System.err : System.out;
-            var color = COLORS.get( msgLevel );
-            var reset = ConsoleColors.RESET;
-            out.println( color + format( msgLevel, msg, args ) + reset );
+            // XXX async
+            out.println( format( msgLevel, msg, args ) );
         }
 
         protected void log( Level msgLevel, String msg, Object[] args, Throwable e ) {
             if (isLevelEnabled( msgLevel )) {
-                //Platform.scheduler.schedule( Priority.DECORATION, () -> {
-                    doLog( msgLevel, msg, args, e );
-                //});
+                doLog( msgLevel, msg, args, e );
             }
         }
 
         protected void log2( Level msgLevel, String msg, RSupplier<Object[]> args, Throwable e ) {
             if (isLevelEnabled( msgLevel )) {
-                //Platform.scheduler.schedule( Priority.DECORATION, () -> {
-                    doLog( msgLevel, msg, args.get(), e );
-                //});
+                doLog( msgLevel, msg, args.get(), e );
             }
         }
 
