@@ -18,8 +18,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import java.io.IOException;
@@ -32,7 +30,6 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -417,10 +414,10 @@ public class ReflectAnnotationProcessor
             CodeBlock.Builder codeBlock = CodeBlock.builder();
             codeBlock.add( "new $L()", infoElementClassName( (TypeElement)am.getAnnotationType().asElement(), true ) + "AnnotationInfo" );
             //codeBlock.add( "new $T()", ClassName.bestGuess( am.getAnnotationType().toString() + "AnnotationInfo" ) );
-            Map<? extends ExecutableElement,? extends AnnotationValue> values = am.getElementValues();
+            var values = am.getElementValues();
             if (!values.isEmpty()) {
                 codeBlock.add( " {{" );
-                for (Entry<? extends ExecutableElement,? extends AnnotationValue> entry : values.entrySet()) {
+                for (var entry : values.entrySet()) {
                     String valueCode = entry.getValue().toString();
                     codeBlock.add( "this._$L = ", entry.getKey().getSimpleName() );
                     // XXX array type: check and handling are probable not meant to do this way
@@ -434,7 +431,15 @@ public class ReflectAnnotationProcessor
                         codeBlock.add( "($L) new $L[] $L;", typeName, rawTypeName, valueCode );
                     }
                     else {
-                        codeBlock.add( "$L;", valueCode );
+                        // enum (Java 17; vorher war toString() der komplette Name des enums)
+                        if (entry.getValue().getValue() instanceof VariableElement) {
+                            var ve = (VariableElement)entry.getValue().getValue();
+                            codeBlock.add( "$T.$L;", ve.asType(), ve.getSimpleName() );
+                        }
+                        // other
+                        else {
+                            codeBlock.add( "$L;", valueCode );
+                        }
                     }
                 }
                 codeBlock.add( "}}" );
