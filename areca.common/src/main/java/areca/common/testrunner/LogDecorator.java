@@ -45,7 +45,7 @@ public class LogDecorator
     public static final ClassInfo<LogDecorator> info = LogDecoratorClassInfo.instance();
 
     protected void println( String s ) {
-        System.out.println( ConsoleColors.PURPLE + s + RESET );
+        System.out.println( ConsoleColors.CYAN + s + RESET );
     }
 
     @Override
@@ -82,8 +82,14 @@ public class LogDecorator
                 println( RED_BRIGHT + leftPad( "--| failed", LINE_LENGHT, ' ' ) );
                 Throwable cause = Platform.rootCause( e );
                 println( "Root cause: " + cause );
+                if (Platform.isJVM()) {
+                    //cause.printStackTrace( System.err );
+                    var stack = cause.getStackTrace();
+                    for (int i=0; i < stack.length && i < 25; i++) {
+                        System.err.println( String.format( "    at %s", stack[i] ) );
+                    }
+                }
                 throw (RuntimeException)cause;
-                //cause.printStackTrace( System.err );
             } else {
                 println( RED_BRIGHT + leftPad( "--| failed (no exception)", LINE_LENGHT, ' ' ) );
             }

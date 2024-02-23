@@ -110,7 +110,9 @@ public class Connection {
                     pendingRequest = null;
                     try {
                         var msg = (JSServer2ClientMessage)JSON.parse( response.text() );
-                        readUIEvents( msg );
+
+                        processUIEvents( msg );
+
                         pendingWait = msg.pendingWait() >= 0
                                 ? Platform.schedule( msg.pendingWait(), () -> readServer( false ) )
                                 : null;
@@ -126,7 +128,7 @@ public class Connection {
     }
 
 
-    protected void readUIEvents( JSServer2ClientMessage msg ) {
+    protected void processUIEvents( JSServer2ClientMessage msg ) {
         LOG.info( "Received: %s render events", msg.uiEvents().length );
         for (var ev : msg.uiEvents()) {
             //LOG.info( "Event: %s", ev.eventType() );
@@ -153,8 +155,7 @@ public class Connection {
             }
             // disposed
             else if (ComponentDisposedEvent.class.getSimpleName().equals( ev.eventType() )) {
-                var component = components.remove( ev.componentId() );
-                component.dispose();
+                components.remove( ev.componentId() ).dispose();
             }
             // property
             else if (PropertyChangedEvent.class.getSimpleName().equals( ev.eventType() )) {
@@ -197,7 +198,7 @@ public class Connection {
                 component.decorators.remove( decorator );
             }
             else {
-                throw new RuntimeException( "mehr arbeit: " + ev.eventType() );
+                throw new RuntimeException( "mas trabajo: " + ev.eventType() );
             }
         }
     }

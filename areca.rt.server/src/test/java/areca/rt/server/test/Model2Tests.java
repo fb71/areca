@@ -16,14 +16,14 @@ package areca.rt.server.test;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.polymap.model2.store.no2.No2Store;
+import org.polymap.model2.test2.AssociationsTest;
+import org.polymap.model2.test2.ComplexModelTest;
 import org.polymap.model2.test2.RepoSupplier;
 import org.polymap.model2.test2.RuntimeTest;
 import org.polymap.model2.test2.SimpleModelTest;
 import org.polymap.model2.test2.SimpleQueryTest;
 
 import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 
 /**
@@ -37,8 +37,8 @@ public class Model2Tests extends JUnitTestBase {
 
     @BeforeAll
     protected static void setupLogging() {
-        LogFactory.setPackageLevel( No2Store.class, Level.DEBUG );
-        LogFactory.setPackageLevel( SimpleModelTest.class, Level.DEBUG );
+        //LogFactory.setPackageLevel( No2Store.class, Level.DEBUG );
+        //LogFactory.setPackageLevel( SimpleModelTest.class, Level.DEBUG );
         RepoSupplier.no2();
     }
 
@@ -55,6 +55,16 @@ public class Model2Tests extends JUnitTestBase {
     @Test
     public void simpleQueryTests() {
         execute( SimpleQueryTest.info );
+    }
+
+    @Test
+    public void complexModelTests() {
+        execute( ComplexModelTest.info );
+    }
+
+    @Test
+    public void associationsTests() {
+        execute( AssociationsTest.info );
     }
 
 }
