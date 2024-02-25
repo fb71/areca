@@ -45,7 +45,7 @@ public class LogDecorator
     public static final ClassInfo<LogDecorator> info = LogDecoratorClassInfo.instance();
 
     protected void println( String s ) {
-        System.out.println( ConsoleColors.CYAN + s + RESET );
+        System.out.println( ConsoleColors.BLUE_BRIGHT + s + RESET );
     }
 
     @Override
