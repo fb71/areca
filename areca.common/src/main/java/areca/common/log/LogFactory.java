@@ -26,7 +26,6 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import areca.common.base.Sequence;
 import areca.common.base.Supplier.RSupplier;
 
 /**
@@ -38,13 +37,15 @@ public class LogFactory {
     public enum Level {
         DEBUG, INFO, WARN, ERROR, OFF,
         /** Signals that the logger should use the current {@link LogFactory#DEFAULT_LEVEL}. */
-        DEFAULT
+        //DEFAULT
     }
 
     /** The level that is used for loggers with current level {@link Level#DEFAULT}. */
     public static Level DEFAULT_LEVEL = Level.INFO;
 
     private static Map<String,Level> levels = new HashMap<>();
+
+    private static volatile int levelsVersion = 0;
 
     public static Log getLog( Class<?> cl ) {
         return new Log( cl, null );
@@ -57,12 +58,14 @@ public class LogFactory {
     public static void setClassLevel( Class<?> cl, Level level ) {
         System.out.println( "LOG: " + cl.getName() + " -> " + level );
         levels.put( cl.getName(), level );
+        levelsVersion ++;
     }
 
     public static void setPackageLevel( Class<?> cl, Level level ) {
         String packageName = StringUtils.substringBeforeLast( cl.getName(), "." );
         System.out.println( "LOG: " + packageName + " -> " + level );
         levels.put( packageName, level );
+        levelsVersion ++;
     }
 
     /**
@@ -84,19 +87,37 @@ public class LogFactory {
             put( Level.ERROR, Pair.of( RED_BOLD, RED ) );
         }};
 
+        protected final String  cl;
+
         protected final String  prefix;
 
-        protected final Level   level;
+        protected Level         level;
+
+        protected volatile int  version = -1;
 
 
         public Log( Class<?> cl, String prefix ) {
+            this.cl = cl.getName();
             this.prefix = prefix != null ? prefix : cl.getSimpleName();
+        }
 
-            this.level = Sequence.of( levels.entrySet() )
-                    .filter( entry -> cl.getName().startsWith( entry.getKey() ) )
-                    .reduce( (e1,e2) -> e1.getKey().length() > e2.getKey().length() ? e1 : e2 ) // FIXME does not seem to work correctly
-                    .map( entry -> entry.getValue() )
-                    .orElse( Level.DEFAULT );
+        public boolean isLevelEnabled( Level l ) {
+            // find new level if levels map has changed
+            if (version != levelsVersion) {
+                level = DEFAULT_LEVEL;
+                version = levelsVersion;
+
+                var match = "";
+                for (var entry : levels.entrySet()) {
+                    if (cl.startsWith( entry.getKey() )) {
+                        if (entry.getKey().length() > match.length()) {
+                            match = entry.getKey();
+                            level = entry.getValue();
+                        }
+                    }
+                }
+            }
+            return l.ordinal() >= level.ordinal();
         }
 
         public String format( Level msgLevel, String msg, Object... args ) {
@@ -154,11 +175,6 @@ public class LogFactory {
 
         public final void debug( String format, RSupplier<Object[]> args ) {
             log2( Level.DEBUG, format, args, null );
-        }
-
-        public boolean isLevelEnabled( Level l ) {
-            var currentLevel = level != Level.DEFAULT ? level : DEFAULT_LEVEL;
-            return l.ordinal() >= currentLevel.ordinal();
         }
     }
 }

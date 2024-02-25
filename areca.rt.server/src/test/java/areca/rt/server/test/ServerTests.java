@@ -108,10 +108,10 @@ public class ServerTests extends JUnitTestBase {
         execute( () -> {
             var async = Promise
                     .joined( 4, i -> Platform.async( () -> {
-                        LOG.info( "JOIN: " + i );
+                        LOG.debug( "JOIN: " + i );
                         return i;
                     }))
-                    .onSuccess( i -> LOG.info( "JOIN: onSuccess(): %s", i ) )
+                    .onSuccess( i -> LOG.debug( "JOIN: onSuccess(): %s", i ) )
                     .reduce2( 0, (r,i) -> r + i )
                     .onSuccess( count -> {
                         Assert.isEqual( 6, count.intValue() );
@@ -140,7 +140,7 @@ public class ServerTests extends JUnitTestBase {
             var error = new AtomicReference<>();
             var async = Platform.async( () -> "1" )
                     .onSuccess( i -> {
-                        LOG.info( "Result: " + i );
+                        LOG.debug( "Result: " + i );
                         Assert.that( false, "Error in onSuccess()" );
                     })
                     .onError( e -> {

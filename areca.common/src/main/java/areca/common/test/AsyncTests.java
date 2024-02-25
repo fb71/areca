@@ -107,7 +107,7 @@ public class AsyncTests {
                     return Platform.async( () -> Integer.valueOf( s ) );
                 })
                 .onSuccess( i -> {
-                    LOG.info( "Result: " + i );
+                    LOG.debug( "Result: " + i );
                     Assert.isEqual( 1, i );
                 });
     }
@@ -255,10 +255,10 @@ public class AsyncTests {
     public Promise<?> joinedSerialTest() {
         return Promise
                 .serial( 4, i -> Platform.async( () -> {
-                    LOG.info( "JOIN: " + i );
+                    LOG.debug( "JOIN: " + i );
                     return i;
                 }))
-                .onSuccess( i -> LOG.info( "JOIN: success: %s", i ) )
+                .onSuccess( i -> LOG.debug( "JOIN: success: %s", i ) )
                 .reduce2( 0, (r,i) -> r + i )
                 .onSuccess( count -> {
                     Assert.isEqual( 6, count.intValue() );
