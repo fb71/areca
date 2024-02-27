@@ -37,7 +37,7 @@ public class ScrollableCompositeRenderer
 
     public static final ClassInfo<ScrollableCompositeRenderer> TYPE = ScrollableCompositeRendererClassInfo.instance();
 
-    static void _start() {
+    public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new ScrollableCompositeRenderer() )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof ScrollableComposite );

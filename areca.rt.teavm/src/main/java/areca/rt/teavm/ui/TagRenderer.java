@@ -37,7 +37,7 @@ public class TagRenderer {
 
     public static final ClassInfo<TagRenderer> TYPE = TagRendererClassInfo.instance();
 
-    static void _start() {
+    public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new TagRenderer() )
                 .performIf( DecoratorEventBase.class, ev -> ev.getSource() instanceof Tag );

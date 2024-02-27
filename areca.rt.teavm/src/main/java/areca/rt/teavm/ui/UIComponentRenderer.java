@@ -48,26 +48,26 @@ public class UIComponentRenderer
 
     public static final ClassInfo<UIComponentRenderer> TYPE = UIComponentRendererClassInfo.instance();
 
-    /**
-     * Starts all component renderes of this package.
-     */
-    public static void start() {
-        UICompositeRenderer._start();
-        ScrollableCompositeRenderer._start(); // after UIComposite
-        TextRenderer._start();
-        TextFieldRenderer._start();
-        ButtonRenderer._start();
-        ProgressRenderer._start();
-        LinkRenderer._start();
-        SeparatorRenderer._start();
+//    /**
+//     * Starts all component renderes of this package.
+//     */
+//    public static void start() {
+//        UICompositeRenderer._start();
+//        ScrollableCompositeRenderer._start(); // after UIComposite
+//        TextRenderer._start();
+//        TextFieldRenderer._start();
+//        ButtonRenderer._start();
+//        ProgressRenderer._start();
+//        LinkRenderer._start();
+//        SeparatorRenderer._start();
+//
+//        BadgeRenderer._start();
+//        LabelRenderer._start();
+//        TagRenderer._start();
+//        UIComponentRenderer._start(); // last
+//    }
 
-        BadgeRenderer._start();
-        LabelRenderer._start();
-        TagRenderer._start();
-        UIComponentRenderer._start(); // last
-    }
-
-    static void _start() {
+    public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new UIComponentRenderer() )
                 .performIf( UIComponentEvent.class, ev -> ev.getSource() instanceof UIComponent );

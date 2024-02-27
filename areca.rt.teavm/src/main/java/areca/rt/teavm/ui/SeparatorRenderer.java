@@ -39,7 +39,7 @@ public class SeparatorRenderer
 
     public static final ClassInfo<SeparatorRenderer> TYPE = SeparatorRendererClassInfo.instance();
 
-    static void _start() {
+    public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new SeparatorRenderer() )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Separator );

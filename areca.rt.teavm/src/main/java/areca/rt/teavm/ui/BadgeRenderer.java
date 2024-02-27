@@ -37,7 +37,7 @@ public class BadgeRenderer {
 
     public static final ClassInfo<BadgeRenderer> TYPE = BadgeRendererClassInfo.instance();
 
-    static void _start() {
+    public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new BadgeRenderer() )
                 .performIf( DecoratorEventBase.class, ev -> ev.getSource() instanceof Badge );

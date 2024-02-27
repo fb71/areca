@@ -38,7 +38,7 @@ public class UICompositeRenderer
 
     public static final ClassInfo<UICompositeRenderer> TYPE = UICompositeRendererClassInfo.instance();
 
-    static void _start() {
+    public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new UICompositeRenderer( ) )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof UIComposite );

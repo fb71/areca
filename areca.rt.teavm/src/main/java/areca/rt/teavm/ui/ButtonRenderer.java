@@ -38,7 +38,7 @@ public class ButtonRenderer
 
     public static final ClassInfo<ButtonRenderer> TYPE = ButtonRendererClassInfo.instance();
 
-    static void _start() {
+    public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new ButtonRenderer() )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Button );

@@ -39,7 +39,7 @@ public class LinkRenderer
 
     public static final ClassInfo<LinkRenderer> TYPE = LinkRendererClassInfo.instance();
 
-    static void _start() {
+    public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new LinkRenderer() )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Link );
@@ -48,6 +48,7 @@ public class LinkRenderer
 
     // instance *******************************************
 
+    @SuppressWarnings( "unchecked" )
     protected HTMLAnchorElement htmlElm( UIComponent c ) {
         return Assert.notNull( (HTMLAnchorElement)c.htmlElm );
     }

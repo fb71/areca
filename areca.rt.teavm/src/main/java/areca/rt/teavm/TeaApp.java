@@ -28,7 +28,6 @@ import areca.common.event.EventManager;
 import areca.common.event.IdleAsyncEventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.ui.App;
 import areca.ui.Size;
 import areca.ui.component2.EventHandlers;
@@ -39,7 +38,7 @@ import areca.ui.component2.UIEventManager;
  *
  * @author Falko Bräutigam
  */
-public class TeaApp
+public abstract class TeaApp
         extends App {
 
     private static final Log LOG = LogFactory.getLog( TeaApp.class );
@@ -51,7 +50,6 @@ public class TeaApp
         Session.registerFactory( EventManager.class, () -> new IdleAsyncEventManager() );
         Session.registerFactory( UIEventManager.class, () -> new UIEventManager() );
         Session.registerFactory( EventHandlers.class, () -> new EventHandlers() );
-        UIComponentRenderer.start();
     }
 
     /**

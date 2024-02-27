@@ -39,7 +39,7 @@ public class LabelRenderer {
 
     public static final ClassInfo<LabelRenderer> TYPE = LabelRendererClassInfo.instance();
 
-    static void _start() {
+    public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new LabelRenderer() )
                 .performIf( DecoratorEventBase.class, ev -> ev.getSource() instanceof Label );

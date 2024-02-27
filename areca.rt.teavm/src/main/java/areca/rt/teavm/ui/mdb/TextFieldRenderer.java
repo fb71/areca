@@ -11,11 +11,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  */
-package areca.rt.teavm.ui;
+package areca.rt.teavm.ui.mdb;
 
 import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.html.HTMLInputElement;
 import org.teavm.jso.dom.html.HTMLTextAreaElement;
+import org.w3c.dom.html.HTMLLabelElement;
 
 import areca.common.Platform;
 import areca.common.event.EventHandler;
@@ -23,6 +24,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
+import areca.rt.teavm.ui.RendererBase;
 import areca.ui.Position;
 import areca.ui.component2.Events;
 import areca.ui.component2.Events.EventType;
@@ -45,7 +47,7 @@ public class TextFieldRenderer
     public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new TextFieldRenderer() )
-                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof TextField );
+                .performIf( ComponentConstructedEvent.class, ev -> ev.getSource() instanceof TextField );
     }
 
     // instance *******************************************
@@ -74,7 +76,13 @@ public class TextFieldRenderer
         // input
         else {
             var input = (HTMLInputElement)(c.htmlElm = doc().createElement( "input" ));
+            var id = String.valueOf( c.hashCode() );
             input.setAttribute( "type", "text" );
+            input.setAttribute( "id", id );
+
+            var label = (HTMLLabelElement)(c.htmlElm = doc().createElement( "label" ));
+            label.setAttribute( "class", "form-label" );
+            label.setAttribute( "for", id );
 
             c.content.onInitAndChange( (newValue, oldValue) -> {
                 LOG.debug( "Set: %s", newValue );
