@@ -31,7 +31,7 @@ import areca.ui.component2.UIComposite;
  * @author Falko Bräutigam
  */
 public class RowLayout
-        extends LayoutManager {
+        extends AbsoluteLayout {
 
     private static final Log LOG = LogFactory.getLog( RowLayout.class );
 
@@ -100,6 +100,8 @@ public class RowLayout
 
     @Override
     public void layout( UIComposite composite ) {
+        super.layout( composite );
+
         Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
         LOG.debug( "RowLayout: " + size );
 
