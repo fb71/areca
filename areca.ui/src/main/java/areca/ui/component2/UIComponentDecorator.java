@@ -16,6 +16,7 @@ package areca.ui.component2;
 import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
 import areca.ui.component2.UIComponentEvent.DecoratorAttachedEvent;
 import areca.ui.component2.UIComponentEvent.DecoratorDetachedEvent;
 
@@ -29,6 +30,11 @@ public abstract class UIComponentDecorator
     private static final Log LOG = LogFactory.getLog( UIComponentDecorator.class );
 
     private UIComponent         decorated;
+
+
+    protected UIComponentDecorator() {
+        UIComponentEvent.manager().publish( new ComponentConstructedEvent( this ) );
+    }
 
 
     public UIComponent decorated() {

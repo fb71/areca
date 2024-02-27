@@ -19,6 +19,8 @@ import java.util.Map;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.PropertyContainer;
+import areca.ui.component2.UIComponentEvent.ComponentDisposedEvent;
+import areca.ui.component2.UIComponentEvent.ComponentConstructingEvent;
 
 /**
  *
@@ -41,12 +43,7 @@ public abstract class UIElement
      * Init
      */
     {
-        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentConstructingEvent( this ) );
-    }
-
-
-    protected UIElement() {
-        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentConstructedEvent( this ) );
+        UIComponentEvent.manager().publish( new ComponentConstructingEvent( this ) );
     }
 
 
@@ -59,7 +56,7 @@ public abstract class UIElement
         }
         else {
             disposed = true;
-            UIComponentEvent.manager().publish( new UIComponentEvent.ComponentDisposedEvent( this ) );
+            UIComponentEvent.manager().publish( new ComponentDisposedEvent( this ) );
         }
     }
 

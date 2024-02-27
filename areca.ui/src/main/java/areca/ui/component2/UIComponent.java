@@ -13,10 +13,8 @@
  */
 package areca.ui.component2;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Supplier;
 
@@ -33,6 +31,9 @@ import areca.ui.Size;
 import areca.ui.component2.Property.ReadOnly;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Property.ReadWrites;
+import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
+import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
+import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
 import areca.ui.layout.LayoutConstraints;
 import areca.ui.layout.LayoutManager;
 
@@ -64,13 +65,22 @@ public abstract class UIComponent
     /**
      * The tooltip of this component.
      */
-    public ReadWrite<UIComponent,String>    tooltip = Property.rw( this, "tooltip" );
+    public ReadWrite<UIComponent,String> tooltip = Property.rw( this, "tooltip" );
 
     /**
      * The CSS styling classes of this component.
      */
-    public ReadWrites<UIComponent,String>   cssClasses = Property.rws( this, PROP_CSS_CLASSES );
+    public CssClassesProperty           cssClasses = new CssClassesProperty( this );
 
+    /**
+     * Explicite CSS styling of this component.
+     * <p>
+     * Prefer using {@link #cssClasses} instead!
+     * @see UIComponent#cssClasses
+     */
+    public ReadWrites<UIComponent,CssStyle> styles = Property.rws( this, PROP_CSS_STYLES, new HashSet<>() );
+
+    /** Value of {@link UIComponent#styles} */
     public static class CssStyle {
 
         public static CssStyle of( String name, String value ) {
@@ -100,14 +110,6 @@ public abstract class UIComponent
             return obj instanceof CssStyle ? name.equals( ((CssStyle)obj).name ) : false;
         }
     }
-
-    /**
-     * Explicite CSS styling of this component.
-     * <p>
-     * Prefer using {@link #cssClasses} instead!
-     * @see UIComponent#cssClasses
-     */
-    public ReadWrites<UIComponent,CssStyle> styles = Property.rws( this, PROP_CSS_STYLES, new HashSet<>() );
 
     /**
      * Background color.
@@ -168,43 +170,9 @@ public abstract class UIComponent
     /** */
     public Events                           events = new Events( this );
 
-    public Decorators                       decorators = new Decorators();
+    public DecoratorsProperty               decorators = new DecoratorsProperty(this);
 
-    /**
-     *
-     */
-    public class Decorators
-            extends ReadWrites<UIComponent,UIComponentDecorator> {
 
-        protected Decorators() {
-            super( UIComponent.this, PROP_DECORATORS );
-            rawSet( new ArrayList<>() );
-        }
-
-        @Override
-        public Opt<UIComponentDecorator> add( UIComponentDecorator add ) {
-            Assert.that( !TextField.class.isInstance( add ), "Unfortunatelly Label does not work directly with TextField :(" );
-            return super.add( Assert.notNull( add ) ).ifPresent( __ -> {
-                add.decoratorAttachedTo( UIComponent.this );
-            });
-        }
-
-        @Override
-        public Opt<UIComponentDecorator> remove( UIComponentDecorator remove ) {
-            return super.remove( remove ).ifPresent( __ -> {
-                remove.decoratorDetachedFrom( UIComponent.this );
-            });
-        }
-
-        public void disposeAll() {
-            new ArrayList<>( value ).forEach( d -> d.dispose() );
-            Assert.isEqual( 0, size(), "Number of decorators after disposeAll(): " + size() );
-        }
-
-        public int size() {
-            return value.size();
-        }
-    }
 
     // methods ********************************************
 
@@ -212,15 +180,6 @@ public abstract class UIComponent
      * Init
      */
     {
-        // init CSS classes
-        Set<String> classes = new HashSet<>();
-        for (Class<?> cl=getClass(); !cl.equals( Object.class ); cl=cl.getSuperclass()) {
-            if (!cl.getSimpleName().isEmpty()) {
-                classes.add( cl.getSimpleName() );
-            }
-        }
-        cssClasses.set( classes );
-
         clientSize = new ReadOnly<UIComponent,Size>( this, "clientSize" ) {
             @Override
             public Opt<Size> opt() {
@@ -233,17 +192,11 @@ public abstract class UIComponent
 //            var currentSize = size.value();
 //            return Size.of( currentSize.width()-10, currentSize.height()-10 );
 //        });
+    }
 
-        bordered.defaultsTo( () -> {
-            return cssClasses.values().anyMatches( v -> v.equals( "Bordered" ) );
-        });
-        bordered.onChange( ( newValue, oldValue ) -> {
-            if (newValue) {
-                cssClasses.add( "Bordered" );
-            } else {
-                cssClasses.remove( "Bordered" );
-            }
-        });
+
+    protected UIComponent() {
+        UIComponentEvent.manager().publish( new ComponentConstructedEvent( this ) );
     }
 
 
@@ -253,7 +206,7 @@ public abstract class UIComponent
     protected void attachedTo( UIComposite newParent ) {
         Assert.isNull( parent, "parent should not be set before init()" );
         this.parent = Assert.notNull( newParent  );
-        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentAttachedEvent( this, newParent ) );
+        UIComponentEvent.manager().publish( new ComponentAttachedEvent( this, newParent ) );
     }
 
 
@@ -263,7 +216,7 @@ public abstract class UIComponent
     protected void detachedFrom( @SuppressWarnings("hiding") UIComposite parent ) {
         Assert.isSame( this.parent, parent, "wrong parent" );
         this.parent = null;
-        UIComponentEvent.manager().publish( new UIComponentEvent.ComponentDetachedEvent( this ) );
+        UIComponentEvent.manager().publish( new ComponentDetachedEvent( this ) );
     }
 
 

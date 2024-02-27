@@ -35,25 +35,37 @@ public class UIComposite
 
     public Children             components = new Children();
 
+    /**  */
+    public class Children extends ReadWrites<UIComposite,UIComponent> {
 
-//    static {
-//        var updates = new HashSet<UIComposite>();
-//
-//        UIComponentEvent.manager()
-//                .subscribe( (PropertyChangedEvent<UIComposite> ev) -> {
-//                    updates.add( (UIComposite)ev.getSource().component() );
-//                    if (updates.size() == 1) {
-//                        Platform.schedule( 100, () -> {
-//                            updates.forEach( update -> update.layout() );
-//                            updates.clear();
-//                        });
-//                    }
-//                })
-//                .performIf( ev -> ev instanceof PropertyChangedEvent && (
-//                        ((PropertyChangedEvent<?>)ev).getSource().name().equals( "layout" ) ||
-//                        ((PropertyChangedEvent<?>)ev).getSource().name().equals( "components" ))
-//                );
-//    }
+        protected Children() {
+            super( UIComposite.this, PROP_COMPONENTS );
+            rawSet( new ArrayList<>() );
+        }
+
+        @Override
+        public Opt<UIComponent> add( UIComponent add ) {
+            return super.add( Assert.notNull( add ) ).ifPresent( __ -> {
+                add.attachedTo( UIComposite.this );
+            });
+        }
+
+        @Override
+        public Opt<UIComponent> remove( UIComponent remove ) {
+            return super.remove( remove ).ifPresent( __ -> {
+                remove.detachedFrom( UIComposite.this );
+            });
+        }
+
+        public void disposeAll() {
+            new ArrayList<>( value ).forEach( child -> child.dispose() );
+            Assert.that( value.isEmpty() );
+        }
+
+        public int size() {
+            return value.size();
+        }
+    }
 
 
     @Override
@@ -109,41 +121,5 @@ public class UIComposite
 //    public int computeMinHeight( int width ) {
 //        return layout.opt().map( l -> l.computeMinHeight( width ) ).orElse( 100 );
 //    }
-
-
-    /**
-     *
-     */
-    public class Children
-            extends ReadWrites<UIComposite,UIComponent> {
-
-        protected Children() {
-            super( UIComposite.this, PROP_COMPONENTS );
-            rawSet( new ArrayList<>() );
-        }
-
-        @Override
-        public Opt<UIComponent> add( UIComponent add ) {
-            return super.add( Assert.notNull( add ) ).ifPresent( __ -> {
-                add.attachedTo( UIComposite.this );
-            });
-        }
-
-        @Override
-        public Opt<UIComponent> remove( UIComponent remove ) {
-            return super.remove( remove ).ifPresent( __ -> {
-                remove.detachedFrom( UIComposite.this );
-            });
-        }
-
-        public void disposeAll() {
-            new ArrayList<>( value ).forEach( child -> child.dispose() );
-            Assert.that( value.isEmpty() );
-        }
-
-        public int size() {
-            return value.size();
-        }
-    }
 
 }

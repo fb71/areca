@@ -25,7 +25,8 @@ import areca.ui.Position;
 import areca.ui.component2.Property.ReadWrites;
 
 /**
- * A property of {@link UIComponent} for managing {@link Events.EventType UI events}.
+ * The {@link UIComponent#events} property, for managing {@link Events.EventType UI
+ * events}.
  *
  * @author Falko Bräutigam
  */
