@@ -71,7 +71,7 @@ public abstract class EventManager {
 
     protected EventManager() {
         defaultOnError = (ev, e) -> {
-            LOG.warn( "Error during handling of event: " + ev, e );
+            LOG.warn( "Error during handling of " + ev + " - " + e );
 
             // FIXME no (correct) StackTrace in TeaVM; just throwing shows something useful :(
 //            System.out.println( "STACK: " + e.getStackTrace().length );
