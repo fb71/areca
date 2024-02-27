@@ -25,9 +25,6 @@ import areca.common.testrunner.AsyncAwareTestRunner;
 import areca.common.testrunner.LogDecorator;
 import areca.rt.teavm.TeaPlatform;
 import areca.rt.teavm.testapp.HtmlTestRunnerDecorator;
-import areca.rt.teavm.ui.UIComponentRenderer;
-import areca.ui.Size;
-import areca.ui.test.GalleryMain;
 
 /**
  *
@@ -48,19 +45,8 @@ public class Main {
         String hash = Window.current().getLocation().getHash();
         LOG.info( "URL hash: %s", hash );
 
-        // Gallery
-        if (hash.equals( "#gallery" )) {
-            catchAll( __ -> {
-                //UIComponentEvent.manager();
-                UIComponentRenderer.start();
-                var doc = Window.current().getDocument();
-                var appSize = Size.of( doc.getBody().getClientWidth(), doc.getBody().getClientHeight() );
-                LOG.info( "BODY: " + appSize );
-                GalleryMain.createApp( appSize );
-            });
-        }
         // #mail
-        else if (hash.equals( "#mail" )) {
+        if (hash.equals( "#mail" )) {
             catchAll( __ -> {
                 LogFactory.setPackageLevel( areca.app.service.mail.MailRequest.class, DEBUG );
                 new AsyncAwareTestRunner()

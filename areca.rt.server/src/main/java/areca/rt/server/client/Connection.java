@@ -64,6 +64,8 @@ public class Connection {
 
     private static final Log LOG = LogFactory.getLog( Connection.class );
 
+    private static final String SERVER_PATH = "eventloop";
+
     private static final String PACKAGE_UI = "areca.ui";
     private static final String PACKAGE_UI_COMPONENTS = PACKAGE_UI + ".component2";
     private static final String PACKAGE_UI_PAGEFLOW = PACKAGE_UI + ".pageflow";
@@ -104,7 +106,7 @@ public class Connection {
         clickEvents.clear();
         var json = JSON.stringify( send );
         LOG.warn( "Sending request: %s", json );
-        pendingRequest = Platform.xhr( "POST", "ui" )
+        pendingRequest = Platform.xhr( "POST", SERVER_PATH )
                 .submit( json )
                 .onSuccess( response -> {
                     pendingRequest = null;
