@@ -1,0 +1,22 @@
+
+$bg1_color: #323334;
+$bg2_color: darken($bg1_color, 6%);
+$bg3_color: darken($bg1_color, 12%);
+$light_bg_color: lighten($bg1_color, 6%);
+
+$font_color: #d0d0d0;
+$link_color: #cd9564; //rgb(127, 180, 232);
+$separator_color: darken($font_color, 50%);
+
+// s$accent_color: rgb(198, 98, 11);
+$accent_color: #51a386;
+$accent2_color: #304050;
+$progress_color: #008000;
+$primary_color: darken($accent_color, 30%);
+
+$transition_duration: 0.75s;
+
+@import 'areca-material-icons';
+@import 'areca-common';
+@import 'areca-pageflow';
+@import 'ragtime'
