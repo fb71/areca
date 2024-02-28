@@ -27,6 +27,7 @@ import areca.rt.teavm.ui.TagRenderer;
 import areca.rt.teavm.ui.TextRenderer;
 import areca.rt.teavm.ui.UIComponentRenderer;
 import areca.rt.teavm.ui.UICompositeRenderer;
+import areca.ui.component2.UIComposite;
 
 /**
  * Starts everything to render UI in MDB style.
@@ -41,7 +42,7 @@ public class MDBComponentRenderer {
     /**
      * Starts everything to render UI in MDB style.
      */
-    public static void start() {
+    public static void start( UIComposite rootWindow ) {
         UICompositeRenderer._start();
         ScrollableCompositeRenderer._start(); // after UIComposite
         TextRenderer._start();
@@ -56,7 +57,7 @@ public class MDBComponentRenderer {
         TagRenderer._start();
         UIComponentRenderer._start(); // last
 
-        MDBTheme._start();
+        MDBTheme._start( rootWindow );
     }
 
 }

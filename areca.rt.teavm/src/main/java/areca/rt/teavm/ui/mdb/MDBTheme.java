@@ -23,6 +23,7 @@ import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
+import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -38,8 +39,10 @@ public class MDBTheme {
     /**
      *
      */
-    public static void _start() {
+    public static void _start( UIComposite rootWindow ) {
         MDBTheme theme = new MDBTheme();
+        theme.elementCreaded( new ComponentConstructedEvent( rootWindow ) );
+
         UIComponentEvent.manager().subscribe( theme )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent );
     }
