@@ -52,14 +52,6 @@ public class DemoApp
         Promise.setDefaultErrorHandler( defaultErrorHandler() );
 
         try {
-            // Tests
-            String hash = Window.current().getLocation().getHash();
-            LOG.info( "URL hash: %s", hash );
-            if (hash.equals( "#tests" ) || hash.equals( "#test" )) {
-                InternalTestsPage.doRunTests();
-                return;
-            }
-
             // DemoApp UI
             new DemoApp().createUI( rootWindow -> {
                 rootWindow.layout.set( MaxWidthLayout.width( 680 ).fillHeight.set( true ) );

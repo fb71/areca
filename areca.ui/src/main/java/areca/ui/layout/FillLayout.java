@@ -26,7 +26,7 @@ import areca.ui.component2.UIComposite;
  * @author falko
  */
 public class FillLayout
-        extends LayoutManager {
+        extends AbsoluteLayout {
 
     private static final Log LOG = LogFactory.getLog( FillLayout.class );
 
@@ -42,6 +42,7 @@ public class FillLayout
 
     @Override
     public void layout( UIComposite composite ) {
+        super.layout( composite );
         Size size = composite.clientSize.value();
         LOG.debug( "FillLayout: " + size );
 

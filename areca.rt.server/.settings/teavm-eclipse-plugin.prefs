@@ -1,6 +1,6 @@
 default-compile/cacheDirectory=${workspace_loc\:/areca.rt.server}/target/teavm-cache
 default-compile/classes=
-default-compile/copySources=true
+default-compile/copySources=false
 default-compile/debugInformation=true
 default-compile/enabled=true
 default-compile/externalTool=teavm-eclipse-m2e-plugin.tool

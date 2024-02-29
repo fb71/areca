@@ -23,6 +23,7 @@ import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Text;
+import areca.ui.component2.UIComponent.CssStyle;
 
 /**
  *
@@ -106,6 +107,11 @@ abstract class JSServer2ClientMessage
         else if (value.type().equals( Position.class.getName() )) {
             var primitive = (JSPrimitivePropertyValue)value;
             return Position.of( Integer.parseInt( primitive.value() ), Integer.parseInt( primitive.value2() ) );
+        }
+        // CssStyle
+        else if (value.type().equals( "CssStyle" )) {
+            var primitive = (JSPrimitivePropertyValue)value;
+            return CssStyle.of( primitive.value(), primitive.value2() );
         }
         // EventType
         else if (value.type().equals( "EventHandler" )) {

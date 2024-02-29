@@ -20,11 +20,60 @@
         <module>areca.rt.teavm</module>
         <module>areca.rt.server</module>
         <module>../polymap4-model/org.polymap.model2</module>
+        <module>areca.test</module>
         <module>areca.app</module>
         <module>areca.demo</module>
     </modules>
     
     <build>
+        <plugins>
+            <!-- Java compiler -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <debug>true</debug>
+                            <debuglevel>lines,vars,source</debuglevel>
+                            <annotationProcessors>
+                                <annotationProcessor>areca.common.reflect.ReflectAnnotationProcessor</annotationProcessor>
+                            </annotationProcessors>
+                        </configuration>
+                   </execution>
+                </executions>
+            </plugin>
+                        
+            <!-- Sources -->
+            <!--plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <attach>true</attach>
+                </configuration>
+            </plugin--> 
+
+        </plugins>
+
         <pluginManagement>
             <plugins>
                 <!--
@@ -38,6 +87,23 @@
                     <configuration>
                         <lifecycleMappingMetadata>
                             <pluginExecutions>
+                                <!-- SASS -->
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>nl.geodienstencentrum.maven</groupId>
+                                        <artifactId>sass-maven-plugin</artifactId>
+                                        <versionRange>[0,)</versionRange>
+                                        <goals>
+                                            <goal>update-stylesheets</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore>true</ignore>
+                                        <execute>
+                                            <runOnIncremental>true</runOnIncremental>
+                                        </execute>
+                                    </action>
+                                </pluginExecution>                            
                                 <!-- jar -->
                                 <pluginExecution>
                                     <pluginExecutionFilter>

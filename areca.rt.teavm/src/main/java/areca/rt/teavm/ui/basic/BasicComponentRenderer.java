@@ -38,9 +38,9 @@ public class BasicComponentRenderer {
 
     private static final Log LOG = LogFactory.getLog( BasicComponentRenderer.class );
 
-
     /**
      * Starts all component renderes of this package.
+     * @param rootWindow
      */
     public static void start() {
         UICompositeRenderer._start();

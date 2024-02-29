@@ -27,7 +27,7 @@ import areca.ui.component2.UIComposite;
  * @author Falko Bräutigam
  */
 public class MaxWidthLayout
-        extends LayoutManager {
+        extends AbsoluteLayout {
 
     private static final Log LOG = LogFactory.getLog( MaxWidthLayout.class );
 
@@ -48,6 +48,7 @@ public class MaxWidthLayout
 
     @Override
     public void layout( UIComposite composite ) {
+        super.layout( composite );
         Assert.that( composite.components.size() <= 1, getClass().getSimpleName() + " does not allow more than 1 component");
         composite.components.values().first().ifPresent( c -> {
             var clientWidth = composite.clientSize.get().width();

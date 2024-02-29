@@ -18,14 +18,14 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.component2.UIComposite;
-import areca.ui.layout.LayoutManager;
+import areca.ui.layout.AbsoluteLayout;
 
 /**
  *
  * @author Falko Bräutigam
  */
 public class PageStackLayout
-        extends LayoutManager {
+        extends AbsoluteLayout {
 
     private static final Log LOG = LogFactory.getLog( PageStackLayout.class );
 
@@ -33,6 +33,7 @@ public class PageStackLayout
 
     @Override
     public void layout( @SuppressWarnings("hiding") UIComposite composite ) {
+        super.layout( composite );
         this.composite = composite;
 
         // int zIndex = 0;

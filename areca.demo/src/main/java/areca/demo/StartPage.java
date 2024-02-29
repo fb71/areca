@@ -85,14 +85,6 @@ public class StartPage {
                 pageSite.createPage( new SimplePage() ).origin( ev.clientPos() ).open();
             });
         }});
-        // Tests
-        pageSite.actions.add( new Action() {{
-            icon.set( "bug_report" );
-            description.set( "Module tests" );
-            handler.set( (UIEvent ev) -> {
-                pageSite.createPage( new InternalTestsPage() ).origin( ev.clientPos() ).open();
-            });
-        }});
         return ui;
     }
 

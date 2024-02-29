@@ -73,24 +73,6 @@
         </configuration>
       </plugin> 
 
-      <!-- SASS -->
-      <plugin>
-        <groupId>nl.geodienstencentrum.maven</groupId>
-        <artifactId>sass-maven-plugin</artifactId>
-        <version>3.7.2</version>
-        <configuration>
-          <resources>
-            <resource>
-              <source>
-                <directory>${basedir}/src/main/webapp</directory>
-              </source>
-              <relativeOutputDirectory>..</relativeOutputDirectory>
-              <destination>${project.build.directory}/${project.build.finalName}</destination>
-            </resource>
-          </resources>
-        </configuration>
-      </plugin>
-      
     </plugins>
   </build>
 </project>

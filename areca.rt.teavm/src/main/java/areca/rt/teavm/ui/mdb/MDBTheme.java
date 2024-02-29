@@ -19,11 +19,9 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.component2.Button;
-import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
-import areca.ui.component2.UIComposite;
 
 /**
  *
@@ -39,10 +37,8 @@ public class MDBTheme {
     /**
      *
      */
-    public static void _start( UIComposite rootWindow ) {
+    public static void _start() {
         MDBTheme theme = new MDBTheme();
-        theme.elementCreaded( new ComponentConstructedEvent( rootWindow ) );
-
         UIComponentEvent.manager().subscribe( theme )
                 .performIf( ev -> ev instanceof ComponentConstructedEvent );
     }
@@ -56,10 +52,6 @@ public class MDBTheme {
             //
             if (c instanceof Button) {
                 c.cssClasses.setThemeClasses( "btn", "btn-primary" );
-            }
-            //
-            else if (c instanceof TextField) {
-                c.cssClasses.setThemeClasses( "form-control" );
             }
         }
     }

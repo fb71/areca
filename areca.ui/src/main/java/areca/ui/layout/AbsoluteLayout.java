@@ -27,12 +27,13 @@ public abstract class AbsoluteLayout
 
     private static final Log LOG = LogFactory.getLog( AbsoluteLayout.class );
 
+    public static final CssStyle ABSOLUTE = CssStyle.of( "position", "absolute" );
+
     @Override
     public void layout( UIComposite composite ) {
         for (var c : composite.components.value()) {
-            var style = CssStyle.of( "position", "absolute" );
-            if (!c.styles.get().contains( style )) {
-                c.styles.add( style );
+            if (!c.styles.get().contains( ABSOLUTE )) {
+                c.styles.add( ABSOLUTE );
             }
         }
     }

@@ -41,7 +41,7 @@ public class UICompositeRenderer
     public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new UICompositeRenderer( ) )
-                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof UIComposite );
+                .performIf( ComponentConstructedEvent.class, ev -> ev.getSource() instanceof UIComposite );
     }
 
     // instance *******************************************

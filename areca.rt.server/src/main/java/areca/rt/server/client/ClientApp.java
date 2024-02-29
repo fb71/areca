@@ -27,12 +27,12 @@ import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 import areca.rt.server.client.JSClient2ServerMessage.JSClickEvent;
 import areca.rt.teavm.TeaApp;
-import areca.rt.teavm.ui.mdb.MDBComponentRenderer;
+import areca.rt.teavm.ui.basic.BasicComponentRenderer;
 import areca.ui.Size;
 import areca.ui.component2.UIComponent;
 
 /**
- * Ultra light client based on TeaVM runtime.
+ * Ultra light client using the TeaVM runtime. Yeah! :)
  *
  * @author Falko Bräutigam
  */
@@ -42,6 +42,11 @@ public class ClientApp
     private static final Log LOG = LogFactory.getLog( ClientApp.class );
 
     public static boolean           debug;
+
+    protected ClientApp() {
+        //MDBComponentRenderer.start();
+        BasicComponentRenderer.start();
+    }
 
     /**
      *
@@ -56,8 +61,6 @@ public class ClientApp
         try {
             // UI
             new ClientApp().createUI( rootWindow -> {
-                MDBComponentRenderer.start( rootWindow );
-                
                 var conn = new Connection( rootWindow );
 
                 conn.enqueueClickEvent( JSResizeEvent.create( rootWindow, rootWindow.size.get() ) );

@@ -38,19 +38,6 @@
             <version>2.15.0</version>
             <optional>true</optional>
         </dependency>
-        <!-- Test-->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.9.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.polymap</groupId>
-            <artifactId>model2</artifactId>
-            <version>3.0.2-areca-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -68,32 +55,6 @@
         </resources>
 
         <plugins>
-            <!-- Java compiler -->
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <debug>true</debug>
-                            <debuglevel>lines,vars,source</debuglevel>
-                            <annotationProcessors>
-                                <annotationProcessor>areca.common.reflect.ReflectAnnotationProcessor</annotationProcessor>
-                            </annotationProcessors>
-                        </configuration>
-                   </execution>
-                </executions>
-            </plugin>
-
             <!-- TeaVM -->
             <plugin>
                 <groupId>org.teavm</groupId>
@@ -115,7 +76,7 @@
                             <minifying>false</minifying>
                             <debugInformationGenerated>true</debugInformationGenerated>
                             <sourceMapsGenerated>true</sourceMapsGenerated>
-                            <sourceFilesCopied>true</sourceFilesCopied>
+                            <sourceFilesCopied>false</sourceFilesCopied>
                             <!-- Optimization level. Valid values are: SIMPLE, ADVANCED, FULL -->
                             <optimizationLevel>ADVANCED</optimizationLevel>
                             <stopOnErrors>false</stopOnErrors>
@@ -142,23 +103,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-
-            <!-- Test in JVM -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <threadCount>1</threadCount>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.junit.jupiter</groupId>
-                        <artifactId>junit-jupiter-engine</artifactId>
-                        <version>5.4.0</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>

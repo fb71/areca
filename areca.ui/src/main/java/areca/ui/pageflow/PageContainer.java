@@ -29,7 +29,7 @@ import areca.ui.component2.Property;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComposite;
-import areca.ui.layout.LayoutManager;
+import areca.ui.layout.AbsoluteLayout;
 import areca.ui.pageflow.Page.PageSite;
 
 /**
@@ -144,13 +144,14 @@ public class PageContainer
      *
      */
     class PageContainerLayout
-            extends LayoutManager {
+            extends AbsoluteLayout {
 
         public static final int HEADER_HEIGHT = 60;
         public static final int TOOLBAR_HEIGHT = 45;
 
         @Override
         public void layout( UIComposite composite ) {
+            super.layout( composite );
             @SuppressWarnings("hiding")
             var clientSize = PageContainer.this.clientSize.opt().orElse( Size.of( 50, 50 ) );
 

@@ -13,6 +13,9 @@
  */
 package areca.rt.teavm;
 
+import static org.apache.commons.lang3.StringUtils.defaultString;
+
+import java.util.Collections;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -20,6 +23,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
@@ -38,6 +42,9 @@ public class TeaAppResourcesServlet
 
     private static final Log LOG = LogFactory.getLog( TeaAppResourcesServlet.class );
 
+//    public static final Set<String> ALLOWED = new HashSet<>() {{
+//        add( "html" ), add( "html" ), add( "html" ),
+//    }};
 
     @Override
     public void init() throws ServletException {
@@ -48,29 +55,41 @@ public class TeaAppResourcesServlet
     @Override
     protected void doGet( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
         String path = req.getPathInfo();
-        LOG.debug( "Path: %s", path );
+        LOG.debug( "PATH: %s", path );
 
+        // only happens if the servlet is *not* the default servlet and
+        // and incoming URL has no trailing /
         if (path == null) {
-            resp.sendRedirect( "index.html" );
+            LOG.debug( "  contextPath: %s", req.getContextPath() );
+            LOG.debug( "  servletPath: %s", req.getServletPath() );
+            var loc = req.getContextPath() + req.getServletPath() + "/" + defaultString( req.getQueryString() );
+            log( req, "REDIRECT", loc );
+            resp.sendRedirect( loc );
+            return;
         }
+        //
         if (path.equals( "/" )) {
-            path = "index.html";
+            path = "/index.html";
+        }
+        //
+        if (!path.contains( "." ) || path.endsWith( ".class" )) {
+            LOG.warn( "Not allowed: %s", path );
+            resp.setStatus( 404 );
+            return;
         }
 
-//        LOG.info( "res: ServletContext" );
-//        for (String s : getServletContext().getResourcePaths( "/" )) {
-//            LOG.info( "   %s : %s", s, getServletContext().getResourceAsStream( s ) );
-//        }
-
-
-        var in = Thread.currentThread().getContextClassLoader().getResourceAsStream( path );
+        // classpath
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        var in = cl.getResourceAsStream( path );
         if (in != null) {
-            LOG.debug( "  -> classpath: %s", path );
+            Assert.that( Collections.list( cl.getResources( path ) ).isEmpty() );
+            log( req, "CLASSPATH", "~" );
         }
+        // webapp context (war:/WEB_INF/... or jar:/META_INF/resources)
         else {
             in = getServletContext().getResourceAsStream( path );
             if (in != null) {
-                LOG.debug( "  -> context: %s", path );
+                log( req, "CONTEXT", "~" );
             }
             else {
                 LOG.warn( "No resource: %s", path );
@@ -90,6 +109,11 @@ public class TeaAppResourcesServlet
         finally {
             in.close();
         }
+    }
+
+
+    protected void log( HttpServletRequest req, String method, String path ) {
+        LOG.debug( "        -> %s (%s)", method, path );
     }
 
 }

@@ -19,11 +19,14 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import areca.common.base.Opt;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Events.EventHandler;
 import areca.ui.component2.Property.PropertyChangedEvent;
 import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentAttachedEvent;
 import areca.ui.component2.UIComponentEvent.ComponentDetachedEvent;
@@ -37,6 +40,8 @@ import areca.ui.component2.UIElement;
  * @author Falko Bräutigam
  */
 class JsonServer2ClientMessage {
+
+    private static final Log LOG = LogFactory.getLog( JsonServer2ClientMessage.class );
 
     public List<JsonUIComponentEvent> uiEvents;
 
@@ -131,6 +136,11 @@ class JsonServer2ClientMessage {
         else if (value instanceof EventHandler) {
             return new JsonPrimitivePropertyValue( "EventHandler", ((EventHandler)value).type.toString() );
         }
+        // CssStyle
+        else if (value instanceof CssStyle) {
+            var cssStyle = (CssStyle)value;
+            return new JsonPrimitiveTuplePropertyValue( "CssStyle", cssStyle.name, cssStyle.value );
+        }
         // Collection
         else if (value instanceof Collection) {
             var result = new JsonCollectionPropertyValue( "collection" );
@@ -146,6 +156,7 @@ class JsonServer2ClientMessage {
             return result;
         }
         else {
+            LOG.warn( "Value type missing: %s", value.getClass().getSimpleName() );
             return new JsonPropertyValueBase( "missing" );
         }
     }
