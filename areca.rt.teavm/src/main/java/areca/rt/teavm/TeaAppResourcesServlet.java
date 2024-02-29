@@ -23,9 +23,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import areca.common.Assert;
 import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 
 /**
@@ -48,14 +46,23 @@ public class TeaAppResourcesServlet
 
     @Override
     public void init() throws ServletException {
-        LogFactory.setClassLevel( TeaAppResourcesServlet.class, Level.DEBUG );
+        //LogFactory.setClassLevel( TeaAppResourcesServlet.class, Level.DEBUG );
     }
-
 
     @Override
     protected void doGet( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
+        LOG.debug( "PATH: %s", req.getPathInfo() );
+        try {
+            processGet( req, resp );
+        }
+        catch (Throwable e) {
+            resp.setStatus( 500 );
+            e.printStackTrace( System.err );
+        }
+    }
+
+    protected void processGet( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
         String path = req.getPathInfo();
-        LOG.debug( "PATH: %s", path );
 
         // only happens if the servlet is *not* the default servlet and
         // and incoming URL has no trailing /
@@ -82,7 +89,10 @@ public class TeaAppResourcesServlet
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         var in = cl.getResourceAsStream( path );
         if (in != null) {
-            Assert.that( Collections.list( cl.getResources( path ) ).isEmpty() );
+            var l = Collections.list( cl.getResources( path ) );
+            if (l.size() > 1) {
+                l.forEach( res -> LOG.warn( "MULTIPLE: %s", res ) );
+            }
             log( req, "CLASSPATH", "~" );
         }
         // webapp context (war:/WEB_INF/... or jar:/META_INF/resources)

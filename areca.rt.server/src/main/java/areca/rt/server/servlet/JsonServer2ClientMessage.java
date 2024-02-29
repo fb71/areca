@@ -156,7 +156,7 @@ class JsonServer2ClientMessage {
             return result;
         }
         else {
-            LOG.warn( "Value type missing: %s", value.getClass().getSimpleName() );
+            LOG.debug( "Value type missing: %s", value.getClass().getSimpleName() );
             return new JsonPropertyValueBase( "missing" );
         }
     }
