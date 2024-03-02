@@ -14,6 +14,7 @@
 package areca.ui;
 
 import areca.common.base.Consumer;
+import areca.ui.component2.Button;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.Property;
 import areca.ui.component2.Property.ReadWrite;
@@ -31,6 +32,12 @@ public class Action {
 
     /** A ligature or numeric character reference of a Material Icon. */
     public ReadWrite<?,String>      icon = Property.rw( this, "icon" );
+
+    /** */
+    public ReadWrite<?,Boolean>     enabled = Property.rw( this, "icon", true );
+
+    /** */
+    public ReadWrite<?,Button.Type> type = Property.rw( this, "icon", Button.Type.SECONDARY );
 
     public ReadWrite<?,Consumer<UIEvent,?>> handler = Property.rw( this, "handler" );
 

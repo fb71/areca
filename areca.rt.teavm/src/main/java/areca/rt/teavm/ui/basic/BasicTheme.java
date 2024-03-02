@@ -21,6 +21,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
+import areca.ui.component2.Button;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
@@ -71,13 +72,18 @@ public class BasicTheme {
 //        c.bordered.defaultsTo( () -> {
 //            return c.cssClasses.values().anyMatches( v -> v.equals( "Bordered" ) );
 //        });
-        c.bordered.onChange( ( newValue, oldValue ) -> {
-            if (newValue) {
-                c.cssClasses.add( "Bordered" );
-            } else {
-                c.cssClasses.remove( "Bordered" );
-            }
+        c.bordered.onInitAndChange( (newValue, oldValue) -> {
+            c.cssClasses.modify( "Bordered", newValue );
         });
+
+        // ButtonType via CSS
+        if (c instanceof Button) {
+            ((Button)c).type.onInitAndChange( (newValue, oldValue) -> {
+                c.cssClasses.remove( Button.Type.PRIMARY.toString() );
+                c.cssClasses.remove( Button.Type.SECONDARY.toString() );
+                c.cssClasses.add( newValue.toString() );
+            });
+        }
     }
 
 }

@@ -20,13 +20,19 @@ import areca.ui.component2.Property.ReadWrite;
  * @author falko
  */
 public class Button
-        extends UIComponent {
+        extends UIComposite {
+
+    public enum Type {
+        PRIMARY, SECONDARY
+    }
 
     public enum Format {
         PLAIN, HTML
     }
 
     public ReadWrite<Button,String> label = new ReadWrite<>( this, "label" );
+
+    public ReadWrite<Button,Type> type = Property.rw( this, "type", Type.PRIMARY );
 
     /**
      * The format of the {@link #label}; defaults to {@link Format#PLAIN}.

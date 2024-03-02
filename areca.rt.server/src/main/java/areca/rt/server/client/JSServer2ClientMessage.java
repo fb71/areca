@@ -21,6 +21,7 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
+import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Text;
 import areca.ui.component2.UIComponent.CssStyle;
@@ -93,10 +94,15 @@ abstract class JSServer2ClientMessage
             var primitive = (JSPrimitivePropertyValue)value;
             return Boolean.parseBoolean( primitive.value() );
         }
-        // Enum:Text.Format
+        // Enum: Text.Format
         else if (value.type().equals( Text.Format.class.getName() )) {
             var primitive = (JSPrimitivePropertyValue)value;
             return Text.Format.valueOf( primitive.value() );
+        }
+        // Enum: Button.Type
+        else if (value.type().equals( Button.Type.class.getName() )) {
+            var primitive = (JSPrimitivePropertyValue)value;
+            return Button.Type.valueOf( primitive.value() );
         }
         // Size
         else if (value.type().equals( Size.class.getName() )) {

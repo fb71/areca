@@ -97,6 +97,7 @@ public class PageContainer
             // closeBtn
             if (Pageflow.current().pages().count() > 1) {
                 closeBtn = add( new Button() {{
+                    type.set( Button.Type.SECONDARY );
                     cssClasses.add( CSS_HEADER_ITEM );
                     icon.set( "arrow_back" );
                     events.on( SELECT, ev -> {
@@ -118,8 +119,9 @@ public class PageContainer
                         bordered.set( false );
                         cssClasses.add( CSS_HEADER_ITEM );
                         action.label.opt().ifPresent( v -> label.set( v ) );
-                        //action.icon.opt().ifPresent( v -> icon.set( v ) );
                         action.icon.onInitAndChange( (v,__) -> icon.set( v ) );
+                        action.type.onInitAndChange( (v,__) -> type.set( v ) );
+                        action.enabled.onInitAndChange( (v,__) -> enabled.set( v ) );
                         action.description.opt().ifPresent( v -> tooltip.set( v ) );
                         events.on( SELECT, ev -> {
                             try {
