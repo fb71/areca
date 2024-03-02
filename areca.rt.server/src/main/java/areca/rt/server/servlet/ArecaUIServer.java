@@ -18,9 +18,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.LinkedList;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -222,7 +222,8 @@ public class ArecaUIServer
                 responseMsg.uiEvents = collector.events();
                 responseMsg.pendingWait = (int)eventLoop.pendingWait();
 
-                try (var out = new OutputStreamWriter( response.getOutputStream(), UTF_8 )) {
+                response.setCharacterEncoding( "UTF-8" );
+                try (var out = new BufferedWriter( response.getWriter() )) {
                     gson.toJson( responseMsg, out );
                 }
                 LOG.debug( "Sent: %s render events (%s)", responseMsg.uiEvents.size(), t.elapsedHumanReadable() );

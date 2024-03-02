@@ -22,11 +22,14 @@ import java.util.Map;
 
 import org.teavm.jso.json.JSON;
 
+import org.apache.commons.lang3.StringUtils;
+
 import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Platform.HttpResponse;
 import areca.common.Promise;
 import areca.common.Promise.CancelledException;
+import areca.common.Timer;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -105,19 +108,27 @@ public class Connection {
         send.setEvents( Sequence.of( clickEvents ).toArray( JSClickEvent[]::new ) );
         clickEvents.clear();
         var json = JSON.stringify( send );
-        LOG.warn( "Sending request: %s", json );
+        LOG.warn( "Sending request: %s", StringUtils.abbreviate( json, 40 ) );
         pendingRequest = Platform.xhr( "POST", SERVER_PATH )
                 .submit( json )
                 .onSuccess( response -> {
                     pendingRequest = null;
                     try {
+                        var t = Timer.start();
                         var msg = (JSServer2ClientMessage)JSON.parse( response.text() );
 
                         processUIEvents( msg );
 
-                        pendingWait = msg.pendingWait() >= 0
-                                ? Platform.schedule( msg.pendingWait(), () -> readServer( false ) )
-                                : null;
+                        // XXX currently we *must* send next request *after* all events are processed
+                        // because there is not queue for events on the client side
+                        pendingWait = null;
+                        if (msg.pendingWait() >= 0) {
+                            int delay = Math.max( 0, msg.pendingWait() - (int)t.elapsedMillis() );
+                            LOG.debug( "Pending wait: processing=%s - requested=%s, actual=%s",
+                                    t.elapsedHumanReadable(), msg.pendingWait(), delay );
+
+                            Platform.schedule( delay, () -> readServer( false ) );
+                        }
                     }
                     catch (Exception e) {
                         LOG.warn( e.getMessage(), e );

@@ -13,6 +13,8 @@
  */
 package areca.rt.server;
 
+import static java.lang.Math.max;
+
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -75,6 +77,7 @@ public class EventLoop {
     }
 
     public void enqueue( String label, Runnable task, int delayMillis ) {
+        Assert.that( delayMillis >= 0 );
         LOG.debug( "enqueue(): %s - %s ms", label, delayMillis );
         queue.add( new Task( task, now() + delayMillis, label ) );
     }
@@ -116,17 +119,23 @@ public class EventLoop {
         }
     }
 
+    /**
+     *
+     */
     public long pendingWait() {
-        Sequence.of( queue ).forEach( t ->
-                LOG.debug( "pendingWait(): %s [%s]", t.scheduled - now(), t.label ) );
+        //queue.forEach( t -> LOG.debug( "pendingWait(): %s [%s]", t.scheduled - now(), t.label ) );
 
-        var result = Sequence.of( queue )
-                .map( t -> t.scheduled ).reduce( Math::min )
-                .map( minScheduled -> Math.max( 0, minScheduled - now() ) )
-                .orElse( -1l );
+        // task with min schedule time
+        var task = Sequence.of( queue ).reduce( (t1,t2) -> t1.scheduled < t2.scheduled ? t1 : t2  );
+        // the pending wait time
+        var result = task.map( t -> max( 0, t.scheduled - now() ) ).orElse( -1l );
+
+        //task.ifPresent( t -> LOG.warn( "Min.Task: %s: %s -> %s", t.label, t.scheduled, result ) );
 
         if (pollingRequests > 0) {
-            return result == -1l ? POLLING_TIMEOUT.toMillis() : Math.min( result, POLLING_TIMEOUT.toMillis() );
+            return result == -1l
+                    ? POLLING_TIMEOUT.toMillis()
+                    : Math.min( result, POLLING_TIMEOUT.toMillis() );
         }
         else {
             return result;

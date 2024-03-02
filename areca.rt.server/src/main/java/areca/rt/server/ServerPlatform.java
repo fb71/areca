@@ -24,6 +24,7 @@ import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 
+import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Platform.HttpRequest;
 import areca.common.Platform.HttpResponse;
@@ -31,6 +32,7 @@ import areca.common.Platform.IdleDeadline;
 import areca.common.Promise;
 import areca.common.Promise.Completable;
 import areca.common.Session;
+import areca.common.Timer;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Lazy.RLazy;
 import areca.common.base.Supplier.RSupplier;
@@ -79,8 +81,13 @@ public class ServerPlatform
 
     @Override
     public <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
+        Assert.that( delayMillis >= 0 );
+        var t = delayMillis > 0 ? Timer.start() : null;
         Completable<R> promise = new Completable<>();
         Session.instanceOf( EventLoop.class ).enqueue( "schedule", () -> {
+            if (t != null) {
+                LOG.debug( "schedule: delay requested: %s - was actually: %s", delayMillis, t.elapsedHumanReadable() );
+            }
             try {
                 if (!promise.isCanceled()) { // XXX
                     promise.complete( task.call() );

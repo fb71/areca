@@ -49,6 +49,11 @@ public class Timer {
     }
 
 
+    public long elapsedMillis() {
+        return elapsed( TimeUnit.MILLISECONDS );
+    }
+
+
     public long elapsed( TimeUnit unit ) {
         return unit.convert( elapsedNanos(), TimeUnit.NANOSECONDS );
     }

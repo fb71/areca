@@ -49,14 +49,14 @@ public class LayoutPage {
     protected UIComposite createUI( UIComposite parent ) {
         ui.init( parent ).title.set( "RowLayout" );
 
-        var layout = new RowLayout().margins( Size.of( 5, 5 ) ).spacing( 5 ).fillWidth( true );
-        ui.body.layout.set( layout );
+        var l = new RowLayout().margins( Size.of( 5, 5 ) ).spacing( 5 ).fillWidth( true );
+        ui.body.layout.set( l );
 
         ui.body.add( new Button() {{
             label.set( "Horizontal" );
             styles.add( CssStyle.of( "overflow", "hidden" ) );
             events.on( EventType.SELECT, ev -> {
-                layout.orientation.set( Orientation.HORIZONTAL );
+                l.orientation.set( Orientation.HORIZONTAL );
                 parent().layout();
             });
         }});
@@ -64,24 +64,24 @@ public class LayoutPage {
             label.set( "Vertical" );
             styles.add( CssStyle.of( "overflow", "hidden" ) );
             events.on( EventType.SELECT, ev -> {
-                layout.orientation.set( Orientation.VERTICAL );
+                l.orientation.set( Orientation.VERTICAL );
                 parent().layout();
             });
         }});
         ui.body.add( new Button() {{
-            label.set( "Fill Width (" + layout.fillWidth.value() + ")" );
+            label.set( "Fill Width (" + l.fillWidth.value() + ")" );
             styles.add( CssStyle.of( "overflow", "hidden" ) );
             events.on( EventType.SELECT, ev -> {
-                layout.fillWidth.set( !layout.fillWidth.value() );
+                l.fillWidth.set( !l.fillWidth.value() );
                 parent().layout();
             });
         }});
         ui.body.add( new Button() {{
-            label.set( "Fill Height (" + layout.fillHeight.value() + ")" );
+            label.set( "Fill Height (" + l.fillHeight.value() + ")" );
             styles.add( CssStyle.of( "overflow", "hidden" ) );
             events.on( EventType.SELECT, ev -> {
-                layout.fillHeight.set( !layout.fillHeight.value() );
-                label.set( "fill h (" + layout.fillHeight.value() + ") " );
+                l.fillHeight.set( !l.fillHeight.value() );
+                label.set( "fill h (" + l.fillHeight.value() + ") " );
                 parent().layout();
             });
         }});

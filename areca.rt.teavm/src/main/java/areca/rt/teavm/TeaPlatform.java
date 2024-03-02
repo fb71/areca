@@ -111,6 +111,7 @@ public class TeaPlatform
 
     @Override
     public <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
+        Assert.that( delayMillis >= 0 );
         return new Completable<R>() {
             private int id = Window.setTimeout( () -> {
                 try {
