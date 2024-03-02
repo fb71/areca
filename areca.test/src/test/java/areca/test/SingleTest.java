@@ -18,8 +18,9 @@ import org.junit.jupiter.api.Test;
 
 import org.polymap.model2.engine.EntityRepositoryImpl;
 import org.polymap.model2.store.no2.No2Store;
-import org.polymap.model2.test2.ComplexModelTest;
 import org.polymap.model2.test2.RepoSupplier;
+import org.polymap.model2.test2.SimpleQueryTest;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
@@ -48,7 +49,7 @@ class SingleTest
 
     @Test
     public void theOnlyTest() {
-        execute( ComplexModelTest.info );
+        execute( SimpleQueryTest.info );
     }
 
 }

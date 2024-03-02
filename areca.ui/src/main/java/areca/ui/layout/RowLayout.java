@@ -90,6 +90,12 @@ public class RowLayout
      */
     public ReadWrite<RowLayout,Boolean>     fillHeight = Property.rw( this, "fillHeight", false );
 
+    public RowLayout fillHeight( boolean value ) {
+        fillHeight.set( value );
+        return this;
+    }
+
+
     /**
      * {@link Orientation#HORIZONTAL}: all components have the same width so that the
      * entiry client size is filled. Individual settings via
