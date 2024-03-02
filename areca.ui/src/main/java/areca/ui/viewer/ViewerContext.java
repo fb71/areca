@@ -15,6 +15,10 @@ package areca.ui.viewer;
 
 import static areca.ui.viewer.model.ModelBase.VALID;
 
+import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
+
 import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -23,7 +27,6 @@ import areca.ui.component2.UIComposite;
 import areca.ui.layout.FillLayout;
 import areca.ui.layout.RowConstraints;
 import areca.ui.viewer.model.ModelBase;
-import areca.ui.viewer.model.ModelBase.ValidationResult;
 import areca.ui.viewer.transform.ValidatingModel;
 
 /**
@@ -41,9 +44,9 @@ public class ViewerContext<M extends ModelBase>
 
     protected ModelBase     model;
 
-    protected boolean       isChanged;
+    protected Object        loadedValue;
 
-    protected ValidationResult validationResult = VALID;
+    protected Object        currentValue;
 
 
     @Override
@@ -72,10 +75,8 @@ public class ViewerContext<M extends ModelBase>
 
         // listen to UI input
         viewer.subscribe( ev -> {
-            isChanged = true;
-            validationResult = model instanceof ValidatingModel
-                    ? ((ValidatingModel<Object>)model).validate( ev.newValue )
-                    : VALID;
+            LOG.debug( "new value: '%s'", ev.newValue );
+            currentValue = ev.newValue;
         });
 
         var field = viewer.create();
@@ -89,14 +90,28 @@ public class ViewerContext<M extends ModelBase>
         }};
     }
 
+    public void store() {
+        loadedValue = currentValue = viewer.store();
+    }
 
+    public void load() {
+        loadedValue = currentValue = viewer.load();
+        LOG.debug( "load: '%s'", StringUtils.abbreviate( loadedValue.toString(), 20 ) );
+    }
+
+
+    @SuppressWarnings( "unchecked" )
     public boolean isValid() {
-        return validationResult == VALID;
+        if (model instanceof ValidatingModel) {
+            return ((ValidatingModel<Object>)model).validate( currentValue ) == VALID;
+        }
+        return true;
     }
 
 
     public boolean isChanged() {
-        return isChanged;
+        LOG.debug( "isChanged: '%s' - '%s'", loadedValue, currentValue );
+        return !Objects.equals( loadedValue, currentValue );
     }
 
 

@@ -16,6 +16,8 @@ package areca.ui.viewer;
 import java.util.EventObject;
 
 import areca.common.Assert;
+import areca.common.base.Consumer;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.event.EventListener;
 import areca.common.event.EventManager;
 import areca.common.event.EventManager.EventHandlerInfo;
@@ -30,17 +32,28 @@ public abstract class Viewer<M extends ModelBase> {
 
     protected M         model;
 
+    protected Consumer<UIComponent,RuntimeException> configurator;
+
+
     @SuppressWarnings("hiding")
     protected Viewer<M> init( M model ) {
         this.model = Assert.notNull( model );
         return this;
     }
 
+
+    @SuppressWarnings( "unchecked" )
+    public <C extends UIComponent> Viewer<M> configure( RConsumer<C> consumer ) {
+        this.configurator = (Consumer<UIComponent,RuntimeException>)consumer;
+        return this;
+    }
+
+
     public abstract UIComponent create();
 
-    public abstract void store();
+    public abstract Object store();
 
-    public abstract void load();
+    public abstract Object load();
 
 
     /**
@@ -80,6 +93,11 @@ public abstract class Viewer<M extends ModelBase> {
             super( source );
             this.newValue = newValue;
             this.oldValue = oldValue;
+        }
+
+        @Override
+        public Viewer<?> getSource() {
+            return (Viewer<?>)super.getSource();
         }
     }
 }

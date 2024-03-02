@@ -59,8 +59,11 @@ public interface State {
 
         String scope() default DEFAULT_SCOPE;
 
-        /** This context variable is required. */
+        /** This context variable is required. Default: true */
         boolean required() default true;
+
+        /** This context variable is mutable. */
+        boolean mutable() default false;
     }
 
     /**

@@ -16,9 +16,10 @@ package areca.ui.viewer.form;
 import java.util.ArrayList;
 import java.util.List;
 
+import areca.common.Platform;
 import areca.common.base.Sequence;
 import areca.common.event.EventListener;
-import areca.ui.component2.UIComponent;
+import areca.common.event.EventManager;
 import areca.ui.viewer.Viewer.ViewerInputChangeEvent;
 import areca.ui.viewer.model.ModelBase;
 
@@ -34,15 +35,9 @@ public class Form {
 
 
     public FieldBuilder<ModelBase> newField() {
-        return new FieldContext<>() {
-            { fields.add( this ); }
-            @Override
-            public UIComponent create() {
-                var result = super.create();
-                listeners.forEach( l -> subscribe( l ) );
-                return result;
-            }
-        };
+        var result = new FieldContext<>();
+        fields.add( result );
+        return result;
     }
 
 
@@ -57,25 +52,29 @@ public class Form {
 
 
     public void subscribe( EventListener<ViewerInputChangeEvent> l ) {
-        fields.forEach( f -> f._viewer().subscribe( new EventListener<ViewerInputChangeEvent>() {
-            @Override public void handle( ViewerInputChangeEvent ev ) {
-                l.handle( ev );
-            }
-        }));
+        EventManager.instance().subscribe( ev ->
+                // XXX Form.subscribe() might be called *before* the viewers are initialized
+                // so we must wait Viewers have processed their event handlers, in order to
+                // see correct results for isChanged() and isValid()
+                Platform.async( () -> l.handle( (ViewerInputChangeEvent)ev ) ) )
+
+                .performIf( ViewerInputChangeEvent.class, ev -> {
+                    return Sequence.of( fields ).anyMatches( f -> f._viewer() == ev.getSource() );
+                } );
         listeners.add( l );
     }
 
 
     public void submit() {
-        fields.forEach( f -> f._viewer().store() );
+        fields.forEach( f -> f.store() );
     }
 
     public void revert() {
-        fields.forEach( f -> f._viewer().load() );
+        fields.forEach( f -> f.load() );
     }
 
     public void load() {
-        fields.forEach( f -> f._viewer().load() );
+        fields.forEach( f -> f.load() );
     }
 
 }

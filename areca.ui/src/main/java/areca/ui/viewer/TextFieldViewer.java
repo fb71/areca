@@ -37,14 +37,18 @@ public class TextFieldViewer
 
     protected TextField     textField;
 
+
     @Override
     public UIComponent create() {
         Assert.isNull( textField );
         textField = new TextField() {{
             events.on( EventType.TEXT, ev -> {
-                LOG.info( "TextFieldViewer: %s", content.get() );
+                //LOG.info( "%s", content.get() );
                 fireEvent( content.get(), null );
             });
+            if (configurator != null) {
+                configurator.accept( this );
+            }
         }};
         model.subscribe( ev -> load() ).unsubscribeIf( () -> textField.isDisposed() );
         return textField;
@@ -56,13 +60,17 @@ public class TextFieldViewer
     }
 
     @Override
-    public void store() {
-        model.set( textField.content.opt().orNull() );
+    public String store() {
+        var value = textField.content.opt().orNull();
+        model.set( value );
+        return value;
     }
 
     @Override
-    public void load() {
-        textField.content.set( model.get() );
+    public String load() {
+        var value = model.get();
+        textField.content.set( value );
+        return value;
     }
 
 }

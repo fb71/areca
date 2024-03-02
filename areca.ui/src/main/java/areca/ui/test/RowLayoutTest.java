@@ -38,8 +38,8 @@ public class RowLayoutTest {
 
     @Test( "Row" )
     public void createRowLayout( UIComposite parent ) {
-        var layout = new RowLayout() {{margins.set( Size.of( 5, 5 ) ); spacing.set( 5 ); fillWidth.set( true );}};
-        parent.layout.set( layout );
+        var l = new RowLayout() {{margins.set( Size.of( 5, 5 ) ); spacing.set( 5 ); fillWidth.set( true );}};
+        parent.layout.set( l );
 
 //        parent.add( new Text() {{
 //            content.set( "UI2 :) -- " + bordered );
@@ -58,29 +58,29 @@ public class RowLayoutTest {
         parent.add( new Button() {{
             label.set( "horiz" );
             events.on( EventType.SELECT, ev -> {
-                layout.orientation.set( Orientation.HORIZONTAL );
+                l.orientation.set( Orientation.HORIZONTAL );
                 parent.layout();
             });
         }});
         parent.add( new Button() {{
             label.set( "vert" );
             events.on( EventType.SELECT, ev -> {
-                layout.orientation.set( Orientation.VERTICAL );
+                l.orientation.set( Orientation.VERTICAL );
                 parent.layout();
             });
         }});
         parent.add( new Button() {{
-            label.set( "fill w (" + layout.fillWidth.value() + ")" );
+            label.set( "fill w (" + l.fillWidth.value() + ")" );
             events.on( EventType.SELECT, ev -> {
-                layout.fillWidth.set( !layout.fillWidth.value() );
+                l.fillWidth.set( !l.fillWidth.value() );
                 parent.layout();
             });
         }});
         parent.add( new Button() {{
-            label.set( "fill h (" + layout.fillHeight.value() + ")" );
+            label.set( "fill h (" + l.fillHeight.value() + ")" );
             events.on( EventType.SELECT, ev -> {
-                layout.fillHeight.set( !layout.fillHeight.value() );
-                label.set( "fill h (" + layout.fillHeight.value() + ") " );
+                l.fillHeight.set( !l.fillHeight.value() );
+                label.set( "fill h (" + l.fillHeight.value() + ") " );
                 parent.layout();
             });
         }});

@@ -65,6 +65,11 @@ public class RowLayout
         return this;
     }
 
+    public RowLayout margins( int width, int height ) {
+        this.margins.set( Size.of( width, height ) );
+        return this;
+    }
+
     public ReadWrite<RowLayout,Integer>     spacing = Property.rw( this, "spacing", 0 );
 
     public RowLayout spacing( int value ) {

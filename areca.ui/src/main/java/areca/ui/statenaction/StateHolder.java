@@ -122,20 +122,20 @@ class StateHolder
                     var type = (ParameterizedType)f.genericType();
                     var typeArg = ((ClassType)type.getActualTypeArguments()[0]).getRawType();
                     value = context.entry( typeArg, a.scope() ).orNull();
-                    if (value == null && a.required()) {
-                        throw new IllegalStateException( "Context variable of type: '" + f.type().getSimpleName()
-                                + "' required but absent in context of: " + part.getClass().getSimpleName() );
-                    }
                     var modelValue = Model.class.cast( f.get( part ) );
+                    Assert.that( value != null || !a.required() || modelValue.get() != null,
+                            "Context variable " + f.name() + "(" + typeArg + ") required but type not found context of: " + part.getClass().getSimpleName() );
+                    Assert.that( modelValue.get() == null || a.mutable(),
+                            "Context variable already set (" + modelValue.get() + ") but not mutable in context of: " + part.getClass().getSimpleName() );
                     modelValue.set( value );
                 }
                 // simple field
                 else {
                     value = context.entry( (Class<?>)f.type(), a.scope() ).orNull();
-                    if (value == null && a.required()) {
-                        throw new IllegalStateException( "Context variable of type: '" + f.type().getSimpleName()
-                                + "' required but absent in context of: " + part.getClass().getSimpleName() );
-                    }
+                    Assert.that( value != null || !a.required() || f.get( part ) != null,
+                            "Context variable of type: '" + f.type().getSimpleName() + "' required but absent in context of: " + part.getClass().getSimpleName() );
+                    Assert.that( f.get( part ) == null || a.mutable(),
+                            "Context variable already set (" + f.get( part ) + ") but not mutable in context of: " + part.getClass().getSimpleName() );
                     f.set( part, f.type().cast( value ) );
                 }
                 LOG.debug( "inject: %s = %s", f.name(), value != null ? value : "null" );

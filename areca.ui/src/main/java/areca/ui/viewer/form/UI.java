@@ -35,8 +35,8 @@ public @interface UI {
     @SuppressWarnings("rawtypes")
     public class NO_VIEWER extends Viewer {
         @Override public UIComponent create() { throw new UnsupportedOperationException(); }
-        @Override public void store() { throw new UnsupportedOperationException(); }
-        @Override public void load() { throw new UnsupportedOperationException(); }
+        @Override public Object store() { throw new UnsupportedOperationException(); }
+        @Override public Object load() { throw new UnsupportedOperationException(); }
         @Override protected boolean isDisposed() { throw new UnsupportedOperationException(); }
     }
 
