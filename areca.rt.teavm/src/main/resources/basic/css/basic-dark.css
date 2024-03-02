@@ -69,6 +69,10 @@ body {
   background-size: 100%;
 }
 
+.UIComponent:disabled {
+  color: #777777;
+}
+
 .UIComposite {
   font-family: Roboto, arial, sans-serif;
   font-size: 14px;

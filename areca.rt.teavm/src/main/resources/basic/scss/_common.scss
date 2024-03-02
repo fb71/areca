@@ -50,6 +50,9 @@ body {
     background-repeat: no-repeat;
     background-size: 100%;
 }
+.UIComponent:disabled {
+    color: darken($font_color, 35%);
+}
 
 .UIComposite {
     font-family: Roboto, arial, sans-serif;

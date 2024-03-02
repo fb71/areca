@@ -60,7 +60,13 @@ public class LinkRenderer
         c.htmlElm = (HTMLAnchorElement)doc().createElement( "a" );
         var textNode = (HTMLElement)doc().createTextNode( c.content.opt().orElse( "" ) );
         htmlElm( c ).appendChild( textNode );
-        htmlElm( c ).setAttribute( "href", c.href.opt().orElse( "#" ) );
+
+        String href = c.href.opt().orElse( "#" );
+        htmlElm( c ).setAttribute( "href", href );
+        //if (href.startsWith( "/" ) || href.startsWith( "http" )) {
+            htmlElm( c ).setAttribute( "target", "_blank" );
+            htmlElm( c ).setAttribute( "rel", "noopener" );
+        //}
 
         c.content.onChange( (newValue, oldValue) -> {
             textNode.setNodeValue( newValue );
