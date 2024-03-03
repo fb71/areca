@@ -64,6 +64,9 @@ public class ArecaUIServer
 
     private static final Log LOG = LogFactory.getLog( ArecaUIServer.class );
 
+    /** The HTTP request of (accessible in) the current EventLoop */
+    public static ThreadLocal<Request> currentRequest = new ThreadLocal<>();
+
     private static ThreadBoundSessionScoper sessionScope = new ThreadBoundSessionScoper();
 
     private Class<ServerApp> appClass;
@@ -224,7 +227,13 @@ public class ArecaUIServer
                 }
 
                 // event loop
-                eventLoop.execute();
+                try {
+                    currentRequest.set( new Request( request, response ) );
+                    eventLoop.execute();
+                }
+                finally {
+                    currentRequest.set( null );
+                }
 
                 // response
                 var responseMsg = new JsonServer2ClientMessage();
@@ -256,6 +265,19 @@ public class ArecaUIServer
         @Override
         public Position clientPos() {
             throw new RuntimeException( "not yet implemented." );
+        }
+    }
+
+    /**
+     *
+     */
+    public static class Request {
+        public HttpServletRequest request;
+        public HttpServletResponse response;
+
+        protected Request( HttpServletRequest request, HttpServletResponse response ) {
+            this.request = request;
+            this.response = response;
         }
     }
 }
