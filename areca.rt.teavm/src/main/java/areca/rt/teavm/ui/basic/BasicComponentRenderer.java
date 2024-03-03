@@ -18,6 +18,7 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.RuntimeInfo;
 import areca.rt.teavm.ui.BadgeRenderer;
 import areca.rt.teavm.ui.ButtonRenderer;
+import areca.rt.teavm.ui.ColorPickerRenderer;
 import areca.rt.teavm.ui.LabelRenderer;
 import areca.rt.teavm.ui.LinkRenderer;
 import areca.rt.teavm.ui.ProgressRenderer;
@@ -51,6 +52,7 @@ public class BasicComponentRenderer {
         ProgressRenderer._start();
         LinkRenderer._start();
         SeparatorRenderer._start();
+        ColorPickerRenderer._start();
 
         BadgeRenderer._start();
         LabelRenderer._start();

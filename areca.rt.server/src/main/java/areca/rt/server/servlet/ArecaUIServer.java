@@ -49,6 +49,7 @@ import areca.rt.server.EventLoop;
 import areca.rt.server.ServerApp;
 import areca.ui.Position;
 import areca.ui.Size;
+import areca.ui.component2.ColorPicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.TextField;
@@ -204,7 +205,15 @@ public class ArecaUIServer
                                 var component = collector.componentForId( event.componentId );
                                 var eventType = EventType.valueOf( event.eventType );
                                 if (eventType == EventType.TEXT) {
-                                    ((TextField)component).content.rawSet( event.content );
+                                    if (component instanceof TextField) {
+                                        ((TextField)component).content.rawSet( event.content );
+                                    }
+                                    else if (component instanceof ColorPicker) {
+                                        ((ColorPicker)component).value.rawSet( event.content );
+                                    }
+                                    else {
+                                        throw new RuntimeException( "Unhandled: " + component );
+                                    }
                                 }
                                 component.events.values()
                                         .filter( handler -> handler.type.equals( eventType ) )

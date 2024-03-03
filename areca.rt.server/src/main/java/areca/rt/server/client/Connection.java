@@ -37,6 +37,7 @@ import areca.rt.server.client.JSClient2ServerMessage.JSClickEvent;
 import areca.rt.server.servlet.ArecaUIServer;
 import areca.ui.App.RootWindow;
 import areca.ui.component2.Button;
+import areca.ui.component2.ColorPicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.Label;
@@ -227,7 +228,15 @@ public class Connection {
 
         int delay = 0;
         if (ev.type == EventType.TEXT) {
-            jsev.setContent( ((TextField)component).content.get() );
+            if (component instanceof TextField) {
+                jsev.setContent( ((TextField)component).content.get() );
+            }
+            else if (component instanceof ColorPicker) {
+                jsev.setContent( ((ColorPicker)component).value.get() );
+            }
+            else {
+                throw new RuntimeException( "Unhandled: " + component );
+            }
             delay = 250;
         }
 
@@ -280,6 +289,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".TextField" : return new TextField();
             case PACKAGE_UI_COMPONENTS + ".Link" : return new Link();
             case PACKAGE_UI_COMPONENTS + ".Label" : return new Label();
+            case PACKAGE_UI_COMPONENTS + ".ColorPicker" : return new ColorPicker();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );

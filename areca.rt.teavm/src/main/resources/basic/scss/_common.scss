@@ -97,6 +97,10 @@ a:active, .Link:active {
     color: lighten($link_color, 15%);
 }
 
+.ColorPicker {
+    background-color: inherit;
+}
+
 .Button {
     font-family: inherit;
     font-size: inherit;
@@ -224,7 +228,7 @@ textarea.TextField {
     //background: saturate(darken($accent_color, 5%), 10%);
     //border: 1px solid darken($font_color, 20%);
     color: darken($font_color, 25%);
-    font-size: 10px;
+    font-size: 11px;
     //font-w+eight: bold;
     position: absolute;
     top: -7px;

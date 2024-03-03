@@ -39,6 +39,7 @@ public class FormRenderer {
     }
 
 
+    @SuppressWarnings( "unchecked" )
     public void render( UIComposite container ) {
         for (var f : ClassInfo.of( form ).fields()) {
             f.annotation( UI.class ).ifPresent( ui -> {
