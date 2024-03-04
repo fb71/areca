@@ -29,13 +29,20 @@ public class Color {
         return new Color( r, g, b, (short)0 );
     }
 
+    /**
+     * #aabbcc
+     */
     public static Color ofHex( String hex ) {
-        throw new RuntimeException("...");
+        return new Color(
+                Integer.valueOf( hex.substring( 1, 3 ), 16 ),
+                Integer.valueOf( hex.substring( 3, 5 ), 16 ),
+                Integer.valueOf( hex.substring( 5, 7 ), 16 ),
+                0 );
     }
 
     // instance *******************************************
 
-    private short   r, g, b, a;
+    public short r, g, b, a;
 
     protected Color( int r, int g, int b, int a ) {
         this.r = checkValue( r );
