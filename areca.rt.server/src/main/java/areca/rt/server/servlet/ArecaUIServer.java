@@ -18,7 +18,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.LinkedList;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
@@ -31,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.Gson;
@@ -61,6 +61,8 @@ import areca.ui.component2.UIComponent;
  */
 public class ArecaUIServer
         extends HttpServlet {
+
+    private static final String ATTR_SESSION = "areca.session";
 
     private static final Log LOG = LogFactory.getLog( ArecaUIServer.class );
 
@@ -135,16 +137,17 @@ public class ArecaUIServer
      *
      */
     protected Session checkInitSession( HttpSession httpSession, boolean startSession ) {
-        var session = (Session)httpSession.getAttribute( "areca.session" );
+        var session = (Session)httpSession.getAttribute( ATTR_SESSION );
         if (startSession) {
             synchronized (httpSession) {
+                session = (Session)httpSession.getAttribute( ATTR_SESSION );
                 if (session != null) {
                     LOG.info( "Session: DISPOSE" );
                     session.dispose();
                 }
                 LOG.info( "Session: START" );
                 session = new Session();
-                httpSession.setAttribute( "areca.session", session );
+                httpSession.setAttribute( ATTR_SESSION, session );
 
                 sessionScope.bind( session, __ -> {
                     Session.setInstance( new EventLoop() );
@@ -173,10 +176,8 @@ public class ArecaUIServer
             // request: handle click events
             var _msg = (JsonClient2ServerMessage)null;
             try (var in = new InputStreamReader( request.getInputStream(), UTF_8 )) {
-                if (in.ready()) {
-                    _msg = gson.fromJson( in, JsonClient2ServerMessage.class );
-                    LOG.debug( "Received: %s", notPretty.toJson( _msg ));
-                }
+                _msg = gson.fromJson( in, JsonClient2ServerMessage.class );
+                LOG.debug( "Received: %s", notPretty.toJson( _msg ));
             }
             var msg = _msg;
 
@@ -240,8 +241,9 @@ public class ArecaUIServer
                 responseMsg.uiEvents = collector.events();
                 responseMsg.pendingWait = (int)eventLoop.pendingWait();
 
+                LOG.info( "buffer: %s", response.getBufferSize() );
                 response.setCharacterEncoding( "UTF-8" );
-                try (var out = new BufferedWriter( response.getWriter() )) {
+                try (var out = response.getWriter()) {
                     gson.toJson( responseMsg, out );
                 }
                 LOG.debug( "Sent: %s render events (%s)", responseMsg.uiEvents.size(), t.elapsedHumanReadable() );
