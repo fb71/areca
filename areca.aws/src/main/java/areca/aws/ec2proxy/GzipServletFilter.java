@@ -83,7 +83,7 @@ public class GzipServletFilter
                 && COMPRESSIBLE.stream().anyMatch( mime -> contains( probe.request.getHeader( "Accept" ), mime ) )
                 && !UNCOMPRESSIBLE.stream().anyMatch( m -> FilenameUtils.wildcardMatch( pathInfo, m ) )) {
             LOG.info( ":: %s ? %s", probe.request.getPathInfo(), probe.request.getQueryString() );
-            probe.response.setHeader( "Content-Encoding", "gzip" );
+            //probe.response.setHeader( "Content-Encoding", "gzip" );
             probe.response = new GzipResponseWrapper( probe.response );
         }
     }
@@ -98,7 +98,6 @@ public class GzipServletFilter
         if (contains( req.getHeader( "Accept-Encoding" ), "gzip" )
                 && COMPRESSIBLE.stream().anyMatch( mime -> contains( req.getHeader( "Accept" ), mime ) )) {
             LOG.info( "GZIP: %s ? %s", req.getPathInfo(), req.getQueryString() );
-            resp.setHeader( "Content-Encoding", "gzip" );
             chain.doFilter( request, new GzipResponseWrapper( resp ) );
         }
         else {
@@ -133,6 +132,8 @@ public class GzipServletFilter
             zip = Lazy.of( () -> new GzipCompressorOutputStream( out, new GzipParameters() {{
                 setBufferSize( BUFFER_SIZE );
                 setCompressionLevel( Deflater.BEST_SPEED );
+                response.setHeader( "Content-Encoding", "gzip" );
+                //LOG.warn( "GZIP out initialized" );
             }}));
         }
 
@@ -143,6 +144,7 @@ public class GzipServletFilter
 
         @Override
         public void addHeader( String name, String value ) {
+            // Encoding
             if (name.equalsIgnoreCase( "Content-Encoding" )) {
                 // already gzipped
                 if (value.equalsIgnoreCase( "gzip" )) {
@@ -155,8 +157,16 @@ public class GzipServletFilter
                     LOG.info( "Preventing header: %s : %s", name, value );
                 }
             }
+            // Content-Length
             else if (name.equalsIgnoreCase( "Content-Length" )) {
-                super.addHeader( "X-Uncompressed-Content-Length", value );
+                if (Integer.parseInt( value ) < 2048 && c == 0) {
+                    LOG.info( "Content-Length: %s (%s) -> SKIP compression", value, c );
+                    zip = Lazy.of( () -> out );
+                    super.setHeader( name, value );
+                }
+                else {
+                    super.addHeader( "X-Uncompressed-Content-Length", value );
+                }
             }
             else {
                 super.addHeader( name, value );
