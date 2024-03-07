@@ -13,11 +13,13 @@
  */
 package areca.aws.ec2proxy;
 
+import static areca.aws.ec2proxy.HttpForwardServlet4.BUFFER_SIZE;
+import static java.util.Objects.requireNonNullElse;
 import static org.apache.commons.lang3.StringUtils.contains;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
+import java.util.zip.Deflater;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,6 +37,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipParameters;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.function.Failable;
 
 import areca.aws.Lazy;
@@ -52,8 +57,11 @@ public class GzipServletFilter
     private static final XLogger LOG = XLogger.get( GzipServletFilter.class );
 
     public static final List<String> COMPRESSIBLE = Arrays.asList(
+            // XXX this */* makes it useless, no?
             "*/*", "text/html", "text/xml", "text/plain", "text/css", "text/javascript",
             "application/x-javascript", "application/javascript", "application/json", "application/xml" );
+
+    public static final List<String> UNCOMPRESSIBLE = Arrays.asList( "*.woff*", "*.jp*g", "*.ico" );
 
     // instance *******************************************
 
@@ -70,8 +78,10 @@ public class GzipServletFilter
 
     @Override
     public void handle( Probe probe ) throws Exception {
+        var pathInfo = requireNonNullElse( probe.request.getPathInfo(), "" );
         if (contains( probe.request.getHeader( "Accept-Encoding" ), "gzip" )
-                && COMPRESSIBLE.stream().anyMatch( mime -> contains( probe.request.getHeader( "Accept" ), mime ) )) {
+                && COMPRESSIBLE.stream().anyMatch( mime -> contains( probe.request.getHeader( "Accept" ), mime ) )
+                && !UNCOMPRESSIBLE.stream().anyMatch( m -> FilenameUtils.wildcardMatch( pathInfo, m ) )) {
             LOG.info( ":: %s ? %s", probe.request.getPathInfo(), probe.request.getQueryString() );
             probe.response.setHeader( "Content-Encoding", "gzip" );
             probe.response = new GzipResponseWrapper( probe.response );
@@ -117,7 +127,13 @@ public class GzipServletFilter
         public GzipResponseWrapper( HttpServletResponse response ) throws IOException {
             super( response );
             out = response.getOutputStream();
-            zip = Lazy.of( () -> new GZIPOutputStream( out, true ) );
+
+            //zip = Lazy.of( () -> new GZIPOutputStream( out, BUFFER_SIZE, true ) );
+
+            zip = Lazy.of( () -> new GzipCompressorOutputStream( out, new GzipParameters() {{
+                setBufferSize( BUFFER_SIZE );
+                setCompressionLevel( Deflater.BEST_SPEED );
+            }}));
         }
 
         @Override

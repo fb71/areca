@@ -13,6 +13,7 @@
  */
 package areca.aws.ec2proxy;
 
+import static areca.aws.ec2proxy.HttpForwardServlet4.BUFFER_SIZE;
 import static areca.aws.ec2proxy.HttpForwardServlet4.FORBIDDEN_HEADERS;
 import static areca.aws.ec2proxy.HttpForwardServlet4.METHODS_WITH_BODY;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_REQUEST;
@@ -25,8 +26,6 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-
-import org.apache.commons.io.IOUtils;
 
 import areca.aws.Lazy;
 import areca.aws.XLogger;
@@ -139,12 +138,22 @@ public class StraightForwardHandler
 //        var cookies = cm.get( new URI( probe.redirect ), new HashMap<>() );
 //        LOG.info( "################################### Response Cookie: %s", cookies );
 
+        //LOG.warn( "Out buffer: %s", probe.response.getBufferSize() );
+        var start = System.nanoTime();
         try (
-            var in = response.body();
-            var out = probe.response.getOutputStream();
+                var in = response.body();
+                var out = probe.response.getOutputStream();
+//                var in = IOUtils.buffer( response.body(), BUFFER_SIZE);
+//                var out = IOUtils.buffer( probe.response.getOutputStream(), BUFFER_SIZE );
         ){
-            IOUtils.copy( in, out );
+            var buf = new byte[BUFFER_SIZE];
+            for (int c = in.read( buf ); c > -1; c = in.read( buf )) {
+                //LOG.warn( "read: %s", c );
+                out.write( buf, 0, c );
+            }
+            out.flush();
         }
+        //LOG.warn( "   copy done: %s", (System.nanoTime()-start)/1000000 );
     }
 
 }

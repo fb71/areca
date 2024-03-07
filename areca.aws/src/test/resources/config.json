@@ -39,6 +39,10 @@
                     "forward": "http://deploy.fb71.org/ragtime.cc-0.0.1-SNAPSHOT/"
                 },
                 {
+                    "path": "/ragtime.local/",
+                    "forward": "http://localhost:8080/ragtime.cc/"
+                },
+                {
                     "path": "/up/",
                     "forward": "https://ulrike-philipp.de/"
                 },

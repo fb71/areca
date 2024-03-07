@@ -65,6 +65,8 @@ public class HttpForwardServlet4
     public static final String LOG_REQUEST = "requests";
     public static final String LOG_INSTANCE = "instance-status";
 
+    public static final int BUFFER_SIZE = 16 * 1024;
+
     /**
      * {@link ClassLoader#getResourceAsStream(String)}
      */
@@ -184,6 +186,7 @@ public class HttpForwardServlet4
                 new EnsureEc2InstanceHandler.AfterError( Mode.LOADING_PAGE ),
                 new SanityCheckHandler() );
 
+        var start = System.nanoTime();
         for (var handler : requestHandlers) {
             if (handler.canHandle( probe )) {
                 try {
@@ -197,6 +200,7 @@ public class HttpForwardServlet4
                 }
             }
         }
+        LOG.warn( "*** %s (%s ms)", probe.request.getPathInfo(), (System.nanoTime()-start)/1000000 );
         //LOG.info( "------------------------------------------------------------" );
         LOG.info( "____________________________________________________________" );
     }

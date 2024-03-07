@@ -25,6 +25,11 @@
             <version>2.15.0</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.26.0</version>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>ec2</artifactId>
             <version>2.21.5</version>
@@ -67,6 +72,9 @@
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>9.4.53.v20231009</version>
                 <configuration>
+                    <httpConnector>
+                        <port>9090</port>
+                    </httpConnector>
                     <scanIntervalSeconds>3</scanIntervalSeconds>
                     <!--webAppSourceDirectory>${project.build.directory}/${project.build.finalName}</webAppSourceDirectory-->
                     <webApp>

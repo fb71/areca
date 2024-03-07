@@ -27,6 +27,8 @@ import org.apache.commons.lang3.StringUtils;
 @SuppressWarnings("rawtypes")
 public class XLogger {
 
+    public static final Level LEVEL_DEFAULT = Level.WARNING;
+
     public static XLogger get( Class cl ) {
         return new XLogger( cl, null ); //Logger.getLogger( cl.getName() ) );
     }
@@ -53,10 +55,12 @@ public class XLogger {
             }
         }
         else {
-            var formatted = args != null ? String.format( format, args ) : format;
-            var prefix = abbreviate( cl.getSimpleName(), 20 );
-            var l = StringUtils.substring( level.toString(), 0, 5);
-            System.out.println( String.format( "[%-5s] %-20s: %s", l, prefix, formatted ) );
+            if (level.intValue() >= LEVEL_DEFAULT.intValue()) {
+                var formatted = args != null ? String.format( format, args ) : format;
+                var prefix = abbreviate( cl.getSimpleName(), 20 );
+                var l = StringUtils.substring( level.toString(), 0, 5);
+                System.out.println( String.format( "[%-5s] %-20s: %s", l, prefix, formatted ) );
+            }
         }
         return this;
     }
