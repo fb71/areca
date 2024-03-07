@@ -139,7 +139,8 @@ public class StraightForwardHandler
 //        LOG.info( "################################### Response Cookie: %s", cookies );
 
         //LOG.warn( "Out buffer: %s", probe.response.getBufferSize() );
-        var start = System.nanoTime();
+        //var start = System.nanoTime();
+        probe.response.setBufferSize( BUFFER_SIZE );
         try (
                 var in = response.body();
                 var out = probe.response.getOutputStream();

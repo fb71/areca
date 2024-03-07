@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.Gson;
@@ -241,7 +240,7 @@ public class ArecaUIServer
                 responseMsg.uiEvents = collector.events();
                 responseMsg.pendingWait = (int)eventLoop.pendingWait();
 
-                LOG.info( "buffer: %s", response.getBufferSize() );
+                response.setBufferSize( 32*1024 );
                 response.setCharacterEncoding( "UTF-8" );
                 try (var out = response.getWriter()) {
                     gson.toJson( responseMsg, out );

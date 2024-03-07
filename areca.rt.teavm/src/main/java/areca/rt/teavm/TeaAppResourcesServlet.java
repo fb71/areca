@@ -108,10 +108,12 @@ public class TeaAppResourcesServlet
             }
         }
 
+        var buffSize = 32 * 1024;
+        resp.setBufferSize( buffSize );
         try (
             var out = resp.getOutputStream();
         ){
-            var buf = new byte[4096];
+            var buf = new byte[buffSize];
             for (var c = in.read( buf ); c > -1; c = in.read( buf )) {
                 out.write( buf, 0, c );
             }
