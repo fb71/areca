@@ -40,9 +40,7 @@ public class TeaAppResourcesServlet
 
     private static final Log LOG = LogFactory.getLog( TeaAppResourcesServlet.class );
 
-//    public static final Set<String> ALLOWED = new HashSet<>() {{
-//        add( "html" ), add( "html" ), add( "html" ),
-//    }};
+    private String etag = "\"" + System.currentTimeMillis() + "\"";
 
     @Override
     public void init() throws ServletException {
@@ -53,6 +51,18 @@ public class TeaAppResourcesServlet
     protected void doGet( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
         LOG.debug( "PATH: %s", req.getPathInfo() );
         try {
+            resp.setHeader( "Etag", etag );
+
+            // check etag -> 304
+            var ifNoneMatch = req.getHeader(  "If-None-Match" );
+            if (etag.equals( ifNoneMatch )) {
+                LOG.debug( "304: %s", req.getPathInfo() );
+                resp.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
+                resp.flushBuffer();
+                return;
+            }
+
+            // load resource
             processGet( req, resp );
         }
         catch (Throwable e) {
