@@ -79,8 +79,9 @@ public class BasicTheme {
         // ButtonType via CSS
         if (c instanceof Button) {
             ((Button)c).type.onInitAndChange( (newValue, oldValue) -> {
-                c.cssClasses.remove( Button.Type.PRIMARY.toString() );
-                c.cssClasses.remove( Button.Type.SECONDARY.toString() );
+                c.cssClasses.remove( Button.Type.SUBMIT.toString() );
+                c.cssClasses.remove( Button.Type.ACTION.toString() );
+                c.cssClasses.remove( Button.Type.NAVIGATE.toString() );
                 c.cssClasses.add( newValue.toString() );
             });
         }

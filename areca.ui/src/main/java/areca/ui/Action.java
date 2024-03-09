@@ -37,7 +37,7 @@ public class Action {
     public ReadWrite<?,Boolean>     enabled = Property.rw( this, "icon", true );
 
     /** */
-    public ReadWrite<?,Button.Type> type = Property.rw( this, "icon", Button.Type.SECONDARY );
+    public ReadWrite<?,Button.Type> type = Property.rw( this, "icon", Button.Type.ACTION );
 
     public ReadWrite<?,Consumer<UIEvent,?>> handler = Property.rw( this, "handler" );
 

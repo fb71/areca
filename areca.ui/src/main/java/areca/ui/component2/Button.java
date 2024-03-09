@@ -23,7 +23,12 @@ public class Button
         extends UIComposite {
 
     public enum Type {
-        PRIMARY, SECONDARY
+        /** Submit model changes or any other action that changes the persistent store. */
+        SUBMIT,
+        /** Chnages things, maybe in the model - but does not submit yet. */
+        ACTION,
+        /** Open a new page or dialog. */
+        NAVIGATE
     }
 
     public enum Format {
@@ -32,7 +37,7 @@ public class Button
 
     public ReadWrite<Button,String> label = new ReadWrite<>( this, "label" );
 
-    public ReadWrite<Button,Type> type = Property.rw( this, "type", Type.PRIMARY );
+    public ReadWrite<Button,Type> type = Property.rw( this, "type", Type.ACTION );
 
     /**
      * The format of the {@link #label}; defaults to {@link Format#PLAIN}.

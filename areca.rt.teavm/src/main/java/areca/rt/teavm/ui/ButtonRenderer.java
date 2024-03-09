@@ -50,16 +50,25 @@ public class ButtonRenderer
     public void componentConstructed( ComponentConstructedEvent ev ) {
         Button c = (Button)ev.getSource();
 
-        var htmlButton = (HTMLButtonElement)doc().createElement( "button" );
-        c.htmlElm = htmlButton;
+//        var created = (HTMLElement)null;
+//        if (c.type.get() == Button.Type.SUBMIT) {
+//            // idea was to help the Browser to save password;
+//            // but would need a surounding <form>, and never works on chrome
+//            created = (HTMLElement)doc().createElement( "input" );
+//            created.setAttribute( "type", "submit" );
+//            created.setAttribute( "value", c.label.get() );
+//        }
+        var created = (HTMLButtonElement)doc().createElement( "button" );
+        created.setAttribute( "type", "button" );
 
-        htmlButton.setAttribute( "type", "button" );
+        c.htmlElm = created;
+        var htmlBtn = created;
 
         // imageData
         c.image.onInitAndChange( (newValue, __) -> {
             if (newValue != null) {
                 var img = c.data( "__imageData__", () -> {
-                    return (HTMLImageElement)htmlButton.appendChild( doc().createElement( "img" ) );
+                    return (HTMLImageElement)htmlBtn.appendChild( doc().createElement( "img" ) );
                 });
                 img.setSrc( "data:;base64," + newValue );
                 //img.getStyle().setProperty( "height", "100%" );
@@ -72,7 +81,7 @@ public class ButtonRenderer
         // label
         c.label.onInitAndChange( (newValue, __) -> {
             var span = c.data( "__label__", () -> {
-                return (HTMLElement)htmlButton.appendChild( doc().createElement( "span" ) );
+                return (HTMLElement)htmlBtn.appendChild( doc().createElement( "span" ) );
             });
             span.setAttribute( "class", "label" );
             switch (c.format.$()) {
@@ -84,7 +93,7 @@ public class ButtonRenderer
         // icon
         c.icon.onInitAndChange( (newValue, __) -> {
             var span = c.data( "__icon__", () -> {
-                return (HTMLElement)htmlButton.appendChild( doc().createElement( "span" ) );
+                return (HTMLElement)htmlBtn.appendChild( doc().createElement( "span" ) );
             });
             span.setAttribute( "class", "material-icons icon" );
             span.setInnerText( newValue );
