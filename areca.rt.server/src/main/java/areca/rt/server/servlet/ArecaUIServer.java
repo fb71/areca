@@ -36,6 +36,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import areca.common.Assert;
+import areca.common.MutableInt;
 import areca.common.Session;
 import areca.common.SessionScoper;
 import areca.common.SessionScoper.ThreadBoundSessionScoper;
@@ -149,9 +150,11 @@ public class ArecaUIServer
                 httpSession.setAttribute( ATTR_SESSION, session );
 
                 sessionScope.bind( session, __ -> {
-                    Session.setInstance( new EventLoop() );
                     Session.setInstance( new UIEventCollector() ).start();
-                    Session.instanceOf( ServerApp.class ).createUI( );
+
+                    Session.setInstance( new EventLoop() ).enqueue( "createUI()", () -> {
+                        Session.instanceOf( ServerApp.class ).createUI();
+                    }, 0 );
                 });
             }
         }
@@ -226,26 +229,30 @@ public class ArecaUIServer
                     }, 0 );
                 }
 
-                // event loop
-                try {
+                // response
+                response.setBufferSize( 16*1024 );
+                response.setCharacterEncoding( "UTF-8" );
+
+                var c = new MutableInt();
+                try (var out = response.getWriter()) {
+                    out.write( "{\n  \"uiEvents\": [\n" );
+
+                    collector.sink( ev -> {
+                        out.write( c.getAndIncrement() == 0 ? "" : ",\n" );
+                        gson.toJson( ev, out );
+                    });
+
+                    // eventloop
                     currentRequest.set( new Request( request, response ) );
                     eventLoop.execute();
+
+                    out.write( String.format( "\n  ],\n  \"pendingWait\": %s\n}", eventLoop.pendingWait() ) );
                 }
                 finally {
+                    collector.sink( null );
                     currentRequest.set( null );
                 }
-
-                // response
-                var responseMsg = new JsonServer2ClientMessage();
-                responseMsg.uiEvents = collector.events();
-                responseMsg.pendingWait = (int)eventLoop.pendingWait();
-
-                response.setBufferSize( 32*1024 );
-                response.setCharacterEncoding( "UTF-8" );
-                try (var out = response.getWriter()) {
-                    gson.toJson( responseMsg, out );
-                }
-                LOG.debug( "Sent: %s render events (%s)", responseMsg.uiEvents.size(), t.elapsedHumanReadable() );
+                LOG.info( "Sent: %s render events (%s)", c.getValue(), t.elapsedHumanReadable() );
             });
         }
         catch (Exception e) {

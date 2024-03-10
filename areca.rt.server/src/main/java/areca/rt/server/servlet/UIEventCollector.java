@@ -13,12 +13,11 @@
  */
 package areca.rt.server.servlet;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import areca.common.Assert;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -53,7 +52,7 @@ public class UIEventCollector {
 
     private Map<Integer,UIElement>      components = new HashMap<>( 512 );
 
-    private List<JsonUIComponentEvent>  events = new ArrayList<>( 512 );
+    private RConsumer<JsonUIComponentEvent> sink;
 
 
     public void start() {
@@ -61,8 +60,13 @@ public class UIEventCollector {
     }
 
 
-    public List<JsonUIComponentEvent> events() {
-        try { return events; } finally { events = new ArrayList<>( 512 ); }
+    public void sink( RConsumer<JsonUIComponentEvent> handler ) {
+        this.sink = handler;
+    }
+
+    protected void add( JsonUIComponentEvent ev ) {
+        Assert.notNull( sink, "App code called outside eventloop!?" );
+        sink.accept( ev );
     }
 
 
@@ -83,7 +87,7 @@ public class UIEventCollector {
             LOG.debug( "PROPERTY: %s", prop.name() );
             Assert.notNull( components.get( ((UIElement)prop.component()).id() ) );
             JsonUIComponentEvent.createFrom( ev )
-                    .ifPresent( json -> events.add( json ) );
+                    .ifPresent( json -> add( json ) );
         }
         else {
             LOG.debug( "SKIP: %s (%s)", prop.name(), prop.component() );
@@ -96,7 +100,7 @@ public class UIEventCollector {
         var component = ev.getSource();
         LOG.debug( "CONSTRUCTING: %s (id=%s)", component.getClass().getName(), component.id() );
         Assert.isNull( components.put( component.id(), component ) );
-        events.add( new JsonUIComponentEvent( ev ) );
+        add( new JsonUIComponentEvent( ev ) );
     }
 
 
@@ -110,14 +114,14 @@ public class UIEventCollector {
     @EventHandler( ComponentAttachedEvent.class )
     public void componentAttached( ComponentAttachedEvent ev ) {
         LOG.debug( "ATTACHED: %s", ev.getSource().getClass().getSimpleName() );
-        events.add( new JsonUIComponentEvent( ev ) );
+        add( new JsonUIComponentEvent( ev ) );
     }
 
 
     @EventHandler( ComponentDetachedEvent.class )
     public void componentDetached( ComponentDetachedEvent ev ) {
         LOG.debug( "DETACHED: %s", ev.getSource().getClass().getSimpleName() );
-        events.add( new JsonUIComponentEvent( ev ) );
+        add( new JsonUIComponentEvent( ev ) );
     }
 
 
@@ -126,7 +130,7 @@ public class UIEventCollector {
         var component = ev.getSource();
         LOG.debug( "DISPOSED: %s", component.getClass().getName() );
         Assert.notNull( components.remove( component.id() ) );
-        events.add( new JsonUIComponentEvent( ev ) );
+        add( new JsonUIComponentEvent( ev ) );
     }
 
 
@@ -134,7 +138,7 @@ public class UIEventCollector {
     public void decoratorAttached( DecoratorAttachedEvent ev ) {
         var decorator = ev.getSource();
         LOG.debug( "DECORATOR: %s", decorator.getClass().getName() );
-        events.add( new JsonUIComponentEvent( ev ) );
+        add( new JsonUIComponentEvent( ev ) );
     }
 
 
@@ -142,6 +146,6 @@ public class UIEventCollector {
     public void decoratorDetached( DecoratorDetachedEvent ev ) {
         var component = ev.getSource();
         LOG.debug( "DECORATOR detached:: %s", component.getClass().getName() );
-        events.add( new JsonUIComponentEvent( ev ) );
+        add( new JsonUIComponentEvent( ev ) );
     }
 }
