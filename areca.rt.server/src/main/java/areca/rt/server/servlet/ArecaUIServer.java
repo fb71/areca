@@ -230,7 +230,7 @@ public class ArecaUIServer
                 }
 
                 // response
-                response.setBufferSize( 16*1024 );
+                response.setBufferSize( 8*1024 );
                 response.setCharacterEncoding( "UTF-8" );
 
                 var c = new MutableInt();

@@ -63,6 +63,9 @@ public class GzipServletFilter
 
     public static final List<String> UNCOMPRESSIBLE = Arrays.asList( "*.woff*", "*.jp*g", "*.ico" );
 
+    /** Maximum response size that is not compressed. (2x Standard IP packet payload size?) */
+    private static final int MAX_UNCOMPRESSED = 2048;
+
     // instance *******************************************
 
     public GzipServletFilter() {
@@ -159,7 +162,7 @@ public class GzipServletFilter
             }
             // Content-Length
             else if (name.equalsIgnoreCase( "Content-Length" )) {
-                if (Integer.parseInt( value ) < 2048 && c == 0) {
+                if (Integer.parseInt( value ) < MAX_UNCOMPRESSED && c == 0) {
                     LOG.info( "Content-Length: %s (%s) -> SKIP compression", value, c );
                     zip = Lazy.of( () -> out );
                     super.setHeader( name, value );

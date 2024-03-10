@@ -14,6 +14,7 @@
 package areca.aws.ec2proxy;
 
 import static areca.aws.ec2proxy.HttpForwardServlet4.BUFFER_SIZE;
+import static areca.aws.ec2proxy.HttpForwardServlet4.COPY_SIZE;
 import static areca.aws.ec2proxy.HttpForwardServlet4.FORBIDDEN_HEADERS;
 import static areca.aws.ec2proxy.HttpForwardServlet4.METHODS_WITH_BODY;
 import static areca.aws.ec2proxy.HttpForwardServlet4.TIMEOUT_REQUEST;
@@ -142,15 +143,13 @@ public class StraightForwardHandler
         //var start = System.nanoTime();
         probe.response.setBufferSize( BUFFER_SIZE );
         try (
-                var in = response.body();
-                var out = probe.response.getOutputStream();
-//                var in = IOUtils.buffer( response.body(), BUFFER_SIZE);
-//                var out = IOUtils.buffer( probe.response.getOutputStream(), BUFFER_SIZE );
+            var in = response.body();
+            var out = probe.response.getOutputStream();
         ){
-            var buf = new byte[BUFFER_SIZE];
+            var buf = new byte[COPY_SIZE];
             for (int c = in.read( buf ); c > -1; c = in.read( buf )) {
-                //LOG.warn( "read: %s", c );
                 out.write( buf, 0, c );
+                LOG.warn( "read: %s", c );
             }
             out.flush();
         }
