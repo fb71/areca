@@ -66,7 +66,7 @@ public class HttpForwardServlet4
     public static final String LOG_INSTANCE = "instance-status";
 
     // size of the response buffer
-    public static final int BUFFER_SIZE = 32 * 1024;
+    public static final int BUFFER_SIZE = 16 * 1024;
     // size of the streaming buffer between up- und downstream (HttpClient default)
     public static final int COPY_SIZE = 16 * 1024;
 

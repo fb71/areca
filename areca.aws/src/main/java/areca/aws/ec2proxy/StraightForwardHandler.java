@@ -149,7 +149,7 @@ public class StraightForwardHandler
             var buf = new byte[COPY_SIZE];
             for (int c = in.read( buf ); c > -1; c = in.read( buf )) {
                 out.write( buf, 0, c );
-                LOG.warn( "read: %s", c );
+                //LOG.warn( "read: %s", c );
             }
             out.flush();
         }
