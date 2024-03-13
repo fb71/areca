@@ -73,7 +73,7 @@
                             <targetDirectory>${project.build.directory}/generated/js/teavm</targetDirectory>
                             <targetFileName>areca-rt-server.js</targetFileName>
                             <mainClass>areca.rt.server.client.ClientApp</mainClass>
-                            <minifying>false</minifying>
+                            <minifying>true</minifying>
                             <debugInformationGenerated>true</debugInformationGenerated>
                             <sourceMapsGenerated>true</sourceMapsGenerated>
                             <sourceFilesCopied>false</sourceFilesCopied>

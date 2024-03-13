@@ -40,6 +40,7 @@ import areca.ui.component2.Button;
 import areca.ui.component2.ColorPicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
+import areca.ui.component2.FileUpload;
 import areca.ui.component2.Label;
 import areca.ui.component2.Link;
 import areca.ui.component2.Property.PropertyChangedEvent;
@@ -227,6 +228,7 @@ public class Connection {
         //jsev.setPosition( )
 
         int delay = 0;
+        // TEXT
         if (ev.type == EventType.TEXT) {
             if (component instanceof TextField) {
                 jsev.setContent( ((TextField)component).content.get() );
@@ -238,6 +240,19 @@ public class Connection {
                 throw new RuntimeException( "Unhandled: " + component );
             }
             delay = 250;
+        }
+        // UPLOAD
+        else if (ev.type == EventType.UPLOAD) {
+            var file = ((FileUpload)component).data.get();
+            Platform.xhr( "PUT", SERVER_PATH + "/" + file.name() )
+                    .submit( file.underlying() )
+                    .onSuccess( response -> {
+                        LOG.info( "upload complete" );
+                        jsev.setContent( file.name() );
+                        clickEvents.add( jsev );
+                        sendClientEvents( 0 );
+                    });
+            return;
         }
 
         clickEvents.add( jsev );
@@ -290,6 +305,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".Link" : return new Link();
             case PACKAGE_UI_COMPONENTS + ".Label" : return new Label();
             case PACKAGE_UI_COMPONENTS + ".ColorPicker" : return new ColorPicker();
+            case PACKAGE_UI_COMPONENTS + ".FileUpload" : return new FileUpload();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );

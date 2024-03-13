@@ -49,6 +49,8 @@ public class Events
         CONTEXT,
         /** {@link TextField} content has been changed */
         TEXT,
+        /** {@link FileUpload} */
+        UPLOAD,
 
         CLICK,
         CONTEXTMENU,

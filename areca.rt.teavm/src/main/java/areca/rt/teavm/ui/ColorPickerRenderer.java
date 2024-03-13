@@ -19,7 +19,6 @@ import org.teavm.jso.dom.html.HTMLInputElement;
 import areca.common.Platform;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
@@ -46,10 +45,6 @@ public class ColorPickerRenderer
         UIComponentEvent.manager()
                 .subscribe( new ColorPickerRenderer() )
                 .performIf( ComponentConstructedEvent.class, ev -> ev.getSource() instanceof ColorPicker );
-    }
-
-    static {
-        LogFactory.setClassLevel( ColorPickerRenderer.class, Level.DEBUG );
     }
 
     // instance *******************************************

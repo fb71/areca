@@ -160,6 +160,10 @@ public abstract class Platform {
         public Promise<HttpResponse> submit( String data ) {
             return doSubmit( data );
         }
+
+        public Promise<HttpResponse> submit( Object data ) {
+            return doSubmit( data );
+        }
     }
 
     /**

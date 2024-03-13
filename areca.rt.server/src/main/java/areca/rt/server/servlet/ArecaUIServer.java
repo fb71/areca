@@ -17,7 +17,6 @@ import static java.lang.Integer.parseInt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.LinkedList;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
@@ -30,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.Gson;
@@ -52,6 +52,7 @@ import areca.ui.Size;
 import areca.ui.component2.ColorPicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
+import areca.ui.component2.FileUpload;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 
@@ -63,6 +64,7 @@ public class ArecaUIServer
         extends HttpServlet {
 
     private static final String ATTR_SESSION = "areca.session";
+    private static final String ATTR_UPLOADED = "areca.uploaded";
 
     private static final Log LOG = LogFactory.getLog( ArecaUIServer.class );
 
@@ -206,21 +208,29 @@ public class ArecaUIServer
                                         : collector.componentForId( event.componentId );
                                 component.size.set( size );
                             }
-                            // click, text, ..
+                            // click, text, upload ...
                             else {
                                 var component = collector.componentForId( event.componentId );
                                 var eventType = EventType.valueOf( event.eventType );
-                                if (eventType == EventType.TEXT) {
-                                    if (component instanceof TextField) {
-                                        ((TextField)component).content.rawSet( event.content );
-                                    }
-                                    else if (component instanceof ColorPicker) {
-                                        ((ColorPicker)component).value.rawSet( event.content );
-                                    }
-                                    else {
-                                        throw new RuntimeException( "Unhandled: " + component );
-                                    }
+                                if (component instanceof TextField) {
+                                    Assert.isEqual( EventType.TEXT, eventType );
+                                    ((TextField)component).content.rawSet( event.content );
                                 }
+                                else if (component instanceof ColorPicker) {
+                                    Assert.isEqual( EventType.TEXT, eventType );
+                                    ((ColorPicker)component).value.rawSet( event.content );
+                                }
+                                else if (component instanceof FileUpload) {
+                                    Assert.isEqual( EventType.UPLOAD, eventType );
+
+                                    var file = (FileUpload.File)httpSession.getAttribute( ATTR_UPLOADED );
+                                    Assert.notNull( file, "No such uploaded file: " + event.content );
+                                    Assert.isEqual( file.name(), event.content, "Uploaded file and name in event do not match." );
+
+                                    ((FileUpload)component).data.rawSet( file );
+                                    httpSession.removeAttribute( ATTR_UPLOADED );
+                                }
+
                                 component.events.values()
                                         .filter( handler -> handler.type.equals( eventType ) )
                                         .forEach( handler -> handler.consumer.accept( new ServerUIEvent( component, eventType ) ) );
@@ -258,6 +268,40 @@ public class ArecaUIServer
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    /**
+     * {@link FileUpload}
+     */
+    @Override
+    protected void doPut( HttpServletRequest req, HttpServletResponse resp ) throws ServletException, IOException {
+        var httpSession = req.getSession();
+        if (httpSession == null) {
+            resp.setStatus( HttpServletResponse.SC_FORBIDDEN );
+            return;
+        }
+        var file = new FileUpload.File() {
+            String mimetype = req.getContentType();
+            String name = StringUtils.substringAfterLast( req.getPathInfo(), "/" );
+            byte[] data = IOUtils.toByteArray( req.getInputStream() );  // XXX limit upload size
+
+            @Override public byte[] data() { return data; }
+            @Override public int size() { return data.length; }
+            @Override public String mimetype() { return mimetype; }
+            @Override public String name() { return name; }
+
+            @Override
+            public int lastModified() {
+                throw new RuntimeException( "not yet implemented (on server side)" );
+            }
+            @Override
+            public Object underlying() {
+                throw new RuntimeException( "not yet implemented (on server side)" );
+            }
+        };
+        httpSession.setAttribute( ATTR_UPLOADED, file );
+        LOG.info( "PUT: complete (%s, %s, %s bytes)", file.name(), file.mimetype(), file.size() );
     }
 
 
