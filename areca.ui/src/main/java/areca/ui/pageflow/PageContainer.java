@@ -175,7 +175,7 @@ public class PageContainer
             for (Button actionBtn : actionsBtns.values()) {
                 actionBtn.position.set( Position.of( actionLeft, btnMargin ) );
                 actionBtn.size.set( Size.of( btnSize, btnSize ) );
-                actionLeft -= btnSize + btnMargin;
+                actionLeft -= btnSize; // + btnMargin;
             }
 
             body.position.set( Position.of( 0, top ) );
