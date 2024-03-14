@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import areca.common.Platform;
 import areca.common.base.Supplier.RSupplier;
 
 /**
@@ -131,10 +132,12 @@ public class LogFactory {
         }
 
         private void doLog( Level msgLevel, String msg, Object[] args, Throwable e ) {
-            @SuppressWarnings("resource")
             var out = msgLevel.ordinal() >= Level.ERROR.ordinal() ? System.err : System.out;
             // XXX async
             out.println( format( msgLevel, msg, args ) );
+            if (e != null && (Platform.impl == null || Platform.isJVM())) {
+                e.printStackTrace( out );
+            }
         }
 
         protected void log( Level msgLevel, String msg, Object[] args, Throwable e ) {

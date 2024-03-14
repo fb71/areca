@@ -66,14 +66,13 @@ public class ServerPlatform
 
     @Override
     public void waitForCondition( RSupplier<Boolean> condition, Object target ) {
-        var eventLoop = Session.instanceOf( EventLoop.class );
-        //eventLoop.execute();
-        while( !condition.get() ) {
+        while (!condition.get()) {
+            var eventLoop = Session.instanceOf( EventLoop.class );
+            eventLoop.execute();
             try {
                 Thread.sleep( Math.max( 100, eventLoop.pendingWait() ) );
             }
             catch (InterruptedException e) { }
-            eventLoop.execute();
         }
     }
 

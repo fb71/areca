@@ -505,6 +505,11 @@ public abstract class Promise<T> {
     }
 
 
+    public Opt<T> opt() {
+        return isCompleted() ? Opt.of( waitForResult ) : Opt.absent();
+    }
+
+
     /**
      * Interface for success consumers.
      */
