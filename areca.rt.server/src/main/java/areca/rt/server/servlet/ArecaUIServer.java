@@ -17,7 +17,10 @@ import static java.lang.Integer.parseInt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.LinkedList;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -286,7 +289,7 @@ public class ArecaUIServer
             String name = StringUtils.substringAfterLast( req.getPathInfo(), "/" );
             byte[] data = IOUtils.toByteArray( req.getInputStream() );  // XXX limit upload size
 
-            @Override public byte[] data() { return data; }
+            @Override public InputStream data() { return new ByteArrayInputStream( data ); }
             @Override public int size() { return data.length; }
             @Override public String mimetype() { return mimetype; }
             @Override public String name() { return name; }

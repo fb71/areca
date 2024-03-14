@@ -13,6 +13,8 @@
  */
 package areca.rt.teavm.ui;
 
+import java.io.InputStream;
+
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
@@ -80,7 +82,7 @@ public class FileUploadRenderer
                 @Override public int lastModified() { return f.lastModified(); }
                 @Override public String name() { return f.name(); }
                 @Override
-                public byte[] data() {
+                public InputStream data() {
                     throw new RuntimeException( "not yet implemented (on client side)" );
                 }
             });

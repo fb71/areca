@@ -13,6 +13,10 @@
  */
 package areca.ui.component2;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.ReadWrite;
@@ -61,7 +65,25 @@ public class FileUpload
         /** JS File object on the client side. */
         public Object underlying();
 
-        public byte[] data();
+        /**
+         * Unbuffered stream that provides the content of this blob. Caller is responsible
+         * of closing the stream properly.
+         */
+        public InputStream data();
+
+        /**
+         * Copy the {@link #data()} of this blob into the given target. Both streams
+         * are closed afterwards no matter if there was an {@link IOException} or
+         * not.
+         */
+        public default void copyInto( OutputStream out ) throws IOException {
+            var buf = new byte[8*1024];
+            try (var _in = data(); var _out = out;) {
+                for (int c = _in.read( buf ); c > -1; c = _in.read( buf )) {
+                    _out.write( buf, 0, c );
+                }
+            }
+        }
 
         /**
          * The size, in bytes, of the data contained in the Blob object.
