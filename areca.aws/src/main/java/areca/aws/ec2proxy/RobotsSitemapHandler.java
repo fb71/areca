@@ -37,10 +37,6 @@ public class RobotsSitemapHandler
             LOG.info( "Robots: %s", probe.vhost.robots );
             sendResource( probe, SC_OK, probe.vhost.robots );
         }
-        else {
-            LOG.info( "No robots.txt: %s", probe.request.getPathInfo() );
-            probe.response.sendError( 404, "No robots.txt" );
-        }
     }
 
 }
