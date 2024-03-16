@@ -14,12 +14,18 @@
 package areca.rt.teavm.ui;
 
 import org.teavm.jso.browser.Window;
+import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.html.HTMLElement;
 
 import areca.common.Assert;
+import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.common.reflect.NoRuntimeInfo;
+import areca.ui.Position;
+import areca.ui.component2.Events;
+import areca.ui.component2.Events.EventType;
 import areca.ui.component2.UIComponent;
 
 /**
@@ -45,23 +51,32 @@ public class RendererBase {
     }
 
 
-//    @EventHandler( ComponentConstructedEvent.class )
-//    public void componentConstructed( ComponentConstructedEvent ev ) {
-//    }
-//
-//
-//    @EventHandler( ComponentAttachedEvent.class )
-//    public void componentAttached( ComponentAttachedEvent ev ) {
-//    }
-//
-//
-//    @EventHandler( ComponentDetachedEvent.class )
-//    public void componentDetached( ComponentDetachedEvent ev ) {
-//    }
-//
-//
-//    @EventHandler( ComponentDisposedEvent.class )
-//    public void componentDisposed( ComponentDisposedEvent ev ) {
-//    }
+    @NoRuntimeInfo
+    protected void propagateEvent( UIComponent c, Event htmlEv, EventType type ) {
+        if (htmlEv != null) {
+            htmlEv.stopPropagation();
+            htmlEv.preventDefault();
+        }
+
+        for (var handler : c.events) {
+            if (handler.type == type) {
+                try {
+                    LOG.debug( "Handler: ..." );
+                    var uiev = new Events.UIEvent( c, htmlEv, handler.type ) {
+                        @Override public Position clientPos() {
+                            return null;
+                            //return Position.of( ((MouseEvent)_htmlEv).getClientX(), ((MouseEvent)_htmlEv).getClientY() );
+                        }
+                    };
+                    handler.consumer.accept( uiev );
+                }
+                catch (Exception e) {
+                    Throwable rootCause = Platform.rootCause( e );
+                    LOG.info( "Root cause: %s : %s", rootCause, rootCause.getMessage() );
+                    throw (RuntimeException)e; // help TeaVM to print proper stack
+                }
+            }
+        }
+    }
 
 }

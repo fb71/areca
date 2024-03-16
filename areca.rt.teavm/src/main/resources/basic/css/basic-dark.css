@@ -45,6 +45,24 @@
   font-style: normal;
   src: url("../../fonts/Roboto-Bold.woff2");
 }
+@font-face {
+  font-family: 'RobotoMono';
+  font-weight: normal;
+  font-style: normal;
+  src: url("../../fonts/RobotoMono-Regular.ttf");
+}
+@font-face {
+  font-family: 'RobotoMono';
+  font-weight: bold;
+  font-style: normal;
+  src: url("../../fonts/RobotoMono-Bold.ttf");
+}
+@font-face {
+  font-family: 'RobotoMono';
+  font-weight: normal;
+  font-style: italic;
+  src: url("../../fonts/RobotoMono-Italic.ttf");
+}
 /* To get root window height */
 html, body {
   height: 100%;
@@ -198,6 +216,18 @@ textarea.TextField {
   padding: 7px 7px;
   background-color: #414244;
   resize: none;
+}
+
+.CodeMirror {
+  height: 100% !important;
+  width: 100% !important;
+  font-family: 'RobotoMono', monospace !important;
+  font-size: 12px !important;
+  color: #d0d0d0 !important;
+}
+
+.cm-header {
+  color: antiquewhite !important;
 }
 
 .ListCell {

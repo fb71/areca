@@ -274,6 +274,12 @@ public abstract class UIComponent
     }
 
 
+    @SuppressWarnings( "unchecked" )
+    public <R> R setData( String name, R value ) {
+        data = data != null ? data : new TreeMap<>();
+        return (R)data.put( name, value );
+    }
+
     /**
      * Retrieve/associate additional data.
      */

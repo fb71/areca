@@ -19,18 +19,13 @@ import org.teavm.jso.JSBody;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSArray;
-import org.teavm.jso.dom.events.Event;
 import org.teavm.jso.dom.html.HTMLInputElement;
 
-import areca.common.Platform;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
-import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
-import areca.ui.Position;
-import areca.ui.component2.Events;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.FileUpload;
 import areca.ui.component2.UIComponentEvent;
@@ -52,10 +47,6 @@ public class FileUploadRenderer
         UIComponentEvent.manager()
                 .subscribe( new FileUploadRenderer() )
                 .performIf( ComponentConstructedEvent.class, ev -> ev.getSource() instanceof FileUpload );
-    }
-
-    static {
-        LogFactory.setClassLevel( FileUploadRenderer.class, Level.DEBUG );
     }
 
     // instance *******************************************
@@ -86,7 +77,7 @@ public class FileUploadRenderer
                     throw new RuntimeException( "not yet implemented (on client side)" );
                 }
             });
-            propagateEvent( c, htmlEv );
+            propagateEvent( c, htmlEv, EventType.TEXT  );
         });
     }
 
@@ -122,28 +113,6 @@ public class FileUploadRenderer
 
         @JSProperty("type")
         public abstract String mimetype();
-    }
-
-
-    protected void propagateEvent( FileUpload c, Event htmlEv ) {
-        LOG.debug( "propagateEvent(): ...");
-        for (var handler : c.events) {
-            if (handler.type == EventType.UPLOAD) {
-                try {
-                    var uiev = new Events.UIEvent( c, htmlEv, handler.type ) {
-                        @Override public Position clientPos() {
-                            return null;
-                        }
-                    };
-                    handler.consumer.accept( uiev );
-                }
-                catch (Exception e) {
-                    Throwable rootCause = Platform.rootCause( e );
-                    LOG.info( "Root cause: %s : %s", rootCause, rootCause.getMessage() );
-                    throw (RuntimeException)e; // help TeaVM to print proper stack
-                }
-            }
-        }
     }
 
 }

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.EventObject;
 
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Opt;
 import areca.common.event.AsyncEventManager;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
@@ -110,13 +111,13 @@ public class Events
     public static abstract class UIEvent
             extends EventObject {
 
-        public Object           htmlEv;
+        public Opt<Object>      htmlEv;
 
         public EventType        type;
 
         public UIEvent( UIComponent source, Object htmlEv, EventType type ) {
             super( source );
-            this.htmlEv = htmlEv;
+            this.htmlEv = Opt.of( htmlEv );
             this.type = type;
         }
 

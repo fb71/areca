@@ -24,6 +24,7 @@ import areca.ui.Size;
 import areca.ui.component2.Button;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Text;
+import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent.CssStyle;
 
 /**
@@ -103,6 +104,11 @@ abstract class JSServer2ClientMessage
         else if (value.type().equals( Button.Type.class.getName() )) {
             var primitive = (JSPrimitivePropertyValue)value;
             return Button.Type.valueOf( primitive.value() );
+        }
+        // Enum: TextField.Type
+        else if (value.type().equals( TextField.Type.class.getName() )) {
+            var primitive = (JSPrimitivePropertyValue)value;
+            return TextField.Type.valueOf( primitive.value() );
         }
         // Size
         else if (value.type().equals( Size.class.getName() )) {

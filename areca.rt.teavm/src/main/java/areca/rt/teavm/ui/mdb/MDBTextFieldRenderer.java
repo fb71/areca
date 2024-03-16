@@ -22,6 +22,7 @@ import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.rt.teavm.ui.TextFieldRenderer;
+import areca.ui.component2.Events.EventType;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponentEvent;
 import areca.ui.component2.UIComponentEvent.ComponentConstructedEvent;
@@ -64,7 +65,7 @@ public class MDBTextFieldRenderer
 
                 c.content.rawSet( textarea.getValue() );
                 LOG.debug( "Text: %s", textarea.getValue() );
-                propagateEvent( c, htmlEv );
+                propagateEvent( c, htmlEv, EventType.TEXT );
             });
         }
         // input
@@ -101,7 +102,7 @@ public class MDBTextFieldRenderer
 
                 c.content.rawSet( input.getValue() );
                 LOG.debug( "Text: %s", input.getValue() );
-                propagateEvent( c, htmlEv );
+                propagateEvent( c, htmlEv, EventType.TEXT );
             });
         }
     }

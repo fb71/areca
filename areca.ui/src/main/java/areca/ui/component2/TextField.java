@@ -13,9 +13,12 @@
  */
 package areca.ui.component2;
 
+import java.util.ArrayList;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.ReadWrite;
+import areca.ui.component2.Property.ReadWrites;
 
 /**
  *
@@ -26,16 +29,21 @@ public class TextField
 
     private static final Log LOG = LogFactory.getLog( TextField.class );
 
+    public enum Type {
+        PLAIN, USERNAME, PASSWORD, MARKDOWN, CSS //, HTML, JAVASCRIPT
+    }
+
+    public ReadWrite<TextField,Type> type = Property.rw( this, "type", Type.PLAIN );
+
     public ReadWrite<TextField,String> content = Property.rw( this, "content" );
 
     public ReadWrite<TextField,Boolean> multiline = Property.rw( this, "multiline", false );
 
-    //public ReadWrite<TextField,String> label = Property.rw( this, "label" );
+    public ReadWrites<TextField,String> autocomplete = Property.rws( this, "autocomplete", new ArrayList<>() );
+
 
     @Override
     public int computeMinHeight( int width ) {
         return 32;
     }
-
-
 }
