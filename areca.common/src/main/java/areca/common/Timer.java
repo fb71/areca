@@ -38,6 +38,12 @@ public class Timer {
     private long        start = System.nanoTime();
 
 
+    @Override
+    public String toString() {
+        return elapsedHumanReadable();
+    }
+
+
     public Timer restart() {
         start = System.nanoTime();
         return this;

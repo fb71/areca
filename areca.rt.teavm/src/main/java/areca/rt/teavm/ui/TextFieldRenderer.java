@@ -24,11 +24,13 @@ import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLInputElement;
+import org.teavm.jso.dom.html.HTMLScriptElement;
 import org.teavm.jso.dom.html.HTMLTextAreaElement;
 
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Scheduler.Priority;
+import areca.common.Timer;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -55,7 +57,7 @@ public class TextFieldRenderer
 
     public static final ClassInfo<TextFieldRenderer> TYPE = TextFieldRendererClassInfo.instance();
 
-    private static boolean jsCssInjected = false;
+    private static volatile boolean jsCssInjected = false;
 
     @NoRuntimeInfo
     public static void _start() {
@@ -183,13 +185,13 @@ public class TextFieldRenderer
                 cm.setValue( newValue != null ? newValue : "" );
             });
             c.autocomplete.onInitAndChange( (newValues,___) -> {
-                LOG.info( "autocompletions: %s", newValues );
+                LOG.debug( "autocompletions: %s", newValues );
                 c.setData( "_autocomplete_", newValues );
             });
             c.size.onInitAndChange( (newValue,___) -> {
                 // wait for (Page open) transform to finish
                 Platform.schedule( 1500, () -> {
-                    LOG.info( "refresh" );
+                    LOG.debug( "refresh" );
                     cm.refresh();
                 });
             });
@@ -315,42 +317,60 @@ public class TextFieldRenderer
     private Promise<Void> checkJsCss() {
         if (!jsCssInjected) {
             jsCssInjected = true;
-            injectJsCss( "codemirror/codemirror.min.js" );
             injectJsCss( "codemirror/codemirror.min.css" );
             injectJsCss( "codemirror/theme/mbo.min.css" );
             injectJsCss( "codemirror/show-hint.min.css" );
-            Platform.schedule( 500, () -> {
-                injectJsCss( "codemirror/markdown.min.js" );
-                injectJsCss( "codemirror/css.min.js" );
-                injectJsCss( "codemirror/show-hint.min.js" );
-                injectJsCss( "codemirror/css-hint.min.js" );
-            });
-            return Platform.schedule( 600, () -> null );
+
+            var t = Timer.start();
+            return injectJsCss( "codemirror/codemirror.min.js" )
+                    .then( __ -> {
+                        LOG.debug( "codemirror.js loaded: %s", t );
+                        injectJsCss( "codemirror/markdown.min.js" );
+                        injectJsCss( "codemirror/css.min.js" );
+                        injectJsCss( "codemirror/show-hint.min.js" );
+                        return injectJsCss( "codemirror/css-hint.min.js" );
+                    })
+                    .onSuccess( __ -> {
+                        LOG.debug( "modules loaded: %s", t );
+                    });
         }
         else {
             return Promise.completed( null, Priority.BACKGROUND );
         }
     }
 
-
     @NoRuntimeInfo
-    private void injectJsCss( String filename ) {
-        var fileElm = (HTMLElement)null;
+    private Promise<Void> injectJsCss( String filename ) {
         if (filename.endsWith( ".js" )) {
-            fileElm = doc().createElement( "script" );
-            fileElm.setAttribute( "type", "text/javascript" );
-            fileElm.setAttribute( "src", filename );
+            var scriptElm = (HTMLScriptElement2)doc().createElement( "script" );
+            scriptElm.setAttribute( "type", "text/javascript" );
+            scriptElm.setAttribute( "src", filename );
+            var p = new Promise.Completable<Void>();
+            scriptElm.onLoad( __ -> p.complete( null ) );
+            doc().getElementsByTagName( "head" ).get( 0 ).appendChild( scriptElm );
+            return p;
         }
         else if (filename.endsWith( ".css" )) {
-            fileElm = doc().createElement( "link" );
-            fileElm.setAttribute( "rel", "stylesheet" );
-            fileElm.setAttribute( "type", "text/css" );
-            fileElm.setAttribute( "href", filename );
+            var elm = doc().createElement( "link" );
+            elm.setAttribute( "rel", "stylesheet" );
+            elm.setAttribute( "type", "text/css" );
+            elm.setAttribute( "href", filename );
+            doc().getElementsByTagName( "head" ).get( 0 ).appendChild( elm );
+            return null;
         }
         else {
             throw new RuntimeException( "Unknown file type: " + filename );
         }
-        doc().getElementsByTagName( "head" ).get( 0 ).appendChild( fileElm );
     }
+
+    /**
+     */
+    protected static abstract class HTMLScriptElement2
+            implements HTMLScriptElement {
+
+        @JSProperty("onload")
+        public abstract void onLoad( Callback fn );
+    }
+
 
 }
