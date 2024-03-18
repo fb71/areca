@@ -16,6 +16,7 @@ package areca.demo;
 import java.util.concurrent.Callable;
 
 import org.teavm.jso.browser.Window;
+
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
@@ -25,6 +26,7 @@ import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
 import areca.rt.teavm.SimpleBrowserHistoryStrategy;
 import areca.rt.teavm.TeaApp;
+import areca.rt.teavm.ui.basic.BasicComponentRenderer;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.MaxWidthLayout;
 import areca.ui.pageflow.Page;
@@ -41,6 +43,11 @@ public class DemoApp
     private static final Log LOG = LogFactory.getLog( DemoApp.class );
 
     public static boolean   debug;
+
+    protected DemoApp() {
+        //MDBComponentRenderer.start();
+        BasicComponentRenderer.start();
+    }
 
     /**
      *
