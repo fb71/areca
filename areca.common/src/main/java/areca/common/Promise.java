@@ -500,7 +500,7 @@ public abstract class Promise<T> {
      * Just for testing!
      */
     public Opt<T> waitForResult() {
-        Platform.waitForCondition( () -> isCompleted(), this );
+        Platform.waitForCondition( () -> isCompleted(), Promise.this );
         return Opt.of( waitForResult );
     }
 
@@ -558,7 +558,7 @@ public abstract class Promise<T> {
             INITIALIZED, CONSUMING, COMPLETED, CANCELED;
         }
 
-        private State           state = State.INITIALIZED;
+        private volatile State  state = State.INITIALIZED;
 
         private boolean         aboutToComplete;
 
@@ -696,6 +696,7 @@ public abstract class Promise<T> {
 
         protected void notifyComplete() {
             synchronized (this) {
+                //LOG.info( "notify: %s", this );
                 notifyAll();
             }
         }
