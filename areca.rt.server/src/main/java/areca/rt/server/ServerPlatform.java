@@ -69,10 +69,13 @@ public class ServerPlatform
         while (!condition.get()) {
             var eventLoop = Session.instanceOf( EventLoop.class );
             eventLoop.execute();
-            try {
-                Thread.sleep( Math.max( 100, eventLoop.pendingWait() ) );
+            synchronized (target) {
+                try {
+                    //LOG.info( "wait: %s", target );
+                    target.wait( Math.max( 10, eventLoop.pendingWait() ) );
+                }
+                catch (InterruptedException e) { }
             }
-            catch (InterruptedException e) { }
         }
     }
 
