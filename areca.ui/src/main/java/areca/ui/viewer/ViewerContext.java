@@ -17,15 +17,12 @@ import static areca.ui.viewer.model.ModelBase.VALID;
 
 import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
-
 import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.FillLayout;
-import areca.ui.layout.RowConstraints;
 import areca.ui.viewer.model.ModelBase;
 import areca.ui.viewer.transform.ValidatingModel;
 
@@ -84,11 +81,20 @@ public class ViewerContext<M extends ModelBase>
         // container for label and valid decorators
         return new UIComposite() {{
             // FIXME hack! UIComposite does not calculate its minHeight depending on its children (yet:)
-            layoutConstraints.set( new RowConstraints().height.set( field.computeMinHeight( 400 ) ) );
+            //layoutConstraints.set( new RowConstraints().height.set( field.computeMinHeight( 400 ) ) );
             layout.set( new FillLayout() );
             add( field );
         }};
     }
+
+
+    @Override
+    public UIComponent createAndLoad() {
+        var result = create();
+        load();
+        return result;
+    }
+
 
     public void store() {
         loadedValue = currentValue = viewer.store();
@@ -96,7 +102,7 @@ public class ViewerContext<M extends ModelBase>
 
     public void load() {
         loadedValue = currentValue = viewer.load();
-        LOG.debug( "load: '%s'", StringUtils.abbreviate( loadedValue.toString(), 20 ) );
+        //LOG.debug( "load: '%s'", StringUtils.abbreviate( loadedValue.toString(), 20 ) );
     }
 
 

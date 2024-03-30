@@ -86,8 +86,7 @@ public class UIEventCollector {
         if (prop.component() instanceof UIElement) {
             LOG.debug( "PROPERTY: %s", prop.name() );
             Assert.notNull( components.get( ((UIElement)prop.component()).id() ) );
-            JsonUIComponentEvent.createFrom( ev )
-                    .ifPresent( json -> add( json ) );
+            JsonUIComponentEvent.createFrom( ev ).ifPresent( json -> add( json ) );
         }
         else {
             LOG.debug( "SKIP: %s (%s)", prop.name(), prop.component() );

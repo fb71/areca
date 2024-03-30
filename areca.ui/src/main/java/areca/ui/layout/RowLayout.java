@@ -16,6 +16,12 @@ package areca.ui.layout;
 import static areca.ui.Orientation.HORIZONTAL;
 import static areca.ui.Orientation.VERTICAL;
 
+import java.util.HashMap;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+import areca.common.Timer;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Orientation;
@@ -109,14 +115,59 @@ public class RowLayout
     }
 
 
+    /**
+     *
+     */
+    protected static class Config
+            extends HashMap<UIComponent, Pair<Position,Size>> {
+
+        public void put( UIComponent c, Position p, Size s ) {
+            put( c, Pair.of( p, s ) );
+        }
+
+        public Size sizeOf( UIComponent c ) {
+            return get( c ).getRight();
+        }
+    }
+
+
+    @Override
+    public int computeMinWidth( UIComposite composite, int height ) {
+        Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
+        var result = compute( composite, Size.of( size.width(), height ) );
+        return Sequence.of( result.values() )
+                .map( p -> p.getLeft().x + p.getRight().width() + margins.$().width() )
+                .reduce( Math::max )
+                .orElse( 50 );
+    }
+
+
+    @Override
+    public int computeMinHeight( UIComposite composite, int width ) {
+        Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
+        var result = compute( composite, Size.of( width, size.height() ) );
+        return Sequence.of( result.values() )
+                .map( p -> p.getLeft().y + p.getRight().height() + margins.$().height() )
+                .reduce( Math::max )
+                .orElse( 50 );
+    }
+
+
     @Override
     public void layout( UIComposite composite ) {
         super.layout( composite );
-
         Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
-        LOG.debug( "RowLayout: " + size );
+        for (var entry : compute( composite, size ).entrySet()) {
+            entry.getKey().position.set( entry.getValue().getLeft() );
+            entry.getKey().size.set( entry.getValue().getRight() );
+        }
+    }
 
-        Size clientSize = Size.of(
+
+    public Config compute( UIComposite composite, Size size ) {
+        var t = Timer.start();
+        var result = new Config();
+        var clientSize = Size.of(
                 size.width() - (margins.value().width() * 2),
                 size.height() - (margins.value().height() * 2) );
 
@@ -146,8 +197,9 @@ public class RowLayout
                         ? clientSize.width()
                         : constraints.width.opt().orElse( c.computeMinWidth( clientSize.height() ) );
 
-                c.size.set( Size.of( cWidth, cHeight ) );
-                c.position.set( Position.of( margins.value().width(), cTop ) );
+                result.put( c,
+                        Position.of( margins.value().width(), cTop ),
+                        Size.of( cWidth, cHeight ) );
 
                 cTop += cHeight + spacing.value();
             }
@@ -180,13 +232,15 @@ public class RowLayout
                         ? clientSize.height()
                         : constraints.height.opt().orElse( c.computeMinHeight( clientSize.width() ) );
 
-                c.size.set( Size.of( cWidth, cHeight ) );
-                c.position.set( Position.of( cLeft, margins.value().height() ) );
+                result.put( c,
+                        Position.of( cLeft, margins.value().height() ),
+                        Size.of( cWidth, cHeight ) );
 
                 cLeft += cWidth + spacing.value();
             }
         }
+        LOG.debug( "compute: %s (%s)", size, t );
+        return result;
     }
-
 
 }

@@ -59,4 +59,14 @@ public class Button
         bordered.set( true );
     }
 
+    @Override
+    public int computeMinHeight( int width ) {
+        return layout.opt().map( l -> l.computeMinHeight( this, width ) ).orElse( UIComponent.DEFAULT_HEIGHT+5 );
+    }
+
+    @Override
+    public int computeMinWidth( int height ) {
+        return layout.opt().map( l -> l.computeMinWidth( this, height ) ).orElse( 50 );
+    }
+
 }

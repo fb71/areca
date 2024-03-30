@@ -17,8 +17,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.polymap.model2.engine.EntityRepositoryImpl;
-import org.polymap.model2.test2.PerformanceTest;
+import org.polymap.model2.store.no2.No2Store;
+import org.polymap.model2.test2.ComplexModelTest;
 import org.polymap.model2.test2.RepoSupplier;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
@@ -40,14 +42,15 @@ class SingleTest
         // suppress "Entity class is already connected..." warning
         LogFactory.setClassLevel( EntityRepositoryImpl.class, Level.ERROR );
 
-        //LogFactory.setPackageLevel( No2Store.class, Level.DEBUG );
+        LogFactory.setPackageLevel( No2Store.class, Level.DEBUG );
         //LogFactory.setPackageLevel( AssociationsTest.class, Level.DEBUG );
         RepoSupplier.no2();
     }
 
     @Test
     public void theOnlyTest() {
-        execute( PerformanceTest.info );
+        execute( ComplexModelTest.info );
+        //execute( PerformanceTest.info );
         //execute( SimpleQueryTest.info );
     }
 

@@ -124,13 +124,12 @@ a:active, .Link:active {
     font-family: inherit;
     font-size: inherit;
     color: inherit;
-    padding: 7px 12px;
-    //background-color: darken(desaturate($accent_color2, 7%), 3%);
+    //padding: 7px 12px;
     background-color: inherit;
-    //border-color: lighten($bg3_color, 8%) !important;
     box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
     overflow: visible; // badge and tags
     cursor: pointer;
+    text-align: center;
 }
 .Button.SUBMIT {
     color: lighten($font_color, 10%);
@@ -161,6 +160,7 @@ a:active, .Link:active {
 }
 .Button span, .Button img {
     position: relative;
+    vertical-align: middle;
 }
 .Button img {
     height: 100%;

@@ -35,6 +35,14 @@ public class UIComposite
 
     public Children             components = new Children();
 
+    /**
+     * Render this as <form> element in order to trigger the browser
+     * to save login data.
+     *
+     * @deprecated XXX Find better solution to save login.
+     */
+    public ReadWrite<?,Boolean> isForm = Property.rw( this, "isForm", false );
+
     /**  */
     public class Children extends ReadWrites<UIComposite,UIComponent> {
 
@@ -59,6 +67,11 @@ public class UIComposite
 
         public void disposeAll() {
             new ArrayList<>( value ).forEach( child -> child.dispose() );
+            Assert.that( value.isEmpty() );
+        }
+
+        public void removeAll() {
+            new ArrayList<>( value ).forEach( child -> remove( child ) );
             Assert.that( value.isEmpty() );
         }
 
@@ -111,15 +124,15 @@ public class UIComposite
     }
 
 
-//    @Override
-//    public int computeMinWidth( int height ) {
-//        return layout.opt().map( l -> l.computeMinWidth( height ) ).orElse( 100 );
-//    }
-//
-//
-//    @Override
-//    public int computeMinHeight( int width ) {
-//        return layout.opt().map( l -> l.computeMinHeight( width ) ).orElse( 100 );
-//    }
+    @Override
+    public int computeMinWidth( int height ) {
+        return layout.opt().map( l -> l.computeMinWidth( this, height ) ).orElse( 100 );
+    }
+
+
+    @Override
+    public int computeMinHeight( int width ) {
+        return layout.opt().map( l -> l.computeMinHeight( this, width ) ).orElse( 100 );
+    }
 
 }

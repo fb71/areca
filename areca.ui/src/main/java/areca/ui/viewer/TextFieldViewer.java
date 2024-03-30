@@ -16,8 +16,6 @@ package areca.ui.viewer;
 import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.common.reflect.ClassInfo;
-import areca.common.reflect.RuntimeInfo;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
@@ -27,13 +25,10 @@ import areca.ui.viewer.model.Model;
  *
  * @author Falko Bräutigam
  */
-@RuntimeInfo
 public class TextFieldViewer
         extends Viewer<Model<String>> {
 
     private static final Log LOG = LogFactory.getLog( TextFieldViewer.class );
-
-    public static final ClassInfo<TextFieldViewer> info = TextFieldViewerClassInfo.instance();
 
     protected TextField     textField;
 

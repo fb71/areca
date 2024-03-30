@@ -41,9 +41,4 @@ public class TextField
 
     public ReadWrites<TextField,String> autocomplete = Property.rws( this, "autocomplete", new ArrayList<>() );
 
-
-    @Override
-    public int computeMinHeight( int width ) {
-        return 32;
-    }
 }

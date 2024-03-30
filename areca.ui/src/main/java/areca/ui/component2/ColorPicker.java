@@ -29,9 +29,4 @@ public class ColorPicker
     /** 7-character string specifying an RGB color in hexadecimal format: #001122 */
     public ReadWrite<ColorPicker,String> value = Property.rw( this, "value" );
 
-    @Override
-    public int computeMinHeight( int width ) {
-        return 32;
-    }
-
 }

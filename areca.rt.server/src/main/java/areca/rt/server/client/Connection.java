@@ -46,6 +46,7 @@ import areca.ui.component2.Link;
 import areca.ui.component2.Property.PropertyChangedEvent;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.ScrollableComposite;
+import areca.ui.component2.Separator;
 import areca.ui.component2.Text;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
@@ -306,6 +307,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".Label" : return new Label();
             case PACKAGE_UI_COMPONENTS + ".ColorPicker" : return new ColorPicker();
             case PACKAGE_UI_COMPONENTS + ".FileUpload" : return new FileUpload();
+            case PACKAGE_UI_COMPONENTS + ".Separator" : return new Separator();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );

@@ -27,6 +27,21 @@ public interface ViewerBuilder<M extends ModelBase> {
 
     ViewerBuilder<M> model( M adapter );
 
+    /**
+     * Initializes this viewer and creates the {@link UIComponent} but does not load
+     * the value from the model.
+     *
+     * @return Newly created {@link UIComponent}
+     */
     UIComponent create();
+
+    /**
+     * Initializes this viewer and creates the {@link UIComponent} and loads the
+     * model value. Intended to be used by dynamic/complex model that create viewer
+     * on demand.
+     *
+     * @return Newly created {@link UIComponent}
+     */
+    UIComponent createAndLoad();
 
 }

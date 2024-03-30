@@ -101,12 +101,16 @@ class JsonServer2ClientMessage {
             else {
                 result.propNewValue = encodeValue( ev.optNewValue().orNull() );
                 //result.propOldValue = encodeValue( ev.optOldValue().orNull() );
-                return Opt.of( result );
+                return result.propNewValue != null ? Opt.of( result ) : Opt.absent();
             }
         }
     }
 
 
+    /**
+     *
+     * @return The encoded value, or null if the value can/should not be encoded.
+     */
     protected static JsonPropertyValueBase encodeValue( Object value ) {
         if (value == null) {
             return new JsonPropertyValueBase( "null" );
@@ -146,7 +150,7 @@ class JsonServer2ClientMessage {
             var result = new JsonCollectionPropertyValue( "collection" );
             for (var v : (Collection)value) {
                 var encoded = encodeValue( v );
-                if (encoded.type.equals( "missing" )) {
+                if (encoded == null) {
                     return encoded;
                 }
                 else {
@@ -157,7 +161,7 @@ class JsonServer2ClientMessage {
         }
         else {
             LOG.debug( "Value type missing: %s", value.getClass().getSimpleName() );
-            return new JsonPropertyValueBase( "missing" );
+            return null; //new JsonPropertyValueBase( "missing" );
         }
     }
 
@@ -165,6 +169,8 @@ class JsonServer2ClientMessage {
      *
      */
     public static class JsonPropertyValueBase {
+
+        public static final JsonPropertyValueBase MISSING = new JsonPropertyValueBase( "missing" );
 
         public String   type;
 

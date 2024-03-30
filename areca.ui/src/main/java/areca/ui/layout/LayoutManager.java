@@ -38,11 +38,11 @@ public abstract class LayoutManager {
     public abstract void layout( UIComposite composite );
 
 
-    public int computeMinWidth( int height ) {
+    public int computeMinWidth( UIComposite composite, int height ) {
         throw new RuntimeException( "computeMinWidth() is not implemented for: " + getClass().getName() );
     }
 
-    public int computeMinHeight( int width ) {
+    public int computeMinHeight( UIComposite composite, int width ) {
         throw new RuntimeException( "computeMinHeight() is not implemented for: " + getClass().getName() );
     }
 

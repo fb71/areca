@@ -13,19 +13,14 @@
  */
 package areca.ui.viewer.model;
 
-import areca.common.base.Sequence;
-
 /**
  *
  * @author Falko Bräutigam
  */
-public interface ListModel<V>
-        extends ModelBase, Iterable<V> {
+public interface ModifiableListModel<V> {
 
-    public int size();
+    public void add( V value );
 
-    public default Sequence<V,RuntimeException> sequence() {
-        return Sequence.of( this );
-    }
+    public void remove( V value );
 
 }

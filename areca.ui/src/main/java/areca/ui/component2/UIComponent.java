@@ -46,7 +46,8 @@ public abstract class UIComponent
 
     private static final Log LOG = LogFactory.getLog( UIComponent.class );
 
-    //public static final UIComponent     PROTO = new UIComponent() {};
+    /** Default height of standard components, like {@link TextField}, {@link Button}, etc. */
+    public static final int             DEFAULT_HEIGHT = 30;
 
     public static final String          PROP_CSS_CLASSES = "cssClasses";
     public static final String          PROP_CSS_STYLES = "cssStyles";
@@ -264,15 +265,13 @@ public abstract class UIComponent
     }
 
 
-    public int computeMinWidth( int height ) {
-        return 50;
-    }
-
-
     public int computeMinHeight( int width ) {
-        return 50;
+        return DEFAULT_HEIGHT;
     }
 
+    public int computeMinWidth( int height ) {
+        return DEFAULT_HEIGHT;
+    }
 
     @SuppressWarnings( "unchecked" )
     public <R> R setData( String name, R value ) {

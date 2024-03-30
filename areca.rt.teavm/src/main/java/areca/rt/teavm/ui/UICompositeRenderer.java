@@ -49,7 +49,14 @@ public class UICompositeRenderer
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
         UIComposite c = (UIComposite)ev.getSource();
-        c.htmlElm = (HTMLElement)doc().createElement( "div" );
+        if (c.isForm.get()) {
+            var form = (HTMLElement)doc().createElement( "form" );
+            form.setAttribute( "onsubmit", "return false;" );
+            c.htmlElm = form;
+        }
+        else {
+            c.htmlElm = (HTMLElement)doc().createElement( "div" );
+        }
 
         // XXX
         if (ev.getSource().getClass().getSimpleName().startsWith( "Root" )) {

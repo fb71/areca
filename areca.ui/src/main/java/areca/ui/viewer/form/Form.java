@@ -14,6 +14,7 @@
 package areca.ui.viewer.form;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import areca.common.Platform;
@@ -30,8 +31,6 @@ import areca.ui.viewer.model.ModelBase;
 public class Form {
 
     protected List<FieldContext<?>> fields = new ArrayList<>();
-
-    protected List<EventListener<ViewerInputChangeEvent>> listeners = new ArrayList<>();
 
 
     public FieldBuilder<ModelBase> newField() {
@@ -61,7 +60,6 @@ public class Form {
                 .performIf( ViewerInputChangeEvent.class, ev -> {
                     return Sequence.of( fields ).anyMatches( f -> f._viewer() == ev.getSource() );
                 } );
-        listeners.add( l );
     }
 
 
@@ -74,7 +72,17 @@ public class Form {
     }
 
     public void load() {
-        fields.forEach( f -> f.load() );
+        // allow fields to be created as a result of loading a (list) field
+        var toBeProcessed = new HashSet<>( fields );
+        var processed = new HashSet<FieldContext<?>>();
+        while (!toBeProcessed.isEmpty()) {
+            for (var f : toBeProcessed) {
+                f.load();
+            }
+            processed.addAll( toBeProcessed );
+            toBeProcessed = new HashSet<>( fields );
+            toBeProcessed.removeAll( processed );
+        }
     }
 
 }
