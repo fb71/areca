@@ -15,5 +15,5 @@
 }
 
 .Even {
-    background-color: $bg2_color;
+    background-color: darken($bg1_color, 2%);
 }
