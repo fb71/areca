@@ -141,96 +141,6 @@ a:active, .Link:active {
   background-color: inherit;
 }
 
-.Button {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  background-color: inherit;
-  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.5);
-  overflow: visible;
-  cursor: pointer;
-  text-align: center;
-}
-
-.Button.SUBMIT {
-  color: #eaeaea;
-  background-color: #33a87e;
-  border-color: #6fb89e;
-}
-
-.Button.ACTION {
-  background-color: #141415;
-  border-color: #3a3b3c;
-}
-
-.Button:hover:enabled {
-  color: #f6f6f6;
-}
-
-.Button:active:enabled {
-  margin-top: 2px;
-  box-shadow: none;
-  color: #f6f6f6;
-  filter: brightness(1.1);
-}
-
-.Button:disabled {
-  box-shadow: none;
-  filter: brightness(0.5) saturate(0.5);
-}
-
-.Button span, .Button img {
-  position: relative;
-  vertical-align: middle;
-}
-
-.Button img {
-  height: 100%;
-}
-
-pre.Text {
-  margin: 0px;
-  font-family: Roboto, arial, sans-serif;
-  font-size: 14px;
-}
-
-.TextField {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  background-color: inherit;
-  border-bottom: 1px solid #51a386;
-}
-
-.TextField:focus {
-  border-bottom: 2px solid #51a386;
-  color: #eaeaea;
-  outline: none;
-}
-
-input.TextField {
-  padding: 0px 7px;
-  border-radius: 2px;
-}
-
-textarea.TextField {
-  padding: 7px 7px;
-  background-color: #414244;
-  resize: none;
-}
-
-.CodeMirror {
-  height: 100% !important;
-  width: 100% !important;
-  font-family: 'RobotoMono', monospace !important;
-  font-size: 12px !important;
-  color: #d0d0d0 !important;
-}
-
-.cm-header {
-  color: antiquewhite !important;
-}
-
 .ListCell {
   background-color: #51a386;
 }
@@ -332,6 +242,116 @@ textarea.TextField {
   top: -4px;
   left: auto;
   right: -2px;
+}
+
+.Button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background-color: inherit;
+  box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.5);
+  overflow: visible;
+  cursor: pointer;
+  text-align: center;
+}
+
+.Button.SUBMIT {
+  color: #eaeaea;
+  background-color: #33a87e;
+  border-color: #6fb89e;
+}
+
+.Button.ACTION {
+  background-color: #141415;
+  border-color: #3a3b3c;
+}
+
+.Button:hover:enabled {
+  color: #f6f6f6;
+}
+
+.Button:active:enabled {
+  margin-top: 2px;
+  box-shadow: none;
+  color: #f6f6f6;
+  filter: brightness(1.1);
+}
+
+.Button:disabled {
+  box-shadow: none;
+  filter: brightness(0.5) saturate(0.5);
+}
+
+.Button span, .Button img {
+  position: relative;
+  vertical-align: middle;
+}
+
+.Button img {
+  height: 100%;
+}
+
+pre.Text {
+  margin: 0px;
+  font-family: Roboto, arial, sans-serif;
+  font-size: 14px;
+}
+
+.TextField {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background-color: inherit;
+  border-bottom: 1px solid #51a386;
+}
+
+.TextField:focus {
+  border-bottom: 2px solid #51a386;
+  color: #eaeaea;
+  outline: none;
+}
+
+input.TextField {
+  padding: 0px 7px;
+  border-radius: 2px;
+}
+
+textarea.TextField {
+  padding: 7px 7px;
+  background-color: #414244;
+  resize: none;
+}
+
+.CodeMirror {
+  height: 100% !important;
+  width: 100% !important;
+  font-family: 'RobotoMono', monospace !important;
+  font-size: 12px !important;
+  color: #d0d0d0 !important;
+}
+
+.cm-header {
+  color: antiquewhite !important;
+}
+
+.TableCell {
+  border-radius: 0;
+}
+
+.TableCell.Lines {
+  border-bottom: 1px solid #444444;
+}
+
+.TableCell.Clickable {
+  cursor: pointer;
+}
+
+.TableCell.Clickable:hover {
+  filter: brightness(1.3);
+}
+
+.Even {
+  background-color: #232424;
 }
 
 .Switcher {

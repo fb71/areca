@@ -181,13 +181,13 @@ public class Connection {
                 @SuppressWarnings("unchecked")
                 var rw = (ReadWrite<?,Object>)prop;
                 var value = JSServer2ClientMessage.decodeValue( ev.propNewValue().cast() );
+                Assert.that( value != VALUE_MISSING );
 
-                if (value == VALUE_MISSING) {
-                }
                 // Events
-                else if (value instanceof List
+                if (value instanceof List
                         && !((List)value).isEmpty()
                         && ((List)value).get( 0 ) instanceof EventType) {
+                    LOG.debug( "Register: %s", value );
                     var component = (UIComponent)element;
                     Assert.that( component.events.$().isEmpty(), "..." );
                     for (var v : (List)value) {
@@ -223,6 +223,7 @@ public class Connection {
      * Called when the user has clicked on a component or any other {@link EventType}.
      */
     protected void onComponentEvent( UIComponent component, UIEvent ev ) {
+        LOG.debug( "Event: %s", ev.type );
         var jsev = JSClickEvent.create();
         jsev.setEventType( ev.type.toString() );
         jsev.setComponentId( component.id() );

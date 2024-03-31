@@ -12,7 +12,10 @@
  */
 package areca.ui.viewer;
 
+import areca.common.event.EventListener;
+import areca.common.event.EventManager.EventHandlerInfo;
 import areca.ui.component2.UIComponent;
+import areca.ui.viewer.Viewer.ViewerInputChangeEvent;
 import areca.ui.viewer.model.ModelBase;
 
 /**
@@ -43,5 +46,7 @@ public interface ViewerBuilder<M extends ModelBase> {
      * @return Newly created {@link UIComponent}
      */
     UIComponent createAndLoad();
+
+    EventHandlerInfo subscribe( EventListener<ViewerInputChangeEvent> l );
 
 }

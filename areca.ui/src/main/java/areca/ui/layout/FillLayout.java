@@ -66,8 +66,14 @@ public class FillLayout
 
     @Override
     public int computeMinWidth( UIComposite composite, int height ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
+        if (orientation == Orientation.HORIZONTAL) {
+            return composite.components.values()
+                    .map( c -> c.computeMinWidth( height ) )
+                    .reduce( 0, (r,w) -> r + w );
+        }
+        else {
+            throw new RuntimeException( "not yet implemented." );
+        }
     }
 
 

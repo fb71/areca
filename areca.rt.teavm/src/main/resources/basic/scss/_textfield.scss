@@ -1,0 +1,41 @@
+//.Text {
+//    margin: 0px;    
+//}
+pre.Text {
+    margin: 0px;    
+    font-family: Roboto, arial, sans-serif;
+    font-size: 14px;
+}
+
+.TextField {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background-color: inherit;
+    border-bottom: 1px solid $accent_color;
+}
+.TextField:focus {
+    border-bottom: 2px solid $accent_color;
+    color: lighten($font_color, 10%);
+    outline: none;    
+}
+input.TextField {
+    padding: 0px 7px;
+    border-radius: 2px;
+}
+textarea.TextField {
+    padding: 7px 7px;
+    background-color: $light_bg_color;
+    resize: none;
+}
+.CodeMirror {
+    height: 100% !important;
+    width: 100% !important;
+
+    font-family: 'RobotoMono', monospace !important;
+    font-size: 12px !important;
+    color: $font_color !important;
+}
+.cm-header {
+    color: antiquewhite !important;
+}

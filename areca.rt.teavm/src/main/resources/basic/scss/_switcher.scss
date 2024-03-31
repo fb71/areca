@@ -1,0 +1,20 @@
+.Switcher {
+    perspective: 6000px;
+    overflow-x: hidden; // clip switcher handles
+}
+.SwitcherChild {
+    background-color: $bg1_color;
+    backface-visibility: hidden;
+    transition: transform 1.5s;    
+}
+.SwitcherChild-Top {
+    background-color: $bg1_color;    
+}
+.SwitcherHandle {
+    padding: 0;
+    border-color: $separator_color !important;
+    box-shadow: 0px 0px 5px rgba(0,0,0,50%);
+    background-color: darken($bg1_color, 5%);
+    color: $link_color;
+    border-radius: 10px;    
+}

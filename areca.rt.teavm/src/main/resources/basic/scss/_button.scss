@@ -1,0 +1,45 @@
+.Button {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    //padding: 7px 12px;
+    background-color: inherit;
+    box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
+    overflow: visible; // badge and tags
+    cursor: pointer;
+    text-align: center;
+}
+.Button.SUBMIT {
+    color: lighten($font_color, 10%);
+    background-color: darken(saturate($accent_color, 20%), 5%);
+    border-color: lighten($accent_color, 10%);
+}
+.Button.ACTION {
+    background-color: $bg3_color;
+    border-color: lighten($bg3_color, 15%);
+}
+.Button.NAVIGATE {
+    //background-color: #29a579;
+}
+.Button:hover:enabled {
+    //background-color: lighten(saturate($accent_color2, 0%), 0%);
+    //background-color: lighten($bg3_color, 3%);
+    color: lighten($font_color, 15%);
+}
+.Button:active:enabled {
+    margin-top: 2px;
+    box-shadow: none; //0px 0px 3px rgba(0,0,0,0.5);
+    color: lighten($font_color, 15%);
+    filter: brightness(1.1)
+}
+.Button:disabled {
+    box-shadow: none;
+    filter: brightness(0.5) saturate(0.5);
+}
+.Button span, .Button img {
+    position: relative;
+    vertical-align: middle;
+}
+.Button img {
+    height: 100%;
+}

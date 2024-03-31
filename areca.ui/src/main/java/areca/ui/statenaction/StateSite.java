@@ -13,6 +13,8 @@
  */
 package areca.ui.statenaction;
 
+import areca.common.base.Opt;
+
 /**
  * The interface for the {@link State} to communicate with the system.
  *
@@ -27,8 +29,36 @@ public interface StateSite {
      * <p/>
      * XXX Should be done automatically when {@link State.Dispose} is called?
      */
-    void dispose();
+    public void dispose();
 
     public boolean isDisposed();
+
+    /**
+     * The context variable of the given type and scope.
+     */
+    public <R> Opt<R> opt( Class<R> type, String scope );
+
+    /**
+     * The context variable of the given type and {@link State.Context#DEFAULT_SCOPE}.
+     */
+    public default <R> Opt<R> opt( Class<R> type ) {
+        return opt( type, State.Context.DEFAULT_SCOPE );
+    }
+
+    /**
+     * The context variable of the given type and scope.
+     * @throws NoSuchElementException
+     */
+    public default <R> R get( Class<R> type, String scope ) {
+        return opt( type, scope ).orElseError();
+    }
+
+    /**
+     * The context variable of the given type and {@link State.Context#DEFAULT_SCOPE}.
+     * @throws NoSuchElementException
+     */
+    public default <R> R get( Class<R> type ) {
+        return opt( type, State.Context.DEFAULT_SCOPE ).orElseError();
+    }
 
 }

@@ -18,11 +18,16 @@ import static areca.ui.viewer.model.ModelBase.VALID;
 import java.util.Objects;
 
 import areca.common.Assert;
+import areca.common.Platform;
+import areca.common.event.EventListener;
+import areca.common.event.EventManager;
+import areca.common.event.EventManager.EventHandlerInfo;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.FillLayout;
+import areca.ui.viewer.Viewer.ViewerInputChangeEvent;
 import areca.ui.viewer.model.ModelBase;
 import areca.ui.viewer.transform.ValidatingModel;
 
@@ -93,6 +98,21 @@ public class ViewerContext<M extends ModelBase>
         var result = create();
         load();
         return result;
+    }
+
+
+    @Override
+    public EventHandlerInfo subscribe( EventListener<ViewerInputChangeEvent> l ) {
+        return EventManager.instance()
+                .subscribe( ev -> {
+                    // XXX ViewerBuilder.subscribe() might be called *before* the viewer is initialized
+                    // so we must wait Viewers have processed their event handlers, in order to
+                    // see correct results for isChanged() and isValid()
+                    Platform.async( () -> l.handle( (ViewerInputChangeEvent)ev ) );
+                })
+                .performIf( ViewerInputChangeEvent.class, ev -> {
+                    return viewer == ev.getSource();
+                });
     }
 
 

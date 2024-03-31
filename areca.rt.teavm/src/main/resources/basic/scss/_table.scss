@@ -1,0 +1,19 @@
+.TableCell {
+    border-radius: 0;
+}
+
+.TableCell.Lines {
+    border-bottom: 1px solid $separator_color;
+}
+
+.TableCell.Clickable {
+    cursor: pointer;
+}
+
+.TableCell.Clickable:hover {
+    filter: brightness( 1.3 );
+}
+
+.Even {
+    background-color: $bg2_color;
+}

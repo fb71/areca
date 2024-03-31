@@ -13,7 +13,10 @@
  */
 package areca.ui.statenaction;
 
+import java.util.NoSuchElementException;
+
 import areca.common.Assert;
+import areca.common.base.Opt;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -109,6 +112,11 @@ class StateHolder
         };
     }
 
+
+    @Override
+    public <R> Opt<R> opt( Class<R> type, String scope ) {
+        return context.entry( type, scope );
+    }
 
 
     @SuppressWarnings("unchecked")

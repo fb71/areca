@@ -111,6 +111,7 @@ public abstract class Property<C,T> {
     }
 
     protected void fireEvent( T oldValue, T newValue ) {
+        // XXX
 //        if (Objects.equals( oldValue, newValue )) {
 //            LOG.debug( "FIRE:" + name() + ": values are EQUAL: " + newValue + " -- " + oldValue );
 //        }

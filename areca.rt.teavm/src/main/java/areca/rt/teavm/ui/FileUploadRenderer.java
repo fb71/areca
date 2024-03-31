@@ -77,7 +77,7 @@ public class FileUploadRenderer
                     throw new RuntimeException( "not yet implemented (on client side)" );
                 }
             });
-            propagateEvent( c, htmlEv, EventType.TEXT  );
+            propagateEvent( c, htmlEv, EventType.UPLOAD );
         });
     }
 
