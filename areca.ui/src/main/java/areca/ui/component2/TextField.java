@@ -39,6 +39,7 @@ public class TextField
 
     public ReadWrite<TextField,Boolean> multiline = Property.rw( this, "multiline", false );
 
+    /** List of possible completions */
     public ReadWrites<TextField,String> autocomplete = Property.rws( this, "autocomplete", new ArrayList<>() );
 
 }

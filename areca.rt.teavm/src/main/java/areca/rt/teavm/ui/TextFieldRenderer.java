@@ -15,30 +15,23 @@ package areca.rt.teavm.ui;
 
 import java.util.List;
 
-import org.teavm.jso.JSBody;
-import org.teavm.jso.JSFunctor;
-import org.teavm.jso.JSMethod;
-import org.teavm.jso.JSObject;
-import org.teavm.jso.JSProperty;
 import org.teavm.jso.core.JSArray;
 import org.teavm.jso.core.JSString;
 import org.teavm.jso.dom.html.HTMLElement;
 import org.teavm.jso.dom.html.HTMLInputElement;
-import org.teavm.jso.dom.html.HTMLScriptElement;
 import org.teavm.jso.dom.html.HTMLTextAreaElement;
 
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Scheduler.Priority;
-import areca.common.Timer;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.NoRuntimeInfo;
 import areca.common.reflect.RuntimeInfo;
-import areca.rt.teavm.ui.TextFieldRenderer.CodeMirror.HintOptions;
-import areca.rt.teavm.ui.TextFieldRenderer.CodeMirror.HintResult;
+import areca.rt.teavm.ui.CodeMirror.HintOptions;
+import areca.rt.teavm.ui.CodeMirror.HintResult;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.TextField;
 import areca.ui.component2.TextField.Type;
@@ -147,7 +140,7 @@ public class TextFieldRenderer
         container.getStyle().setProperty( "overflow", "hidden" );
         c.htmlElm = container;
 
-        checkJsCss().onSuccess( __ -> {
+        checkInjectJsCss().onSuccess( __ -> {
             // options
             var options = CodeMirror.Options.create();
             options.setLineNumbers( false );
@@ -158,24 +151,12 @@ public class TextFieldRenderer
                 case CSS: options.setMode( "css" ); break;
                 default: options.setMode( (String)null ); break;
             }
-            options.enableAutocompleteKey();
 
             // hintOptions
             var hintOptions = HintOptions.create();
-            hintOptions.setHint( (cm,_hintOptions) -> {
-                LOG.info( "hint() called ");
-                var result = HintResult.create();
-                c.<List<String>>optData( "_autocomplete_" ).ifPresent( l -> {
-                    LOG.info( "hint(): %s", l );
-                    var a = JSArray.create();
-                    l.forEach( s -> a.push( JSString.valueOf( s ) ) );
-                    result.setList( a );
-                    result.setFrom( HintResult.createPos( 0, 0 ) );
-                    result.setTo( HintResult.createPos( 0, 0 ) );
-                });
-                return result;
-            });
+            hintOptions.setHint( (cm,_hintOptions) -> computeHints( (CodeMirror)cm, c ) );
             options.setHintOptions( hintOptions );
+            options.enableAutocompleteKey();
 
             // CodeMirror
             var cm = CodeMirror.create( container, options );
@@ -185,8 +166,8 @@ public class TextFieldRenderer
                 cm.setValue( newValue != null ? newValue : "" );
             });
             c.autocomplete.onInitAndChange( (newValues,___) -> {
-                LOG.debug( "autocompletions: %s", newValues );
-                c.setData( "_autocomplete_", newValues );
+                LOG.debug( "completions: %s", newValues );
+                c.setData( "_completions_", newValues );
             });
             c.size.onInitAndChange( (newValue,___) -> {
                 // wait for (Page open) transform to finish
@@ -206,171 +187,52 @@ public class TextFieldRenderer
     }
 
     /**
-     *
+     * Compute autocomplete hints - from the list of possible completions and the
+     * current cursor position.
      */
-    public static abstract class CodeMirror
-            implements JSObject {
+    protected HintResult computeHints( CodeMirror cm, TextField tf ) {
+        LOG.debug( "computeHints(): ...");
+        var result = HintResult.create();
+        tf.<List<String>>optData( "_completions_" ).ifPresent( completions -> {
+            LOG.debug( "computeHints(): %s", completions );
 
-        @JSBody( params = {"parent", "options"}, script = "return CodeMirror( parent, options );" )
-        public static native CodeMirror create( HTMLElement parent, CodeMirror.Options options );
+            var l = JSArray.create();
+            var cursor = cm.getCursor();
+            var line = cm.getLine( cursor.line() );
+            LOG.debug( "computeHints(): %s : %s", line, cursor.ch() );
 
-        @JSBody( params = {"fn", "options"}, script = "return CodeMirror( fn, options );" )
-        public static native CodeMirror create( CodeMirror.Options options, Callback fn );
+            var start = cursor.ch();
+            while (start > 0 && isCompletable( line.charAt( start-1 ) )) {
+                start --;
+            }
+            var word = line.substring( start, cursor.ch() );
+            LOG.debug( "computeHints(): start = %s -> '%s'", start, word );
 
-        @JSBody( params = {"textarea", "options"}, script = "return CodeMirror.fromTextArea( textarea, options );" )
-        public static native CodeMirror fromTextArea( HTMLElement textarea, CodeMirror.Options options );
+            for (var c : completions) {
+                if (c.startsWith( word )) {
+                    l.push( JSString.valueOf( c ) );
+                }
+            }
 
-        @JSMethod
-        public abstract String getValue();
-
-        @JSMethod
-        public abstract void setValue( String value );
-
-        @JSMethod
-        public abstract void on( String type, Callback handler );
-
-        @JSMethod
-        public abstract void setSize( int width, int height );
-
-        @JSMethod
-        public abstract void refresh();
-
-
-        /**
-         */
-        protected static abstract class Options
-                implements JSObject {
-
-            @JSBody( script = "return {};" )
-            public static native CodeMirror.Options create();
-
-            @JSProperty
-            public abstract void setLineWrapping( boolean value );
-
-            @JSProperty
-            public abstract void setTheme( String theme );
-
-            @JSProperty
-            public abstract void setMode( String mode );
-
-            @JSProperty
-            public abstract void setMode( JSObject mode );
-
-            @JSProperty
-            public abstract void setLineNumbers( boolean value );
-
-            @JSBody( params = {}, script = "this.extraKeys = {\"Ctrl-Space\": \"autocomplete\"};" )
-            public abstract void enableAutocompleteKey();
-//            @JSBody( params = {"keyCode", "value"}, script = "this.extraKeys = {'keyCode': 'value'};" )
-//            public abstract void setExtraKeys( String keyCode, String value );
-
-            //hintOptions: {hint: synonyms}
-            @JSProperty
-            public abstract void setHintOptions( HintOptions options );
-        }
-
-        /**
-         */
-        protected static abstract class HintOptions
-                implements JSObject {
-
-            @JSBody( script = "return {};" )
-            public static native CodeMirror.HintOptions create();
-
-            @JSProperty
-            public abstract void setHint( Callback2 fn );
-        }
-
-        /**
-         */
-        protected static abstract class HintResult
-                implements JSObject {
-
-            @JSBody( script = "return {};" )
-            public static native CodeMirror.HintResult create();
-
-            @JSBody( params = {"line", "ch"}, script = "return {\"line\":line, \"ch\":ch};" )
-            public static native JSObject createPos( int line, int ch );
-
-            @JSProperty
-            public abstract void setList( JSArray value );
-
-            @JSProperty
-            public abstract void setFrom( JSObject value );
-
-            @JSProperty
-            public abstract void setTo( JSObject value );
-        }
+            result.setList( l );
+            result.setFrom( HintResult.createPos( cursor.line(), start ) );
+            result.setTo( HintResult.createPos( cursor.line(), cursor.ch() ) );
+        });
+        return result;
     }
 
-    @JSFunctor
-    public interface Callback extends JSObject {
-        void handle( JSObject _1 );
+    protected boolean isCompletable( char c ) {
+        return Character.isLetter( c ) || c == '/';
     }
 
-    @JSFunctor
-    public interface Callback2 extends JSObject {
-        JSObject handle( JSObject _1, JSObject _2 );
-    }
-
-    @NoRuntimeInfo
-    private Promise<Void> checkJsCss() {
+    protected Promise<Void> checkInjectJsCss() {
         if (!jsCssInjected) {
             jsCssInjected = true;
-            injectJsCss( "codemirror/codemirror.min.css" );
-            injectJsCss( "codemirror/theme/mbo.min.css" );
-            injectJsCss( "codemirror/show-hint.min.css" );
-
-            var t = Timer.start();
-            return injectJsCss( "codemirror/codemirror.min.js" )
-                    .then( __ -> {
-                        LOG.debug( "codemirror.js loaded: %s", t );
-                        injectJsCss( "codemirror/markdown.min.js" );
-                        injectJsCss( "codemirror/css.min.js" );
-                        injectJsCss( "codemirror/show-hint.min.js" );
-                        return injectJsCss( "codemirror/css-hint.min.js" );
-                    })
-                    .onSuccess( __ -> {
-                        LOG.debug( "modules loaded: %s", t );
-                    });
+            return CodeMirror.injectJsCss( doc() );
         }
         else {
             return Promise.completed( null, Priority.BACKGROUND );
         }
     }
-
-    @NoRuntimeInfo
-    private Promise<Void> injectJsCss( String filename ) {
-        if (filename.endsWith( ".js" )) {
-            var scriptElm = (HTMLScriptElement2)doc().createElement( "script" );
-            scriptElm.setAttribute( "type", "text/javascript" );
-            scriptElm.setAttribute( "src", filename );
-            var p = new Promise.Completable<Void>();
-            scriptElm.onLoad( __ -> p.complete( null ) );
-            doc().getElementsByTagName( "head" ).get( 0 ).appendChild( scriptElm );
-            return p;
-        }
-        else if (filename.endsWith( ".css" )) {
-            var elm = doc().createElement( "link" );
-            elm.setAttribute( "rel", "stylesheet" );
-            elm.setAttribute( "type", "text/css" );
-            elm.setAttribute( "href", filename );
-            doc().getElementsByTagName( "head" ).get( 0 ).appendChild( elm );
-            return null;
-        }
-        else {
-            throw new RuntimeException( "Unknown file type: " + filename );
-        }
-    }
-
-    /**
-     */
-    protected static abstract class HTMLScriptElement2
-            implements HTMLScriptElement {
-
-        @JSProperty("onload")
-        public abstract void onLoad( Callback fn );
-    }
-
 
 }

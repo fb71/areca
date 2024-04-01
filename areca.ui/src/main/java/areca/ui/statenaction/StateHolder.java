@@ -13,8 +13,6 @@
  */
 package areca.ui.statenaction;
 
-import java.util.NoSuchElementException;
-
 import areca.common.Assert;
 import areca.common.base.Opt;
 import areca.common.event.EventManager;
