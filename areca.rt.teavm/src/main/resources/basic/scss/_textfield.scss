@@ -41,14 +41,14 @@ textarea.TextField {
     font-size: 12px !important;
     color: $font_color !important;
     border: 1px solid $separator_color  !important;    
-    background-color: $bg1_color !important;
+    background-color: $bg3_color !important;
     padding: 0px !important;
     box-shadow: 0px 3px 8px rgba(0,0,0,40%) !important;
-    max-height: 500px !important;
+    max-height: 600px !important;
 }
 .CodeMirror-hint {
-    color: $font_color !important;    
-    background-color: $bg1_color !important;
+    color: darken($font_color, 10%) !important;    
+    background-color: $bg3_color !important;
     padding: 1px 4px 2px 4px !important;
     border-radius: 0px !important;
 }

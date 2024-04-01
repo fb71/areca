@@ -335,15 +335,15 @@ textarea.TextField {
   font-size: 12px !important;
   color: #d0d0d0 !important;
   border: 1px solid #444444 !important;
-  background-color: #323334 !important;
+  background-color: #141415 !important;
   padding: 0px !important;
   box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.4) !important;
   max-height: 500px !important;
 }
 
 .CodeMirror-hint {
-  color: #d0d0d0 !important;
-  background-color: #323334 !important;
+  color: #b7b7b7 !important;
+  background-color: #141415 !important;
   padding: 1px 4px 2px 4px !important;
   border-radius: 0px !important;
 }
