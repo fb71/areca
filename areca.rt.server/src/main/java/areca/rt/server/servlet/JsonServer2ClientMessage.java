@@ -39,7 +39,7 @@ import areca.ui.component2.UIElement;
  *
  * @author Falko Bräutigam
  */
-class JsonServer2ClientMessage {
+public class JsonServer2ClientMessage {
 
     private static final Log LOG = LogFactory.getLog( JsonServer2ClientMessage.class );
 
@@ -59,6 +59,10 @@ class JsonServer2ClientMessage {
         public String   propName;
         public Object   propNewValue;
         //public Object   propOldValue;
+
+        public JsonUIComponentEvent( String eventType ) {
+            this.eventType = eventType;
+        }
 
         protected JsonUIComponentEvent( UIElement component ) {
             this.componentId = component.id();
@@ -111,7 +115,7 @@ class JsonServer2ClientMessage {
      *
      * @return The encoded value, or null if the value can/should not be encoded.
      */
-    protected static JsonPropertyValueBase encodeValue( Object value ) {
+    public static JsonPropertyValueBase encodeValue( Object value ) {
         if (value == null) {
             return new JsonPropertyValueBase( "null" );
         }

@@ -90,6 +90,11 @@ abstract class JSServer2ClientMessage
             var primitive = (JSPrimitivePropertyValue)value;
             return primitive.value();
         }
+        // Integer
+        else if (value.type().equals( Integer.class.getName() )) {
+            var primitive = (JSPrimitivePropertyValue)value;
+            return Integer.valueOf( primitive.value() );
+        }
         // Boolean
         else if (value.type().equals( Boolean.class.getName() )) {
             var primitive = (JSPrimitivePropertyValue)value;

@@ -21,6 +21,7 @@ import org.teavm.jso.browser.Window;
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
 import areca.common.Promise;
+import areca.common.Session;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Level;
@@ -62,6 +63,7 @@ public class ClientApp
             // UI
             new ClientApp().createUI( rootWindow -> {
                 var conn = new Connection( rootWindow );
+                Session.setInstance( conn );
 
                 conn.enqueueClickEvent( JSResizeEvent.create( rootWindow, rootWindow.size.get() ) );
                 rootWindow.size.onChange( (newSize, oldSize) -> {
@@ -71,7 +73,7 @@ public class ClientApp
                     }
                 });
 
-                //SimpleBrowserHistoryStrategy.start( Pageflow.current() );
+                ClientBrowserHistoryStrategy.start();
 
                 conn.start();
             });

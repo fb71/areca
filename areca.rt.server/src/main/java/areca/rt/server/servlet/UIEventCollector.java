@@ -64,8 +64,10 @@ public class UIEventCollector {
         this.sink = handler;
     }
 
-    protected void add( JsonUIComponentEvent ev ) {
+
+    public void add( JsonUIComponentEvent ev ) {
         Assert.notNull( sink, "App code called outside eventloop!?" );
+        Assert.notNull( ev.eventType );
         sink.accept( ev );
     }
 
@@ -73,6 +75,7 @@ public class UIEventCollector {
     public UIComponent componentForId( Integer componentId ) {
         return Assert.notNull( (UIComponent)components.get( componentId ), "No such componentId: " + componentId );
     }
+
 
     /** The RootWindow component */
     public UIComponent rootWindow() {

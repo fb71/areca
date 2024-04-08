@@ -46,10 +46,12 @@ import areca.common.SessionScoper.ThreadBoundSessionScoper;
 import areca.common.Timer;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.rt.server.EventLoop;
 import areca.rt.server.ServerApp;
+import areca.rt.server.ServerBrowserHistoryStrategy.BrowserHistoryEvent;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.ColorPicker;
@@ -211,6 +213,11 @@ public class ArecaUIServer
                                         : collector.componentForId( event.componentId );
                                 component.size.set( size );
                             }
+                            // BrowsertHistory
+                            else if (event.eventType.startsWith( "BrowserHistory" )) {
+                                LOG.debug( "BrowserHistory: %s", event.content );
+                                EventManager.instance().publish( new BrowserHistoryEvent( "popstate", event.content ) );
+                            }
                             // click, text, upload ...
                             else {
                                 var component = collector.componentForId( event.componentId );
@@ -252,7 +259,7 @@ public class ArecaUIServer
 
                     collector.sink( ev -> {
                         out.write( c.getAndIncrement() == 0 ? "" : ",\n" );
-                        gson.toJson( ev, out );
+                        gson.toJson( Assert.notNull( ev ), out );
                     });
 
                     // eventloop

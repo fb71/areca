@@ -31,8 +31,10 @@ import areca.common.Promise;
 import areca.common.Promise.CancelledException;
 import areca.common.Timer;
 import areca.common.base.Sequence;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.rt.server.client.ClientBrowserHistoryStrategy.PageflowEvent;
 import areca.rt.server.client.JSClient2ServerMessage.JSClickEvent;
 import areca.rt.server.servlet.ArecaUIServer;
 import areca.ui.App.RootWindow;
@@ -41,6 +43,7 @@ import areca.ui.component2.ColorPicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.FileUpload;
+import areca.ui.component2.Image;
 import areca.ui.component2.Label;
 import areca.ui.component2.Link;
 import areca.ui.component2.Property.PropertyChangedEvent;
@@ -213,6 +216,11 @@ public class Connection {
                 var decorator = Assert.notNull( (UIComponentDecorator)components.get( ev.componentId() ) );
                 component.decorators.remove( decorator );
             }
+            // Pageflow
+            else if (ev.eventType().equals( "Pageflow" )) {
+                var value = JSServer2ClientMessage.decodeValue( ev.propNewValue().cast() );
+                EventManager.instance().publish( new PageflowEvent( ev.propName(), (int)value ) );
+            }
             else {
                 throw new RuntimeException( "mas trabajo: " + ev.eventType() );
             }
@@ -309,6 +317,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".ColorPicker" : return new ColorPicker();
             case PACKAGE_UI_COMPONENTS + ".FileUpload" : return new FileUpload();
             case PACKAGE_UI_COMPONENTS + ".Separator" : return new Separator();
+            case PACKAGE_UI_COMPONENTS + ".Image" : return new Image();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );

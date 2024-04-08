@@ -22,12 +22,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import areca.common.Assert;
+import areca.common.event.EventListener;
+import areca.common.event.EventManager.EventHandlerInfo;
 import areca.ui.Action;
 import areca.ui.component2.Property;
 import areca.ui.component2.Property.ReadWrites;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.pageflow.Pageflow.PageBuilder;
+import areca.ui.pageflow.PageflowEvent.EventType;
 
 /**
  * {@link Page} is the basic building block of an application. A Page controls the
@@ -183,7 +186,11 @@ public abstract class Page {
          * Close the Page this site belongs to.
          */
         public abstract void close();
-
+        
+        /**
+         * True if the last {@link EventType} was {@link EventType#PAGE_CLOSING} or
+         * {@link EventType#PAGE_CLOSED}
+         */
         public abstract boolean isClosed();
 
         public <R> R context( Class<R> type ) {
@@ -199,6 +206,8 @@ public abstract class Page {
          * @return The value of the context variable, or null.
          */
         public abstract <R> R context( Class<R> type, String scope );
+
+        public abstract EventHandlerInfo subscribe( EventType type, EventListener<PageflowEvent> l );
     }
 
 }

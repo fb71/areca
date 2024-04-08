@@ -14,7 +14,6 @@
 package areca.ui.pageflow;
 
 import static areca.common.base.With.with;
-import static areca.ui.pageflow.PageflowEvent.EventType.INITIALIZING;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSED;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSING;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_OPENED;
@@ -24,12 +23,15 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+
 import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Session;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
+import areca.common.event.EventListener;
 import areca.common.event.EventManager;
+import areca.common.event.EventManager.EventHandlerInfo;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
@@ -88,7 +90,8 @@ public class Pageflow {
 
         List<Scoped>    context = new ArrayList<>();
 
-        boolean         closed;
+        /** The last thrown {@link EventType} for this page. */
+        EventType       lifecycle;
 
 
         @Override
@@ -101,6 +104,14 @@ public class Pageflow {
         }
 
         @Override
+        public EventHandlerInfo subscribe( EventType type, EventListener<PageflowEvent> l ) {
+            return EventManager.instance()
+                    .subscribe( l )
+                    .performIf( PageflowEvent.class, ev -> ev.type == type && ev.page.get() == clientPage )
+                    .unsubscribeIf( () -> isClosed() );
+        }
+
+        @Override
         public PageBuilder createPage( Object newPage ) {
             return Pageflow.this.create( newPage ).parent( clientPage );
         }
@@ -108,12 +119,11 @@ public class Pageflow {
         @Override
         public void close() {
             Pageflow.this.close( clientPage );
-            closed = true;
         }
 
         @Override
         public boolean isClosed() {
-            return closed;
+            return lifecycle.ordinal() >= EventType.PAGE_CLOSING.ordinal();
         }
 
         protected Opt<Scoped> _local( Class<?> type, String scope ) {
@@ -141,11 +151,11 @@ public class Pageflow {
 
 
     protected Pageflow( UIComposite rootContainer ) {
-        fireEvent( this, null, INITIALIZING );
+        EventManager.instance().publish( new PageflowEvent( this, null, EventType.INITIALIZING ) );
         this.rootContainer = Assert.notNull( rootContainer, "rootContainer must not be null" );
         this.rootContainer.layout.set( new PageStackLayout() );
         //new PageCloseGesture( rootContainer );
-        fireEvent( this, null, EventType.INITIALIZED );
+        EventManager.instance().publish( new PageflowEvent( this, null, EventType.INITIALIZING ) );
     }
 
 
@@ -159,9 +169,12 @@ public class Pageflow {
     }
 
 
-    protected void fireEvent( Pageflow pageflow, Object page, EventType type ) {
-        EventManager.instance().publish( new PageflowEvent( pageflow, page, type ) );
+    protected void pageLifecycle( PageHolder page, EventType type ) {
+        Assert.that( page.lifecycle == null || type.ordinal() > page.lifecycle.ordinal() );
+        page.lifecycle = type;
+        EventManager.instance().publish( new PageflowEvent( this, Assert.notNull( page ).clientPage, type ) );
     }
+
 
     /**
      * Prepare a {@link PageBuilder} in order to open a new page.
@@ -170,8 +183,9 @@ public class Pageflow {
      *        the controller of the newly created page.
      */
     public PageBuilder create( Object page ) {
-        fireEvent( this, page, PAGE_OPENING );
-        return new PageBuilder( page );
+        var result = new PageBuilder( page );
+        pageLifecycle( result, PAGE_OPENING );
+        return result;
     }
 
 
@@ -239,7 +253,7 @@ public class Pageflow {
                 ((UIComposite)ui).layout();
             }
             layout.openLast( origin );
-            fireEvent( Pageflow.this, page, PAGE_OPENED );
+            pageLifecycle( this, PAGE_OPENED );
         }
     }
 
@@ -247,7 +261,7 @@ public class Pageflow {
     public void close( Object page ) {
         Assert.isSame( page, pages.peek().clientPage, "Removing other than top page is not supported yet." );
         var pageData = pages.pop();
-        fireEvent( this, pageData.clientPage, PAGE_CLOSING );
+        pageLifecycle( pageData, PAGE_CLOSING );
         pageData.ui.cssClasses.add( "Closing" );
         with( pageData.ui.position ).apply( pos -> pos.set(
                 Position.of( pos.value().x, rootContainer.clientSize.value().height() - 30 ) ) );
@@ -259,7 +273,7 @@ public class Pageflow {
             if (!pageData.ui.isDisposed()) {
                 pageData.ui.dispose();
             }
-            fireEvent( this, pageData.clientPage, PAGE_CLOSED );
+            pageLifecycle( pageData, PAGE_CLOSED );
             // rootContainer.layout();
         });
     }
