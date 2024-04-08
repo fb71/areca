@@ -125,6 +125,9 @@ public class Connection {
                         var t = Timer.start();
                         var msg = (JSServer2ClientMessage)JSON.parse( response.text() );
 
+                        // process
+                        processUIEvents( msg );
+
                         // wait -> next request
                         pendingWait = null;
                         if (msg.pendingWait() >= 0) {
@@ -139,8 +142,6 @@ public class Connection {
                                 pendingWait = Platform.schedule( delay, () -> readServer( false ) );
 //                            }
                         }
-                        // process
-                        processUIEvents( msg );
                     }
                     catch (Exception e) {
                         LOG.warn( e.getMessage(), e );
