@@ -29,6 +29,7 @@ import areca.common.Platform;
 import areca.common.Platform.HttpResponse;
 import areca.common.Promise;
 import areca.common.Promise.CancelledException;
+import areca.common.Scheduler.Priority;
 import areca.common.Timer;
 import areca.common.base.Sequence;
 import areca.common.event.EventManager;
@@ -117,24 +118,29 @@ public class Connection {
         LOG.warn( "Sending request: %s", StringUtils.abbreviate( json, 40 ) );
         pendingRequest = Platform.xhr( "POST", SERVER_PATH )
                 .submit( json )
+                .priority( Priority.BACKGROUND )
                 .onSuccess( response -> {
                     pendingRequest = null;
                     try {
                         var t = Timer.start();
                         var msg = (JSServer2ClientMessage)JSON.parse( response.text() );
 
-                        processUIEvents( msg );
-
-                        // XXX currently we *must* send next request *after* all events are processed
-                        // because there is not queue for events on the client side
+                        // wait -> next request
                         pendingWait = null;
                         if (msg.pendingWait() >= 0) {
                             int delay = Math.max( 0, msg.pendingWait() - (int)t.elapsedMillis() );
-                            LOG.debug( "Pending wait: processing=%s - requested=%s, actual=%s",
-                                    t.elapsedHumanReadable(), msg.pendingWait(), delay );
+                            LOG.debug( "Pending wait: processing=%s - requested=%s, actual=%s", t, msg.pendingWait(), delay );
 
-                            Platform.schedule( delay, () -> readServer( false ) );
+//                            if (delay <= 0) {
+//                                LOG.warn( "No delay readServer() ..." );
+//                                readServer( false );
+//                            }
+//                            else {
+                                pendingWait = Platform.schedule( delay, () -> readServer( false ) );
+//                            }
                         }
+                        // process
+                        processUIEvents( msg );
                     }
                     catch (Exception e) {
                         LOG.warn( e.getMessage(), e );

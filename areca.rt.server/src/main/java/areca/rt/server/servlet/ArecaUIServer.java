@@ -264,7 +264,7 @@ public class ArecaUIServer
 
                     // eventloop
                     currentRequest.set( new Request( request, response ) );
-                    eventLoop.execute();
+                    eventLoop.execute( 250 );
 
                     out.write( String.format( "\n  ],\n  \"pendingWait\": %s\n}", eventLoop.pendingWait() ) );
                 }
