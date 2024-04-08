@@ -16,6 +16,19 @@ $primary_color: darken($accent_color, 30%);
 
 $transition_duration: 0.75s;
 
+:root {
+    --basic-bg-color: #{$bg1_color};
+    --basic-bg2-color: #{$bg2_color};
+    --basic-bg3-color: #{$bg3_color};
+    --basic-fg-color: #{$font_color};
+    --basic-link-color: #{$link_color};
+    --basic-accent-color: #{$accent_color};
+    --basic-accent2-color: #{$accent2_color};
+    --basic-primary-color: #{$primary_color};
+    --basic-separator-color: #{$separator_color};
+    --basic-sep-color: #{$separator_color};
+}
+
 @import 'material-icons';
 @import 'common';
 @import 'button';

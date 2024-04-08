@@ -155,8 +155,16 @@ public abstract class UIComponent
     /**  */
     public ReadWrite<UIComponent,Boolean>   enabled = Property.rw( this, "enabled" );
 
-    /** */
+    /**
+     * Optional constraints of this component in the {@link LayoutManager} of the {@link #parent()}.
+     */
     public ReadWrite<UIComponent,LayoutConstraints> layoutConstraints = Property.rw( this, "lc" );
+
+    /** Shortcut to {@link #layoutConstraints()}. */
+    public UIComponent lc( LayoutConstraints lc ) {
+        layoutConstraints.set( lc );
+        return this;
+    }
 
     /**
      * Pseudo property that allows to scroll this component.
@@ -172,7 +180,6 @@ public abstract class UIComponent
     public Events                           events = new Events( this );
 
     public DecoratorsProperty               decorators = new DecoratorsProperty(this);
-
 
 
     // methods ********************************************

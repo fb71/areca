@@ -1,3 +1,16 @@
+:root {
+  --basic-bg-color: #323334;
+  --basic-bg2-color: #232424;
+  --basic-bg3-color: #141415;
+  --basic-fg-color: #d0d0d0;
+  --basic-link-color: #cd9564;
+  --basic-accent-color: #51a386;
+  --basic-accent2-color: #304050;
+  --basic-primary-color: #1e3d32;
+  --basic-separator-color: #444444;
+  --basic-sep-color: #444444;
+}
+
 @font-face {
   font-family: 'Material Icons';
   font-style: normal;
@@ -338,7 +351,7 @@ textarea.TextField {
   background-color: #141415 !important;
   padding: 0px !important;
   box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.4) !important;
-  max-height: 500px !important;
+  max-height: 650px !important;
 }
 
 .CodeMirror-hint {

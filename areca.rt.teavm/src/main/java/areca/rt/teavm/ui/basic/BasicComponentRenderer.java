@@ -20,6 +20,7 @@ import areca.rt.teavm.ui.BadgeRenderer;
 import areca.rt.teavm.ui.ButtonRenderer;
 import areca.rt.teavm.ui.ColorPickerRenderer;
 import areca.rt.teavm.ui.FileUploadRenderer;
+import areca.rt.teavm.ui.ImageRenderer;
 import areca.rt.teavm.ui.LabelRenderer;
 import areca.rt.teavm.ui.LinkRenderer;
 import areca.rt.teavm.ui.ProgressRenderer;
@@ -42,7 +43,6 @@ public class BasicComponentRenderer {
 
     /**
      * Starts all component renderes of this package.
-     * @param rootWindow
      */
     public static void start() {
         UICompositeRenderer._start();
@@ -55,6 +55,7 @@ public class BasicComponentRenderer {
         SeparatorRenderer._start();
         ColorPickerRenderer._start();
         FileUploadRenderer._start();
+        ImageRenderer._start();
 
         BadgeRenderer._start();
         LabelRenderer._start();
