@@ -60,7 +60,7 @@ class JUnitTestBase {
         session = new Session();
         sessionScope.bind( session );
         Assertions.assertSame( session, Session.current() );
-        Session.setInstance( new EventLoop() );
+        Session.setInstance( EventLoop.create() );
     }
 
     @AfterEach

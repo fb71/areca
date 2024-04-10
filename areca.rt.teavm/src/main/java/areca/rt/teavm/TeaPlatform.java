@@ -15,8 +15,6 @@ package areca.rt.teavm;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
-
 import org.teavm.jso.JSBody;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSMethod;
@@ -29,9 +27,11 @@ import areca.common.Platform;
 import areca.common.Platform.HttpRequest;
 import areca.common.Platform.HttpResponse;
 import areca.common.Platform.IdleDeadline;
+import areca.common.Platform.PollingCommand;
 import areca.common.Promise;
 import areca.common.Promise.Completable;
 import areca.common.Timer;
+import areca.common.base.Consumer;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Opt;
 import areca.common.base.Supplier.RSupplier;
@@ -110,13 +110,13 @@ public class TeaPlatform
 
 
     @Override
-    public <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
+    public <R> Promise<R> enqueue( String label, int delayMillis, Consumer<Completable<R>,Exception> task ) {
         Assert.that( delayMillis >= 0 );
         return new Completable<R>() {
             private int id = Window.setTimeout( () -> {
                 try {
                     Assert.that( !isCanceled() );
-                    complete( task.call() );
+                    task.accept( this );
                 }
                 catch (Throwable e) {
                     completeWithError( e );
@@ -129,6 +129,12 @@ public class TeaPlatform
                 super.cancel();
             }
         };
+    }
+
+
+    @Override
+    public void polling( PollingCommand cmd ) {
+        throw new RuntimeException( "No polling in the browser!" );
     }
 
 

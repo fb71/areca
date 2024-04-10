@@ -102,7 +102,10 @@ public class Session {
 
 
     private <R> R _setInstance( R instance ) {
-        Assert.isNull( instances.put( instance.getClass(), instance ) );
+        // XXX hack to support EventLoop(1,2)
+        for (var cl = instance.getClass(); cl != Object.class; cl = cl.getSuperclass()) {
+            Assert.isNull( instances.put( cl, instance ) );
+        }
         return instance;
     }
 

@@ -13,7 +13,6 @@
  */
 package areca.rt.server;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 
 import java.net.URI;
@@ -29,10 +28,12 @@ import areca.common.Platform;
 import areca.common.Platform.HttpRequest;
 import areca.common.Platform.HttpResponse;
 import areca.common.Platform.IdleDeadline;
+import areca.common.Platform.PollingCommand;
 import areca.common.Promise;
 import areca.common.Promise.Completable;
 import areca.common.Session;
 import areca.common.Timer;
+import areca.common.base.Consumer;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Lazy.RLazy;
 import areca.common.base.Supplier.RSupplier;
@@ -68,33 +69,47 @@ public class ServerPlatform
     public void waitForCondition( RSupplier<Boolean> condition, Object target ) {
         if (!condition.get()) {
             var eventLoop = Session.instanceOf( EventLoop.class );
-            eventLoop.execute();
+
+            eventLoop.execute( 0 );
             while (!condition.get()) {
                 synchronized (target) {
                     try {
-                        LOG.info( "wait: %s", target );
-                        target.wait( Math.max( 10, eventLoop.pendingWait() ) );
+                        long pendingWait = eventLoop.pendingWait();
+                        //LOG.info( "waiting: %s (%s ms)", target, pendingWait );
+
+                        if (pendingWait > 0) {
+                            target.wait( pendingWait );
+                        }
                     }
                     catch (InterruptedException e) { }
                 }
-                eventLoop.execute();
+                eventLoop.execute( 0 );
             }
         }
     }
 
 
     @Override
-    public <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
+    public void polling( PollingCommand cmd ) {
+        switch (cmd) {
+            case START : Session.instanceOf( EventLoop.class ).requestPolling(); break;
+            case STOP : Session.instanceOf( EventLoop.class ).releasePolling( ); break;
+        }
+    }
+
+
+    @Override
+    public <R> Promise<R> enqueue( String label, int delayMillis, Consumer<Completable<R>,Exception> task ) {
         Assert.that( delayMillis >= 0 );
         var t = delayMillis > 0 ? Timer.start() : null;
         Completable<R> promise = new Completable<>();
-        Session.instanceOf( EventLoop.class ).enqueue( "schedule", () -> {
+        Session.instanceOf( EventLoop.class ).enqueue( label, () -> {
             if (t != null) {
                 LOG.debug( "schedule: delay requested: %s - was actually: %s", delayMillis, t.elapsedHumanReadable() );
             }
             try {
                 if (!promise.isCanceled()) { // XXX
-                    promise.complete( task.call() );
+                    task.accept( promise );
                 }
             }
             catch (Throwable e) {
@@ -103,7 +118,6 @@ public class ServerPlatform
         }, delayMillis );
         return promise;
     }
-
 
     @Override
     public Promise<Void> requestAnimationFrame( RConsumer<Double> callback ) {

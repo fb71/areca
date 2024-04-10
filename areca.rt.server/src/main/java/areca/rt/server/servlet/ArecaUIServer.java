@@ -159,7 +159,7 @@ public class ArecaUIServer
                 sessionScope.bind( session, __ -> {
                     Session.setInstance( new UIEventCollector() ).start();
 
-                    Session.setInstance( new EventLoop() ).enqueue( "createUI()", () -> {
+                    Session.setInstance( EventLoop.create() ).enqueue( "createUI()", () -> {
                         Session.instanceOf( ServerApp.class ).createUI();
                     }, 0 );
                 });
@@ -264,7 +264,7 @@ public class ArecaUIServer
 
                     // eventloop
                     currentRequest.set( new Request( request, response ) );
-                    eventLoop.execute( 250 );
+                    eventLoop.execute( 100 );
 
                     out.write( String.format( "\n  ],\n  \"pendingWait\": %s\n}", eventLoop.pendingWait() ) );
                 }

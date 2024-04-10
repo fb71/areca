@@ -15,6 +15,8 @@ package areca.common;
 
 import java.util.concurrent.Callable;
 
+import areca.common.Promise.Completable;
+import areca.common.base.Consumer;
 import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Sequence;
 import areca.common.base.Supplier.RSupplier;
@@ -29,6 +31,10 @@ public abstract class Platform {
 
     public static Scheduler scheduler = new Scheduler();
 
+    public enum PollingCommand {
+        START, STOP
+    }
+
     /**
      * Returns true if the current Platform runs in the JVM,
      * false if the current Platform runs in the Browser/JavaScript.
@@ -39,8 +45,25 @@ public abstract class Platform {
     }
 
 
+    /**
+     * Signals the current Platform that there are background tasks running
+     * that enqueue tasks sometime in the future.
+     */
+    public static void polling( PollingCommand cmd ) {
+        impl.polling( cmd );
+    }
+
+
+    /**
+     * Enqueues the given task to the main event loop.
+     */
+    public static <R> Promise<R> enqueue( String label, int delayMillis, Consumer<Completable<R>,Exception> task ) {
+        return impl.enqueue( label, delayMillis, task );
+    }
+
+
     public static <R> Promise<R> schedule( int delayMillis, Callable<R> task ) {
-        return impl.schedule( delayMillis, task );
+        return enqueue( "schedule()", delayMillis, promise -> promise.complete( task.call() ) );
     }
 
 
@@ -114,8 +137,6 @@ public abstract class Platform {
 
         public void dispose();
 
-        public <R> Promise<R> schedule( int delayMillis, Callable<R> task );
-
         public void waitForCondition( RSupplier<Boolean> condition, Object target );
 
         public HttpRequest xhr( String method, String url );
@@ -123,6 +144,12 @@ public abstract class Platform {
         public Promise<Void> requestAnimationFrame( RConsumer<Double> callback );
 
         public Promise<Void> requestIdleCallback( RConsumer<IdleDeadline> callback );
+
+        public <R> Promise<R> enqueue( String label, int delayMillis, Consumer<Completable<R>,Exception> task );
+
+        public void polling( PollingCommand cmd );
+
+        //public <R> Promise<R> schedule( int delayMillis, Callable<R> task );
     }
 
 
