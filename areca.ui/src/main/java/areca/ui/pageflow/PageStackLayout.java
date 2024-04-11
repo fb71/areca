@@ -56,7 +56,7 @@ public class PageStackLayout
             top.cssClasses.add( "PageStackLayout-Top" );
 
             top.position.set( origin != null
-                    //XXX ? origin.substract( composite.clientSize.value().divide( 1.2f ).divide( 2 ) )
+                    // XXX ? origin.substract( composite.clientSize.value().divide( 1.2f ).divide( 2 ) )
                     ? Position.of( 0, 0 )
                     : Position.of( 0, 0 ) );
 
