@@ -43,25 +43,17 @@ public class EventLoop2
 
     private Queue<Task>         delayed = new ConcurrentLinkedQueue<>();
 
-    private volatile int        pollingRequests;
-
-
-    public void requestPolling() {
-        pollingRequests ++;
-    }
-
-
-    public void releasePolling() {
-        pollingRequests --;
-        Assert.that( pollingRequests >= 0 );
-    }
-
 
     public void enqueue( String label, Runnable task, int delayMillis ) {
         Assert.that( delayMillis >= 0 );
         LOG.debug( "enqueue(): %s - %s ms", label, delayMillis );
         (delayMillis == 0 ? queue : delayed)
                 .add( new Task( task, now() + delayMillis, label ) );
+
+        // let the ServerPlatform know that there is more work
+        synchronized (this) {
+            notifyAll();
+        }
     }
 
 
@@ -84,7 +76,7 @@ public class EventLoop2
             }
         }
 
-        // loop queue
+        // queue loop
         LOG.debug( "______ Run (queue: %s) ______", queue.size() );
         var t = Timer.start();
         var count = 0;
@@ -115,7 +107,7 @@ public class EventLoop2
                 .map( t -> max( 0, t.scheduled - now() ) )
                 .orElse( -1l );
 
-        if (pollingRequests > 0) {
+        if (pollingRequests.get() > 0) {
             return result == -1l
                     ? POLLING_TIMEOUT.toMillis()
                     : Math.min( result, POLLING_TIMEOUT.toMillis() );

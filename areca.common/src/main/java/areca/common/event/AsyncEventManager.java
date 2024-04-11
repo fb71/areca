@@ -20,7 +20,6 @@ import java.util.List;
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Timer;
-import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -39,12 +38,6 @@ public class AsyncEventManager
     private List<Event>             eventQueue = null;
 
     private Promise<Void>           async;
-
-
-    public AsyncEventManager() {
-        LOG.warn( "No expunge thread!" );
-        //new ExpungeThread().run();
-    }
 
 
     @Override
@@ -93,26 +86,6 @@ public class AsyncEventManager
         protected Event( EventObject ev, List<EventHandlerInfoImpl> handlers ) {
             this.ev = ev;
             this.handlers = handlers;
-        }
-    }
-
-
-    /**
-     *
-     */
-    private class ExpungeThread
-            implements Runnable {
-
-        @Override
-        public void run() {
-            var expunged = Sequence.of( handlers )
-                    .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.get() )
-                    .toSet();
-
-            if (!expunged.isEmpty()) {
-                unsubscribe( expunged );
-            }
-            Platform.schedule( 60000, this );
         }
     }
 

@@ -159,7 +159,7 @@ public abstract class Promise<T> {
 
     protected volatile T            waitForResult;
 
-    protected Throwable             error;
+    protected volatile Throwable    error;
 
     protected List<BiConsumer<HandlerSite,T,?>> onSuccess = new ArrayList<>();
 
@@ -450,9 +450,6 @@ public abstract class Promise<T> {
 
 
     public <E extends Exception> Promise<T> onSuccess( BiConsumer<HandlerSite,T,E> consumer ) {
-        if (isCompleted()) {
-            LOG.warn( "Promise is already completed." );
-        }
         onSuccess.add( consumer );
         return this;
     }
@@ -465,9 +462,6 @@ public abstract class Promise<T> {
 
 
     public Promise<T> onError( RConsumer<Throwable> consumer ) {
-        if (isCompleted()) {
-            LOG.warn( "Promise is already completed." );
-        }
         onError.add( consumer );
         return this;
     }
@@ -567,6 +561,34 @@ public abstract class Promise<T> {
         private List<Promise<?>> upstreams = new ArrayList<>();
 
 
+        @Override
+        public <E extends Exception> Promise<T> onSuccess( BiConsumer<HandlerSite,T,E> consumer ) {
+            if (isCompleted()) {
+                LOG.warn( "onSuccess(): already completed! (value=%s)", waitForResult );
+                if (error == null) {
+                    doConsume( consumer, waitForResult );
+                }
+                // avoid super so that onSuccess() can be called many times for an
+                // already completed Promise
+                return this;
+            }
+            return super.onSuccess( consumer );
+        }
+
+
+        @Override
+        public Promise<T> onError( RConsumer<Throwable> consumer ) {
+            if (isCompleted()) {
+                LOG.warn( "onSuccess(): already completed! (value=%s)", waitForResult );
+                if (error != null) {
+                    consumer.accept( error );
+                }
+                return this;
+            }
+            return super.onError( consumer );
+        }
+
+
         /**
          * Sets the upstream (parent) instance for this promise.
          */
@@ -654,21 +676,29 @@ public abstract class Promise<T> {
 
         protected void doConsume( T value ) {
             for (var consumer : onSuccess) {
-                try {
-                    consumer.accept( site, value );
-                }
-                catch (Throwable e) {
-                    // INFO enabled means debug is on
-                    // XXX if debug=true the defaultErrorHandler should throw the exception for TeaVM
-                    // XXX but it does not happen :(
-                    if (!Platform.isJVM() && LOG.isLevelEnabled( Level.INFO )) {
-                        throw (RuntimeException)e;
-                    } else {
-                        LOG.warn( "doConsume(): %s", e.toString() );
-                    }
-                    completeWithError( e );
+                if (doConsume( consumer, value ) != null) {
                     break;
                 }
+            }
+        }
+
+
+        public Throwable doConsume( BiConsumer<HandlerSite,T,?> consumer, T value ) {
+            try {
+                consumer.accept( site, value );
+                return null;
+            }
+            catch (Throwable e) {
+                // INFO enabled means debug is on
+                // XXX if debug=true the defaultErrorHandler should throw the exception for TeaVM
+                // XXX but it does not happen :(
+                if (!Platform.isJVM() && LOG.isLevelEnabled( Level.INFO )) {
+                    throw (RuntimeException)e;
+                } else {
+                    LOG.warn( "doConsume(): %s", e.toString() );
+                }
+                completeWithError( e );
+                return e;
             }
         }
 
@@ -699,6 +729,7 @@ public abstract class Promise<T> {
                 //LOG.info( "notify: %s", this );
                 notifyAll();
             }
+            upstreams.forEach( upstream -> ((Completable<?>)upstream).notifyComplete() );
         }
     }
 

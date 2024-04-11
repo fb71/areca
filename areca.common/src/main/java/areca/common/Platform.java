@@ -47,7 +47,7 @@ public abstract class Platform {
 
     /**
      * Signals the current Platform that there are background tasks running
-     * that enqueue tasks sometime in the future.
+     * that will enqueue tasks sometime in the future.
      */
     public static void polling( PollingCommand cmd ) {
         impl.polling( cmd );

@@ -30,12 +30,14 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import areca.common.Assert;
+import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Session;
 import areca.common.Timer;
 import areca.common.base.Opt;
 import areca.common.base.Predicate;
 import areca.common.base.Predicate.RPredicate;
+import areca.common.base.Sequence;
 import areca.common.base.Supplier;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
@@ -68,6 +70,8 @@ public abstract class EventManager {
     @SuppressWarnings("rawtypes")
     protected Map<Pair,MethodInfo>              methodCache = new HashMap<>( 128 );
 
+    protected ExpungeThread                     expunge;
+
 
     protected EventManager() {
         defaultOnError = (ev, e) -> {
@@ -91,6 +95,16 @@ public abstract class EventManager {
 //                throw new RuntimeException( e );
 //            }
         };
+
+        LOG.warn( "No expunge thread!" );
+        //expunge = new ExpungeThread();
+    }
+
+
+    public void dispose() {
+        if (expunge != null) {
+            expunge.stop = true;
+        }
     }
 
 
@@ -274,7 +288,30 @@ public abstract class EventManager {
                 onError.accept( ev, e );
             }
         }
+    }
 
+
+    /**
+     *
+     */
+    private class ExpungeThread
+            implements Runnable {
+
+        boolean stop;
+
+        @Override
+        public void run() {
+            var expunged = Sequence.of( handlers )
+                    .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.get() )
+                    .toSet();
+
+            if (!expunged.isEmpty()) {
+                unsubscribe( expunged );
+            }
+            if (!stop) {
+                Platform.schedule( 60000, this );
+            }
+        }
     }
 
 }

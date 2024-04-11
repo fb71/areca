@@ -55,6 +55,7 @@ public abstract class EventManagerTest {
 
     @After
     protected void tearDown() {
+        em.dispose();
     }
 
 
@@ -154,14 +155,12 @@ public abstract class EventManagerTest {
                 Assert.isEqual( 2, caught.size() );
                 LOG.info( em.getClass().getSimpleName() + ": eventCascadeTest: OK" );
             });
-        })
-        .performIf( ev -> ev instanceof Event1 );
+        }).performIf( ev -> ev instanceof Event1 );
 
         // catch Event2
         em.subscribe( ev -> {
             caught.add( ev );
-        })
-        .performIf( ev -> ev instanceof Event2 );
+        }).performIf( ev -> ev instanceof Event2 );
 
         return em.publish2( new Event1() ).onSuccess( __ -> {
             Assert.that( caught.get( 0 ) instanceof Event1 );

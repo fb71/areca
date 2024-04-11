@@ -1,4 +1,6 @@
 package areca.test;
+import static areca.rt.server.EventLoop.FULLY;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -79,7 +81,7 @@ class JUnitTestBase {
     protected void execute( Runnable task ) {
         var eventLoop = Session.instanceOf( EventLoop.class );
         eventLoop.enqueue( "JUnitTest", task, 0 );
-        eventLoop.execute();
+        eventLoop.execute( FULLY );
     }
 
 }

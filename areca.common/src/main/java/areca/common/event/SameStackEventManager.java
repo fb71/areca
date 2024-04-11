@@ -86,12 +86,12 @@ public class SameStackEventManager
     public void checkExpunge() {
         if (lastExpungeCheck.elapsed( MILLISECONDS ) > 3000) {
             lastExpungeCheck.restart();
-            var expunge = Sequence.of( handlers )
+            var expunged = Sequence.of( handlers )
                     .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.get() )
                     .toSet();
 
-            if (!expunge.isEmpty()) {
-                unsubscribe( expunge );
+            if (!expunged.isEmpty()) {
+                unsubscribe( expunged );
             }
         }
     }

@@ -41,24 +41,19 @@ public class EventLoop1
 
     private Queue<Task>         queue = new ConcurrentLinkedDeque<>();
 
-    private volatile int        pollingRequests;
 
-
-    public void requestPolling() {
-        pollingRequests ++;
-    }
-
-
-    public void releasePolling() {
-        pollingRequests --;
-        Assert.that( pollingRequests >= 0 );
-    }
-
-
+    /**
+     * @implSpec Might be calles from worker threads.
+     */
     public void enqueue( String label, Runnable task, int delayMillis ) {
         Assert.that( delayMillis >= 0 );
         LOG.debug( "enqueue(): %s - %s ms", label, delayMillis );
         queue.add( new Task( task, now() + delayMillis, label ) );
+
+        // let the ServerPlatform know that there is more work
+        synchronized (this) {
+            notifyAll();
+        }
     }
 
 
@@ -103,7 +98,7 @@ public class EventLoop1
 
         //task.ifPresent( t -> LOG.warn( "Min.Task: %s: %s -> %s", t.label, t.scheduled, result ) );
 
-        if (pollingRequests > 0) {
+        if (pollingRequests.get() > 0) {
             return result == -1l
                     ? POLLING_TIMEOUT.toMillis()
                     : Math.min( result, POLLING_TIMEOUT.toMillis() );

@@ -13,7 +13,6 @@
  */
 package areca.common.test;
 
-import areca.common.event.AsyncEventManager;
 import areca.common.event.IdleAsyncEventManager;
 import areca.common.reflect.ClassInfo;
 import areca.common.testrunner.Before;

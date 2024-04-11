@@ -18,7 +18,6 @@ import java.util.EventObject;
 import areca.common.Platform;
 import areca.common.Promise;
 import areca.common.Scheduler;
-import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -31,10 +30,6 @@ public class IdleAsyncEventManager
         extends EventManager {
 
     private static final Log LOG = LogFactory.getLog( IdleAsyncEventManager.class );
-
-    public IdleAsyncEventManager() {
-        new ExpungeThread().run();
-    }
 
 
     @Override
@@ -53,26 +48,6 @@ public class IdleAsyncEventManager
             LOG.debug( "Handlers: %s (%s)", stableHandlers.size(), handlers.size() );
             return null;
         });
-    }
-
-
-    /**
-     *
-     */
-    private class ExpungeThread
-            implements Runnable {
-
-        @Override
-        public void run() {
-            var expunged = Sequence.of( handlers )
-                    .filter( handler -> handler.unsubscribeIf != null && handler.unsubscribeIf.get() )
-                    .toSet();
-
-            if (!expunged.isEmpty()) {
-                unsubscribe( expunged );
-            }
-            Platform.schedule( 3000, this );
-        }
     }
 
 }

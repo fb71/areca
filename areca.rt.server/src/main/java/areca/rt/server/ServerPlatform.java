@@ -67,25 +67,9 @@ public class ServerPlatform
 
     @Override
     public void waitForCondition( RSupplier<Boolean> condition, Object target ) {
-        if (!condition.get()) {
-            var eventLoop = Session.instanceOf( EventLoop.class );
-
-            eventLoop.execute( 0 );
-            while (!condition.get()) {
-                synchronized (target) {
-                    try {
-                        long pendingWait = eventLoop.pendingWait();
-                        //LOG.info( "waiting: %s (%s ms)", target, pendingWait );
-
-                        if (pendingWait > 0) {
-                            target.wait( pendingWait );
-                        }
-                    }
-                    catch (InterruptedException e) { }
-                }
-                eventLoop.execute( 0 );
-            }
-        }
+        var eventloop = Session.instanceOf( EventLoop.class );
+        var met = eventloop.execute( condition );
+        Assert.that( met );
     }
 
 

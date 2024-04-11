@@ -86,7 +86,7 @@ public class ServerTests extends JUnitTestBase {
             var flag = new AtomicBoolean();
             Platform.async( () -> null ).onSuccess( __ -> flag.set( true ) );
 
-            Session.instanceOf( EventLoop.class ).execute();
+            Session.instanceOf( EventLoop.class ).execute( -1 );
             Assert.that( flag.get()  );
         });
     }

@@ -15,6 +15,8 @@ package areca.common.test;
 
 import static areca.common.Platform.async;
 
+import org.apache.commons.lang3.mutable.MutableObject;
+
 import areca.common.Assert;
 import areca.common.AssertionException;
 import areca.common.MutableInt;
@@ -37,6 +39,20 @@ public class AsyncTests {
     private static final Log LOG = LogFactory.getLog( AsyncTests.class );
 
     public static final AsyncTestsClassInfo info = AsyncTestsClassInfo.instance();
+
+
+    @Test
+    public void addHandlerAfterCompleteTest() {
+        var promise = new Promise.Completable<String>();
+        promise.complete( "fertsch" );
+        var result = new MutableObject<String>();
+        var mapped = promise
+                .map( v -> v + "!" )
+                .onSuccess( v -> result.setValue( v ) );
+        Assert.isEqual( "fertsch!", result.getValue() );
+        Assert.isEqual( "fertsch!", mapped.waitForResult().get() );
+        Assert.that( mapped.isCompleted() );
+    }
 
 
     @Test(expected = CancelledException.class)
