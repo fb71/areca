@@ -24,7 +24,6 @@ import areca.common.base.Consumer.RConsumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Events.EventType;
-import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.Property;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.UIComponent;
@@ -55,7 +54,7 @@ public class CompositeListViewer<V>
     /** Render lines between rows. Default: false */
     public ReadWrite<CompositeListViewer<V>,Boolean> lines = Property.rw( this, "lines", false );
 
-    public ReadWrite<CompositeListViewer<V>,RConsumer<UIEvent>> onSelect = Property.rw( this, "onSelect" );
+    public ReadWrite<CompositeListViewer<V>,RConsumer<V>> onSelect = Property.rw( this, "onSelect" );
 
     protected UIComposite           container;
 
@@ -143,7 +142,7 @@ public class CompositeListViewer<V>
             }
             if (onSelect.opt().isPresent()) {
                 result.cssClasses.add( "Clickable" );
-                result.events.on( EventType.SELECT, onSelect.$() );
+                result.events.on( EventType.SELECT, ev -> onSelect.$().accept( v ) );
             }
             return result;
         });

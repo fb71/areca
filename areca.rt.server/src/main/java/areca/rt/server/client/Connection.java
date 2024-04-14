@@ -119,10 +119,10 @@ public class Connection {
         LOG.warn( "Sending request: %s", StringUtils.abbreviate( json, 40 ) );
         pendingRequest = Platform.xhr( "POST", SERVER_PATH )
                 .submit( json )
-                .onSuccess( __ -> LOG.warn( "    main: %s", rt ) )
+                //.onSuccess( __ -> LOG.warn( "    main: %s", rt ) )
                 .priority( Priority.BACKGROUND )
                 .onSuccess( response -> {
-                    LOG.warn( "    idle: %s", rt );
+                    //LOG.warn( "    idle: %s", rt );
                     pendingRequest = null;
                     try {
                         var t = Timer.start();

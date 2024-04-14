@@ -71,6 +71,7 @@ public abstract class Page {
     /**
      * Denotes one or more methods of a pojo page which are called after
      * the page is closed in order to dispose all resources.
+     * @see Page#onDispose()
      * @see Page#dispose()
      */
     @Documented
@@ -79,6 +80,7 @@ public abstract class Page {
     public @interface Dispose {}
 
     /**
+     * @see Page#onCreateUI(UIComposite)
      * @see Page#createUI(UIComposite)
      */
     @Documented
@@ -186,7 +188,7 @@ public abstract class Page {
          * Close the Page this site belongs to.
          */
         public abstract void close();
-        
+
         /**
          * True if the last {@link EventType} was {@link EventType#PAGE_CLOSING} or
          * {@link EventType#PAGE_CLOSED}
@@ -207,6 +209,11 @@ public abstract class Page {
          */
         public abstract <R> R context( Class<R> type, String scope );
 
+        /**
+         * @deprecated Does not work properly for {@link EventType#PAGE_CLOSING} and
+         *             {@link EventType#PAGE_CLOSED} because unsubscribeIf() depends
+         *             on those states.
+         */
         public abstract EventHandlerInfo subscribe( EventType type, EventListener<PageflowEvent> l );
     }
 

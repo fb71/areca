@@ -43,25 +43,26 @@ public class FillLayout
     @Override
     public void layout( UIComposite composite ) {
         super.layout( composite );
-        Size size = composite.clientSize.value();
-        LOG.debug( "FillLayout: " + size );
+        composite.clientSize.opt().ifPresent( size -> {
+            LOG.debug( "FillLayout: ", size );
 
-        if (orientation == Orientation.HORIZONTAL) {
-//            int componentsMaxWidth = composite.components.values()
-//                    .map( c -> c.computeMinWidth( size.height() ) )
-//                    .reduce( Math::max ).orElse( 0 );
-//          int componentWidth = Math.max( size.width() / composite.components.size(), componentsMaxWidth );
+            if (orientation == Orientation.HORIZONTAL) {
+//                int componentsMaxWidth = composite.components.values()
+//                        .map( c -> c.computeMinWidth( size.height() ) )
+//                        .reduce( Math::max ).orElse( 0 );
+//                int componentWidth = Math.max( size.width() / composite.components.size(), componentsMaxWidth );
 
-            int componentWidth = size.width() / composite.components.size();
-            int count = 0;
-            for (UIComponent component : orderedComponents( composite )) {
-                component.size.set( Size.of( componentWidth, size.height() ) );
-                component.position.set( Position.of( count++ * componentWidth, 0 ) );
+                int componentWidth = size.width() / composite.components.size();
+                int count = 0;
+                for (UIComponent component : orderedComponents( composite )) {
+                    component.size.set( Size.of( componentWidth, size.height() ) );
+                    component.position.set( Position.of( count++ * componentWidth, 0 ) );
+                }
             }
-        }
-        else {
-            throw new RuntimeException( "not yet implemented." );
-        }
+            else {
+                throw new RuntimeException( "not yet implemented." );
+            }
+        });
     }
 
 

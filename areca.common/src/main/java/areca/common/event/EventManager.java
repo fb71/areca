@@ -121,7 +121,7 @@ public abstract class EventManager {
         for (var cursor : handlers) {
             if (cursor.handler == annotatedOrListener
                     && (cursor.unsubscribeIf == null || !cursor.unsubscribeIf.get())) {
-                throw new IllegalStateException( "Event handler already subscribed! " );
+                throw new IllegalStateException( "Event handler already subscribed!" );
             }
             newHandlers.add( cursor );
         }
@@ -182,12 +182,15 @@ public abstract class EventManager {
         /**
          * For multiple invocations of this method the predicates are composed
          * by logical AND.
-         *
-         * @param performIf
          * @return this
          */
         EventHandlerInfo performIf( RPredicate<EventObject> performIf );
 
+        /**
+         * For multiple invocations of this method the predicates are composed
+         * by logical OR.
+         * @return this
+         */
         EventHandlerInfo unsubscribeIf( RSupplier<Boolean> unsubscribeIf );
 
         <E extends EventObject> EventHandlerInfo performIf( Class<E> type, RPredicate<E> performIf );
