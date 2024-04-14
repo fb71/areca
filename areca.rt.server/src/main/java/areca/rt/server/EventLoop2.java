@@ -15,12 +15,21 @@ package areca.rt.server;
 
 import static java.lang.Math.max;
 
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 
 import areca.common.Assert;
 import areca.common.Timer;
-import areca.common.base.Sequence;
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
@@ -39,23 +48,47 @@ public class EventLoop2
 
     private static final Log LOG = LogFactory.getLog( EventLoop2.class );
 
-    private Queue<Task>         queue = new ConcurrentLinkedQueue<>();
+    //private static java.util.Timer timer = new java.util.Timer( true );
 
-    private Queue<Task>         delayed = new ConcurrentLinkedQueue<>();
+    private Queue<Task>     queue = new ConcurrentLinkedQueue<>();
+
+    private DelayedQueue    delayed = new DelayedQueue();
 
 
     public void enqueue( String label, Runnable task, int delayMillis ) {
         Assert.that( delayMillis >= 0 );
         LOG.debug( "enqueue(): %s - %s ms", label, delayMillis );
-        (delayMillis == 0 ? queue : delayed)
-                .add( new Task( task, now() + delayMillis, label ) );
 
-        // let the ServerPlatform know that there is more work
+        var t = new Task( task, now() + delayMillis, label );
+        if (delayMillis == 0) {
+            queue.add( t );
+        }
+        else {
+            delayed.add( t );
+//            timer.schedule( new TimerTask() {
+//                @Override
+//                public void run() {
+//                    LOG.warn( "Schedule delayed: '%s' (%s ms)", label, delayMillis );
+//                    var removed = delayed.remove( t );
+//                    Assert.that( removed );
+//                    queue.add( t );
+//                }
+//            }, delayMillis );
+        }
+
+        // let ServerPlatform know that there is more work
         synchronized (this) {
             notifyAll();
         }
     }
 
+    protected void checkDelayed() {
+        var now = now();
+        for (var t = delayed.poll( now ); t != null; t = delayed.poll( now )) {
+            //LOG.warn( "Schedule delayed: '%s'", t.label );
+            queue.add( t );
+        }
+    }
 
     /**
      * Executes pending tasks until queue is empty or the given timeframe exceeds.
@@ -65,16 +98,7 @@ public class EventLoop2
     public void execute( int timeframeMillis ) {
         var deadline = timeframeMillis == -1 ? Long.MAX_VALUE : now() + timeframeMillis;
 
-        // delayed task eligable to run
-        var _now = now();
-        for (var it = delayed.iterator(); it.hasNext();) {
-            var task = it.next();
-            if (task.scheduled <= _now) {
-                it.remove();
-                queue.add( task );
-                LOG.debug( "    eligable: %s", task.label );
-            }
-        }
+        checkDelayed();
 
         // queue loop
         LOG.debug( "______ Run (queue: %s) ______", queue.size() );
@@ -84,12 +108,15 @@ public class EventLoop2
             var task = queue.poll();
             task.task.run();
             count ++;
+
+            // checkDelayed();
         }
-        if (!queue.isEmpty()) {
+        if (!queue.isEmpty() && timeframeMillis > 0) {
             LOG.debug( "Break: queue=%s, count=%s [%s]", queue.size(), count, t );
         }
         LOG.debug( "______ End (queue: %s, count = %s [%s])", queue.size(), count, t );
     }
+
 
     /**
      *
@@ -100,11 +127,8 @@ public class EventLoop2
         if (!queue.isEmpty()) {
             return 0;
         }
-
-        var result = Sequence.of( delayed )
-                // task with min schedule time
-                .reduce( (t1,t2) -> t1.scheduled < t2.scheduled ? t1 : t2  )
-                .map( t -> max( 0, t.scheduled - now() ) )
+        var result = delayed.minScheduled()
+                .map( minScheduled -> max( 0, minScheduled - now() ) )
                 .orElse( -1l );
 
         if (pollingRequests.get() > 0) {
@@ -117,4 +141,66 @@ public class EventLoop2
         }
     }
 
+
+    /**
+     *
+     */
+    protected static class DelayedQueue
+            extends PriorityQueue<Task> {
+
+        private static final Comparator<Long> NATURAL_ORDER = Comparator.<Long>naturalOrder();
+
+        protected DelayedQueue() {
+            super( (t1,t2) -> NATURAL_ORDER.compare( t1.scheduled, t2.scheduled ) );
+        }
+
+        public Opt<Long> minScheduled() {
+            return head().map( t -> t.scheduled ); //.orElse( -1l );
+        }
+
+        public Task poll( long timestamp ) {
+            var peek = peek();
+            if (peek != null && peek.scheduled <= timestamp) {
+                Assert.isSame( peek, poll() );
+                return peek;
+            }
+            return null;
+        }
+
+        public Opt<Task> head() {
+            return Opt.of(  peek() );
+        }
+    }
+
+
+    /**
+     *
+     */
+    protected static class BackgroundTimer
+            extends java.util.Timer {
+
+        private Object taskQueue;
+
+        private Method getMin;
+
+        protected BackgroundTimer() {
+            super( true );
+            try {
+                taskQueue = FieldUtils.readField( this, "queue", true );
+                getMin = MethodUtils.getMatchingAccessibleMethod( taskQueue.getClass(), "getMin", new Class[0]  );
+            }
+            catch (IllegalAccessException e) {
+                throw new RuntimeException( e );
+            }
+        }
+
+        public TimerTask getMin() {
+            try {
+                return (TimerTask)getMin.invoke( taskQueue );
+            }
+            catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                throw new RuntimeException( e );
+            }
+        }
+    }
 }

@@ -170,6 +170,7 @@ public class PageContainer
 
             var titleMargin = (HEADER_HEIGHT - 22) / 2;
             titleText.position.set( Position.of( btnMargin + btnSize + titleMargin, titleMargin-1 ) );
+            // XXX titleText.size.set( Size.of( ) );
 
             var actionLeft = clientSize.width() - btnSize - btnMargin;
             for (Button actionBtn : actionsBtns.values()) {

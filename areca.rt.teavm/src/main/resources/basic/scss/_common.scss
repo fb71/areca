@@ -48,6 +48,11 @@ body {
     font-size: 14px;
 }
 
+//// While creating a component has no size/position
+//.NoDisplay {
+//    display: none;
+//}
+
 .UIComponent {
     position: absolute;
     border: 0px solid $separator_color;

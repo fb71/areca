@@ -67,11 +67,28 @@ public class UIComponentRenderer
     }
 
 
+    /**
+     * Don't display components that do not yet have a size set
+     * in order to avoid rendering half-way initialized components.
+     * Hopefully also helps browser.
+     */
+    protected void hideWithoutPositionOrSize( UIComponent c ) {
+        if (!c.size.opt().isPresent() && !c.position.opt().isPresent()) {
+            htmlElm( c ).getStyle().setProperty( "display", "none" );
+        }
+        else {
+            htmlElm( c ).getStyle().removeProperty( "display" );
+        }
+    }
+
+
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
         UIComponent c = (UIComponent)ev.getSource();
-        LOG.debug( "CONSTRUCTED: " + c.getClass().getName() );
+        LOG.debug( "CONSTRUCTED: ", c.getClass().getName() );
         HTMLElement htmlElm = htmlElm( c );
+
+        hideWithoutPositionOrSize( c );
 
         c.tooltip
                 .onInitAndChange( (newValue, __) -> {
@@ -147,6 +164,7 @@ public class UIComponentRenderer
         // size
         c.size
                 .onInitAndChange( (newValue, oldValue) -> {
+                    hideWithoutPositionOrSize( c );
                     Assert.notNull( newValue, "Setting null value means remove() ???" );
                     htmlElm.getStyle().setProperty( "width", String.format( "%spx", newValue.width() ) );
                     htmlElm.getStyle().setProperty( "height", String.format( "%spx", newValue.height() ) );
@@ -166,6 +184,7 @@ public class UIComponentRenderer
         // position
         c.position
                 .onInitAndChange( (newValue, oldValue) -> {
+                    hideWithoutPositionOrSize( c );
                     if (newValue == null) {
                         htmlElm.getStyle().removeProperty( "left" );
                         htmlElm.getStyle().removeProperty( "top" );
@@ -231,7 +250,6 @@ public class UIComponentRenderer
             }
         });
     }
-
 
     public interface ScrollableHTMLElement
             extends HTMLElement {

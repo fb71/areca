@@ -47,11 +47,12 @@ public class FillLayout
         LOG.debug( "FillLayout: " + size );
 
         if (orientation == Orientation.HORIZONTAL) {
-            int componentsMaxWidth = composite.components.values()
-                    .map( c -> c.computeMinWidth( size.height() ) )
-                    .reduce( Math::max ).orElse( 0 );
+//            int componentsMaxWidth = composite.components.values()
+//                    .map( c -> c.computeMinWidth( size.height() ) )
+//                    .reduce( Math::max ).orElse( 0 );
+//          int componentWidth = Math.max( size.width() / composite.components.size(), componentsMaxWidth );
 
-            int componentWidth = Math.max( size.width() / composite.components.size(), componentsMaxWidth );
+            int componentWidth = size.width() / composite.components.size();
             int count = 0;
             for (UIComponent component : orderedComponents( composite )) {
                 component.size.set( Size.of( componentWidth, size.height() ) );

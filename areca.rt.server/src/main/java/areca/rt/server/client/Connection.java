@@ -115,33 +115,35 @@ public class Connection {
         send.setEvents( Sequence.of( clickEvents ).toArray( JSClickEvent[]::new ) );
         clickEvents.clear();
         var json = JSON.stringify( send );
+        var rt = Timer.start();
         LOG.warn( "Sending request: %s", StringUtils.abbreviate( json, 40 ) );
         pendingRequest = Platform.xhr( "POST", SERVER_PATH )
                 .submit( json )
+                .onSuccess( __ -> LOG.warn( "    main: %s", rt ) )
                 .priority( Priority.BACKGROUND )
                 .onSuccess( response -> {
+                    LOG.warn( "    idle: %s", rt );
                     pendingRequest = null;
                     try {
                         var t = Timer.start();
                         var msg = (JSServer2ClientMessage)JSON.parse( response.text() );
 
-                        // process
-                        processUIEvents( msg );
-
                         // wait -> next request
                         pendingWait = null;
                         if (msg.pendingWait() >= 0) {
                             int delay = Math.max( 0, msg.pendingWait() - (int)t.elapsedMillis() );
-                            LOG.debug( "Pending wait: processing=%s - requested=%s, actual=%s", t, msg.pendingWait(), delay );
+                            LOG.info( "Pending wait: processing=%s - requested=%s, actual=%s", t, msg.pendingWait(), delay );
 
-//                            if (delay <= 0) {
-//                                LOG.warn( "No delay readServer() ..." );
-//                                readServer( false );
-//                            }
-//                            else {
+                            if (delay <= 0) {
+                                LOG.warn( "No delay readServer() ..." );
+                                readServer( false );
+                            }
+                            else {
                                 pendingWait = Platform.schedule( delay, () -> readServer( false ) );
-//                            }
+                            }
                         }
+                        // process
+                        processUIEvents( msg );
                     }
                     catch (Exception e) {
                         LOG.warn( e.getMessage(), e );

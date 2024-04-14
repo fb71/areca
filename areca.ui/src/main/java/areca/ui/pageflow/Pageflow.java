@@ -35,9 +35,10 @@ import areca.common.event.EventManager.EventHandlerInfo;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
-import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComposite;
 import areca.ui.gesture.PanGesture;
+import areca.ui.layout.FillLayout;
 import areca.ui.pageflow.Page.PageSite;
 import areca.ui.pageflow.PageflowEvent.EventType;
 
@@ -80,7 +81,7 @@ public class Pageflow {
     protected class PageHolder extends PageSite {
 
         /** The root component of the UI of this {@link Page} */
-        UIComponent     ui;
+        UIComposite     ui;
         /** Page supplied by client code or {@link AnnotatedPage}. */
         Page            page;
         /** The page impl supplied by client code, Pojo or {@link Page}. */
@@ -242,17 +243,32 @@ public class Pageflow {
             if (page instanceof AnnotatedPage) {
                 ((AnnotatedPage)page).inject( (type,scope) -> context( type, scope ) );
             }
+
             pages.push( this );
             page.init( this );
-            ui = page.createUI( rootContainer );
 
+            ui = rootContainer.add( new UIComposite() {{
+                layout.set( FillLayout.defaults() );
+                cssClasses.add( "PageRoot" );
+                cssClasses.add( "PageOpening" );
+            }});
             var layout = (PageStackLayout)rootContainer.layout.value();
             layout.layout( rootContainer ); // do NOT layout ALL child components
 
-            if (ui instanceof UIComposite) {
-                ((UIComposite)ui).layout();
-            }
-            layout.openLast( origin );
+            // *after* PageRoot composite is rendered with PageOpening class
+            // we createUI() to make sure that Page animation starts after given delay
+            // no matter what the createUI() method  does
+            Platform.schedule( 1, () -> {
+                ui.styles.add( CssStyle.of( "transition-delay", "0.2s") );
+                ui.cssClasses.remove( "PageOpening" );
+
+                page.createUI( ui );
+                ui.layout();
+
+                Platform.schedule( 1000, () -> {
+                    ui.styles.remove( CssStyle.of( "transition-delay", "0.2s") );
+                });
+            });
             pageLifecycle( this, PAGE_OPENED );
         }
     }
@@ -262,7 +278,7 @@ public class Pageflow {
         Assert.isSame( page, pages.peek().clientPage, "Removing other than top page is not supported yet." );
         var pageData = pages.pop();
         pageLifecycle( pageData, PAGE_CLOSING );
-        pageData.ui.cssClasses.add( "Closing" );
+        pageData.ui.cssClasses.add( "PageClosing" );
         with( pageData.ui.position ).apply( pos -> pos.set(
                 Position.of( pos.value().x, rootContainer.clientSize.value().height() - 30 ) ) );
 

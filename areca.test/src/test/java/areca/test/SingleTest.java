@@ -17,9 +17,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.polymap.model2.engine.EntityRepositoryImpl;
+import org.polymap.model2.store.no2.No2Store;
 import org.polymap.model2.test2.RepoSupplier;
-import org.polymap.model2.test2.SimpleQueryTest;
 
+import areca.common.Platform;
+import areca.common.Timer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Level;
 import areca.common.log.LogFactory.Log;
@@ -41,7 +43,8 @@ class SingleTest
         // suppress "Entity class is already connected..." warning
         LogFactory.setClassLevel( EntityRepositoryImpl.class, Level.ERROR );
 
-        //LogFactory.setPackageLevel( No2Store.class, Level.DEBUG );
+        LogFactory.setPackageLevel( No2Store.class, Level.DEBUG );
+        //LogFactory.setPackageLevel( EventLoop.class, Level.DEBUG );
         //LogFactory.setPackageLevel( AssociationsTest.class, Level.DEBUG );
         RepoSupplier.no2();
     }
@@ -50,9 +53,23 @@ class SingleTest
     public void theOnlyTest() {
 //        execute( ComplexModelTest.info );
 //        execute( PerformanceTest.info );
-        execute( SimpleQueryTest.info );
+//        execute( SimpleQueryTest.info );
 //        execute( AssociationsTest.info );
-        //execute( AsyncTests.info );
+//        execute( AsyncTests.info );
+//        execute( ServerTests.info );
     }
 
+    @Test
+    public void scheduleDelayedTest() {
+        execute( () -> {
+            var t = Timer.start();
+            Platform.schedule( 20, () -> {
+                LOG.info( "done: 20 (%s)", t );
+            });
+            t.restart();
+            Platform.schedule( 10, () -> {
+                LOG.info( "done: 10 (%s)", t );
+            });
+        });
+    }
 }

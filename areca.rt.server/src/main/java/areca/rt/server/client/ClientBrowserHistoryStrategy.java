@@ -51,7 +51,7 @@ public class ClientBrowserHistoryStrategy {
 
 
     protected void onPageflowEvent( PageflowEvent ev ) {
-        LOG.warn( "onPageflowEvent(): type = %s, state = %s", ev.getSource(), ev.pageCount );
+        //LOG.warn( "onPageflowEvent(): type = %s, state = %s", ev.getSource(), ev.pageCount );
 
         if (ev.getSource().equals( "PAGE_OPENED" )) {
             var state = String.valueOf( ev.pageCount );

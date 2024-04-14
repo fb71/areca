@@ -89,7 +89,7 @@ public class ServerPlatform
         Completable<R> promise = new Completable<>();
         Session.instanceOf( EventLoop.class ).enqueue( label, () -> {
             if (t != null) {
-                LOG.debug( "schedule: delay requested: %s - was actually: %s", delayMillis, t.elapsedHumanReadable() );
+                LOG.debug( "enqueue(): delay requested: %s - was actually: %s", delayMillis, t.elapsedHumanReadable() );
             }
             try {
                 if (!promise.isCanceled()) { // XXX

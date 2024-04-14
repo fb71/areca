@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.time.Duration;
 
 import areca.common.Session;
+import areca.common.Timer;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -43,7 +44,7 @@ public abstract class EventLoop {
      * Factory
      */
     public static EventLoop create() {
-        return new EventLoop1();
+        return new EventLoop2();
     }
 
     /**
@@ -68,13 +69,13 @@ public abstract class EventLoop {
 
     public void requestPolling() {
         pollingRequests.incrementAndGet();
-        LOG.warn( "POLLING: +%s", pollingRequests );
+        //LOG.warn( "POLLING: +%s", pollingRequests );
     }
 
 
     public void releasePolling() {
         var c = pollingRequests.decrementAndGet();
-        LOG.warn( "POLLING: -%s", c );
+        //LOG.warn( "POLLING: -%s", c );
         if (c < 0) {
             LOG.warn( "pollingRequests !>= 0 : %s", pollingRequests );
             //pollingRequests = 0;
@@ -110,7 +111,6 @@ public abstract class EventLoop {
             execute( timeframeMillis );
             while (!condition.get()) {
                 long pendingWait = pendingWait();
-                LOG.info( "waiting: (%s ms)", pendingWait );
 
                 if (pendingWait == -1) {
                     return false;
@@ -119,7 +119,9 @@ public abstract class EventLoop {
                     // waiting on target (Promise) is tricky because one Promise usually
                     // consists of a chain of promises...
                     synchronized (this) {
+                        var t = Timer.start();
                         try { wait( pendingWait ); } catch (InterruptedException e) { }
+                        LOG.info( "waited: %s ms (actual: %s)", pendingWait, t );
                     }
                 }
                 execute( timeframeMillis );

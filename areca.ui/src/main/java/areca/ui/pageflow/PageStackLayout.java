@@ -14,6 +14,7 @@
 package areca.ui.pageflow;
 
 import areca.common.Platform;
+import areca.common.Timer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
@@ -45,12 +46,28 @@ public class PageStackLayout
     }
 
 
+//    public void openLast2( UIComposite pageRoot ) {
+//        Assert.isSame( composite.components.values().last().orNull(), pageRoot );
+//        Platform.schedule( 1, () -> {
+//            pageRoot.styles.add( CssStyle.of( "transition-delay", "0.2s") );
+//            pageRoot.cssClasses.remove( "PageOpening" );
+//            page.createUI( (UIComposite)ui );
+//            if (ui instanceof UIComposite) {
+//                ((UIComposite)ui).layout();
+//            }
+//            //layout.openLast( origin, (int)Math.max( 0, 90 - t.elapsedMillis() ) );
+//            pageLifecycle( this, PAGE_OPENED );
+//        });
+//    }
+
     /**
      * Show the page open animation.
      *
      * @param origin The position where the action has its origin.
+     * @param l
      */
-    public void openLast( Position origin ) {
+    public void openLast( Position origin, int delay ) {
+        var t = Timer.start();
         // scale last one
         composite.components.values().last().ifPresent( top -> {
             top.cssClasses.add( "PageStackLayout-Top" );
@@ -62,7 +79,8 @@ public class PageStackLayout
 
             //LOG.info( "Position: %s - %s -> %s", origin, composite.clientSize.value().divide( 1.2f ), top.position.value() );
 
-            Platform.schedule( 200, () -> {
+            Platform.schedule( delay, () -> {
+                LOG.warn( "    opening Page: delay=%s, actual=%s", delay, delay + t.elapsedMillis() );
                 top.bordered.set( true );
                 top.cssClasses.remove( "PageStackLayout-Top" );
                 top.position.set( Position.of( 0, 0 ) );
