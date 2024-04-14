@@ -30,16 +30,19 @@ import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.RowLayout;
+import areca.ui.viewer.model.LazyListModel;
 import areca.ui.viewer.model.ListModel;
+import areca.ui.viewer.model.ListModelBase;
 
 /**
- * Renders a simple list consisting of plain {@link UIComposite} which are filled by
- * a given builder function. The container composite does not scroll.
+ * Renders a simple list consisting of plain {@link UIComposite}s which are filled by
+ * a given builder function. The container composite does not scroll. Works on
+ * {@link ListModel} and {@link LazyListModel}.
  *
  * @author Falko Bräutigam
  */
 public class CompositeListViewer<V>
-        extends Viewer<ListModel<V>> {
+        extends Viewer<ListModelBase<V>> {
 
     private static final Log LOG = LogFactory.getLog( CompositeListViewer.class );
 
@@ -60,9 +63,15 @@ public class CompositeListViewer<V>
 
     protected Map<V,UIComponent>    components = new HashMap<>();
 
+    /**
+     *
+     * @param <T>
+     * @author Falko Bräutigam
+     */
     public interface CellBuilder<T>
-            extends RBiFunction<T,ListModel<T>,UIComponent> {
+            extends RBiFunction<T,ListModelBase<T>,UIComponent> {
     }
+
 
     public CompositeListViewer( CellBuilder<V> componentBuilder ) {
         this.componentBuilder = componentBuilder;
@@ -91,33 +100,60 @@ public class CompositeListViewer<V>
 
     @Override
     public Object load() {
-        container.components.removeAll();
-        var hash = 0;
         var index = new MutableInt( 0 );
-        for (var v : model) {
-            var component = components.computeIfAbsent( v, k -> {
-                var result = componentBuilder.apply( v, model );
-                result.cssClasses.add( "TableCell" );
-                if (lines.$()) {
-                    result.cssClasses.add( "Lines" );
+        // LazyListModel
+        if (model instanceof LazyListModel) {
+            ((LazyListModel<V>)model).load( 0, 100 ).onSuccess( opt -> { // 100!?
+                if (index.intValue() == 0) {
+                    // after wait to avoid flicker
+                    container.components.removeAll();
                 }
-                if (onSelect.opt().isPresent()) {
-                    result.cssClasses.add( "Clickable" );
-                    result.events.on( EventType.SELECT, onSelect.$() );
-                }
-                return result;
+                opt.ifPresent( v -> {
+                    container.add( buildItem( v, index ) );
+                    index.increment();
+                });
+                opt.ifAbsent( __ -> container.layout() );
             });
-            if (oddEven.$()) {
-                component.cssClasses.remove( "Odd" );
-                component.cssClasses.remove( "Even" );
-                component.cssClasses.add( index.intValue() % 2 == 1 ? "Odd" : "Even" );
-            }
-            container.add( component );
-            hash ^= component.hashCode();
-            index.increment();
+            return null; // XXX
         }
-        container.layout();
-        return hash; // XXX
+        // ListModel
+        else if (model instanceof ListModel) {
+            container.components.removeAll();
+            var hash = 0;
+            for (var v : (ListModel<V>)model) {
+                container.add( buildItem( v, index ) );
+                hash ^= buildItem( v, index ).hashCode();
+                index.increment();
+            }
+            container.layout();
+            return hash; // XXX
+        }
+        else {
+            throw new RuntimeException( "Unknown model type: " + model );
+        }
+    }
+
+
+    protected UIComponent buildItem( V v, MutableInt index ) {
+        var component = components.computeIfAbsent( v, k -> {
+            var result = componentBuilder.apply( v, model );
+            result.cssClasses.add( "TableCell" );
+            if (lines.$()) {
+                result.cssClasses.add( "Lines" );
+            }
+            if (onSelect.opt().isPresent()) {
+                result.cssClasses.add( "Clickable" );
+                result.events.on( EventType.SELECT, onSelect.$() );
+            }
+            return result;
+        });
+        // index can change after add/remove
+        if (oddEven.$()) {
+            component.cssClasses.remove( "Odd" );
+            component.cssClasses.remove( "Even" );
+            component.cssClasses.add( index.intValue() % 2 == 1 ? "Odd" : "Even" );
+        }
+        return component;
     }
 
 

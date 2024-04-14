@@ -14,6 +14,7 @@
 package areca.ui.viewer.model;
 
 import areca.common.Promise;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Opt;
 
 /**
@@ -21,10 +22,22 @@ import areca.common.base.Opt;
  * @author Falko Bräutigam
  */
 public interface LazyListModel<V>
-        extends ModelBase {
+        extends ListModelBase<V> {
 
     public abstract Promise<Integer> count();
 
+    /**
+     * Retrieves the elements with the given indexes.
+     *
+     * @param first The first index to load.
+     * @param max The maximum number of values to load.
+     * @return {@link Promise} of single values. {@link Opt#absent()} signals last element.
+     * @see #load(int, int, RConsumer)
+     */
     public abstract Promise<Opt<V>> load( int first, int max );
+
+    public default void load( int first, int max, RConsumer<V> handler ) {
+        load( first, max ).onSuccess( opt -> opt.ifPresent( v -> handler.accept( v ) ) );
+    }
 
 }
