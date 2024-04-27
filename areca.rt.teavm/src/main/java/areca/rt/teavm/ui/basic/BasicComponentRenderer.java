@@ -20,6 +20,7 @@ import areca.rt.teavm.ui.BadgeRenderer;
 import areca.rt.teavm.ui.ButtonRenderer;
 import areca.rt.teavm.ui.ColorPickerRenderer;
 import areca.rt.teavm.ui.FileUploadRenderer;
+import areca.rt.teavm.ui.IFrameRenderer;
 import areca.rt.teavm.ui.ImageRenderer;
 import areca.rt.teavm.ui.LabelRenderer;
 import areca.rt.teavm.ui.LinkRenderer;
@@ -56,6 +57,7 @@ public class BasicComponentRenderer {
         ColorPickerRenderer._start();
         FileUploadRenderer._start();
         ImageRenderer._start();
+        IFrameRenderer._start();
 
         BadgeRenderer._start();
         LabelRenderer._start();

@@ -104,8 +104,10 @@ class StateHolder
             }
 
             @Override
-            public void activate() {
+            @SuppressWarnings( "unchecked" )
+            public <R> R activate() {
                 result.init();
+                return (R)result.state;
             }
         };
     }

@@ -436,6 +436,10 @@ input[type="file"]::file-selector-button:hover:enabled {
   filter: brightness(1.3);
 }
 
+.IFrame {
+  border-radius: 0px;
+}
+
 .PageStackLayout-Top {
   transition: none;
   transform: scale(0.2);

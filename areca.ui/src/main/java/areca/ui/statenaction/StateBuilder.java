@@ -23,8 +23,9 @@ public interface StateBuilder {
 
     /**
      * Actually activates the newly created {@link State}.
+     * @return The newly creates state instance.
      */
-    void activate();
+    <R> R activate();
 
     /**
      * Register a listener for {@link StateChangeEvent State lifecycle events}. The

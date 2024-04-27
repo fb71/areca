@@ -42,7 +42,7 @@ public class LinkRenderer
     public static void _start() {
         UIComponentEvent.manager()
                 .subscribe( new LinkRenderer() )
-                .performIf( ev -> ev instanceof ComponentConstructedEvent && ev.getSource() instanceof Link );
+                .performIf( ComponentConstructedEvent.class, ev -> ev.getSource() instanceof Link );
     }
 
 
@@ -52,6 +52,7 @@ public class LinkRenderer
     protected HTMLAnchorElement htmlElm( UIComponent c ) {
         return Assert.notNull( (HTMLAnchorElement)c.htmlElm );
     }
+
 
     @EventHandler( ComponentConstructedEvent.class )
     public void componentConstructed( ComponentConstructedEvent ev ) {
@@ -70,6 +71,11 @@ public class LinkRenderer
 
         c.content.onChange( (newValue, oldValue) -> {
             textNode.setNodeValue( newValue );
+        });
+
+        c.size.onInitAndChange( (newValue, oldValue) -> {
+            // vertically center text
+            htmlElm( c ).getStyle().setProperty( "line-height", newValue.height() + "px" );
         });
     }
 

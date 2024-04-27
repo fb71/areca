@@ -44,6 +44,7 @@ import areca.ui.component2.ColorPicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.FileUpload;
+import areca.ui.component2.IFrame;
 import areca.ui.component2.Image;
 import areca.ui.component2.Label;
 import areca.ui.component2.Link;
@@ -115,7 +116,7 @@ public class Connection {
         send.setEvents( Sequence.of( clickEvents ).toArray( JSClickEvent[]::new ) );
         clickEvents.clear();
         var json = JSON.stringify( send );
-        var rt = Timer.start();
+        //var rt = Timer.start();
         LOG.warn( "Sending request: %s", StringUtils.abbreviate( json, 40 ) );
         pendingRequest = Platform.xhr( "POST", SERVER_PATH )
                 .submit( json )
@@ -161,32 +162,9 @@ public class Connection {
         for (var ev : msg.uiEvents()) {
             //LOG.info( "Event: %s", ev.eventType() );
 
-            // constructing
-            if (ComponentConstructingEvent.class.getSimpleName().equals( ev.eventType() )) {
-                var component = ev.componentClass().equals( RootWindow.class.getName() )
-                        ? rootWindow
-                        : createInstance( ev.componentClass() );
-                component.setId( ev.componentId() );
-                Assert.isNull( components.put( component.id(), component ) );
-            }
-            // attached
-            else if (ComponentAttachedEvent.class.getSimpleName().equals( ev.eventType() )) {
-                var parent = (UIComposite)components.get( ev.parentId() );
-                var component = (UIComponent)components.get( ev.componentId() );
-                parent.add( component );
-            }
-            // detached
-            else if (ComponentDetachedEvent.class.getSimpleName().equals( ev.eventType() )) {
-                var component = (UIComponent)components.get( ev.componentId() );
-                //Assert.isEqual( ev.parentId(), component.parent().id() );
-                component.parent().components.remove( component ).orElseError();
-            }
-            // disposed
-            else if (ComponentDisposedEvent.class.getSimpleName().equals( ev.eventType() )) {
-                components.remove( ev.componentId() ).dispose();
-            }
             // property
-            else if (PropertyChangedEvent.class.getSimpleName().equals( ev.eventType() )) {
+            var eventType = ev.eventType();
+            if (PropertyChangedEvent.class.getSimpleName().equals( eventType )) {
                 var element = components.get( ev.componentId() );
                 var prop = Assert.notNull( element.propertyForName( ev.propName() ) );
 
@@ -213,25 +191,49 @@ public class Connection {
                     rw.set( value );
                 }
             }
+            // constructing
+            else if (ComponentConstructingEvent.class.getSimpleName().equals( eventType )) {
+                var component = ev.componentClass().equals( RootWindow.class.getName() )
+                        ? rootWindow
+                        : createInstance( ev.componentClass() );
+                component.setId( ev.componentId() );
+                Assert.isNull( components.put( component.id(), component ) );
+            }
+            // attached
+            else if (ComponentAttachedEvent.class.getSimpleName().equals( eventType )) {
+                var parent = (UIComposite)components.get( ev.parentId() );
+                var component = (UIComponent)components.get( ev.componentId() );
+                parent.add( component );
+            }
+            // detached
+            else if (ComponentDetachedEvent.class.getSimpleName().equals( eventType )) {
+                var component = (UIComponent)components.get( ev.componentId() );
+                //Assert.isEqual( ev.parentId(), component.parent().id() );
+                component.parent().components.remove( component ).orElseError();
+            }
+            // disposed
+            else if (ComponentDisposedEvent.class.getSimpleName().equals( eventType )) {
+                components.remove( ev.componentId() ).dispose();
+            }
             // decorator attached
-            else if (DecoratorAttachedEvent.class.getSimpleName().equals( ev.eventType() )) {
+            else if (DecoratorAttachedEvent.class.getSimpleName().equals( eventType )) {
                 var component = Assert.notNull( (UIComponent)components.get( ev.parentId() ), "No such component: " + ev.parentId() );
                 var decorator = Assert.notNull( (UIComponentDecorator)components.get( ev.componentId() ) );
                 component.addDecorator( decorator );
             }
             // decorator detached
-            else if (DecoratorDetachedEvent.class.getSimpleName().equals( ev.eventType() )) {
+            else if (DecoratorDetachedEvent.class.getSimpleName().equals( eventType )) {
                 var component = Assert.notNull( (UIComponent)components.get( ev.parentId() ), "No such component: " + ev.parentId() );
                 var decorator = Assert.notNull( (UIComponentDecorator)components.get( ev.componentId() ) );
                 component.decorators.remove( decorator );
             }
             // Pageflow
-            else if (ev.eventType().equals( "Pageflow" )) {
+            else if (eventType.equals( "Pageflow" )) {
                 var value = JSServer2ClientMessage.decodeValue( ev.propNewValue().cast() );
                 EventManager.instance().publish( new PageflowEvent( ev.propName(), (int)value ) );
             }
             else {
-                throw new RuntimeException( "mas trabajo: " + ev.eventType() );
+                throw new RuntimeException( "mas trabajo: " + eventType );
             }
         }
     }
@@ -327,6 +329,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".FileUpload" : return new FileUpload();
             case PACKAGE_UI_COMPONENTS + ".Separator" : return new Separator();
             case PACKAGE_UI_COMPONENTS + ".Image" : return new Image();
+            case PACKAGE_UI_COMPONENTS + ".IFrame" : return new IFrame();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );

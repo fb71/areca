@@ -166,8 +166,8 @@ public class UIComponentRenderer
                 .onInitAndChange( (newValue, oldValue) -> {
                     hideWithoutPositionOrSize( c );
                     Assert.notNull( newValue, "Setting null value means remove() ???" );
-                    htmlElm.getStyle().setProperty( "width", String.format( "%spx", newValue.width() ) );
-                    htmlElm.getStyle().setProperty( "height", String.format( "%spx", newValue.height() ) );
+                    htmlElm.getStyle().setProperty( "width", newValue.width() + "px" );
+                    htmlElm.getStyle().setProperty( "height", newValue.height() + "px" );
                 });
 //                .defaultsTo( () -> {
 //                    return Size.of( htmlElm.getOffsetWidth(), htmlElm.getOffsetHeight() );
@@ -190,8 +190,8 @@ public class UIComponentRenderer
                         htmlElm.getStyle().removeProperty( "top" );
                     }
                     else {
-                        htmlElm.getStyle().setProperty( "left", String.format( "%spx", newValue.x() ) );
-                        htmlElm.getStyle().setProperty( "top", String.format( "%spx", newValue.y() ) );
+                        htmlElm.getStyle().setProperty( "left", newValue.x() + "px" );
+                        htmlElm.getStyle().setProperty( "top", newValue.y() + "px" );
                     }
                 });
                 //.initWith( () -> {

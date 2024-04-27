@@ -58,6 +58,7 @@ import areca.ui.component2.ColorPicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.FileUpload;
+import areca.ui.component2.IFrame.IFrameMsgEvent;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 
@@ -217,6 +218,11 @@ public class ArecaUIServer
                             else if (event.eventType.startsWith( "BrowserHistory" )) {
                                 LOG.debug( "BrowserHistory: %s", event.content );
                                 EventManager.instance().publish( new BrowserHistoryEvent( "popstate", event.content ) );
+                            }
+                            // IFrame
+                            else if (event.eventType.startsWith( "IFrame" )) {
+                                LOG.debug( "IFrame: %s : %s", event.eventType, event.content );
+                                EventManager.instance().publish( new IFrameMsgEvent( event.content ) );
                             }
                             // click, text, upload ...
                             else {

@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import org.teavm.jso.browser.Window;
+import org.teavm.jso.core.JSString;
 
 import areca.common.Platform;
 import areca.common.ProgressMonitor;
@@ -65,12 +66,20 @@ public class ClientApp
                 var conn = new Connection( rootWindow );
                 Session.setInstance( conn );
 
+                // rootWindow resize
                 conn.enqueueClickEvent( JSResizeEvent.create( rootWindow, rootWindow.size.get() ) );
                 rootWindow.size.onChange( (newSize, oldSize) -> {
                     if (!Objects.equals( newSize, oldSize )) {
                         LOG.info( "RESIZE: %s (%s)", newSize, oldSize );
                         conn.enqueueClickEvent( JSResizeEvent.create( rootWindow, newSize ) );
                     }
+                });
+
+                // XXX iframe communication
+                Window.current().listenMessage( ev -> {
+                    var msg = ((JSString)ev.getData()).stringValue();
+                    LOG.info( "Message: %s", msg );
+                    conn.enqueueClickEvent( JSIFrameEvent.create( msg ) );
                 });
 
                 ClientBrowserHistoryStrategy.start();
@@ -87,6 +96,24 @@ public class ClientApp
     }
 
 
+    /**
+     *
+     */
+    public static abstract class JSIFrameEvent
+            extends JSClickEvent {
+
+        public static JSIFrameEvent create( String msg ) {
+            var result = JSClickEvent.create();
+            result.setEventType( "IFrame.msg" );
+            result.setContent( msg );
+            return result.cast();
+        }
+    }
+
+
+    /**
+     *
+     */
     public static abstract class JSResizeEvent
             extends JSClickEvent {
 
