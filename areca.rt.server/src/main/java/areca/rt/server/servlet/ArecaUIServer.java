@@ -118,6 +118,7 @@ public class ArecaUIServer
             Session.registerFactory( ServerApp.class, () -> appClass.newInstance() );
         }
         catch (Exception e) {
+            e.printStackTrace();
             throw new ServletException( e );
         }
     }
