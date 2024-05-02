@@ -23,7 +23,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-
 import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.Session;
@@ -292,6 +291,17 @@ public class Pageflow {
             pageLifecycle( pageData, PAGE_CLOSED );
             // rootContainer.layout();
         });
+    }
+
+
+    /**
+     * True if the given page currently exists and is open.
+     */
+    public boolean isOpen( Object page ) {
+        return Sequence.of( pages )
+                .first( holder -> holder.clientPage == page )
+                .ifPresentMap( holder -> !holder.isClosed() )
+                .orElse( false );
     }
 
 

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.polymap.model2.engine.EntityRepositoryImpl;
 import org.polymap.model2.store.no2.No2Store;
 import org.polymap.model2.test2.RepoSupplier;
+import org.polymap.model2.test2.SimpleModelTest;
 
 import areca.common.Platform;
 import areca.common.Timer;
@@ -51,6 +52,7 @@ class SingleTest
 
     @Test
     public void theOnlyTest() {
+        execute( SimpleModelTest.info );
 //        execute( ComplexModelTest.info );
 //        execute( PerformanceTest.info );
 //        execute( SimpleQueryTest.info );
