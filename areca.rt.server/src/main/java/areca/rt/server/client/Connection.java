@@ -51,6 +51,7 @@ import areca.ui.component2.Link;
 import areca.ui.component2.Property.PropertyChangedEvent;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.ScrollableComposite;
+import areca.ui.component2.Select;
 import areca.ui.component2.Separator;
 import areca.ui.component2.Text;
 import areca.ui.component2.TextField;
@@ -257,6 +258,9 @@ public class Connection {
             else if (component instanceof ColorPicker) {
                 jsev.setContent( ((ColorPicker)component).value.get() );
             }
+            else if (component instanceof Select) {
+                jsev.setContent( ((Select)component).value.get() );
+            }
             else {
                 throw new RuntimeException( "Unhandled: " + component );
             }
@@ -330,6 +334,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".Separator" : return new Separator();
             case PACKAGE_UI_COMPONENTS + ".Image" : return new Image();
             case PACKAGE_UI_COMPONENTS + ".IFrame" : return new IFrame();
+            case PACKAGE_UI_COMPONENTS + ".Select" : return new Select();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );

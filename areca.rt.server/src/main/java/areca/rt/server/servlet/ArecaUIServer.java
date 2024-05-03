@@ -59,6 +59,7 @@ import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.FileUpload;
 import areca.ui.component2.IFrame.IFrameMsgEvent;
+import areca.ui.component2.Select;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
 
@@ -236,6 +237,10 @@ public class ArecaUIServer
                                 else if (component instanceof ColorPicker) {
                                     Assert.isEqual( EventType.TEXT, eventType );
                                     ((ColorPicker)component).value.rawSet( event.content );
+                                }
+                                else if (component instanceof Select) {
+                                    Assert.isEqual( EventType.TEXT, eventType );
+                                    ((Select)component).value.rawSet( event.content );
                                 }
                                 else if (component instanceof FileUpload) {
                                     Assert.isEqual( EventType.UPLOAD, eventType );

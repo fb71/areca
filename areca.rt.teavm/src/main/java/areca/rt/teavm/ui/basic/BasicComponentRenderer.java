@@ -26,6 +26,7 @@ import areca.rt.teavm.ui.LabelRenderer;
 import areca.rt.teavm.ui.LinkRenderer;
 import areca.rt.teavm.ui.ProgressRenderer;
 import areca.rt.teavm.ui.ScrollableCompositeRenderer;
+import areca.rt.teavm.ui.SelectRenderer;
 import areca.rt.teavm.ui.SeparatorRenderer;
 import areca.rt.teavm.ui.TagRenderer;
 import areca.rt.teavm.ui.TextFieldRenderer;
@@ -58,6 +59,7 @@ public class BasicComponentRenderer {
         FileUploadRenderer._start();
         ImageRenderer._start();
         IFrameRenderer._start();
+        SelectRenderer._start();
 
         BadgeRenderer._start();
         LabelRenderer._start();

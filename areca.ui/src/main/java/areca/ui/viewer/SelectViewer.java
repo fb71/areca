@@ -13,11 +13,13 @@
  */
 package areca.ui.viewer;
 
+import java.util.List;
+
 import areca.common.Assert;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.ui.component2.ColorPicker;
 import areca.ui.component2.Events.EventType;
+import areca.ui.component2.Select;
 import areca.ui.component2.UIComponent;
 import areca.ui.viewer.model.Model;
 
@@ -25,37 +27,44 @@ import areca.ui.viewer.model.Model;
  *
  * @author Falko Bräutigam
  */
-public class ColorPickerViewer
+public class SelectViewer
         extends Viewer<Model<String>> {
 
-    private static final Log LOG = LogFactory.getLog( ColorPickerViewer.class );
+    private static final Log LOG = LogFactory.getLog( SelectViewer.class );
 
-    protected ColorPicker   colorPicker;
+    protected Select select;
+
+    protected List<String> options;
+
+
+    public SelectViewer( List<String> options ) {
+        this.options = options;
+    }
 
     @Override
     public UIComponent create() {
-        Assert.isNull( colorPicker );
-        colorPicker = new ColorPicker() {{
+        Assert.isNull( select );
+        select = new Select() {{
+            options.set( SelectViewer.this.options );
             events.on( EventType.TEXT, ev -> {
-                LOG.info( "%s", value.get() );
                 fireEvent( value.get(), null );
             });
             if (configurator != null) {
                 configurator.accept( this );
             }
         }};
-        model.subscribe( ev -> load() ).unsubscribeIf( () -> colorPicker.isDisposed() );
-        return colorPicker;
+        model.subscribe( ev -> load() ).unsubscribeIf( () -> select.isDisposed() );
+        return select;
     }
 
     @Override
     protected boolean isDisposed() {
-        return Assert.notNull( colorPicker, "No field has been created yet for this viewer." ).isDisposed();
+        return Assert.notNull( select, "No field has been created yet for this viewer." ).isDisposed();
     }
 
     @Override
     public String store() {
-        var value = colorPicker.value.opt().orNull();
+        var value = select.value.opt().orNull();
         model.set( value );
         return value;
     }
@@ -63,7 +72,7 @@ public class ColorPickerViewer
     @Override
     public String load() {
         var value = model.get();
-        colorPicker.value.set( value );
+        select.value.set( value );
         return value;
     }
 

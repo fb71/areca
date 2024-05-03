@@ -1,0 +1,23 @@
+.Select {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background-color: inherit;
+    box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
+    overflow: visible; // badge and tags
+    cursor: pointer;
+}
+
+.Select:hover:enabled {
+    filter: brightness(1.3);
+}
+
+.Select > option {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background-color: $bg3_color !important;
+    cursor: pointer;
+    line-height: 1.2;
+    padding: 0.5em;
+}
