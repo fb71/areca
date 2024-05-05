@@ -1,0 +1,84 @@
+.Labeled:before {
+    content: attr(data-label);
+    //width: 20px;
+    height: 12px;
+    line-height: 12px;
+    text-align: left;
+    display: block;
+    //background: saturate(darken($accent_color, 5%), 10%);
+    //border: 1px solid darken($font_color, 20%);
+    color: darken($font_color, 25%);
+    font-size: 11px;
+    //font-w+eight: bold;
+    position: absolute;
+    top: -7px;
+    left: 7px;
+}
+
+// https://stackoverflow.com/questions/27015025/badges-for-buttons-using-html-and-css
+$badge-padding: 4px;
+
+.Badged:before {
+    content: attr(data-badge);
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    display: block;
+    border-radius: 50%;
+    //background: saturate(darken($accent_color, 5%), 10%);
+    background: saturate(darken($link_color, 5%), 10%);
+    color: lighten($font_color, 10%);
+    border: 1px solid darken($font_color, 20%);
+    font-size: 12px;
+    font-weight: bold;
+    //text-shadow: 1px 1px 2px rgb(0, 0, 0, 0.5);
+    box-shadow: 0px 1px 4px rgba(0,0,0,0.5);
+    position: absolute;
+    top: -$badge_padding;
+    left: -$badge_padding;
+    //z-index: 100;
+    
+//    transition: 
+//        opacity $transition_duration,
+}
+
+.Badged-NorthEast:before {
+    left: auto;
+//    right: -$badge_padding;
+    right: 0;
+}
+
+//button.badge-bottom-right:before {
+//    left: auto;
+//    top: auto;
+//    right: -7px;
+//    bottom: -7px;
+//}
+//
+//button.badge-bottom-left:before {
+//    top: auto;
+//    bottom: -7px;
+//}
+
+.Tagged:after {
+    @extend .material-icons;
+    
+    content: attr(data-tag);
+    //width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: left;
+    display: block;
+    //background: saturate(darken($accent_color, 5%), 10%);
+    //border: 1px solid darken($font_color, 20%);
+    color: desaturate(darken($link_color, 32%), 60%);
+    font-size: 21px;
+    text-shadow: 1px 2px 4px rgba(0,0,0,50%);
+    //font-w+eight: bold;
+    position: absolute;
+    top: -4px;
+    left: auto;
+    right: -2px;
+    //bottom: -$badge_padding;
+}

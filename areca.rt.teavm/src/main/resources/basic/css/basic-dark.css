@@ -206,57 +206,6 @@ a:active, .Link:active {
   opacity: 0%;
 }
 
-.Labeled:before {
-  content: attr(data-label);
-  height: 12px;
-  line-height: 12px;
-  text-align: left;
-  display: block;
-  color: #909090;
-  font-size: 11px;
-  position: absolute;
-  top: -7px;
-  left: 7px;
-}
-
-.Badged:before {
-  content: attr(data-badge);
-  width: 20px;
-  height: 20px;
-  line-height: 20px;
-  text-align: center;
-  display: block;
-  border-radius: 50%;
-  background: #3e9d7b;
-  border: 1px solid #9d9d9d;
-  font-size: 12px;
-  font-weight: bold;
-  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.5);
-  position: absolute;
-  top: -4px;
-  left: -4px;
-}
-
-.Badged-NorthEast:before {
-  left: auto;
-  right: -4px;
-}
-
-.Tagged:after {
-  content: attr(data-tag);
-  height: 20px;
-  line-height: 20px;
-  text-align: left;
-  display: block;
-  color: #474747;
-  font-size: 21px;
-  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
-  position: absolute;
-  top: -4px;
-  left: auto;
-  right: -2px;
-}
-
 .Button {
   font-family: inherit;
   font-size: inherit;
@@ -462,6 +411,58 @@ input[type="file"]::file-selector-button:hover:enabled {
   cursor: pointer;
   line-height: 1.2;
   padding: 0.5em;
+}
+
+.Labeled:before {
+  content: attr(data-label);
+  height: 12px;
+  line-height: 12px;
+  text-align: left;
+  display: block;
+  color: #909090;
+  font-size: 11px;
+  position: absolute;
+  top: -7px;
+  left: 7px;
+}
+
+.Badged:before {
+  content: attr(data-badge);
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  display: block;
+  border-radius: 50%;
+  background: #d28745;
+  color: #eaeaea;
+  border: 1px solid #9d9d9d;
+  font-size: 12px;
+  font-weight: bold;
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  top: -4px;
+  left: -4px;
+}
+
+.Badged-NorthEast:before {
+  left: auto;
+  right: 0;
+}
+
+.Tagged:after {
+  content: attr(data-tag);
+  height: 20px;
+  line-height: 20px;
+  text-align: left;
+  display: block;
+  color: #474747;
+  font-size: 21px;
+  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  top: -4px;
+  left: auto;
+  right: -2px;
 }
 
 .PageStackLayout-Top {

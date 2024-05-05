@@ -39,6 +39,7 @@ import areca.rt.server.client.ClientBrowserHistoryStrategy.PageflowEvent;
 import areca.rt.server.client.JSClient2ServerMessage.JSClickEvent;
 import areca.rt.server.servlet.ArecaUIServer;
 import areca.ui.App.RootWindow;
+import areca.ui.component2.Badge;
 import areca.ui.component2.Button;
 import areca.ui.component2.ColorPicker;
 import areca.ui.component2.Events.EventType;
@@ -335,6 +336,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".Image" : return new Image();
             case PACKAGE_UI_COMPONENTS + ".IFrame" : return new IFrame();
             case PACKAGE_UI_COMPONENTS + ".Select" : return new Select();
+            case PACKAGE_UI_COMPONENTS + ".Badge" : return new Badge();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );
