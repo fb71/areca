@@ -107,11 +107,13 @@ public class CompositeListViewer<V>
                     // after wait to avoid flicker
                     container.components.removeAll();
                 }
-                opt.ifPresent( v -> {
-                    container.add( buildItem( v, index ) );
+                if (opt.isPresent()) {
+                    container.add( buildItem( opt.get(), index ) );
                     index.increment();
-                });
-                opt.ifAbsent( __ -> container.layout() );
+                }
+                else {
+                    container.layout();
+                };
             });
             return null; // XXX
         }
