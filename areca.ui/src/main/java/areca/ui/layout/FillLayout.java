@@ -43,6 +43,9 @@ public class FillLayout
     @Override
     public void layout( UIComposite composite ) {
         super.layout( composite );
+        if (composite.components.size() == 0) {
+            return;
+        }
         composite.clientSize.opt().ifPresent( size -> {
             LOG.debug( "FillLayout: ", size );
 
