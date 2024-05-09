@@ -171,7 +171,7 @@ public abstract class Page {
     public static abstract class PageSite {
 
         /**
-         * Allows the Page to add actions to be shown in the global "toolbar".
+         * Allows the Page to add actions to be shown in its global "toolbar".
          */
         public ReadWrites<?,Action> actions = Property.rws( this, "actions", new ArrayList<>() );
 

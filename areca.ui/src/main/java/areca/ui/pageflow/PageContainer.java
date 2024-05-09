@@ -15,6 +15,7 @@ package areca.ui.pageflow;
 
 import static areca.ui.component2.Events.EventType.SELECT;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -117,6 +118,7 @@ public class PageContainer
                     actionsBtns.computeIfAbsent( action, ___ -> add( new Button() {{
                         bordered.set( false );
                         cssClasses.add( CSS_HEADER_ITEM );
+                        action.order.opt().ifAbsent( ____ -> action.order.set( actionsBtns.size() ) );
                         action.label.opt().ifPresent( v -> label.set( v ) );
                         action.icon.onInitAndChange( (v,____) -> icon.set( v ) );
                         action.type.onInitAndChange( (v,____) -> type.set( v ) );
@@ -173,9 +175,12 @@ public class PageContainer
             // XXX titleText.size.set( Size.of( ) );
 
             var actionLeft = clientSize.width() - btnSize - btnMargin;
-            for (Button actionBtn : actionsBtns.values()) {
-                actionBtn.position.set( Position.of( actionLeft, btnMargin ) );
-                actionBtn.size.set( Size.of( btnSize, btnSize ) );
+            var sorted = new ArrayList<>( actionsBtns.keySet() );
+            sorted.sort( (l,r) -> -l.order.$().compareTo( r.order.$() ) );
+            for (var action : sorted) {
+                var btn = actionsBtns.get( action );
+                btn.position.set( Position.of( actionLeft, btnMargin ) );
+                btn.size.set( Size.of( btnSize, btnSize ) );
                 actionLeft -= btnSize; // + btnMargin;
             }
 

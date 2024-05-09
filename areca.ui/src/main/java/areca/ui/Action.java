@@ -41,4 +41,7 @@ public class Action {
 
     public ReadWrite<?,Consumer<UIEvent,?>> handler = Property.rw( this, "handler" );
 
+    /** Left to right ascending */
+    public ReadWrite<?,Integer>     order = Property.rw( this, "order" );
+
 }
