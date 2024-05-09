@@ -475,9 +475,12 @@ input[type="file"]::file-selector-button:hover:enabled {
   opacity: 0;
 }
 
+.PageRoot {
+  transition: all 0.5s !important;
+}
+
 .PageOpening {
-  transition: none;
-  transform: scale(0.2);
+  transform: scale(0.3);
   opacity: 0;
 }
 

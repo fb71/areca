@@ -254,11 +254,11 @@ public class Pageflow {
             var layout = (PageStackLayout)rootContainer.layout.value();
             layout.layout( rootContainer ); // do NOT layout ALL child components
 
-            // *after* PageRoot composite is rendered with PageOpening class
-            // we createUI() to make sure that Page animation starts after given delay
-            // no matter what the createUI() method  does
+            // createUI() *after* PageRoot composite is rendered with PageOpening class
+            // to make sure that Page animation starts after given delay
+            // no matter what the createUI() method does
             Platform.schedule( 1, () -> {
-                ui.styles.add( CssStyle.of( "transition-delay", "0.2s") );
+                ui.styles.add( CssStyle.of( "transition-delay", Platform.isJVM() ? "0.15s" : "0.2s" ) );
                 ui.cssClasses.remove( "PageOpening" );
 
                 page.createUI( ui );
