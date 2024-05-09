@@ -74,8 +74,8 @@ public class UIComponentRenderer
      */
     protected void hideWithoutPositionOrSize( UIComponent c ) {
         if (!c.size.opt().isPresent()
-                || !c.position.opt().isPresent()
-                || c.cssClasses.$().isEmpty() ) {
+                && !c.position.opt().isPresent()
+                && c.cssClasses.$().isEmpty() ) {
             htmlElm( c ).getStyle().setProperty( "display", "none" );
         }
         else {
