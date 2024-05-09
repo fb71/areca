@@ -133,6 +133,7 @@ public class RowLayout
 
     @Override
     public int computeMinWidth( UIComposite composite, int height ) {
+        //Assert.that( composite.clientSize.opt().isPresent() );
         Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
         var result = compute( composite, Size.of( size.width(), height ) );
         return Sequence.of( result.values() )
@@ -144,6 +145,7 @@ public class RowLayout
 
     @Override
     public int computeMinHeight( UIComposite composite, int width ) {
+        //Assert.that( composite.clientSize.opt().isPresent() );
         Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
         var result = compute( composite, Size.of( width, size.height() ) );
         return Sequence.of( result.values() )
@@ -156,11 +158,12 @@ public class RowLayout
     @Override
     public void layout( UIComposite composite ) {
         super.layout( composite );
-        Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) );
-        for (var entry : compute( composite, size ).entrySet()) {
-            entry.getKey().position.set( entry.getValue().getLeft() );
-            entry.getKey().size.set( entry.getValue().getRight() );
-        }
+        composite.clientSize.opt().ifPresent( size -> {
+            for (var entry : compute( composite, size ).entrySet()) {
+                entry.getKey().position.set( entry.getValue().getLeft() );
+                entry.getKey().size.set( entry.getValue().getRight() );
+            }
+        });
     }
 
 

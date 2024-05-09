@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023, the @authors. All rights reserved.
+ * Copyright (C) 2023-2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -293,7 +293,12 @@ public class Connection {
         clientEventThrottle = Platform.schedule( throttleDelay, () -> {
             LOG.info( "THROTTLE: %s events", clickEvents.size() );
 
-            Assert.isNull( pendingRequest );
+            //Assert.isNull( pendingRequest );
+            if (pendingRequest != null) {
+                //Window.alert( "Das Klick war etwas zu schnell.\nSag' Falko, dass er das ändern soll. :)" );
+                LOG.warn( "Fast click/request: pendingRequest != null");
+                return null;
+            }
             if (pendingWait != null) {
                 pendingWait.cancel();
                 pendingWait = null;
@@ -310,7 +315,6 @@ public class Connection {
             }
         });
     }
-
 
 
     public void enqueueClickEvent( JSClickEvent ev ) {

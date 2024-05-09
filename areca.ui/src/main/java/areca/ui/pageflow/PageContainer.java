@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import areca.common.Assert;
+import areca.common.log.LogFactory;
+import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.Action;
@@ -42,7 +44,7 @@ import areca.ui.pageflow.Page.PageSite;
 public class PageContainer
         extends UIComposite {
 
-    //static final Log LOG = LogFactory.getLog( PageContainer.class );
+    static final Log LOG = LogFactory.getLog( PageContainer.class );
 
     public static final ClassInfo<PageContainer> INFO = PageContainerClassInfo.instance();
 
@@ -155,8 +157,12 @@ public class PageContainer
         @Override
         public void layout( UIComposite composite ) {
             super.layout( composite );
-            @SuppressWarnings("hiding")
-            var clientSize = PageContainer.this.clientSize.opt().orElse( Size.of( 50, 50 ) );
+            if (PageContainer.this.clientSize.opt().isAbsent()) {
+                return;
+            }
+            LOG.info( "clientSize: %s", PageContainer.this.clientSize.get() );
+            @SuppressWarnings( "hiding" )
+            var clientSize = PageContainer.this.clientSize.get();
 
             var top = 0;
             headerComposite.position.set( Position.of( 0, top ) );

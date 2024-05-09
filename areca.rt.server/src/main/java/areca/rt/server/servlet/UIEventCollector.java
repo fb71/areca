@@ -88,8 +88,12 @@ public class UIEventCollector {
         var prop = ev.getSource();
         if (prop.component() instanceof UIElement) {
             LOG.debug( "PROPERTY: %s", prop.name() );
-            Assert.notNull( components.get( ((UIElement)prop.component()).id() ) );
-            JsonUIComponentEvent.createFrom( ev ).ifPresent( json -> add( json ) );
+            if (components.containsKey( ((UIElement)prop.component()).id() ))  {
+                JsonUIComponentEvent.createFrom( ev ).ifPresent( json -> add( json ) );
+            }
+            else {
+                LOG.warn( "Property: %s: component already disposed", prop.name());
+            }
         }
         else {
             LOG.debug( "SKIP: %s (%s)", prop.name(), prop.component() );

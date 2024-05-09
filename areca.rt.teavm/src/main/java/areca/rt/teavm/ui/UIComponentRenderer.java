@@ -78,23 +78,29 @@ public class UIComponentRenderer
      */
     protected void hideWithoutPositionOrSize( UIComponent c ) {
         var elm = htmlElm( c );
-        var style = elm.getStyle();
-//        LOG.info( "top='%s', width='%s', class='%s'",
-//                style.getPropertyValue( "top" ),
-//                style.getPropertyValue( "width" ),
-//                elm.getAttribute( "class" ) );
 
         // check the actual values
-        var notYet = isBlank( style.getPropertyValue( "top" ) )
-                || isBlank( style.getPropertyValue( "width" ) )
-                || isBlank( elm.getAttribute( "class" ) );
+        var style = elm.getStyle();
+        var initialized = !isBlank( style.getPropertyValue( "top" ) )
+                && !isBlank( style.getPropertyValue( "width" ) )
+                && !isBlank( elm.getAttribute( "class" ) );
 
         // might cause race cond; values might not have been actually renderer
 //        var notYet = !c.size.opt().isPresent()
 //                || !c.position.opt().isPresent()
 //                /*|| c.cssClasses.$().isEmpty()*/;
 
-        if (notYet) {
+
+//        var type = c.getClass().getSimpleName();
+//        if (type.length() > 0) {
+//            LOG.info( "%s: top='%s', width='%s', class='%s' -> %s",
+//                    type,
+//                    style.getPropertyValue( "top" ),
+//                    style.getPropertyValue( "width" ),
+//                    StringUtils.defaultString( elm.getAttribute( "class" ) ).length(), initialized );
+//        }
+
+        if (!initialized) {
             htmlElm( c ).getStyle().setProperty( "display", "none" );
         } else {
             htmlElm( c ).getStyle().removeProperty( "display" );
