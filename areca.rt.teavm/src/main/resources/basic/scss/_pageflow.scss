@@ -39,6 +39,7 @@ $header_color: $accent_color;
 }
 
 .PageTitle {
+    display: block !important; // overwrite component render optimization
     //font-weight: bold;
     font-size: 21px;   
 }
