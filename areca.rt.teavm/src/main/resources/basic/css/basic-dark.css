@@ -93,11 +93,15 @@ body {
   position: absolute;
   border: 0px solid #444444;
   border-radius: 6px;
-  transition: top 0.75s, left 0.75s, width 0.75s, height 0.75s, transform 0.75s, opacity 0.75s, background-color 0.75s, color 0.75s, filter 0.75s;
   box-sizing: border-box;
+  transition: top 0.75s, left 0.75s, width 0.75s, height 0.75s, transform 0.75s, opacity 0.75s;
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100%;
+}
+
+.UIComponent:hover {
+  transition: background-color 0.75s, color 0.75s, filter 0.75s;
 }
 
 .UIComponent:disabled {
@@ -478,7 +482,7 @@ input[type="file"]::file-selector-button:hover:enabled {
 }
 
 .PageClosing {
-  transition: all 0.5s ease-in;
+  transition: all 0.5s ease-in !important;
   opacity: 0;
   transform: scale(0.5);
 }

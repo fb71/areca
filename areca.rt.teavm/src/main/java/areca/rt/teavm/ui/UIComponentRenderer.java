@@ -73,7 +73,9 @@ public class UIComponentRenderer
      * Hopefully also helps browser.
      */
     protected void hideWithoutPositionOrSize( UIComponent c ) {
-        if (!c.size.opt().isPresent() && !c.position.opt().isPresent()) {
+        if (!c.size.opt().isPresent()
+                && !c.position.opt().isPresent()
+                && c.cssClasses.$().isEmpty() ) {
             htmlElm( c ).getStyle().setProperty( "display", "none" );
         }
         else {
@@ -90,42 +92,36 @@ public class UIComponentRenderer
 
         hideWithoutPositionOrSize( c );
 
-        c.tooltip
-                .onInitAndChange( (newValue, __) -> {
-                    htmlElm.setAttribute( "title", newValue );
-                });
+        c.tooltip.onInitAndChange( (newValue, __) -> {
+            htmlElm.setAttribute( "title", newValue );
+        });
 
         // cssClasses
-        c.cssClasses
-                .onInitAndChange( (newValue, oldValue) -> {
-                    Assert.notNull( newValue, "Setting null value means remove() ???" );
-                    htmlElm.setAttribute( "class", String.join( " ", newValue ) );
-                });
+        c.cssClasses.onInitAndChange( (newValue, oldValue) -> {
+            hideWithoutPositionOrSize( c );
+            Assert.notNull( newValue, "Setting null value means remove() ???" );
+            htmlElm.setAttribute( "class", String.join( " ", newValue ) );
+        });
 
         // cssStyles
-        c.styles
-                .onInitAndChange( (newValue, oldValue) -> {
-                    Assert.notNull( newValue, "Setting null value means remove() ???" );
-                    LOG.debug( "CSS: %s", newValue );
-                    // new/updated
-                    newValue.forEach( elm -> htmlElm.getStyle().setProperty( elm.name, elm.value ) );
-                    // removed
-                    if (oldValue != null) {
-                        Sequence.of( oldValue )
-                                .filter( elm -> !newValue.contains( elm ) )
-                                .forEach( elm -> htmlElm.getStyle().removeProperty( elm.name ) );
-                    }
-                });
+        c.styles.onInitAndChange( (newValue, oldValue) -> {
+            Assert.notNull( newValue, "Setting null value means remove() ???" );
+            LOG.debug( "CSS: %s", newValue );
+            // new/updated
+            newValue.forEach( elm -> htmlElm.getStyle().setProperty( elm.name, elm.value ) );
+            // removed
+            if (oldValue != null) {
+                Sequence.of( oldValue )
+                .filter( elm -> !newValue.contains( elm ) )
+                .forEach( elm -> htmlElm.getStyle().removeProperty( elm.name ) );
+            }
+        });
 
         // bgColor
-        c.bgColor
-                .onInitAndChange( (newValue, oldValue) -> {
-                    Assert.notNull( newValue, "Setting null value means remove() ???" );
-                    htmlElm.getStyle().setProperty( "background-color", newValue.toHex() );
-                });
-                // .defaultsTo( () -> {
-                //    return Color.ofHex( htmlElm.getStyle().getPropertyValue( "background-color" ) );
-                //});
+        c.bgColor.onInitAndChange( (newValue, oldValue) -> {
+            Assert.notNull( newValue, "Setting null value means remove() ???" );
+            htmlElm.getStyle().setProperty( "background-color", newValue.toHex() );
+        });
 
         // bgImage
         c.bgImage.onInitAndChange( (newValue,oldValue) -> {
@@ -162,16 +158,12 @@ public class UIComponentRenderer
                 });
 
         // size
-        c.size
-                .onInitAndChange( (newValue, oldValue) -> {
-                    hideWithoutPositionOrSize( c );
-                    Assert.notNull( newValue, "Setting null value means remove() ???" );
-                    htmlElm.getStyle().setProperty( "width", newValue.width() + "px" );
-                    htmlElm.getStyle().setProperty( "height", newValue.height() + "px" );
-                });
-//                .defaultsTo( () -> {
-//                    return Size.of( htmlElm.getOffsetWidth(), htmlElm.getOffsetHeight() );
-//                });
+        c.size.onInitAndChange( (newValue, oldValue) -> {
+            hideWithoutPositionOrSize( c );
+            Assert.notNull( newValue, "Setting null value means remove() ???" );
+            htmlElm.getStyle().setProperty( "width", newValue.width() + "px" );
+            htmlElm.getStyle().setProperty( "height", newValue.height() + "px" );
+        });
 
         // minimumHeight
         // EXPERIMENTAL: see UIComponent#minimumHeight
@@ -182,21 +174,17 @@ public class UIComponentRenderer
         };
 
         // position
-        c.position
-                .onInitAndChange( (newValue, oldValue) -> {
-                    hideWithoutPositionOrSize( c );
-                    if (newValue == null) {
-                        htmlElm.getStyle().removeProperty( "left" );
-                        htmlElm.getStyle().removeProperty( "top" );
-                    }
-                    else {
-                        htmlElm.getStyle().setProperty( "left", newValue.x() + "px" );
-                        htmlElm.getStyle().setProperty( "top", newValue.y() + "px" );
-                    }
-                });
-                //.initWith( () -> {
-                //    return Position.of( htmlElm.getOffsetLeft(), htmlElm.getOffsetTop() );
-                //});
+        c.position.onInitAndChange( (newValue, oldValue) -> {
+            hideWithoutPositionOrSize( c );
+            if (newValue == null) {
+                htmlElm.getStyle().removeProperty( "left" );
+                htmlElm.getStyle().removeProperty( "top" );
+            }
+            else {
+                htmlElm.getStyle().setProperty( "left", newValue.x() + "px" );
+                htmlElm.getStyle().setProperty( "top", newValue.y() + "px" );
+            }
+        });
 
         // events
         c.events.onInitAndChange( (newValue, oldValue) -> {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022, the @authors. All rights reserved.
+ * Copyright (C) 2022-2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -12,8 +12,6 @@
  * Lesser General Public License for more details.
  */
 package areca.ui.component2;
-
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -44,7 +42,7 @@ public class EventHandlers {
 
     private static final int        INIT_QUEUE_CAPACITY = 512;
 
-    private static final int        MAX_TIME_PER_FRAME = 5;
+    private static final int        MAX_TIME_PER_FRAME = 3;
 
     private static Deque<Event>     eventQueue = new ArrayDeque<>( INIT_QUEUE_CAPACITY );
 
@@ -80,9 +78,11 @@ public class EventHandlers {
         async = null;
         var t = Timer.start();
         var count = 0;
-        while (!eventQueue.isEmpty() && t.elapsed( MILLISECONDS ) < MAX_TIME_PER_FRAME) {
-            var queued = eventQueue.pollFirst();
+        while (!eventQueue.isEmpty()
+                && t.elapsedMillis() < MAX_TIME_PER_FRAME
+                /*&& count < 30*/) {
             count ++;
+            var queued = eventQueue.pollFirst();
             for (var handler : queued.handlers) {
                 try {
                     handler.accept( queued.ev );

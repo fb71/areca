@@ -57,6 +57,7 @@ body {
     position: absolute;
     border: 0px solid $separator_color;
     border-radius: 6px;
+    box-sizing: border-box;
     transition: 
         top $transition_duration, 
         left $transition_duration, 
@@ -64,15 +65,23 @@ body {
         height $transition_duration, 
         transform $transition_duration,
         opacity $transition_duration,
-        background-color $transition_duration,
-        color $transition_duration,
-        filter $transition_duration;
-    box-sizing: border-box;
+//        opacity $transition_duration,
+//        background-color $transition_duration,
+//        color $transition_duration,
+//        filter $transition_duration
+        ;
     
     // background image (Component.bgImage)
     background-position: center;
     background-repeat: no-repeat;
     background-size: 100%;
+}
+.UIComponent:hover {
+    // just aninmate hover to avoid "white flicker" when components are created
+    transition: 
+        background-color $transition_duration,
+        color $transition_duration,
+        filter $transition_duration;
 }
 .UIComponent:disabled {
     color: darken($font_color, 35%);
