@@ -31,11 +31,13 @@ public abstract class AbsoluteLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        for (var c : composite.components.value()) {
-            if (!c.styles.get().contains( ABSOLUTE )) {
-                c.styles.add( ABSOLUTE );
-            }
-        }
+        // XXX re-enable when first CSS LayoutManager is there
+        // XXX also check UIComponentRenderer#hideWithoutPositionOrSize
+//        for (var c : composite.components.value()) {
+//            if (!c.styles.get().contains( ABSOLUTE )) {
+//                c.styles.add( ABSOLUTE );
+//            }
+//        }
     }
 
 }

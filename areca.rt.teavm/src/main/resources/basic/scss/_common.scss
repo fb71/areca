@@ -165,6 +165,7 @@ a:active, .Link:active {
 //}
 
 .RootWindow {
+    display: block !important; // overwrite component render optimization
     position: relative;
     background-color: $bg1_color;
     width: 100%;

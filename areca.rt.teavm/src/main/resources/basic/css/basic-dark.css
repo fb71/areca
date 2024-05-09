@@ -188,6 +188,7 @@ a:active, .Link:active {
 }
 
 .RootWindow {
+  display: block !important;
   position: relative;
   background-color: #323334;
   width: 100%;

@@ -13,6 +13,8 @@
  */
 package areca.rt.teavm.ui;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.events.MouseEvent;
 import org.teavm.jso.dom.html.HTMLElement;
@@ -58,7 +60,7 @@ public class UIComponentRenderer
 
     @SuppressWarnings("unchecked")
     protected HTMLElement htmlElm( UIComponent c ) {
-        return Assert.notNull( (HTMLElement)c.htmlElm, "No htmlElm for: " + c.getClass().getSimpleName() );
+        return Assert.notNull( (HTMLElement)c.htmlElm/*, "No htmlElm for: " + c.getClass().getSimpleName()*/ );
     }
 
 
@@ -71,14 +73,30 @@ public class UIComponentRenderer
      * Don't display components that do not yet have a size set
      * in order to avoid rendering half-way initialized components.
      * Hopefully also helps browser.
+     *
+     * XXX this will cause trouble for CSS layouted components
      */
     protected void hideWithoutPositionOrSize( UIComponent c ) {
-        if (!c.size.opt().isPresent()
-                && !c.position.opt().isPresent()
-                && c.cssClasses.$().isEmpty() ) {
+        var elm = htmlElm( c );
+        var style = elm.getStyle();
+//        LOG.info( "top='%s', width='%s', class='%s'",
+//                style.getPropertyValue( "top" ),
+//                style.getPropertyValue( "width" ),
+//                elm.getAttribute( "class" ) );
+
+        // check the actual values
+        var notYet = isBlank( style.getPropertyValue( "top" ) )
+                || isBlank( style.getPropertyValue( "width" ) )
+                || isBlank( elm.getAttribute( "class" ) );
+
+        // might cause race cond; values might not have been actually renderer
+//        var notYet = !c.size.opt().isPresent()
+//                || !c.position.opt().isPresent()
+//                /*|| c.cssClasses.$().isEmpty()*/;
+
+        if (notYet) {
             htmlElm( c ).getStyle().setProperty( "display", "none" );
-        }
-        else {
+        } else {
             htmlElm( c ).getStyle().removeProperty( "display" );
         }
     }
@@ -98,9 +116,9 @@ public class UIComponentRenderer
 
         // cssClasses
         c.cssClasses.onInitAndChange( (newValue, oldValue) -> {
-            hideWithoutPositionOrSize( c );
             Assert.notNull( newValue, "Setting null value means remove() ???" );
             htmlElm.setAttribute( "class", String.join( " ", newValue ) );
+            hideWithoutPositionOrSize( c );
         });
 
         // cssStyles
@@ -159,10 +177,10 @@ public class UIComponentRenderer
 
         // size
         c.size.onInitAndChange( (newValue, oldValue) -> {
-            hideWithoutPositionOrSize( c );
             Assert.notNull( newValue, "Setting null value means remove() ???" );
             htmlElm.getStyle().setProperty( "width", newValue.width() + "px" );
             htmlElm.getStyle().setProperty( "height", newValue.height() + "px" );
+            hideWithoutPositionOrSize( c );
         });
 
         // minimumHeight
@@ -175,7 +193,6 @@ public class UIComponentRenderer
 
         // position
         c.position.onInitAndChange( (newValue, oldValue) -> {
-            hideWithoutPositionOrSize( c );
             if (newValue == null) {
                 htmlElm.getStyle().removeProperty( "left" );
                 htmlElm.getStyle().removeProperty( "top" );
@@ -184,6 +201,7 @@ public class UIComponentRenderer
                 htmlElm.getStyle().setProperty( "left", newValue.x() + "px" );
                 htmlElm.getStyle().setProperty( "top", newValue.y() + "px" );
             }
+            hideWithoutPositionOrSize( c );
         });
 
         // events
