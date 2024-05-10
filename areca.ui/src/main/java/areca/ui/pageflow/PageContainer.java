@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import areca.common.Assert;
+import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
@@ -160,7 +161,7 @@ public class PageContainer
             if (PageContainer.this.clientSize.opt().isAbsent()) {
                 return;
             }
-            LOG.info( "clientSize: %s", PageContainer.this.clientSize.get() );
+            LOG.warn( "clientSize: %s", PageContainer.this.clientSize.get() );
             @SuppressWarnings( "hiding" )
             var clientSize = PageContainer.this.clientSize.get();
 
@@ -180,15 +181,21 @@ public class PageContainer
             titleText.position.set( Position.of( btnMargin + btnSize + titleMargin, titleMargin-1 ) );
             // XXX titleText.size.set( Size.of( ) );
 
-            var actionLeft = clientSize.width() - btnSize - btnMargin;
-            var sorted = new ArrayList<>( actionsBtns.keySet() );
-            sorted.sort( (l,r) -> -l.order.$().compareTo( r.order.$() ) );
-            for (var action : sorted) {
-                var btn = actionsBtns.get( action );
-                btn.position.set( Position.of( actionLeft, btnMargin ) );
-                btn.size.set( Size.of( btnSize, btnSize ) );
-                actionLeft -= btnSize; // + btnMargin;
-            }
+            // less rendering (flickering, font loading) during Page opening
+            Platform.schedule( 500, () -> {
+                if (composite.isDisposed()) {
+                    return;
+                }
+                var actionLeft = clientSize.width() - btnSize - btnMargin;
+                var sorted = new ArrayList<>( actionsBtns.keySet() );
+                sorted.sort( (l,r) -> -l.order.$().compareTo( r.order.$() ) );
+                for (var action : sorted) {
+                    var btn = actionsBtns.get( action );
+                    btn.position.set( Position.of( actionLeft, btnMargin ) );
+                    btn.size.set( Size.of( btnSize, btnSize ) );
+                    actionLeft -= btnSize; // + btnMargin;
+                }
+            });
 
             body.position.set( Position.of( 0, top ) );
             body.size.set( Size.of( clientSize.width(), clientSize.height() - top ) );
