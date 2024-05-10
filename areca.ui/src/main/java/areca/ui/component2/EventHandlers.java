@@ -42,7 +42,7 @@ public class EventHandlers {
 
     private static final int        INIT_QUEUE_CAPACITY = 512;
 
-    private static final int        MAX_TIME_PER_FRAME = 5;
+    private static final int        MAX_TIME_PER_FRAME = 10;
 
     private static Deque<Event>     eventQueue = new ArrayDeque<>( INIT_QUEUE_CAPACITY );
 
