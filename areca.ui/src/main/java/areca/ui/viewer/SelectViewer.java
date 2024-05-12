@@ -16,6 +16,7 @@ package areca.ui.viewer;
 import java.util.List;
 
 import areca.common.Assert;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Events.EventType;
@@ -37,8 +38,8 @@ public class SelectViewer
     protected List<String> options;
 
 
-    public SelectViewer( List<String> options ) {
-        this.options = options;
+    public SelectViewer( Iterable<String> options ) {
+        this.options = Sequence.of( options ).toList();
     }
 
     @Override

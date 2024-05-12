@@ -96,7 +96,7 @@ public abstract class EventManager {
 //            }
         };
 
-        LOG.warn( "No expunge thread!" );
+        // XXX LOG.warn( "No expunge thread!" );
         //expunge = new ExpungeThread();
     }
 
