@@ -106,7 +106,12 @@ public class EventLoop2
         var count = 0;
         while (!queue.isEmpty() && (now() < deadline || count == 0)) { // at least one
             var task = queue.poll();
-            task.task.run();
+            try {
+                task.task.run();
+            }
+            catch (Throwable e) {
+                defaultErrorHandler.accept( e );
+            }
             count ++;
 
             // checkDelayed();
@@ -116,7 +121,6 @@ public class EventLoop2
         }
         LOG.debug( "______ End (queue: %s, count = %s [%s])", queue.size(), count, t );
     }
-
 
     /**
      *

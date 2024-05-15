@@ -255,7 +255,10 @@ public class ArecaUIServer
 
                                 component.events.values()
                                         .filter( handler -> handler.type.equals( eventType ) )
-                                        .forEach( handler -> handler.consumer.accept( new ServerUIEvent( component, eventType ) ) );
+                                        .forEach( handler -> {
+                                            // RuntimeException are catched by EventHandler.defaultErrorHandler
+                                            handler.consumer.accept( new ServerUIEvent( component, eventType ) );
+                                        });
                             }
                         }
                     }, 0 );

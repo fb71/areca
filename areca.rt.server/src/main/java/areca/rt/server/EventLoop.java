@@ -19,6 +19,7 @@ import java.time.Duration;
 
 import areca.common.Session;
 import areca.common.Timer;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -36,9 +37,19 @@ public abstract class EventLoop {
 
     private static final Log LOG = LogFactory.getLog( EventLoop.class );
 
-    public static final Duration POLLING_TIMEOUT = Duration.ofMillis( 100 );
+    public static final Duration POLLING_TIMEOUT = Duration.ofMillis( 500 );
 
     public static final RSupplier<Boolean> FULLY = () -> false;
+
+    protected static RConsumer<Throwable> defaultErrorHandler = e -> {
+        LOG.warn( "defaultErrorHandler: %s", e.toString() );
+        e.printStackTrace( System.err );
+    };
+
+
+    public static void setDefaultErrorHandler( RConsumer<Throwable> defaultErrorHandler ) {
+        EventLoop.defaultErrorHandler = defaultErrorHandler;
+    }
 
     /**
      * Factory

@@ -79,7 +79,12 @@ public class EventLoop1
                 }
             }
             for (Task task : canRun) {
-                task.task.run();
+                try {
+                    task.task.run();
+                }
+                catch (Throwable e) {
+                    defaultErrorHandler.accept( e );
+                }
             }
             hasMoreWork = !canRun.isEmpty();
         }
