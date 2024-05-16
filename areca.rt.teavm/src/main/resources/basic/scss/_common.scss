@@ -48,10 +48,9 @@ body {
     font-size: 14px;
 }
 
-//// While creating a component has no size/position
-//.NoDisplay {
-//    display: none;
-//}
+h1, h2, h3, h4, h5 {
+    margin-top: 0px;
+}
 
 .UIComponent {
     position: absolute;

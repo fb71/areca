@@ -132,7 +132,7 @@ public abstract class EventLoop {
                     synchronized (this) {
                         var t = Timer.start();
                         try { wait( pendingWait ); } catch (InterruptedException e) { }
-                        LOG.info( "waited: %s ms (actual: %s)", pendingWait, t );
+                        LOG.debug( "waited: %s ms (actual: %s)", pendingWait, t );
                     }
                 }
                 execute( timeframeMillis );
