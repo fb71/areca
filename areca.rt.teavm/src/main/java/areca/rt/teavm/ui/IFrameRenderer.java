@@ -66,7 +66,12 @@ public class IFrameRenderer
 
         c.reloadCount.onChange( (newValue, oldValue) -> {
             LOG.info( "reloadCount: %s", newValue );
-            iframe.getContentWindow().getLocation().reload();
+            try {
+                iframe.getContentWindow().getLocation().reload();
+            }
+            catch (Throwable e) {
+                LOG.warn( "Error while: iframe.getContentWindow().getLocation().reload(); -- %s ", e.toString() );
+            }
         });
     }
 
