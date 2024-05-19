@@ -66,6 +66,7 @@ import areca.ui.component2.UIComponentEvent.DecoratorAttachedEvent;
 import areca.ui.component2.UIComponentEvent.DecoratorDetachedEvent;
 import areca.ui.component2.UIComposite;
 import areca.ui.component2.UIElement;
+import areca.ui.pageflow.DialogContainer;
 import areca.ui.pageflow.PageContainer;
 
 /**
@@ -342,6 +343,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".Select" : return new Select();
             case PACKAGE_UI_COMPONENTS + ".Badge" : return new Badge();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
+            case PACKAGE_UI_PAGEFLOW + ".DialogContainer" : return new DialogContainer();
             default: {
                 LOG.warn( "fehlt noch: " + classname );
                 throw new RuntimeException( "fehlt noch: " + classname );

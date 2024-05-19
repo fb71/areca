@@ -5,9 +5,43 @@
     opacity: 0;
 }
 
+.DialogContainer {
+    backdrop-filter: blur(2px);
+    opacity: 1;
+    //transition: backdrop-filter 0.5s, filter 0.5s;
+    background-color: transparent;    
+}
+
+.Dialog {
+    opacity: 1;
+    background-color: $bg2_color;    
+    box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
+}
+
+.DialogTitle {
+    font-size: 21px;
+}
+
+.DialogHeaderItem {
+    //background-color: transparent !important;
+    //border: none;
+    box-shadow: none;
+}
+
+.DialogHeader {
+    border-bottom: 1px solid $separator_color;
+    border-radius: none;
+}
+
+.DialogActions {
+    border-top: 1px solid $separator_color;
+    border-radius: none;
+}
+
 .PageRoot {
     transition: all 0.5s !important;
 }
+
 .PageOpening {
     transform: scale(0.3);
     opacity: 0;
