@@ -502,12 +502,12 @@ input[type="file"]::file-selector-button:hover:enabled {
 
 .DialogHeader {
   border-bottom: 1px solid #444444;
-  border-radius: none;
+  border-radius: 0px;
 }
 
 .DialogActions {
   border-top: 1px solid #444444;
-  border-radius: none;
+  border-radius: 0px;
 }
 
 .PageRoot {
