@@ -39,13 +39,7 @@ public class AsyncTestRunner
 
     private static final Object[] NOARGS = new Object[] {};
 
-    public enum TestStatus {
-        PASSED, SKIPPED, FAILED
-    }
-
     // instrance ******************************************
-
-    private ArrayList<? extends TestRunnerDecorator> decorators;
 
     private List<TestResult>        completed = new ArrayList<>( 128 );
 
@@ -95,7 +89,6 @@ public class AsyncTestRunner
 
     @Override
     public AsyncTestRunner run() {
-        decorators = Sequence.of( decoratorTypes ).map( cl -> instantiate( cl ) ).toList();
         decorators.forEach( d -> d.preRun( this ) );
 
         var testsStarted = new HashSet<ClassInfo<?>>();

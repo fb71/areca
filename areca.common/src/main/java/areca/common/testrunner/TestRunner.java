@@ -47,9 +47,11 @@ public class TestRunner {
 
     protected List<ClassInfo<?>>            testTypes = new ArrayList<>( 128 );
 
-    protected List<ClassInfo<? extends TestRunnerDecorator>> decoratorTypes = new ArrayList<>( 128 );
+    //protected List<ClassInfo<? extends TestRunnerDecorator>> decoratorTypes = new ArrayList<>();
 
     private List<TestResult>                testResults = new ArrayList<>( 128 );
+
+    protected List<TestRunnerDecorator>     decorators = new ArrayList<>();
 
 
     public TestRunner addTests( ClassInfo<?>... tests ) {
@@ -59,14 +61,20 @@ public class TestRunner {
 
 
     @SuppressWarnings("unchecked")
-    public TestRunner addDecorators( ClassInfo<? extends TestRunnerDecorator>... decorators ) {
-        decoratorTypes.addAll( Arrays.asList( decorators ) );
+    public TestRunner addDecorators( ClassInfo<? extends TestRunnerDecorator>... types ) {
+        decorators.addAll( Sequence.of( types ).map( cl -> instantiate( cl ) ).toList() );
+        return this;
+    }
+
+
+    public TestRunner addDecorators( TestRunnerDecorator... add ) {
+        decorators.addAll( Arrays.asList( add ) );
         return this;
     }
 
 
     public TestRunner run() {
-        var decorators = Sequence.of( decoratorTypes ).map( cl -> instantiate( cl ) ).toList();
+        //var decorators = Sequence.of( decoratorTypes ).map( cl -> instantiate( cl ) ).toList();
 
         // all test classes
         decorators.forEach( d -> d.preRun( this ) );

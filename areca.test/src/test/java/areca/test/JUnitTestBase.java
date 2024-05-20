@@ -27,8 +27,8 @@ import areca.common.SessionScoper.ThreadBoundSessionScoper;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
+import areca.common.testrunner.AsyncAwareTestRunner;
 import areca.common.testrunner.LogDecorator;
-import areca.common.testrunner.TestRunner;
 import areca.rt.server.EventLoop;
 import areca.rt.server.ServerPlatform;
 
@@ -73,9 +73,15 @@ class JUnitTestBase {
     }
 
     protected void execute( ClassInfo<?>... tests ) {
-        execute( () -> new TestRunner()
+        var d = new JUnitDecorator();
+        execute( () -> new AsyncAwareTestRunner()
                 .addTests( tests )
-                .addDecorators( LogDecorator.info ).run() );
+                .addDecorators( d )
+                .addDecorators( LogDecorator.info )
+                .run() );
+        if (d.failed) {
+            Assertions.fail( "Test failed. See consoloe/log for detail." );
+        }
     }
 
     protected void execute( Runnable task ) {

@@ -37,13 +37,7 @@ public class AsyncAwareTestRunner
 
     private static final Object[] NOARGS = new Object[] {};
 
-//    public enum TestStatus {
-//        PASSED, SKIPPED, FAILED
-//    }
-
     // instrance ******************************************
-
-    private ArrayList<? extends TestRunnerDecorator> decorators;
 
     private List<TestResult>        completed = new ArrayList<>( 128 );
 
@@ -83,7 +77,7 @@ public class AsyncAwareTestRunner
         try {
             Sequence.of( Exception.class, cl.methods() )
                     .filter( m -> m.annotation( AfterAnnotationInfo.INFO ).isPresent() )
-                    .forEach( before -> before.invoke( test, NOARGS ) );
+                    .forEach( after -> after.invoke( test, NOARGS ) );
         }
         catch (Exception ee) {
             throw (RuntimeException)ee;
@@ -93,7 +87,6 @@ public class AsyncAwareTestRunner
 
     @Override
     public AsyncAwareTestRunner run() {
-        decorators = Sequence.of( decoratorTypes ).map( cl -> instantiate( cl ) ).toList();
         decorators.forEach( d -> d.preRun( this ) );
 
         // all test classes
