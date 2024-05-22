@@ -20,6 +20,7 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultString;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,9 +60,9 @@ public class EnsureEc2InstanceHandler
 
     protected Mode mode;
 
-    protected EnsureEc2InstanceHandler( Mode mode ) {
+    public EnsureEc2InstanceHandler( Mode mode ) {
         super( notYetCommitted
-                .and( probe -> probe.vhost.ec2id != null )
+                .and( probe -> isNotBlank( probe.vhost.ec2id ) )
                 .and( ec2InstanceIsRunning.negate() ) );
         this.mode = mode;
     }
@@ -178,9 +179,11 @@ public class EnsureEc2InstanceHandler
     public static class AfterError
             extends EnsureEc2InstanceHandler {
 
-        protected AfterError( Mode mode ) {
+        public AfterError( Mode mode ) {
             super( mode );
-            predicate = notYetCommitted.and( probe -> probe.error != null );
+            predicate = notYetCommitted
+                    .and( probe -> isNotBlank( probe.vhost.ec2id ) )
+                    .and( probe -> probe.error != null );
         }
 
         @Override
