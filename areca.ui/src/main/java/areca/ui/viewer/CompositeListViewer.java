@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, the @authors. All rights reserved.
+ * Copyright (C) 2020-2024, the @authors. All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -15,12 +15,16 @@ package areca.ui.viewer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.tuple.Pair;
 
 import areca.common.Assert;
 import areca.common.base.BiFunction.RBiFunction;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Function;
+import areca.common.base.Function.RFunction;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Events.EventType;
@@ -45,6 +49,17 @@ public class CompositeListViewer<V>
 
     private static final Log LOG = LogFactory.getLog( CompositeListViewer.class );
 
+    /**
+     *
+     * @param <T>
+     * @author Falko Bräutigam
+     */
+    public interface CellBuilder<T>
+            extends RBiFunction<T,ListModelBase<T>,UIComponent> {
+    }
+
+    // instance *******************************************
+
     /** Render odd/even Css classes. Default: false */
     public ReadWrite<CompositeListViewer<V>,Boolean> oddEven = Property.rw( this, "oddEven", false );
 
@@ -56,24 +71,23 @@ public class CompositeListViewer<V>
 
     public ReadWrite<CompositeListViewer<V>,RConsumer<V>> onSelect = Property.rw( this, "onSelect" );
 
+    /** A {@link Function} that calculates the current version of an entity in the list. */
+    public ReadWrite<CompositeListViewer<V>,RFunction<V,Object>> etag = Property.rw( this, "etag", v -> v.hashCode() );
+
     protected UIComposite           container;
 
     protected CellBuilder<V>        componentBuilder;
 
-    protected Map<V,UIComponent>    components = new HashMap<>();
-
-    /**
-     *
-     * @param <T>
-     * @author Falko Bräutigam
-     */
-    public interface CellBuilder<T>
-            extends RBiFunction<T,ListModelBase<T>,UIComponent> {
-    }
+    /** value -> (ETag,UIComposite) */
+    protected Map<V,Pair<Object,UIComponent>> components = new HashMap<>();
 
 
     public CompositeListViewer( CellBuilder<V> componentBuilder ) {
         this.componentBuilder = componentBuilder;
+    }
+
+    public CompositeListViewer( RFunction<V,UIComponent> componentBuilder ) {
+        this.componentBuilder = (value,__) -> componentBuilder.apply( value );
     }
 
 
@@ -102,7 +116,8 @@ public class CompositeListViewer<V>
         var index = new MutableInt( 0 );
         // LazyListModel
         if (model instanceof LazyListModel) {
-            ((LazyListModel<V>)model).load( 0, 100 ).onSuccess( opt -> { // 100!?
+            var lazy = (LazyListModel<V>)model;
+            lazy.load( 0, 100 ).onSuccess( opt -> { // 100!?
                 if (index.intValue() == 0) {
                     // after wait to avoid flicker
                     container.components.removeAll();
@@ -136,18 +151,26 @@ public class CompositeListViewer<V>
 
 
     protected UIComponent buildItem( V v, MutableInt index ) {
-        var component = components.computeIfAbsent( v, k -> {
-            var result = componentBuilder.apply( v, model );
-            result.cssClasses.add( "TableCell" );
-            if (lines.$()) {
-                result.cssClasses.add( "Lines" );
+        var entry = components.compute( v, (k,current) -> {
+            var newETag = etag.get().apply( v );
+            if (current != null && Objects.equals( current.getLeft(), newETag )) {
+                return current;
             }
-            if (onSelect.opt().isPresent()) {
-                result.cssClasses.add( "Clickable" );
-                result.events.on( EventType.SELECT, ev -> onSelect.$().accept( v ) );
+            else {
+                var result = componentBuilder.apply( v, model );
+                result.cssClasses.add( "TableCell" );
+                if (lines.$()) {
+                    result.cssClasses.add( "Lines" );
+                }
+                if (onSelect.opt().isPresent()) {
+                    result.cssClasses.add( "Clickable" );
+                    result.events.on( EventType.SELECT, ev -> onSelect.$().accept( v ) );
+                }
+                return Pair.of( newETag, result );
             }
-            return result;
         });
+        var component = entry.getRight();
+
         // index can change after add/remove
         if (oddEven.$()) {
             component.cssClasses.remove( "Odd" );
