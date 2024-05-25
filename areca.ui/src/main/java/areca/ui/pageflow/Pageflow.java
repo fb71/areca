@@ -309,7 +309,12 @@ public class Pageflow {
      * The sequence of pages in this Pageflow.
      */
     public Sequence<Object,RuntimeException> pages() {
-        return Sequence.of( this.pages ).map( holder -> holder.clientPage );
+        return Sequence.of( pages ).map( holder -> holder.clientPage );
+    }
+
+
+    public Object topPage() {
+        return pages.peek().clientPage;
     }
 
 
