@@ -161,7 +161,7 @@ public class PageContainer
             if (PageContainer.this.clientSize.opt().isAbsent()) {
                 return;
             }
-            LOG.warn( "clientSize: %s", PageContainer.this.clientSize.get() );
+            LOG.debug( "clientSize: %s", PageContainer.this.clientSize.get() );
             @SuppressWarnings( "hiding" )
             var clientSize = PageContainer.this.clientSize.get();
 

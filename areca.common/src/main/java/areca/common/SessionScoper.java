@@ -63,7 +63,7 @@ public abstract class SessionScoper {
         }
 
         public void bind( Session session ) {
-            Assert.isNull( sessions.get() );
+            Assert.isNull( sessions.get(), "Thread already bound to a Session!" );
             sessions.set( Assert.notNull( session ) );
         }
 

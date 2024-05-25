@@ -9,6 +9,7 @@
   --basic-primary-color: #1e3d32;
   --basic-separator-color: #444444;
   --basic-sep-color: #444444;
+  --basic-progress-color: #008000;
 }
 
 @font-face {
@@ -197,6 +198,7 @@ a:active, .Link:active {
   background-color: #323334;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .VisualClickFeedbackStart, .VisualClickFeedbackEnd {
@@ -419,6 +421,10 @@ input[type="file"]::file-selector-button:hover:enabled {
   cursor: pointer;
   line-height: 1.2;
   padding: 0.5em;
+}
+
+.Image {
+  border-radius: 0px;
 }
 
 .Labeled:before {

@@ -54,6 +54,7 @@ import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.ScrollableComposite;
 import areca.ui.component2.Select;
 import areca.ui.component2.Separator;
+import areca.ui.component2.Tag;
 import areca.ui.component2.Text;
 import areca.ui.component2.TextField;
 import areca.ui.component2.UIComponent;
@@ -342,6 +343,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".IFrame" : return new IFrame();
             case PACKAGE_UI_COMPONENTS + ".Select" : return new Select();
             case PACKAGE_UI_COMPONENTS + ".Badge" : return new Badge();
+            case PACKAGE_UI_COMPONENTS + ".Tag" : return new Tag();
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             case PACKAGE_UI_PAGEFLOW + ".DialogContainer" : return new DialogContainer();
             default: {

@@ -13,7 +13,6 @@
  */
 package areca.ui.layout;
 
-import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
@@ -39,7 +38,7 @@ public class RasterLayout
         return new RasterLayout().componentSize.set( Size.of( width, height ) );
     }
 
-    public static RasterLayout withColums( int colums ) {
+    public static RasterLayout colums( int colums ) {
         return new RasterLayout().columns.set( colums );
     }
 
@@ -66,19 +65,34 @@ public class RasterLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        Size size = composite.clientSize.opt().orElse( Size.of( 50, 50 ) ).substract( margins.value() );
+        composite.clientSize.opt().ifPresent( size -> {
+            size = size.substract( margins.$() );
 
-        var cWidth = componentSize.value().width();
-        var cHeight = componentSize.value().height();
-        var cols = size.width() / (cWidth + spacing.value());
+            var cWidth = -1;
+            var cHeight = -1;
+            var cols = -1;
 
-        Sequence.of( orderedComponents( composite ) ).forEach( (child,i) -> {
-            var col = i % cols;
-            var line = i /cols;
-            child.size.set( Size.of( cWidth, cHeight ) );
-            child.position.set( Position.of(
-                    margins.value().width() + ((cWidth + spacing.value()) * col),
-                    margins.value().height() + ((cHeight + spacing.value()) * line) ) );
+            if (componentSize.opt().isPresent()) {
+                cWidth = componentSize.value().width();
+                cHeight = componentSize.value().height();
+                cols = size.width() / (cWidth + spacing.value());
+            }
+            if (columns.opt().isPresent()) {
+                cWidth = (size.width() - ((columns.$()-1) * spacing.$())) / columns.$();
+                cHeight = cWidth;
+                cols = columns.$();
+            }
+
+            var i = 0;
+            for (var c : orderedComponents( composite )) {
+                var col = i % cols;
+                var line = i / cols;
+                c.size.set( Size.of( cWidth, cHeight ) );
+                c.position.set( Position.of(
+                        margins.$().width() + ((cWidth + spacing.$()) * col),
+                        margins.$().height() + ((cHeight + spacing.$()) * line) ) );
+                i++;
+            }
         });
     }
 
