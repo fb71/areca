@@ -62,23 +62,34 @@ public abstract class SessionScoper {
             return Assert.notNull( (ThreadBoundSessionScoper)instance, "No SessionScoper set" );
         }
 
-        public void bind( Session session ) {
-            Assert.isNull( sessions.get(), "Thread already bound to a Session!" );
-            sessions.set( Assert.notNull( session ) );
+        public boolean bind( Session session ) {
+            if (sessions.get() == null) {
+                sessions.set( Assert.notNull( session ) );
+                return true;
+            }
+            else if (sessions.get() == session) {
+                return false;
+            }
+            else {
+                throw new AssertionException( "Thread already bound to a(nother) Session!" );
+            }
         }
 
         public void unbind( Session session ) {
-            Assert.isEqual( session, sessions.get() );
+            Assert.isSame( session, sessions.get() );
             sessions.remove();
         }
 
         public <E extends Exception> void bind( Session session, Consumer<Session,E> consumer ) throws E {
+            var bound = false;
             try {
-                bind( session );
+                bound = bind( session );
                 consumer.accept( session );
             }
             finally {
-                unbind( session );
+                if (bound) {
+                    unbind( session );
+                }
             }
         }
 
