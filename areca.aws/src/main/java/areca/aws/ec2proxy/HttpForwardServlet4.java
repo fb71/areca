@@ -59,7 +59,7 @@ public class HttpForwardServlet4
             "content-length", "expect" );
 
     public static final Duration TIMEOUT_CONNECT = Duration.ofSeconds( 3 );
-    public static final Duration TIMEOUT_REQUEST = Duration.ofSeconds( 10 );
+    public static final Duration TIMEOUT_REQUEST = Duration.ofSeconds( 30 );
     public static final Duration TIMEOUT_SERVICES_STARTUP = Duration.ofSeconds( 60 );
 
     public static final String LOG_REQUEST = "requests";
