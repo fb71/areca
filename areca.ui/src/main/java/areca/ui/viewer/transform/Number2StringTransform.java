@@ -13,6 +13,8 @@
  */
 package areca.ui.viewer.transform;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.viewer.model.Model;
@@ -35,7 +37,9 @@ public class Number2StringTransform
     @Override
     public ValidationResult validate( String value ) {
         try {
-            Integer.valueOf( value );
+            if (isNotEmpty( value )) {
+                Integer.valueOf( value );
+            }
             return super.validate( value );
         }
         catch (NumberFormatException e) {
@@ -52,7 +56,7 @@ public class Number2StringTransform
 
     @Override
     public void set( String value ) {
-        delegate.set( value != null ? Integer.valueOf( value ) : null ); // XXX other types
+        delegate.set( isNotEmpty( value ) ? Integer.valueOf( value ) : null );
     }
 
 }

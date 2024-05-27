@@ -20,6 +20,7 @@ import areca.ui.component2.Label;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.viewer.Viewer;
+import areca.ui.viewer.ViewerBuilder;
 import areca.ui.viewer.ViewerContext;
 import areca.ui.viewer.model.ModelBase;
 
@@ -36,14 +37,26 @@ public class FieldContext<M extends ModelBase>
 
     private String label;
 
+    private String description;
+
 
     Viewer<?> _viewer() {
         return viewer;
     }
 
 
-    public FieldContext<M> label( @SuppressWarnings("hiding") String label ) {
+    @Override
+    @SuppressWarnings( "hiding" )
+    public FieldContext<M> label( String label ) {
         this.label = label;
+        return this;
+    }
+
+
+    @Override
+    @SuppressWarnings( "hiding" )
+    public ViewerBuilder<M> description( String description ) {
+        this.description = description;
         return this;
     }
 
@@ -53,6 +66,9 @@ public class FieldContext<M extends ModelBase>
         var result = super.create();
         if (label != null) {
             result.addDecorator( new Label().content.set( label ) );
+        }
+        if (description != null) {
+            result.tooltip.set( description );
         }
         return result;
     }

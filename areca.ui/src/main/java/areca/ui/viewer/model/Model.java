@@ -22,6 +22,9 @@ import areca.common.base.Opt;
 public interface Model<V>
         extends ModelBase {
 
+    /**
+     * Reads the value from the underlying data store.
+     */
     public abstract V get();
 
     public abstract void set( V value );

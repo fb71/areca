@@ -25,4 +25,6 @@ public interface FieldBuilder<M extends ModelBase>
 
     public FieldBuilder<M> label( String label );
 
+    public ViewerBuilder<M> description( String description );
+
 }
