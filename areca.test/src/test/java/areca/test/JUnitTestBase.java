@@ -80,7 +80,7 @@ class JUnitTestBase {
                 .addDecorators( LogDecorator.info )
                 .run() );
         if (d.failed) {
-            Assertions.fail( "Test failed. See consoloe/log for detail." );
+            Assertions.fail( "Test failed. See console/log for detail." );
         }
     }
 
