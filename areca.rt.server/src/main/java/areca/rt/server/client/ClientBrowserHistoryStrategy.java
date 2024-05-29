@@ -40,8 +40,6 @@ public class ClientBrowserHistoryStrategy {
     }
 
 
-    //protected Deque<String> stateHistory = new ArrayDeque<>();
-
     protected ClientBrowserHistoryStrategy() {
         Window.current().addEventListener( "popstate", ev -> onBrowserHistoryEvent( ev.cast() ) );
         EventManager.instance()
@@ -51,19 +49,18 @@ public class ClientBrowserHistoryStrategy {
 
 
     protected void onPageflowEvent( PageflowEvent ev ) {
-        //LOG.warn( "onPageflowEvent(): type = %s, state = %s", ev.getSource(), ev.pageCount );
-
         if (ev.getSource().equals( "PAGE_OPENED" )) {
             var state = String.valueOf( ev.pageCount );
-            //stateHistory.push( state );
-            Window.current().getHistory().pushState(
-                    BrowserHistoryState.create( state ), "", "#"+ev.pageCount );
-            //LOG.warn( "History: %s", stateHistory );
+            Window.current().getHistory().pushState( BrowserHistoryState.create( state ), "", "#"+state );
         }
         else if (ev.getSource().equals( "PAGE_CLOSED" )) {
-            //var top = stateHistory.pop();
-            //LOG.warn( "History: %s + %s", stateHistory, top );
-            Window.current().getHistory().back();
+            var current = Window.current().getHistory().getState().<BrowserHistoryState>cast();
+            LOG.debug( "onPageflowEvent(): %s, pageCount = %s, current history = %s", ev.getSource(), ev.pageCount, current.getState() );
+
+            // prevent cycles
+            if (ev.pageCount < Integer.parseInt( current.getState() )) {
+                Window.current().getHistory().back();
+            }
         }
     }
 
@@ -74,13 +71,10 @@ public class ClientBrowserHistoryStrategy {
 
         BrowserHistoryState bhs = ev.getState().cast();
         var state = bhs != null ? Integer.parseInt( bhs.getState() ) : 1;
-        LOG.warn( "onBrowserEvent(): state = %s", state );
-        //LOG.warn( "Browser event: state = %s, peek = %s", state, stateHistory.peek() );
+        LOG.debug( "onBrowserEvent(): popped state = %s", state );
 
-        //if (!stateHistory.peek().equals( bhs.getState() )) {
-            var conn = Session.instanceOf( Connection.class );
-            conn.enqueueClickEvent( JSBrowserHistoryEvent.create( state ) );
-        //}
+        var conn = Session.instanceOf( Connection.class );
+        conn.enqueueClickEvent( JSBrowserHistoryEvent.create( state ) );
     }
 
     /**

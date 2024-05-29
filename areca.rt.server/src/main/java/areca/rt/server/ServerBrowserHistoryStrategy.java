@@ -29,7 +29,7 @@ import areca.ui.pageflow.PageflowEvent.EventType;
 
 /**
  * Handles Browser back button.
- * 
+ *
  * @see ClientBrowserHistoryStrategy
  * @author Falko Bräutigam
  */

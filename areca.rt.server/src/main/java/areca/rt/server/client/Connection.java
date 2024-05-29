@@ -293,7 +293,7 @@ public class Connection {
             clientEventThrottle.cancel();
         }
         clientEventThrottle = Platform.schedule( throttleDelay, () -> {
-            LOG.info( "THROTTLE: %s events", clickEvents.size() );
+            LOG.debug( "THROTTLE: %s events", clickEvents.size() );
 
             //Assert.isNull( pendingRequest );
             if (pendingRequest != null) {

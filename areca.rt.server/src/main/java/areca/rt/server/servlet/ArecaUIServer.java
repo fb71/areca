@@ -182,7 +182,7 @@ public class ArecaUIServer
     @Override
     protected void doPost( HttpServletRequest request, HttpServletResponse response ) throws ServletException, IOException {
         try {
-            LOG.debug( "------ Request ------------------------------------------------------------");
+            LOG.warn( "----" );
             var t = Timer.start();
 
             // request: handle click events

@@ -132,7 +132,7 @@ public class Pageflow {
 
         protected Opt<Scoped> _context( Class<?> type, String scope ) {
             return _local( type, scope ).or( () -> {
-                LOG.info( "Context: not found locally: %s (%s) %s", type.getName(), scope, clientPage );
+                LOG.debug( "Context: not found locally: %s (%s) %s", type.getName(), scope, clientPage );
                 return parent != null ? parent._context( type, scope ) : Opt.absent();
             });
         }
