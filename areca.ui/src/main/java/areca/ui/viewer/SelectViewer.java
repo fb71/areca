@@ -91,7 +91,7 @@ public class SelectViewer
     @Override
     public String store() {
         var value = select.value.opt().orNull();
-        if (value.equals( nullOption.$() )) {
+        if (value.equals( nullOption.opt().orNull() )) {
             model.set( null );
         }
         else {
