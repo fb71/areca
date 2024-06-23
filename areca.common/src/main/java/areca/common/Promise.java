@@ -358,6 +358,40 @@ public abstract class Promise<T> {
 
 
     /**
+     * Experimental, not yet tested.
+     */
+    @SuppressWarnings( "unchecked" )
+    public <R,O> Promise<R> join( Promise<O> other, Class<R> type ) {
+        var next = new Completable<R>().upstream( this ).upstream( other );
+        MutableInt completeCount = new MutableInt( 0 );
+        BiConsumer<HandlerSite,R,Exception> onSuccessHandler = (self,result) -> {
+            Assert.that( completeCount.getValue() <= 2 );
+            LOG.debug( "JOIN: c = %s, self.complete = %s", completeCount.getValue(), self.isComplete() );
+            if (self.isComplete()) {
+                 completeCount.increment();
+            }
+            if (completeCount.getValue() < 2) {
+                LOG.debug( "JOIN: consume: %s", result );
+                next.consumeResult( result );
+            } else {
+                LOG.debug( "JOIN: complete: %s", result );
+                next.complete( result );
+            }
+        };
+        onSuccess( (BiConsumer<HandlerSite,T,Exception>)onSuccessHandler );
+        other.onSuccess( (BiConsumer<HandlerSite,O,Exception>)onSuccessHandler );
+
+        RConsumer<Throwable> errorHandler = e -> {
+            next.completeWithError( e );
+        };
+        onError( errorHandler );
+        other.onError( errorHandler );
+        return next;
+
+    }
+
+
+    /**
      * Joins <em>this</em> and <em>other</em> into one Promise.
      * <p/>
      * Both promises <b>must</b> provide just a <b>single value</b>!
@@ -564,7 +598,7 @@ public abstract class Promise<T> {
         @Override
         public <E extends Exception> Promise<T> onSuccess( BiConsumer<HandlerSite,T,E> consumer ) {
             if (isCompleted()) {
-                LOG.warn( "onSuccess(): already completed! (value=%s)", waitForResult );
+                //LOG.warn( "onSuccess(): already completed! (value=%s)", waitForResult );
                 if (error == null) {
                     doConsume( consumer, waitForResult );
                 }
@@ -579,7 +613,7 @@ public abstract class Promise<T> {
         @Override
         public Promise<T> onError( RConsumer<Throwable> consumer ) {
             if (isCompleted()) {
-                LOG.warn( "onSuccess(): already completed! (value=%s)", waitForResult );
+                //LOG.warn( "onSuccess(): already completed! (value=%s)", waitForResult );
                 if (error != null) {
                     consumer.accept( error );
                 }

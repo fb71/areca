@@ -67,7 +67,7 @@ public class ServerBrowserHistoryStrategy {
 
     protected void onBrowserHistoryEvent( BrowserHistoryEvent ev ) {
         var state = Integer.parseInt( ev.state );
-        LOG.warn( "Browser event: state = %s, browserHistoryState = %s", state, browserHistoryState );
+        LOG.debug( "Browser event: state = %s, browserHistoryState = %s", state, browserHistoryState );
 
         for (int s = browserHistoryState; s > state; s--) {
             pageflow.close( pageflow.pages().first().get() );
@@ -78,7 +78,7 @@ public class ServerBrowserHistoryStrategy {
     protected void onPageflowEvent( PageflowEvent ev ) {
         if (ev.type == EventType.PAGE_OPENED || ev.type == EventType.PAGE_CLOSED) {
             var pageCount = pageflow.pages().count();
-            LOG.warn( "Pageflow event: type = %s, browserHistoryState = %s, pageCount = %s", ev.type, browserHistoryState, pageCount );
+            LOG.debug( "Pageflow event: type = %s, browserHistoryState = %s, pageCount = %s", ev.type, browserHistoryState, pageCount );
             if (browserHistoryState != pageCount) {
                 browserHistoryState = pageCount;
 
