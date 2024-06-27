@@ -13,6 +13,7 @@
  */
 package areca.ui.viewer.model;
 
+import areca.common.base.Opt;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.event.EventManager;
 import areca.common.event.EventManager.EventHandlerInfo;
@@ -30,7 +31,17 @@ public interface ModelBase {
      */
     public class ValidationResult {
 
-        public ValidationResult( NumberFormatException e ) {
+        public Opt<Exception> e = Opt.absent();
+
+        public String msg;
+
+        public ValidationResult( Exception e ) {
+            this.e = Opt.of( e );
+            this.msg = e.getMessage();
+        }
+
+        public ValidationResult( String msg ) {
+            this.msg = msg;
         }
     }
 

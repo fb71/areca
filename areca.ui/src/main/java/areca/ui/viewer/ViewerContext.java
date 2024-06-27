@@ -117,7 +117,9 @@ public class ViewerContext<M extends ModelBase>
 
 
     public void store() {
-        loadedValue = currentValue = viewer.store();
+        if (isChanged()) {
+            loadedValue = currentValue = viewer.store();
+        }
     }
 
     public void load() {
@@ -128,7 +130,7 @@ public class ViewerContext<M extends ModelBase>
 
     @SuppressWarnings( "unchecked" )
     public boolean isValid() {
-        if (model instanceof ValidatingModel) {
+        if (model instanceof ValidatingModel && isChanged()) {
             return ((ValidatingModel<Object>)model).validate( currentValue ) == VALID;
         }
         return true;
