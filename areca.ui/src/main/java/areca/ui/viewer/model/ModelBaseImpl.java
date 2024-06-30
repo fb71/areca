@@ -33,7 +33,7 @@ public abstract class ModelBaseImpl
 //    }
 
 
-    protected void fireChangeEvent() {
+    public void fireChangeEvent() {
         EventManager.instance().publish( new ModelChangeEvent( this ) );
     }
 
