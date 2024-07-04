@@ -32,4 +32,7 @@ public class DatePicker
 
     public ReadWrite<DatePicker,DateTime> dateTime = Property.rw( this, "dateTime", DateTime.DATETIME );
 
+    {
+        bordered.set( true );
+    }
 }

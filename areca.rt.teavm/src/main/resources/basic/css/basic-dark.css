@@ -432,6 +432,11 @@ input[type="file"]::file-selector-button:hover:enabled {
   overflow: visible;
 }
 
+.DatePicker::-webkit-calendar-picker-indicator {
+  background-color: inherit;
+  color: #d0d0d0;
+}
+
 .DatePicker:hover:enabled {
   filter: brightness(1.3);
 }

@@ -9,8 +9,8 @@
 }
 
 .DatePicker::-webkit-calendar-picker-indicator {
-    background-color: yellow;
-    color: inherit;
+    background-color: inherit;
+    color: $font_color;
 }
 
 .DatePicker:hover:enabled {
