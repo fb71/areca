@@ -82,7 +82,7 @@ public class Opt<T> {
 
 
     /**
-     * If a value is not present, performs the given action with the value, otherwise
+     * If a value is not present, performs the given action, otherwise
      * does nothing.
      *
      * @param action The action to be performed, if a value is absent.
@@ -90,10 +90,10 @@ public class Opt<T> {
      * @throws NullPointerException If value is present and the given action is {@code null}.
      * @throws E If the action was throwing this exception.
      */
-    public <E extends Exception> Opt<T> ifAbsent( Consumer<? super T,E> action ) throws E {
+    public <E extends Exception> Opt<T> ifAbsent( Runnable action ) throws E {
         Assert.notNull( action );
         if (!isPresent()) {
-            action.accept( value );
+            action.run();
         }
         return this;
     }

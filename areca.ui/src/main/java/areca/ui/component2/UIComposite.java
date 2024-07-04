@@ -44,7 +44,8 @@ public class UIComposite
     public ReadWrite<?,Boolean> isForm = Property.rw( this, "isForm", false );
 
     /**  */
-    public class Children extends ReadWrites<UIComposite,UIComponent> {
+    public class Children
+            extends ReadWrites<UIComposite,UIComponent> {
 
         protected Children() {
             super( UIComposite.this, PROP_COMPONENTS );
@@ -56,6 +57,24 @@ public class UIComposite
             return super.add( Assert.notNull( add ) ).ifPresent( __ -> {
                 add.attachedTo( UIComposite.this );
             });
+        }
+
+        /**
+         * @return The newly added element if it was successfully added,
+         *         {@link Opt#absent()} otherwise.
+         */
+        public Opt<UIComponent> add( int index, UIComponent add ) {
+            var oldValue = values().toList();
+            try {
+                valuePresent = true;
+
+                ((ArrayList<UIComponent>)value()).add( index, add );
+                add.attachedTo( UIComposite.this );
+                return Opt.of( add );
+            }
+            finally {
+                fireEvent( oldValue, values().toList() );
+            }
         }
 
         @Override

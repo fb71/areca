@@ -1,0 +1,18 @@
+.DatePicker {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background-color: inherit;
+    box-shadow: 0px 1px 5px rgba(0,0,0,0.5);
+    overflow: visible; // badge and tags
+    //cursor: pointer;
+}
+
+.DatePicker::-webkit-calendar-picker-indicator {
+    background-color: yellow;
+    color: inherit;
+}
+
+.DatePicker:hover:enabled {
+    filter: brightness(1.3);
+}

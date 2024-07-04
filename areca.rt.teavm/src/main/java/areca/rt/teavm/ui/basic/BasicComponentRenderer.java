@@ -19,6 +19,7 @@ import areca.common.reflect.RuntimeInfo;
 import areca.rt.teavm.ui.BadgeRenderer;
 import areca.rt.teavm.ui.ButtonRenderer;
 import areca.rt.teavm.ui.ColorPickerRenderer;
+import areca.rt.teavm.ui.DatePickerRenderer;
 import areca.rt.teavm.ui.FileUploadRenderer;
 import areca.rt.teavm.ui.IFrameRenderer;
 import areca.rt.teavm.ui.ImageRenderer;
@@ -60,6 +61,7 @@ public class BasicComponentRenderer {
         ImageRenderer._start();
         IFrameRenderer._start();
         SelectRenderer._start();
+        DatePickerRenderer._start();
 
         BadgeRenderer._start();
         LabelRenderer._start();

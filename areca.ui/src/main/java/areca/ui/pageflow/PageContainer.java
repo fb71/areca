@@ -121,7 +121,7 @@ public class PageContainer
                     actionsBtns.computeIfAbsent( action, ___ -> add( new Button() {{
                         bordered.set( false );
                         cssClasses.add( CSS_HEADER_ITEM );
-                        action.order.opt().ifAbsent( ____ -> action.order.set( actionsBtns.size() ) );
+                        action.order.opt().ifAbsent( () -> action.order.set( actionsBtns.size() ) );
                         action.label.opt().ifPresent( v -> label.set( v ) );
                         action.icon.onInitAndChange( (v,____) -> icon.set( v ) );
                         action.type.onInitAndChange( (v,____) -> type.set( v ) );

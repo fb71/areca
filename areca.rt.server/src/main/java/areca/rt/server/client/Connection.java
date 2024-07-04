@@ -42,6 +42,7 @@ import areca.ui.App.RootWindow;
 import areca.ui.component2.Badge;
 import areca.ui.component2.Button;
 import areca.ui.component2.ColorPicker;
+import areca.ui.component2.DatePicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.FileUpload;
@@ -261,6 +262,9 @@ public class Connection {
             else if (component instanceof ColorPicker) {
                 jsev.setContent( ((ColorPicker)component).value.get() );
             }
+            else if (component instanceof DatePicker) {
+                jsev.setContent( ((DatePicker)component).value.get() );
+            }
             else if (component instanceof Select) {
                 jsev.setContent( ((Select)component).value.get() );
             }
@@ -337,6 +341,7 @@ public class Connection {
             case PACKAGE_UI_COMPONENTS + ".Link" : return new Link();
             case PACKAGE_UI_COMPONENTS + ".Label" : return new Label();
             case PACKAGE_UI_COMPONENTS + ".ColorPicker" : return new ColorPicker();
+            case PACKAGE_UI_COMPONENTS + ".DatePicker" : return new DatePicker();
             case PACKAGE_UI_COMPONENTS + ".FileUpload" : return new FileUpload();
             case PACKAGE_UI_COMPONENTS + ".Separator" : return new Separator();
             case PACKAGE_UI_COMPONENTS + ".Image" : return new Image();

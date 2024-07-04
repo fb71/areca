@@ -55,6 +55,7 @@ import areca.rt.server.ServerBrowserHistoryStrategy.BrowserHistoryEvent;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.ColorPicker;
+import areca.ui.component2.DatePicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.FileUpload;
@@ -237,6 +238,10 @@ public class ArecaUIServer
                                 else if (component instanceof ColorPicker) {
                                     Assert.isEqual( EventType.TEXT, eventType );
                                     ((ColorPicker)component).value.rawSet( event.content );
+                                }
+                                else if (component instanceof DatePicker) {
+                                    Assert.isEqual( EventType.TEXT, eventType );
+                                    ((DatePicker)component).value.rawSet( event.content );
                                 }
                                 else if (component instanceof Select) {
                                     Assert.isEqual( EventType.TEXT, eventType );

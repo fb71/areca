@@ -22,6 +22,7 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Button;
+import areca.ui.component2.DatePicker;
 import areca.ui.component2.Events.EventType;
 import areca.ui.component2.Text;
 import areca.ui.component2.TextField;
@@ -114,6 +115,11 @@ abstract class JSServer2ClientMessage
         else if (value.type().equals( TextField.Type.class.getName() )) {
             var primitive = (JSPrimitivePropertyValue)value;
             return TextField.Type.valueOf( primitive.value() );
+        }
+        // Enum: DatePicker.DateTime
+        else if (value.type().equals( DatePicker.DateTime.class.getName() )) {
+            var primitive = (JSPrimitivePropertyValue)value;
+            return DatePicker.DateTime.valueOf( primitive.value() );
         }
         // Size
         else if (value.type().equals( Size.class.getName() )) {
