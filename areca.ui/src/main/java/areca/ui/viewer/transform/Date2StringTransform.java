@@ -38,7 +38,7 @@ public class Date2StringTransform
     private static final Log LOG = LogFactory.getLog( Date2StringTransform.class );
 
     public static final SimpleDateFormat DATE = new SimpleDateFormat( "yyyy-MM-dd" );
-    public static final SimpleDateFormat TIME = new SimpleDateFormat( "yyyy-MM-dd" );
+    public static final SimpleDateFormat TIME = new SimpleDateFormat( "HH:mm" );
     public static final SimpleDateFormat DATETIME = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm" );
 
     protected SimpleDateFormat df;
@@ -70,7 +70,7 @@ public class Date2StringTransform
     @Override
     public String get() {
         var value = delegate.get();
-        LOG.warn( "get(): %s -> %s", value, df.format( value ) );
+        //LOG.warn( "get(): %s -> %s", value, df.format( value ) );
         return value != null ? df.format( value ) : null;
     }
 
@@ -78,7 +78,7 @@ public class Date2StringTransform
     @Override
     public void set( String value ) {
         try {
-            LOG.warn( "set(): %s -> %s", value, df.parse( value ) );
+            //LOG.warn( "set(): %s -> %s", value, df.parse( value ) );
             delegate.set( isNotEmpty( value ) ? df.parse( value ) : null );
         }
         catch (ParseException e) {
