@@ -219,7 +219,7 @@ public class RowLayout
                 freeWidth -= constraints.width.opt().orElse( 0 ) + spacing.value();
                 freeCount += constraints.width.opt().isPresent() ? 0 : 1;
             }
-            int freeComponentWidth = (freeWidth + spacing.value()) / freeCount;
+            int freeComponentWidth = freeCount > 0 ? (freeWidth + spacing.value()) / freeCount : 0;
             LOG.debug( "%s %s %s %s", composite.components.size(), freeCount, freeWidth, freeComponentWidth );
 
             // components
