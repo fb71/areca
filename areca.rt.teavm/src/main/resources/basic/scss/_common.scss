@@ -55,7 +55,7 @@ h1, h2, h3, h4, h5 {
 .UIComponent {
     position: absolute;
     border: 0px solid $separator_color;
-    border-radius: 6px;
+    border-radius: 4px;
     box-sizing: border-box;
     transition: 
         top $transition_duration, 
@@ -139,7 +139,6 @@ a:active, .Link:active {
 
 .Bordered {
     border: 1px solid $separator_color;
-    border-radius: 6px;
     // margin: -1px;
 }
 

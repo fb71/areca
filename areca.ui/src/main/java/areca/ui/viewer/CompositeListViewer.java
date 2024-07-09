@@ -71,6 +71,13 @@ public class CompositeListViewer<V>
 
     public ReadWrite<CompositeListViewer<V>,RConsumer<V>> onSelect = Property.rw( this, "onSelect" );
 
+    /**
+     * Called after loading the list. The default calls {@link UIComposite#layout()}
+     * on the root container of this list. This might not be enough if there are new
+     * entries which need more space.
+     */
+    public ReadWrite<CompositeListViewer<V>,RConsumer<UIComposite>> onLayout = Property.rw( this, "onLayout", c -> c.layout() );
+
     /** A {@link Function} that calculates the current version of an entity in the list. */
     public ReadWrite<CompositeListViewer<V>,RFunction<V,Object>> etag = Property.rw( this, "etag", v -> v.hashCode() );
 
@@ -127,7 +134,7 @@ public class CompositeListViewer<V>
                     index.increment();
                 }
                 else {
-                    container.layout();
+                    onLayout.get().accept( container );
                 };
             });
             return null; // XXX
@@ -141,7 +148,7 @@ public class CompositeListViewer<V>
                 hash ^= buildItem( v, index ).hashCode();
                 index.increment();
             }
-            container.layout();
+            onLayout.get().accept( container );
             return hash; // XXX
         }
         else {

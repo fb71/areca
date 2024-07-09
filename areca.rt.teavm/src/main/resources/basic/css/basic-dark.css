@@ -97,7 +97,7 @@ h1, h2, h3, h4, h5 {
 .UIComponent {
   position: absolute;
   border: 0px solid #444444;
-  border-radius: 6px;
+  border-radius: 4px;
   box-sizing: border-box;
   transition: top 0.75s, left 0.75s, width 0.75s, height 0.75s, transform 0.75s, opacity 0.75s;
   background-position: center;
@@ -169,7 +169,6 @@ a:active, .Link:active {
 
 .Bordered {
   border: 1px solid #444444;
-  border-radius: 6px;
 }
 
 .Progress {
