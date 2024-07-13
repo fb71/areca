@@ -31,7 +31,7 @@ import areca.ui.viewer.model.ModelBase;
  */
 public class FieldContext<M extends ModelBase>
         extends ViewerContext<M>
-        implements FieldBuilder<M> {
+        implements FieldBuilder<M>, FormField {
 
     private static final Log LOG = LogFactory.getLog( FieldContext.class );
 
@@ -77,6 +77,15 @@ public class FieldContext<M extends ModelBase>
     public UIComponent create( UIComposite parent ) {
         Assert.isNull( label, "Label is not supported yet." );
         return parent.add( create() );
+    }
+
+
+    // FormField ******************************************
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <R> R currentValue() {
+        return (R)currentValue;
     }
 
 }

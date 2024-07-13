@@ -13,10 +13,11 @@
  */
 package areca.ui.viewer.form;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 
+import areca.common.Assert;
 import areca.common.Platform;
 import areca.common.base.Sequence;
 import areca.common.event.EventListener;
@@ -30,25 +31,37 @@ import areca.ui.viewer.model.ModelBase;
  */
 public class Form {
 
-    protected List<FieldContext<?>> fields = new ArrayList<>();
+    protected Map<String, FieldContext<?>> fields = new HashMap<>();
 
+    protected int fieldNameCount = 0;
 
     public FieldBuilder<ModelBase> newField() {
+        return newField( String.valueOf( fieldNameCount++ ) );
+    }
+
+    public FieldBuilder<ModelBase> newField( String fieldName ) {
         var result = new FieldContext<>();
-        fields.add( result );
+        if (fields.put( fieldName, result ) != null) {
+            throw new IllegalArgumentException( "fieldName already exists: " + fieldName );
+        }
         return result;
     }
 
+    public FormField field( String fieldName ) {
+        return Assert.notNull( fields.get( fieldName ), "No such fieldName: " + fieldName );
+    }
+
+    protected Sequence<FieldContext<?>,RuntimeException> fields() {
+        return Sequence.of( fields.values() );
+    }
 
     public boolean isChanged() {
-        return Sequence.of( fields ).anyMatches( f -> f.isChanged() );
+        return fields().anyMatches( f -> f.isChanged() );
     }
-
 
     public boolean isValid() {
-        return Sequence.of( fields ).allMatch( f -> f.isValid() );
+        return fields().allMatch( f -> f.isValid() );
     }
-
 
     public void subscribe( EventListener<ViewerInputChangeEvent> l ) {
         EventManager.instance().subscribe( ev ->
@@ -58,29 +71,29 @@ public class Form {
                 Platform.async( () -> l.handle( (ViewerInputChangeEvent)ev ) ) )
 
                 .performIf( ViewerInputChangeEvent.class, ev -> {
-                    return Sequence.of( fields ).anyMatches( f -> f._viewer() == ev.getSource() );
+                    return fields().anyMatches( f -> f._viewer() == ev.getSource() );
                 } );
     }
 
 
     public void submit() {
-        fields.forEach( f -> f.store() );
+        fields().forEach( f -> f.store() );
     }
 
     public void revert() {
-        fields.forEach( f -> f.load() );
+        fields().forEach( f -> f.load() );
     }
 
     public void load() {
         // allow fields to be created as a result of loading a (list) field
-        var toBeProcessed = new HashSet<>( fields );
+        var toBeProcessed = new HashSet<>( fields.values() );
         var processed = new HashSet<FieldContext<?>>();
         while (!toBeProcessed.isEmpty()) {
             for (var f : toBeProcessed) {
                 f.load();
             }
             processed.addAll( toBeProcessed );
-            toBeProcessed = new HashSet<>( fields );
+            toBeProcessed = new HashSet<>( fields.values() );
             toBeProcessed.removeAll( processed );
         }
     }
