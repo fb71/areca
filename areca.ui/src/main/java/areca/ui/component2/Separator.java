@@ -25,4 +25,8 @@ public class Separator
 
     public ReadWrite<Separator,Orientation> orientation = Property.rw( this, "orientation", Orientation.HORIZONTAL );
 
+    public int computeMinHeight( int width ) {
+        return 2;
+    }
+
 }

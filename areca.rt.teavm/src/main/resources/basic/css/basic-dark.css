@@ -142,6 +142,7 @@ h1, h2, h3, h4, h5 {
   border-top: 1px solid #444444;
   border-bottom: none;
   overflow: visible;
+  margin: 0px;
 }
 
 a, .Link {
