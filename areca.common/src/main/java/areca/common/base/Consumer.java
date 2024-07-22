@@ -36,6 +36,15 @@ public interface Consumer<T,E extends Exception> {
      */
     public interface RConsumer<T>
             extends Consumer<T,RuntimeException> {
+
+        @Override
+        default <RE extends RuntimeException> RConsumer<T> andThen( Consumer<? super T,RE> after ) throws RE {
+            Assert.notNull( after );
+            return (T t) -> {
+                accept( t );
+                after.accept( t );
+            };
+        }
     }
 
     /**
@@ -47,8 +56,8 @@ public interface Consumer<T,E extends Exception> {
     public default <RE extends E> Consumer<T,E> andThen( Consumer<? super T,RE> after) throws RE {
         Assert.notNull( after );
         return (T t) -> {
-            accept(t);
-            after.accept(t);
+            accept( t );
+            after.accept( t );
         };
     }
 
