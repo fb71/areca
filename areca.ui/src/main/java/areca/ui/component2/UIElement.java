@@ -16,6 +16,7 @@ package areca.ui.component2;
 import java.util.HashMap;
 import java.util.Map;
 
+import areca.common.Session;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property.PropertyContainer;
@@ -31,9 +32,36 @@ public abstract class UIElement
 
     private static final Log LOG = LogFactory.getLog( UIElement.class );
 
-    private static volatile int         ID_COUNT;
+    /**
+     * Provides unique (global) component IDs.
+     * XXX Seems to overflow on Server Platform!?
+     */
+    private static class GlobalUniqueId {
+        static volatile int count = 0;
 
-    private int                         id = ID_COUNT++;
+        public static int next() {
+            return count++;
+        }
+    }
+
+    /**
+     * Provides unique (per {@link Session}) component IDs.
+     */
+    private static class SessionUniqueId {
+        int count = 0;
+
+        public static int next() {
+            return Session.instanceOf( SessionUniqueId.class ).count++;
+        }
+
+        static {
+            Session.registerFactory( SessionUniqueId.class, SessionUniqueId::new );
+        }
+    }
+
+    // instance *******************************************
+
+    private int                         id = SessionUniqueId.next();
 
     private boolean                     disposed;
 

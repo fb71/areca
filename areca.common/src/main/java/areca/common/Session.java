@@ -1,3 +1,16 @@
+/*
+ * Copyright (C) 2023-2024, the @authors. All rights reserved.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ */
 package areca.common;
 
 import java.util.HashMap;
@@ -10,20 +23,6 @@ import areca.common.base.Supplier;
 import areca.common.base.Supplier.RSupplier;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-
-/*
- * Copyright (C) 2023, the @authors. All rights reserved.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- */
 
 /**
  *
@@ -112,12 +111,18 @@ public class Session {
 
     @SuppressWarnings("unchecked")
     public <R> R _instanceOf( Class<R> type ) {
-        var lastStable = last;
-        if (lastStable != null && lastStable.getKey() == type) {
-            return (R)lastStable.getValue();
+        var stable = last;
+        if (stable != null && stable.getKey() == type) {
+            //LOG.warn( "instanceOf(): shortcut %s", type.getSimpleName() );
+            return (R)stable.getValue();
         }
-        var result = (R)instances.computeIfAbsent( type, __ -> createInstance( type ) );
-        last = ImmutablePair.of( type, result );
-        return result;
+        else {
+            //LOG.warn( "instanceOf(): map %s", type.getSimpleName() );
+            var result = (R)instances.computeIfAbsent( type, __ -> {
+                return createInstance( type );
+            });
+            last = ImmutablePair.of( type, result );
+            return result;
+        }
     }
 }
