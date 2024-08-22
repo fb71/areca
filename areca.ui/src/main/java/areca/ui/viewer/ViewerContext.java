@@ -50,6 +50,8 @@ public class ViewerContext<M extends ModelBase>
 
     protected Object        currentValue;
 
+    protected UIComposite   container;
+
 
     @Override
     @SuppressWarnings({"hiding", "unchecked"})
@@ -79,12 +81,14 @@ public class ViewerContext<M extends ModelBase>
         viewer.subscribe( ev -> {
             LOG.debug( "new value: '%s'", ev.newValue );
             currentValue = ev.newValue;
+            updateDecorators();
         });
 
         var field = viewer.create();
 
         // container for label and valid decorators
-        return new UIComposite() {{
+        return container = new UIComposite() {{
+            cssClasses.add( "Viewer" );
             // FIXME hack! UIComposite does not calculate its minHeight depending on its children (yet:)
             //layoutConstraints.set( new RowConstraints().height.set( field.computeMinHeight( 400 ) ) );
             layout.set( new FillLayout() );
@@ -125,12 +129,13 @@ public class ViewerContext<M extends ModelBase>
     public void load() {
         loadedValue = currentValue = viewer.load();
         //LOG.debug( "load: '%s'", StringUtils.abbreviate( loadedValue.toString(), 20 ) );
+        updateDecorators();
     }
 
 
     @SuppressWarnings( "unchecked" )
     public boolean isValid() {
-        if (model instanceof ValidatingModel && isChanged()) {
+        if (model instanceof ValidatingModel /*&& isChanged()*/) {
             return ((ValidatingModel<Object>)model).validate( currentValue ) == VALID;
         }
         return true;
@@ -147,4 +152,8 @@ public class ViewerContext<M extends ModelBase>
         throw new RuntimeException( "not yet implemented." );
     }
 
+
+    protected void updateDecorators() {
+        container.cssClasses.modify( "NotValid", !isValid() );
+    }
 }

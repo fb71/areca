@@ -4,6 +4,7 @@
   --basic-bg3-color: #141415;
   --basic-fg-color: #d0d0d0;
   --basic-link-color: #cd9564;
+  --basic-error-color: #c01c1c;
   --basic-accent-color: #51a386;
   --basic-accent2-color: #304050;
   --basic-primary-color: #1e3d32;
@@ -588,6 +589,10 @@ input[type="file"]::file-selector-button:hover:enabled {
 
 .PageHeaderItem:active:enabled {
   box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.Viewer.NotValid {
+  border-left: 4px solid var(--basic-error-color);
 }
 
 /*# sourceMappingURL=basic-dark.css.map */
