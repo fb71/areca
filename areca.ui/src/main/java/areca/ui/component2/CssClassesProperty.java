@@ -49,6 +49,17 @@ public class CssClassesProperty
         fireEvent( null, value );
     }
 
+    public void addThemeClass( String themeClass ) {
+        this.themeClasses.add( themeClass );
+        fireEvent( null, value );
+    }
+
+    public void removeThemeClass( String themeClass ) {
+        this.themeClasses.remove( themeClass );
+        fireEvent( null, value );
+    }
+
+
     @Override
     protected void fireEvent( Collection<String> oldValue, Collection<String> newValue ) {
         var combined = Sequence.of( newValue ).concat( themeClasses ).asCollection();

@@ -89,6 +89,7 @@ public class ViewerContext<M extends ModelBase>
         // container for label and valid decorators
         return container = new UIComposite() {{
             cssClasses.add( "Viewer" );
+            
             // FIXME hack! UIComposite does not calculate its minHeight depending on its children (yet:)
             //layoutConstraints.set( new RowConstraints().height.set( field.computeMinHeight( 400 ) ) );
             layout.set( new FillLayout() );
@@ -156,4 +157,5 @@ public class ViewerContext<M extends ModelBase>
     protected void updateDecorators() {
         container.cssClasses.modify( "NotValid", !isValid() );
     }
+
 }

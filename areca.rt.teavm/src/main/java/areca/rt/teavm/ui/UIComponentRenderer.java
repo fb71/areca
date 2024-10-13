@@ -136,8 +136,8 @@ public class UIComponentRenderer
             // removed
             if (oldValue != null) {
                 Sequence.of( oldValue )
-                .filter( elm -> !newValue.contains( elm ) )
-                .forEach( elm -> htmlElm.getStyle().removeProperty( elm.name ) );
+                        .filter( elm -> !newValue.contains( elm ) )
+                        .forEach( elm -> htmlElm.getStyle().removeProperty( elm.name ) );
             }
         });
 

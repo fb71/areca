@@ -592,7 +592,7 @@ input[type="file"]::file-selector-button:hover:enabled {
 }
 
 .Viewer.NotValid {
-  border-left: 4px solid var(--basic-error-color);
+  background-color: rgba(192, 28, 28, 0.12);
 }
 
 /*# sourceMappingURL=basic-dark.css.map */

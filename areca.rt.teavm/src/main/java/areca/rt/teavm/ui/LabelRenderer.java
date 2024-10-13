@@ -13,8 +13,11 @@
  */
 package areca.rt.teavm.ui;
 
+import static org.apache.commons.lang3.StringUtils.split;
+
 import org.teavm.jso.dom.html.HTMLElement;
 
+import org.apache.commons.lang3.ArrayUtils;
 import areca.common.Assert;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
@@ -52,14 +55,16 @@ public class LabelRenderer {
     public void attached( DecoratorAttachedEvent ev ) {
         Label label = (Label)ev.getSource();
         UIComponent c = Assert.isEqual( ev.decorated, label.decorated() );
+        var elm = (HTMLElement)c.htmlElm;
 
         label.content.onInitAndChange( (content,__) -> {
             if (content != null) {
-                ((HTMLElement)c.htmlElm).setAttribute( "data-label", content );
-                c.cssClasses.add( "Labeled" );
+                elm.setAttribute( "data-label", content );
+                // theme classes are not overwritten by app classes
+                c.cssClasses.addThemeClass( "Labeled" );
             } else {
-                ((HTMLElement)c.htmlElm).removeAttribute( "data-label" );
-                c.cssClasses.remove( "Labeled" );
+                elm.removeAttribute( "data-label" );
+                c.cssClasses.removeThemeClass( "Labeled" );
             }
         });
     }
