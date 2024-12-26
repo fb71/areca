@@ -61,7 +61,7 @@ public class HttpForwardServlet4
 
     public static final Duration TIMEOUT_CONNECT = Duration.ofSeconds( 3 );
     public static final Duration TIMEOUT_REQUEST = Duration.ofSeconds( 30 );
-    public static final Duration TIMEOUT_SERVICES_STARTUP = Duration.ofSeconds( 60 );
+    public static final Duration TIMEOUT_SERVICES_STARTUP = Duration.ofSeconds( 90 ); // elastic is slow
 
     public static final String LOG_REQUEST = "requests";
     public static final String LOG_INSTANCE = "instance-status";
