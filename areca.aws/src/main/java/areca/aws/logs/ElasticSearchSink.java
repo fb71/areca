@@ -123,18 +123,16 @@ public class ElasticSearchSink
                     Event<Object> ev = entry.getKey();
                     out.append( IndexCommand.create( ev.type, idCount++ ).json() ).append( "\n" );
                     out.append( entry.getValue() ).append( "\n" );
-
-                    System.err.append( IndexCommand.create( ev.type, idCount++ ).json() ).append( "\n" );
-                    System.err.append( entry.getValue() ).append( "\n" );
                 }
                 else {
-                    LOG.info( "Skipping: %s", entry.getValue() );
+                    LOG.warn( "Skipping: %s", entry.getValue() );
                 }
             }
         }
         //
         var attr = Files.readAttributes( buffer.toPath(), BasicFileAttributes.class);
-        var isTooOld = attr.creationTime().toMillis() + bufferMaxAge.toMillis() < System.currentTimeMillis();
+        LOG.info( "BUFFER: %s : %s : %s", attr.creationTime(), System.currentTimeMillis() - attr.creationTime().toMillis(), bufferMaxAge.toMillis() );
+        var isTooOld = (attr.creationTime().toMillis() + bufferMaxAge.toMillis()) < System.currentTimeMillis();
         var isTooBig = buffer.length() > bufferMaxSize;
         if (isTooBig || isTooOld) {
             flushBuffer();
@@ -143,7 +141,7 @@ public class ElasticSearchSink
 
 
     protected void flushBuffer() throws Exception {
-        LOG.info( "Sending: %s bytes", buffer.length() );
+        LOG.warn( "Sending: %s bytes", buffer.length() );
         var request = HttpRequest.newBuilder( new URI( url + "_bulk" + "?filter_path=took,errors" ) )
                 .method( "POST", BodyPublishers.ofFile( buffer.toPath() ) )
                 .header( "Content-Type", "application/json" )
@@ -206,10 +204,6 @@ public class ElasticSearchSink
     public static void main( String... args ) throws Exception {
         LOG.info( "ElasticSearchSink" );
 
-//        var sslContext = SSLUtils.trustAllSSLContext();
-//        HttpsURLConnection.setDefaultSSLSocketFactory( sslContext.getSocketFactory() );
-//        HttpsURLConnection.setDefaultHostnameVerifier( SSLUtils.DO_NOT_VERIFY );
-
         var config = ConfigFile.read();
         var test = new ElasticSearchSink( config );
         LOG.info( "credentials: %s:%s", config.elastic.user, config.elastic.pwd );
@@ -221,7 +215,7 @@ public class ElasticSearchSink
                 + "    \"fields\": [\"\"]\n"
                 + "}";
 
-        var request = HttpRequest.newBuilder( new URI( test.url + "requests/_search?pretty=true" ) )
+        var request = HttpRequest.newBuilder( new URI( test.url + "_search?pretty=true" ) )
                 .method( "POST", BodyPublishers.ofString( query ) )
                 .header( "Content-Type", "application/json" )
                 .header( "Authorization", test.basicAuth )

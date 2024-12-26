@@ -37,10 +37,10 @@ import javax.servlet.http.HttpServletResponse;
 import areca.aws.AWS;
 import areca.aws.XLogger;
 import areca.aws.ec2proxy.EnsureEc2InstanceHandler.Mode;
+import areca.aws.logs.ElasticSearchSink;
 import areca.aws.logs.EventCollector;
 import areca.aws.logs.GsonEventTransformer;
 import areca.aws.logs.LogRequestHandler;
-import areca.aws.logs.NullSink;
 
 /**
  *
@@ -127,8 +127,8 @@ public class HttpForwardServlet4
 
             logs = new EventCollector<Object,String>()
                     .addTransform( new GsonEventTransformer<Object>() )
-                    .addSink( new NullSink() );
-                    //.addSink( new ElasticSearchSink( config ) );
+                    //.addSink( new NullSink() );
+                    .addSink( new ElasticSearchSink( config ) );
         }
         catch (Exception e) {
             e.printStackTrace();
