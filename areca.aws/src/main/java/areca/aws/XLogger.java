@@ -59,7 +59,9 @@ public class XLogger {
                 var formatted = args != null ? String.format( format, args ) : format;
                 var prefix = abbreviate( cl.getSimpleName(), 20 );
                 var l = StringUtils.substring( level.toString(), 0, 5);
-                System.out.println( String.format( "[%-5s] %-20s: %s", l, prefix, formatted ) );
+                @SuppressWarnings( "resource" )
+                var out = level.intValue() >= Level.WARNING.intValue() ? System.err : System.out;
+                out.println( String.format( "[%-5s] %-20s: %s", l, prefix, formatted ) );
             }
         }
         return this;

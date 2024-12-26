@@ -94,6 +94,7 @@ public class HttpForwardServlet4
     @Override
     public void init() throws ServletException {
         log( getClass().getSimpleName() + " init..." );
+
         try {
             var noCookies = new CookieHandler() {
                 @Override
@@ -110,6 +111,7 @@ public class HttpForwardServlet4
             };
             System.setProperty( "jdk.httpclient.allowRestrictedHeaders", "host" );
             http = HttpClient.newBuilder()
+                    .sslContext( SSLUtils.trustAllSSLContext() )
                     .connectTimeout( TIMEOUT_CONNECT )
                     .cookieHandler( noCookies )
                     //.cookieHandler( new CookieManager( null, CookiePolicy.ACCEPT_ALL ) )
@@ -119,12 +121,14 @@ public class HttpForwardServlet4
 
             timer = new Timer();
 
-            vhosts = VHost.readConfig( aws );
-            vhosts.forEach( vhost -> vhost.init( aws ) );
+            var config = ConfigFile.read();
+
+            vhosts = VHost.readConfig( config, aws );
 
             logs = new EventCollector<Object,String>()
                     .addTransform( new GsonEventTransformer<Object>() )
                     .addSink( new NullSink() );
+                    //.addSink( new ElasticSearchSink( config ) );
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -167,12 +171,12 @@ public class HttpForwardServlet4
 
         // vhost
         probe.vhost = vhosts.stream()
-                .filter( _vhost -> _vhost.hostnames.contains( req.getServerName() ) ).findAny()
+                .filter( _vhost -> _vhost.hostnames().contains( req.getServerName() ) ).findAny()
                 .orElseThrow( () -> new SignalErrorResponseException( 404, "No such server: " + req.getServerName() ) )
                 .touch();
 
         // proxypath
-        probe.proxyPath = probe.vhost.proxypaths.stream()
+        probe.proxyPath = probe.vhost.proxypaths().stream()
                 .filter( path -> req.getPathInfo().startsWith( path.path ) ).findAny()
                 .orElseThrow( () -> new SignalErrorResponseException( 404, "No such path: " + req.getPathInfo() ) );
 

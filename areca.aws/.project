@@ -20,4 +20,11 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.m2e.core.maven2Nature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/test/resources/proxy.config.json</name>
+			<type>1</type>
+			<location>/home/falko/.config/proxy.config</location>
+		</link>
+	</linkedResources>
 </projectDescription>

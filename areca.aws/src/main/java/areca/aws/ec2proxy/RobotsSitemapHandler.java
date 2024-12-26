@@ -33,9 +33,9 @@ public class RobotsSitemapHandler
 
     @Override
     public void handle( Probe probe ) throws Exception {
-        if (probe.vhost.robots != null) {
-            LOG.info( "Robots: %s", probe.vhost.robots );
-            sendResource( probe, SC_OK, probe.vhost.robots );
+        if (probe.vhost.robots() != null) {
+            LOG.info( "Robots: %s", probe.vhost.robots() );
+            sendResource( probe, SC_OK, probe.vhost.robots() );
         }
     }
 

@@ -19,21 +19,17 @@ import static java.time.Instant.now;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
-import java.io.File;
-import java.io.FileReader;
 import java.time.Duration;
 import java.time.Instant;
 
 import org.apache.commons.lang3.function.FailableFunction;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 import areca.aws.AWS;
 import areca.aws.XLogger;
+import areca.aws.ec2proxy.ConfigFile.VHostConfig;
+import areca.aws.ec2proxy.ConfigFile.VHostConfig.ProxyPath;
 import areca.aws.logs.Ec2InstanceEvent;
 
 /**
@@ -48,33 +44,9 @@ public class VHost {
     /**
      *
      */
-    public static List<VHost> readConfig( AWS aws ) {
-        var home = System.getProperty( "user.home");
-        var f = new File( home, "proxy.config" );
-        if (!f.exists()) {
-            LOG.info( "No config at: %s", f.getAbsolutePath() );
-            f = new File( home, "workspaces/workspace-android/areca/areca.aws/src/test/resources/config.json" );
-        }
-        else if (!f.exists()) {
-            throw new RuntimeException( "No config: " + new File( home, "proxy.config" ).getAbsolutePath() );
-        }
-
-        try (var in = new FileReader( f ) ) {
-            return new GsonBuilder()
-                    .excludeFieldsWithoutExposeAnnotation().create()
-                    .fromJson( in, ConfigFile.class ).vhosts;
-        }
-        catch (Exception e) {
-            throw new RuntimeException( e );
-        }
+    public static List<VHost> readConfig( ConfigFile config, AWS aws ) {
+        return config.vhosts.stream().map( c -> new VHost( c, aws ) ).collect( Collectors.toList() );
     }
-
-    public class ConfigFile {
-
-        @Expose
-        public List<VHost>  vhosts;
-    }
-
 
     // instance *******************************************
 
@@ -84,66 +56,24 @@ public class VHost {
 
     private TimerTask       idleCheck;
 
-    /** The URL server names of the virtual server */
-    @Expose
-    @SerializedName("hostnames")
-    public List<String>     hostnames;
-
-    /** The EC2 instance id */
-    @Expose
-    @SerializedName("ec2id")
-    public String           ec2id;
-
-    @Expose
-    @SerializedName("idleTimeout")
-    public String           idleTimeout;
-
-    /** The name of the robots.txt resource, or null. */
-    @Expose
-    public String           robots;
-
-    @Expose
-    @SerializedName("proxypaths")
-    public List<ProxyPath>  proxypaths;
-
-    public class ProxyPath {
-
-        @Expose
-        @SerializedName("path")
-        public String   path;
-
-        @Expose
-        @SerializedName("redirect")
-        public String   redirect;
-
-        @Expose
-        @SerializedName("forward")
-        public String   forward;
-
-        /** The URL to be used to check if the instance is running. */
-        @Expose
-        @SerializedName("ping")
-        public String   ping;
-
-        @Expose
-        public List<String> allowedServices;
-    }
+    private VHostConfig     config;
 
 
-    protected void init( AWS aws ) {
-        if (ec2id != null) {
-            isRunning.set( aws.isInstanceRunning( ec2id ) );
+    protected VHost( VHostConfig config, AWS aws ) {
+        this.config = config;
+        if (config.ec2id != null) {
+            isRunning.set( aws.isInstanceRunning( config.ec2id ) );
             touch();
 
             // idle check
-            var idle = Duration.parse( idleTimeout );
+            var idle = Duration.parse( config.idleTimeout );
             idleCheck = new TimerTask() {
                 @Override public void run() {
                     // LOG.debug( "Idle check: %s/%s, last: %s", hostnames.get( 0 ), ec2id, lastAccess );
                     if (isRunning.get() && Duration.between( lastAccess, now() ).compareTo( idle ) > 0) {
-                        LOG.info( "IDLE: %s/%s, stopping...", hostnames.get( 0 ), ec2id );
+                        LOG.info( "IDLE: %s/%s, stopping...", config.hostnames.get( 0 ), config.ec2id );
                         updateRunning( null, __ -> {
-                            aws.stopInstance( ec2id );
+                            aws.stopInstance( config.ec2id );
                             return false;
                         });
                     }
@@ -151,10 +81,10 @@ public class VHost {
             };
             var interval = Duration.ofSeconds( 60 ).toMillis();
             HttpForwardServlet4.timer.scheduleAtFixedRate( idleCheck, interval, interval );
-            LOG.info( "Idle check started: %s/%s, at interval: %s", hostnames.get( 0 ), ec2id, idle );
+            LOG.info( "Idle check started: %s/%s, at interval: %s", config.hostnames.get( 0 ), config.ec2id, idle );
         }
         else {
-            LOG.info( "No ec2id for: %s. Assuming running target host", hostnames.get( 0 ) );
+            LOG.info( "No ec2id for: %s. Assuming running target host", config.hostnames.get( 0 ) );
             isRunning.set( true );
         }
     }
@@ -175,7 +105,7 @@ public class VHost {
 
 
     public <E extends Exception> void updateRunning( Boolean expected, FailableFunction<Boolean,Boolean,E> block ) throws E {
-        assert ec2id != null;
+        assert config.ec2id != null;
         if (expected == null || expected.booleanValue() == isRunning.get() ) {
             synchronized (isRunning) {
                 if (expected == null || expected.booleanValue() == isRunning.get() ) {
@@ -189,14 +119,23 @@ public class VHost {
     }
 
 
-    // Test ***********************************************
+    public List<String> hostnames() {
+        return config.hostnames;
+    }
 
-    public static void main( String[] args ) throws Exception {
-        var config = new Gson().fromJson( new FileReader( "src/test/resources/config.json" ), ConfigFile.class );
 
-        for (VHost vhost : config.vhosts) {
-            System.out.println( "vhost: " + vhost.hostnames );
-        }
+    public List<ProxyPath> proxypaths() {
+        return config.proxypaths;
+    }
+
+
+    public String ec2id() {
+        return config.ec2id;
+    }
+
+
+    public String robots() {
+        return config.robots;
     }
 
 }

@@ -62,7 +62,7 @@ public class EnsureEc2InstanceHandler
 
     public EnsureEc2InstanceHandler( Mode mode ) {
         super( notYetCommitted
-                .and( probe -> isNotBlank( probe.vhost.ec2id ) )
+                .and( probe -> isNotBlank( probe.vhost.ec2id() ) )
                 .and( ec2InstanceIsRunning.negate() ) );
         this.mode = mode;
     }
@@ -106,7 +106,7 @@ public class EnsureEc2InstanceHandler
         public void run() {
             try {
                 probe.vhost.updateRunning( false, ___ -> {
-                    probe.aws.startInstance( probe.vhost.ec2id );
+                    probe.aws.startInstance( probe.vhost.ec2id() );
                     Thread.sleep( 3000 );
                     try {
                         waitForService( probe );
@@ -129,7 +129,7 @@ public class EnsureEc2InstanceHandler
 
     protected void startInstance( Probe probe, Boolean expected ) throws Exception {
         probe.vhost.updateRunning( expected, __ -> {
-            probe.aws.startInstance( probe.vhost.ec2id );
+            probe.aws.startInstance( probe.vhost.ec2id() );
 
             waitForService( probe );
 
@@ -165,7 +165,7 @@ public class EnsureEc2InstanceHandler
                 }
             }
             catch (HttpTimeoutException|ConnectException e) {
-                LOG.info( "Waiting for connection: %s (%s) ()", probe.vhost.hostnames.get( 0 ), e );
+                LOG.info( "Waiting for connection: %s (%s) ()", probe.vhost.hostnames().get( 0 ), e );
                 Thread.sleep( 2000 );
             }
         }
@@ -182,7 +182,7 @@ public class EnsureEc2InstanceHandler
         public AfterError( Mode mode ) {
             super( mode );
             predicate = notYetCommitted
-                    .and( probe -> isNotBlank( probe.vhost.ec2id ) )
+                    .and( probe -> isNotBlank( probe.vhost.ec2id() ) )
                     .and( probe -> probe.error != null );
         }
 

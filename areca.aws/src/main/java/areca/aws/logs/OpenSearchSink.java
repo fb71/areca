@@ -64,7 +64,7 @@ public class OpenSearchSink
 
     // instance *******************************************
 
-    private String          url = "https://search-logs-jo3eoi2276p" + "" + "hojelclt6ssphva.eu-central-1.es.amaz" + "onaws.com/";
+    private static final String          url = "https://search-logs-jo3eoi2276p" + "" + "hojelclt6ssphva.eu-central-1.es.amaz" + "onaws.com/";
 
     private Pair<String,String> credentials;
 
@@ -170,8 +170,40 @@ public class OpenSearchSink
 
     // test ***********************************************
 
-    public static void main( String... args ) throws InterruptedException {
+    public static void main( String... args ) throws Exception {
+        System.out.println( "OpenSearchSink" );
+        System.out.println( "credentials: " + credentials() );
+
+        var credentials = credentials();
         LOG.info( "%s", credentials() );
+
+        var query = "{ \n"
+                + "    \"query\" : { \n"
+                + "        \"match_all\" : {} \n"
+                + "    },\n"
+                + "    \"fields\": [\"\"]\n"
+                + "}";
+
+        String auth = credentials.getLeft() + ":" + credentials.getRight();
+        var request = HttpRequest.newBuilder( new URI( url + "requests/_search?pretty=true" ) )
+                .method( "POST", BodyPublishers.ofString( query ) )
+                .header( "Content-Type", "application/json" )
+                .header( "Authorization", "Basic " + BASE64.encodeToString( auth.getBytes() ) )
+                .timeout( HTTP_TIMEOUT );
+
+        var http = HttpClient.newBuilder().connectTimeout( HTTP_TIMEOUT ).build();
+        var response = http.send( request.build(), HttpResponse.BodyHandlers.ofString() );
+
+        if (response.statusCode() >= 300) {
+            JsonElement json = JsonParser.parseString( response.body() );
+            var pretty = new GsonBuilder().setPrettyPrinting().create().toJson( json );
+            LOG.warn( "Wrong response code: %s (%s)", response.statusCode(), pretty );
+        }
+        else {
+            LOG.warn( "Response (OpenSearch): %s", response.body() );
+        }
+
+
 
 //        var logs = new EventCollector<Object,String>()
 //                .addTransform( new GsonEventTransformer<Object>() )

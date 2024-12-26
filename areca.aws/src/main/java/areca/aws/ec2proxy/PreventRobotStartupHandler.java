@@ -41,7 +41,7 @@ public class PreventRobotStartupHandler
 
     public PreventRobotStartupHandler() {
         super( notYetCommitted
-                .and( probe -> probe.vhost.ec2id != null )
+                .and( probe -> probe.vhost.ec2id() != null )
                 .and( ec2InstanceIsRunning.negate() )
                 .and( probe -> !allowedIPs.containsKey( probe.request.getRemoteAddr() ) ) );
     }

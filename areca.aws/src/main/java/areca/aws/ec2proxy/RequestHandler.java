@@ -26,7 +26,7 @@ import org.apache.commons.lang3.concurrent.LazyInitializer;
 
 import areca.aws.AWS;
 import areca.aws.Lazy;
-import areca.aws.ec2proxy.VHost.ProxyPath;
+import areca.aws.ec2proxy.ConfigFile.VHostConfig.ProxyPath;
 import areca.aws.logs.HttpRequestEvent;
 
 /**

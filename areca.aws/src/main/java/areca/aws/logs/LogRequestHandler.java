@@ -43,7 +43,7 @@ public class LogRequestHandler
 
         probe.response = new OnCommitResponseWrapper( probe.response, error -> {
             probe.ev.error = error;
-            probe.ev.vhost = probe.vhost.hostnames.get( 0 );
+            probe.ev.vhost = probe.vhost.hostnames().get( 0 );
             probe.ev.complete();
             HttpForwardServlet4.logs.publish( LOG_REQUEST, probe.ev );
         });
