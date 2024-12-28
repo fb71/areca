@@ -93,9 +93,11 @@ public class HttpForwardServlet4
 
     @Override
     public void init() throws ServletException {
-        log( getClass().getSimpleName() + " init..." );
-
+        log( getClass().getSimpleName() + " ..." );
         try {
+            var config = ConfigFile.read();
+            XLogger.init( config );
+
             var noCookies = new CookieHandler() {
                 @Override
                 public Map<String,List<String>> get( URI uri, Map<String,List<String>> requestHeaders ) throws IOException {
@@ -120,8 +122,6 @@ public class HttpForwardServlet4
             aws = new AWS();
 
             timer = new Timer();
-
-            var config = ConfigFile.read();
 
             vhosts = VHost.readConfig( config, aws );
 

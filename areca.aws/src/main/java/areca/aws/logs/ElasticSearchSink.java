@@ -131,7 +131,7 @@ public class ElasticSearchSink
         }
         //
         var attr = Files.readAttributes( buffer.toPath(), BasicFileAttributes.class);
-        LOG.info( "BUFFER: %s : %s : %s", attr.creationTime(), System.currentTimeMillis() - attr.creationTime().toMillis(), bufferMaxAge.toMillis() );
+        LOG.warn( "BUFFER: %s : %s : %s", attr.creationTime(), System.currentTimeMillis() - attr.creationTime().toMillis(), bufferMaxAge.toMillis() );
         var isTooOld = (attr.creationTime().toMillis() + bufferMaxAge.toMillis()) < System.currentTimeMillis();
         var isTooBig = buffer.length() > bufferMaxSize;
         if (isTooBig || isTooOld) {

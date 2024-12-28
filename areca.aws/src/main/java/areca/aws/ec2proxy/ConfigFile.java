@@ -104,6 +104,15 @@ public class ConfigFile {
         public String       bufferMaxSize;
     }
 
+    /**
+     * {@link XLogger}
+     */
+    public static class LogConfig {
+
+        @Expose
+        public String       level = "INFO";
+    }
+
     // instance *******************************************
 
     @Expose
@@ -111,6 +120,9 @@ public class ConfigFile {
 
     @Expose
     public ElasticConfig    elastic = new ElasticConfig();
+
+    @Expose
+    public LogConfig        log = new LogConfig();
 
 
     public static ConfigFile read() {
