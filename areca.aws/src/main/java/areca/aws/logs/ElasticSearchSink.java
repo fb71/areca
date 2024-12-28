@@ -33,8 +33,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
+
+import org.apache.commons.io.FileUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -79,9 +80,11 @@ public class ElasticSearchSink
 
     private File            buffer = new File( "ElasticSearchSink.buffer" );
 
+    /** file creation time does not work on linux jdk <22 */
+    private long            bufferCreated;
+
     private Duration        bufferMaxAge;
 
-    /** in MB */
     private long            bufferMaxSize;
 
     private String          basicAuth;
@@ -117,6 +120,9 @@ public class ElasticSearchSink
     @Override
     public void handle( Map<Event<Object>,String> events ) throws Exception {
         LOG.info( "events: %s", events.size() );
+        if (!buffer.exists() || bufferCreated <= 0) {
+            bufferCreated = System.currentTimeMillis();
+        }
         try (var out = new BufferedWriter( new FileWriter( buffer, UTF_8, true ) )) {
             for (var entry : events.entrySet()) {
                 if (!entry.getValue().contains( url )) {
@@ -130,9 +136,8 @@ public class ElasticSearchSink
             }
         }
         //
-        var attr = Files.readAttributes( buffer.toPath(), BasicFileAttributes.class);
-        LOG.warn( "BUFFER: %s : %s : %s", attr.creationTime(), System.currentTimeMillis() - attr.creationTime().toMillis(), bufferMaxAge.toMillis() );
-        var isTooOld = (attr.creationTime().toMillis() + bufferMaxAge.toMillis()) < System.currentTimeMillis();
+        LOG.warn( "BUFFER: %s : %s/%s", FileUtils.byteCountToDisplaySize( buffer.length() ) , System.currentTimeMillis() - bufferCreated, bufferMaxAge.toMillis() );
+        var isTooOld = (bufferCreated + bufferMaxAge.toMillis()) < System.currentTimeMillis();
         var isTooBig = buffer.length() > bufferMaxSize;
         if (isTooBig || isTooOld) {
             flushBuffer();
