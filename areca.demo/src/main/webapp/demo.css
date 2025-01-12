@@ -1,10 +1,10 @@
 .RootWindow, .MaxWidth {
     border-radius: 0px !important;
-    background-color: $bg2_color;
+    background-color: var(--basic-bg2-color);
 }
 
 h2 {
-    border-bottom: 1px solid darken($separator_color, 5%);
+    border-bottom: 1px solid var(--basic-separator-color);
     margin-block-start: 2em;
 }
 p {
@@ -19,7 +19,7 @@ pre[class*=language-] {
     padding: 0 1em 1em 1em;
     margin: 20px;
     border-radius: 10px;
-    background-color: $bg2_color;
+    background-color: var(--basic-bg2-color);
 }
 code[class*=language-] {
     line-height: 1.1;
@@ -29,7 +29,6 @@ code[class*=language-] {
     color: inherit;
 }
 .token.comment {
-    //color: #f08d49;
     color: #58b764;
     font-style: italic;
 }

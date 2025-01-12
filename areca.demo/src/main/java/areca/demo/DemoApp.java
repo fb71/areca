@@ -54,7 +54,7 @@ public class DemoApp
      */
     public static void main( String[] args ) throws Exception {
         debug = Window.current().getLocation().getSearch().contains( "debug" );
-        LOG.info( "Debug: %s", debug );
+        LOG.info( "DEBUG: %s", debug );
         LogFactory.DEFAULT_LEVEL = debug ? Level.INFO : Level.WARN;
         Promise.setDefaultErrorHandler( defaultErrorHandler() );
 
