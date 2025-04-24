@@ -20,11 +20,13 @@ import java.util.List;
 
 import areca.common.MutableInt;
 import areca.common.Platform;
+import areca.common.base.Consumer.RConsumer;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Button;
+import areca.ui.component2.Events.UIEvent;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComposite;
@@ -71,12 +73,12 @@ public class SwitcherLayout
                 }});
             }
             // handles
-            this.leftHandle = composite.add( new SwitcherHandle( "keyboard_double_arrow_right") {{
-                events.on( SELECT, ev -> children.forEach( child -> child.rotate( rotationStep ) ) );
-            }});
-            this.rightHandle = composite.add( new SwitcherHandle( "keyboard_double_arrow_left")  {{
-                events.on( SELECT, ev -> children.forEach( child -> child.rotate( -rotationStep ) ) );
-            }});
+            this.leftHandle = composite.add( handle( "keyboard_double_arrow_right", ev -> {
+                children.forEach( child -> child.rotate( rotationStep ) );
+            }));
+            this.rightHandle = composite.add( handle( "keyboard_double_arrow_left", ev -> {
+                children.forEach( child -> child.rotate( -rotationStep ) );
+            }));
         }
         this.composite = composite;
 
@@ -86,9 +88,9 @@ public class SwitcherLayout
 
         // handles
         leftHandle.position.set( Position.of(
-                -10, (clientSize.height() - leftHandle.size.$().height()) / 2 ) );
+                -8, (clientSize.height() - leftHandle.size.$().height()) / 2 ) );
         rightHandle.position.set( Position.of(
-                clientSize.width() - rightHandle.size.$().width() + 10,
+                clientSize.width() - rightHandle.size.$().width() + 8,
                 (clientSize.height() - rightHandle.size.$().height()) / 2 ) );
     }
 
@@ -103,7 +105,9 @@ public class SwitcherLayout
      *
      */
     class Child {
+
         UIComponent component;
+
         int         rotation;
 
         public void rotate( int delta ) {
@@ -120,23 +124,33 @@ public class SwitcherLayout
         }
     }
 
-    /**
-     *
-     */
-    static class SwitcherHandle
-            extends Button {
-
-        public static final Size DEFAULT_SIZE = Size.of( 30, 65 );
-
-        public SwitcherHandle() {
-            size.set( DEFAULT_SIZE );
-            icon.set( "drag_indicator" );
-        }
-
-        public SwitcherHandle( String icon ) {
-            this();
-            this.icon.set( icon );
-        }
+    protected Button handle( String _icon, RConsumer<UIEvent> handler ) {
+        return new Button() {{
+            cssClasses.add( "SwitcherHandle" );
+            size.set( Size.of( 30, 65 ) );
+            //icon.set( "drag_indicator" );
+            icon.set( _icon );
+            events.on( SELECT, handler );
+        }};
     }
+
+//    /**
+//     *
+//     */
+//    static class SwitcherHandle
+//            extends Button {
+//
+//        public static final Size DEFAULT_SIZE = Size.of( 30, 65 );
+//
+//        public SwitcherHandle() {
+//            size.set( DEFAULT_SIZE );
+//            icon.set( "drag_indicator" );
+//        }
+//
+//        public SwitcherHandle( String icon ) {
+//            this();
+//            this.icon.set( icon );
+//        }
+//    }
 
 }

@@ -26,6 +26,7 @@ import areca.common.event.EventListener;
 import areca.common.event.EventManager.EventHandlerInfo;
 import areca.ui.Action;
 import areca.ui.component2.Property;
+import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Property.ReadWrites;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
@@ -174,6 +175,16 @@ public abstract class Page {
          * Allows the Page to add actions to be shown in its global "toolbar".
          */
         public ReadWrites<?,Action> actions = Property.rws( this, "actions", new ArrayList<>() );
+
+        /**
+         * The preferred width of the {@link Page}. Default: null (undefined)
+         */
+        public ReadWrite<?,Integer> prefWidth = Property.rw( this, "prefWidth", null );
+
+        /**
+         * The minimum width of the {@link Page}. Default: null (undefined)
+         */
+        public ReadWrite<?,Integer> minWidth = Property.rw( this, "minWidth", null );
 
         /**
          * Prepare a {@link PageBuilder} in order to open a new page. Sets

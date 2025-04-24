@@ -46,20 +46,36 @@ public class MaxWidthLayout
 
     protected MaxWidthLayout() { }
 
+
     @Override
     public void layout( UIComposite composite ) {
         super.layout( composite );
         Assert.that( composite.components.size() <= 1, getClass().getSimpleName() + " does not allow more than 1 component");
-        composite.components.values().first().ifPresent( c -> {
-            var clientWidth = composite.clientSize.get().width();
-            var clientHeight = composite.clientSize.get().height();
 
-            int componentWidth = Math.min( clientWidth, width.$() );
-            c.size.set( Size.of( componentWidth, fillHeight.$() ? clientHeight : c.computeMinHeight( componentWidth ) ) );
+        composite.clientSize.opt().ifPresent( size -> {
+            composite.components.values().first().ifPresent( c -> {
+                int componentWidth = Math.min( size.width(), width.$() );
+                c.size.set( Size.of( componentWidth, fillHeight.$() ? size.height() : c.computeMinHeight( componentWidth ) ) );
 
-            var margin = (clientWidth - componentWidth) / 2;
-            c.position.set( Position.of( margin, 0 ) );
+                var margin = (size.width() - componentWidth) / 2;
+                c.position.set( Position.of( margin, 0 ) );
+            });
         });
+    }
+
+
+    @Override
+    public int computeMinHeight( UIComposite composite, int w ) {
+        if (composite.components.size() == 0) {
+            return 0;
+        }
+        else if (fillHeight.$()) {
+            return composite.clientSize.get().height();
+        }
+        else {
+            var componentWidth = Math.min( w, width.$() );
+            return composite.components.values().first().get().computeMinHeight( componentWidth );
+        }
     }
 
 }

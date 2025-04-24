@@ -143,6 +143,17 @@ public class Pageflow {
         }
     }
 
+    /**
+     *
+     */
+    class PageLayoutSite {
+
+        public PageHolder page( UIComposite pageContainer ) {
+            return Sequence.of( pages ).first( holder -> holder.ui == pageContainer ).orElseError();
+        }
+
+    }
+
     // instance *******************************************
 
     private UIComposite         rootContainer;
@@ -153,7 +164,10 @@ public class Pageflow {
     protected Pageflow( UIComposite rootContainer ) {
         EventManager.instance().publish( new PageflowEvent( this, null, EventType.INITIALIZING ) );
         this.rootContainer = Assert.notNull( rootContainer, "rootContainer must not be null" );
-        this.rootContainer.layout.set( new PageStackLayout() );
+
+        //this.rootContainer.layout.set( new PageStackLayout() );
+        this.rootContainer.layout.set( new PageGalleryLayout( new PageLayoutSite() ) );
+
         //new PageCloseGesture( rootContainer );
         EventManager.instance().publish( new PageflowEvent( this, null, EventType.INITIALIZING ) );
     }
@@ -218,7 +232,7 @@ public class Pageflow {
         }
 
         public PageBuilder parent( @SuppressWarnings("hiding") Object parent ) {
-            Assert.that( pages.isEmpty() || parent == pages.peek().clientPage, "Adding other than top page is not supported yet." );
+            //Assert.that( pages.isEmpty() || parent == pages.peek().clientPage, "Adding other than top page is not supported yet." );
             this.parent = pages.peek();
             return this;
         }
@@ -251,8 +265,8 @@ public class Pageflow {
                 cssClasses.add( "PageRoot" );
                 cssClasses.add( "PageOpening" );
             }});
-            var layout = (PageStackLayout)rootContainer.layout.value();
-            layout.layout( rootContainer ); // do NOT layout ALL child components
+            var layout = rootContainer.layout.value();
+            layout.layout( rootContainer ); // don't recursivly layout ALL child components
 
             // createUI() *after* PageRoot composite is rendered with PageOpening class
             // to make sure that Page animation starts after given delay
@@ -281,7 +295,7 @@ public class Pageflow {
         with( pageData.ui.position ).apply( pos -> pos.set(
                 Position.of( pos.value().x, rootContainer.clientSize.value().height() - 30 ) ) );
 
-        Platform.schedule( 750, () -> {
+//        Platform.schedule( 750, () -> {
             var closing = pageData.page.close();
             Assert.isEqual( true, closing, "Vetoing Page.close() is not yet supported." );
             pageData.page.dispose();
@@ -289,8 +303,10 @@ public class Pageflow {
                 pageData.ui.dispose();
             }
             pageLifecycle( pageData, PAGE_CLOSED );
-            // rootContainer.layout();
-        });
+
+            var layout = rootContainer.layout.value();
+            layout.layout( rootContainer ); // don't recursivly layout ALL child components
+//        });
     }
 
 

@@ -30,21 +30,24 @@ public class StateChangeEvent extends EventObject  {
         /*INITIALIZING,*/ INITIALIZED, /*DISPOSING,*/ DISPOSED
     }
 
-    static void publish( EventType eventType, Object state ) {
-        EventManager.instance().publish( new StateChangeEvent( state, eventType ) );
+    static void publish( EventType eventType, Object state, StateSite site ) {
+        EventManager.instance().publish( new StateChangeEvent( state, site, eventType ) );
     }
 
-    static Promise<Void> publish2( EventType eventType, Object state ) {
-        return EventManager.instance().publish2( new StateChangeEvent( state, eventType ) );
+    static Promise<Void> publish2( EventType eventType, Object state, StateSite site ) {
+        return EventManager.instance().publish2( new StateChangeEvent( state, site, eventType ) );
     }
 
     // instance *******************************************
 
     public EventType type;
 
-    public StateChangeEvent( Object state, EventType type ) {
+    public StateSite stateSite;
+
+    public StateChangeEvent( Object state, StateSite site, EventType type ) {
         super( Assert.notNull( state ) );
         this.type = Assert.notNull( type );
+        this.stateSite = Assert.notNull( site );
     }
 
     /**
