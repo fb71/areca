@@ -33,6 +33,11 @@ public class UIComposite
 
     public ReadWrite<UIComposite,LayoutManager> layout = Property.rw( this, PROP_LAYOUT );
 
+    public UIComposite lm( LayoutManager lm ) {
+        layout.set( lm );
+        return this;
+    }
+
     public Children             components = new Children();
 
     /**
@@ -63,7 +68,7 @@ public class UIComposite
          * @return The newly added element if it was successfully added,
          *         {@link Opt#absent()} otherwise.
          */
-        public Opt<UIComponent> add( int index, UIComponent add ) {
+        public <R extends UIComponent> Opt<R> add( int index, R add ) {
             var oldValue = values().toList();
             try {
                 valuePresent = true;

@@ -352,8 +352,8 @@ public class Connection {
             case PACKAGE_UI_PAGEFLOW + ".PageContainer" : return new PageContainer();
             case PACKAGE_UI_PAGEFLOW + ".DialogContainer" : return new DialogContainer();
             default: {
-                LOG.warn( "fehlt noch: " + classname );
-                throw new RuntimeException( "fehlt noch: " + classname );
+                LOG.warn( "Fehlt noch: " + classname );
+                throw new RuntimeException( "Fehlt noch: " + classname );
             }
         }
     }

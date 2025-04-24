@@ -141,6 +141,12 @@ public class UIComponentRenderer
             }
         });
 
+        // color
+        c.color.onInitAndChange( (newValue, oldValue) -> {
+            Assert.notNull( newValue, "Setting null value means remove() ??? " );
+            htmlElm.getStyle().setProperty( "color", newValue.toHex() );
+        });
+
         // bgColor
         c.bgColor.onInitAndChange( (newValue, oldValue) -> {
             Assert.notNull( newValue, "Setting null value means remove() ???" );

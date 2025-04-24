@@ -19,6 +19,7 @@ import org.teavm.jso.JSProperty;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Color;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Button;
@@ -96,6 +97,11 @@ abstract class JSServer2ClientMessage
             var primitive = (JSPrimitivePropertyValue)value;
             return Integer.valueOf( primitive.value() );
         }
+        // Float
+        else if (value.type().equals( Float.class.getName() )) {
+            var primitive = (JSPrimitivePropertyValue)value;
+            return Float.valueOf( primitive.value() );
+        }
         // Boolean
         else if (value.type().equals( Boolean.class.getName() )) {
             var primitive = (JSPrimitivePropertyValue)value;
@@ -130,6 +136,11 @@ abstract class JSServer2ClientMessage
         else if (value.type().equals( Position.class.getName() )) {
             var primitive = (JSPrimitivePropertyValue)value;
             return Position.of( Integer.parseInt( primitive.value() ), Integer.parseInt( primitive.value2() ) );
+        }
+        // Color
+        else if (value.type().equals( Color.class.getName() )) {
+            var primitive = (JSPrimitivePropertyValue)value;
+            return Color.ofHex( primitive.value() );
         }
         // CssStyle
         else if (value.type().equals( "CssStyle" )) {

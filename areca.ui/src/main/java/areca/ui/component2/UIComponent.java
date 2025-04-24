@@ -113,6 +113,11 @@ public abstract class UIComponent
     }
 
     /**
+     * Foreground/text color.
+     */
+    public ReadWrite<UIComponent,Color>     color = Property.rw( this, "color" );
+
+    /**
      * Background color.
      */
     public ReadWrite<UIComponent,Color>     bgColor = Property.rw( this, PROP_BG_COLOR );

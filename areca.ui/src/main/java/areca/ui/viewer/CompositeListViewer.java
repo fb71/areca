@@ -49,15 +49,6 @@ public class CompositeListViewer<V>
 
     private static final Log LOG = LogFactory.getLog( CompositeListViewer.class );
 
-    /**
-     *
-     * @param <T>
-     * @author Falko Bräutigam
-     */
-    public interface CellBuilder<T>
-            extends RBiFunction<T,ListModelBase<T>,UIComponent> {
-    }
-
     // instance *******************************************
 
     /** Render odd/even Css classes. Default: false */
@@ -81,20 +72,25 @@ public class CompositeListViewer<V>
     /** A {@link Function} that calculates the current version of an entity in the list. */
     public ReadWrite<CompositeListViewer<V>,RFunction<V,Object>> etag = Property.rw( this, "etag", v -> v.hashCode() );
 
-    protected UIComposite           container;
+    protected UIComposite                       container;
 
-    protected CellBuilder<V>        componentBuilder;
+    protected CellBuilder<V>                    cellBuilder;
 
     /** value -> (ETag,UIComposite) */
-    protected Map<V,Pair<Object,UIComponent>> components = new HashMap<>();
+    protected Map<V,Pair<Object,UIComponent>>   components = new HashMap<>();
 
 
     public CompositeListViewer( CellBuilder<V> componentBuilder ) {
-        this.componentBuilder = componentBuilder;
+        this.cellBuilder = componentBuilder;
     }
 
-    public CompositeListViewer( RFunction<V,UIComponent> componentBuilder ) {
-        this.componentBuilder = (value,__) -> componentBuilder.apply( value );
+    public CompositeListViewer( RFunction<V,UIComponent> f ) {
+        this.cellBuilder = (_index, _value, _model, _viewer) -> f.apply( _value );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    public CompositeListViewer( RBiFunction<V,ListModelBase<V>,UIComponent> f ) {
+        this.cellBuilder = (_index, _value, _model, _viewer) -> f.apply( _value, (ListModelBase<V>)_model );
     }
 
 
@@ -164,7 +160,7 @@ public class CompositeListViewer<V>
                 return current;
             }
             else {
-                var result = componentBuilder.apply( v, model );
+                var result = cellBuilder.buildCell( index.intValue(), v, model, this );
                 result.cssClasses.add( "TableCell" );
                 if (lines.$()) {
                     result.cssClasses.add( "Lines" );

@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.Color;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.Events.EventHandler;
@@ -139,6 +140,11 @@ public class JsonServer2ClientMessage {
         else if (value instanceof Position) {
             var p = (Position)value;
             return new JsonPrimitiveTuplePropertyValue( type, Integer.toString( p.x() ), Integer.toString( p.y() ) );
+        }
+        // Color
+        else if (value instanceof Color) {
+            var c = (Color)value;
+            return new JsonPrimitivePropertyValue( type, c.toHex() );
         }
         // EventHandler
         else if (value instanceof EventHandler) {
