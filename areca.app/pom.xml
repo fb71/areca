@@ -253,6 +253,8 @@
                             ${project.basedir}/src/main/webapp,
                             ${project.build.directory}/generated/js
                         </resourceBases>
+                        <!-- No need to scan anything -->
+                        <webInfIncludeJarPattern>^((?!sun).)*$</webInfIncludeJarPattern>
                     </webApp>
                     <scanTargets>
                         <scanTarget>${project.basedir}/src/main/webapp/css</scanTarget>
