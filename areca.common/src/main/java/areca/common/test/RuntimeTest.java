@@ -47,6 +47,7 @@ public class RuntimeTest {
     public void stackTraceTest2() {
         try {
             String s = null;
+            @SuppressWarnings( "unused" )
             var s2 = "" + s.toString();
         }
         catch (Exception e) {

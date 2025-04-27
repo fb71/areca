@@ -248,6 +248,7 @@ public abstract class EventManager {
         }
 
 
+        @SuppressWarnings( {"unchecked", "rawtypes"} )
         public void perform( EventObject ev ) {
             try {
                 // filter
