@@ -20,17 +20,25 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.AbsoluteLayout;
+import areca.ui.layout.LayoutManager;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class PageStackLayout
-        extends AbsoluteLayout {
+class PageStackLayout
+        extends AbsoluteLayout
+        implements PageLayout {
 
     private static final Log LOG = LogFactory.getLog( PageStackLayout.class );
 
     private UIComposite     composite;
+
+    @Override
+    public LayoutManager manager() {
+        return this;
+    }
+
 
     @Override
     public void layout( @SuppressWarnings("hiding") UIComposite composite ) {

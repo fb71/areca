@@ -16,21 +16,26 @@ package areca.ui.pageflow;
 import java.util.HashMap;
 import org.apache.commons.lang3.tuple.Pair;
 
+import areca.common.Platform;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
 import areca.ui.Size;
 import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.AbsoluteLayout;
-import areca.ui.pageflow.Pageflow.PageLayoutSite;
+import areca.ui.layout.LayoutManager;
+import areca.ui.pageflow.PageflowEvent.EventType;
 
 /**
  *
  * @author Falko Bräutigam
  */
-public class PageGalleryLayout
-        extends AbsoluteLayout {
+class PageGalleryLayout
+        extends AbsoluteLayout
+        implements PageLayout {
 
     private static final Log LOG = LogFactory.getLog( PageGalleryLayout.class );
 
@@ -49,6 +54,42 @@ public class PageGalleryLayout
 
     public PageGalleryLayout( PageLayoutSite site ) {
         this.site = site;
+        EventManager.instance()
+                .subscribe( (PageflowEvent ev) -> {
+                    if (ev.type == EventType.PAGE_OPENED) {
+                        pageOpened( ev );
+                    }
+                    else if (ev.type == EventType.PAGE_CLOSING) {
+                        pageClosing( ev );
+                    }
+                })
+                .performIf( PageflowEvent.class, ev -> ev.getSource() == site.pageflow() )
+                .unsubscribeIf( () -> site.pageflow().isDisposed() );
+    }
+
+
+    protected void pageOpened( PageflowEvent ev ) {
+        ev.pageUI.cssClasses.add( "PageOpening" );
+
+        // createUI() *after* PageRoot composite is rendered with PageOpening CSS
+        // class to make sure that Page animation starts after given delay no matter
+        // what the createUI() method does
+        Platform.schedule( 1, () -> {
+            ev.pageUI.styles.add( CssStyle.of( "transition-delay", Platform.isJVM() ? "0.15s" : "0.2s" ) );
+            ev.pageUI.cssClasses.remove( "PageOpening" );
+
+            ev.page.createUI( ev.pageUI );
+            ev.pageUI.layout();
+
+            Platform.schedule( 1000, () -> {
+                ev.pageUI.styles.remove( CssStyle.of( "transition-delay", "0.2s") );
+            });
+        });
+    }
+
+
+    protected void pageClosing( PageflowEvent ev ) {
+        ev.pageUI.cssClasses.add( "PageClosing" );
     }
 
 
@@ -117,6 +158,11 @@ public class PageGalleryLayout
         public int positionOf( UIComponent c ) {
             return get( c ).getLeft();
         }
+    }
+
+    @Override
+    public LayoutManager manager() {
+        return this;
     }
 
 }
