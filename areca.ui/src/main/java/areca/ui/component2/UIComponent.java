@@ -224,7 +224,7 @@ public abstract class UIComponent
 
 
     /**
-     * Called when this component is added to the component hierarchy.
+     * Called when this component is removed from the component hierarchy.
      */
     protected void detachedFrom( @SuppressWarnings("hiding") UIComposite parent ) {
         Assert.isSame( this.parent, parent, "wrong parent" );

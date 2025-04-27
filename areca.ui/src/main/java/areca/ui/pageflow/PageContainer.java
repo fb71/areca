@@ -137,8 +137,7 @@ public class PageContainer
                         });
                     }}));
                 }
-                // do not layout body and its children
-                PageContainer.this.layout.$().layout( PageContainer.this );
+                PageContainer.this.layout_();
             });
         }});
 

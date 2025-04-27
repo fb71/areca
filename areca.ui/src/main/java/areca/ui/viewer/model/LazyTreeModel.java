@@ -13,9 +13,9 @@
  */
 package areca.ui.viewer.model;
 
+import java.util.List;
+
 import areca.common.Promise;
-import areca.common.base.Consumer.RConsumer;
-import areca.common.base.Opt;
 
 /**
  *
@@ -24,28 +24,13 @@ import areca.common.base.Opt;
 public interface LazyTreeModel<V>
         extends TreeModelBase<V> {
 
-    public abstract Promise<Integer> countBranches();
+    //public Promise<Integer> countChildren( V item );
 
-    /**
-     * Retrieves the branch elements with the given indexes.
-     *
-     * @param first The first index to load.
-     * @param max The maximum number of values to load.
-     * @return {@link Promise} of single values. {@link Opt#absent()} signals last element.
-     * @see #load(int, int, RConsumer)
-     */
-    public abstract Promise<Opt<LazyTreeModel<V>>> loadBranches( int first, int max );
+    public Promise<List<? extends V>> loadChildren( V item, int first, int max );
 
-    public abstract Promise<Integer> countLeafs();
+    public default Promise<List<? extends V>> loadAllChildren( V item ) {
+        return loadChildren( item, 0, Integer.MAX_VALUE );
+    }
 
-    /**
-     * Retrieves the branch elements with the given indexes.
-     *
-     * @param first The first index to load.
-     * @param max The maximum number of values to load.
-     * @return {@link Promise} of single values. {@link Opt#absent()} signals last element.
-     * @see #load(int, int, RConsumer)
-     */
-    public abstract Promise<Opt<V>> loadLeafs( int first, int max );
 
 }

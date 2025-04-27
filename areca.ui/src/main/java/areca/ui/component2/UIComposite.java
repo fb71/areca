@@ -148,6 +148,16 @@ public class UIComposite
     }
 
 
+    /**
+     * Refreshes *just* the layout of this {@link UIComponent} (without recursively
+     * refreshing the layout of the children).
+     */
+    public UIComposite layout_() {
+        layout.opt().ifPresent( lm -> lm.layout( this ) );
+        return this;
+    }
+
+
     @Override
     public int computeMinWidth( int height ) {
         return layout.opt().map( l -> l.computeMinWidth( this, height ) ).orElse( 100 );
