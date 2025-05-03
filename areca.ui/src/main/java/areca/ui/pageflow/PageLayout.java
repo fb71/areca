@@ -13,6 +13,7 @@
  */
 package areca.ui.pageflow;
 
+import areca.common.base.Opt;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.LayoutManager;
 import areca.ui.pageflow.PageflowImpl.PageHolder;
@@ -28,9 +29,11 @@ public interface PageLayout {
      */
     interface PageLayoutSite {
 
-        public PageHolder page( UIComposite pageContainer );
+        public Opt<PageHolder> page( UIComposite pageContainer );
 
         public Pageflow pageflow();
+
+        public UIComposite container();
     }
 
     public LayoutManager manager();

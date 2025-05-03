@@ -14,7 +14,6 @@
 package areca.ui.statenaction;
 
 import areca.common.Assert;
-import areca.common.Platform;
 import areca.common.base.Opt;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
@@ -74,6 +73,9 @@ class StateHolder
     @Override
     public void dispose() {
         if (!disposed) {
+            if (child != null) {
+                child.dispose();
+            }
             disposed = true;
             parent.child = null;
             new AnnotatedState( state ).dispose();
@@ -114,10 +116,10 @@ class StateHolder
             public <R> R activate() {
                 if (child != null) {
                     child.dispose();
-                    Platform.schedule( 500, () -> {
+//                    Platform.schedule( 500, () -> {
                         child = result;
                         result.init();
-                    });
+//                    });
                 }
                 else {
                     child = result;

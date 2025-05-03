@@ -15,6 +15,7 @@ package areca.ui.pageflow;
 
 import java.util.EventObject;
 
+import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComposite;
@@ -61,4 +62,7 @@ public class PageflowEvent
         return (Pageflow)super.getSource();
     }
 
+    public Opt<Object> clientPage() {
+        return Opt.of( clientPage );
+    }
 }

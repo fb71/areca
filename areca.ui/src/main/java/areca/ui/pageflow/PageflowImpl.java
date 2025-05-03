@@ -13,7 +13,6 @@
  */
 package areca.ui.pageflow;
 
-import static areca.common.base.With.with;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSED;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSING;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_OPENED;
@@ -106,34 +105,24 @@ class PageflowImpl
         builder.ui = rootContainer.add( new UIComposite() {{
             layout.set( FillLayout.defaults() );
             cssClasses.add( "PageRoot" );
+            // UI is created by PageLayout
         }});
-        rootContainer.layout.value().layout( rootContainer ); // XXX don't recursivly layout ALL child components
-
-        // UI is created by PageLayout
         pageLifecycle( builder, PAGE_OPENED );
     }
 
 
     @Override
     public void close( Object clientPage ) {
-        Assert.isSame( clientPage, pages.peek().clientPage, "Removing other than top page is not supported yet." );
-        var page = pages.pop();
+        var page = pages.peek();
+        Assert.isSame( clientPage, page.clientPage, "Removing other than top page is not supported yet." );
         pageLifecycle( page, PAGE_CLOSING );
 
-        with( page.ui.position ).apply( pos -> pos.set(
-                Position.of( pos.value().x, rootContainer.clientSize.value().height() - 30 ) ) );
+        var closing = page.page.close();
+        Assert.that( closing, "Vetoing Page.close() is not yet supported." );
+        page.page.dispose();
 
-//        Platform.schedule( 750, () -> {
-            var closing = page.page.close();
-            Assert.that( closing, "Vetoing Page.close() is not yet supported." );
-            page.page.dispose();
-            if (!page.ui.isDisposed()) {
-                page.ui.dispose();
-            }
-            pageLifecycle( page, PAGE_CLOSED );
-
-            rootContainer.layout.value().layout( rootContainer ); // don't recursivly layout ALL child components
-//        });
+        pages.pop();
+        pageLifecycle( page, PAGE_CLOSED );
     }
 
 
@@ -292,13 +281,18 @@ class PageflowImpl
             implements PageLayoutSite {
 
         @Override
-        public PageHolder page( UIComposite pageContainer ) {
-            return Sequence.of( pages ).first( holder -> holder.ui == pageContainer ).orElseError();
+        public Opt<PageHolder> page( UIComposite pageContainer ) {
+            return Sequence.of( pages ).first( holder -> holder.ui == pageContainer );
         }
 
         @Override
         public Pageflow pageflow() {
             return PageflowImpl.this;
+        }
+
+        @Override
+        public UIComposite container() {
+            return rootContainer;
         }
     }
 }
