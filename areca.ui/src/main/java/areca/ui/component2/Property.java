@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 import areca.common.Assert;
 import areca.common.base.BiConsumer.RBiConsumer;
@@ -208,10 +209,12 @@ public abstract class Property<C,T> {
         }
 
         public C set( T newValue ) {
-            var oldValue = value;
-            rawSet( newValue );
-            fireEvent( oldValue, newValue );
-            LOG.debug( "SET: %s:%s -> %s (%s)", component().getClass().getSimpleName(), name, newValue, oldValue );
+            //LOG.debug( "SET: %s:%s -> %s (%s)", component().getClass().getSimpleName(), name, newValue, oldValue );
+            if (!Objects.equals( newValue, value )) {
+                var oldValue = value;
+                rawSet( newValue );
+                fireEvent( oldValue, newValue );
+            }
             return component;
         }
 
