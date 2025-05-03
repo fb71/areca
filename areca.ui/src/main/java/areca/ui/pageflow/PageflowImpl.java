@@ -18,9 +18,7 @@ import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSING;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_OPENED;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_OPENING;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 import areca.common.Assert;
 import areca.common.base.Opt;
@@ -50,7 +48,7 @@ class PageflowImpl
 
     protected PageLayout        layout;
 
-    protected Deque<PageHolder> pages = new ArrayDeque<>();
+    protected PageStack         pages = new PageStack();
 
 
     protected PageflowImpl( UIComposite rootContainer ) {
@@ -113,9 +111,14 @@ class PageflowImpl
 
     @Override
     public void close( Object clientPage ) {
-        var page = pages.peek();
-        Assert.isSame( clientPage, page.clientPage, "Removing other than top page is not supported yet." );
+        close( Sequence.of( pages ).first( p -> p.clientPage == clientPage ).orElseError() );
+    }
+
+
+    protected void close( PageHolder page ) {
         pageLifecycle( page, PAGE_CLOSING );
+
+        page.child().ifPresent( child -> child.close() );
 
         var closing = page.page.close();
         Assert.that( closing, "Vetoing Page.close() is not yet supported." );
@@ -159,7 +162,7 @@ class PageflowImpl
         /** The page impl supplied by client code, Pojo or {@link Page}. */
         Object          clientPage;
 
-        PageHolder      parent;
+        int             pageIndex = pages.size();
 
         List<Scoped>    context = new ArrayList<>();
 
@@ -191,7 +194,7 @@ class PageflowImpl
 
         @Override
         public void close() {
-            PageflowImpl.this.close( clientPage );
+            PageflowImpl.this.close( this );
         }
 
         @Override
@@ -206,13 +209,21 @@ class PageflowImpl
         protected Opt<Scoped> _context( Class<?> type, String scope ) {
             return _local( type, scope ).or( () -> {
                 LOG.debug( "Context: not found locally: %s (%s) %s", type.getName(), scope, clientPage );
-                return parent != null ? parent._context( type, scope ) : Opt.absent();
+                return parent().map( parent -> parent._context( type, scope ).orNull() );
             });
         }
 
         @Override
         public <R> R context( Class<R> type, String scope ) {
             return type.cast( _context( type, scope ).map( scoped -> scoped.value ).orNull() );
+        }
+
+        protected Opt<PageHolder> parent() {
+            return pages.at( pageIndex - 1 );
+        }
+
+        protected Opt<PageHolder> child() {
+            return pages.at( pageIndex + 1 );
         }
     }
 
@@ -248,9 +259,9 @@ class PageflowImpl
         }
 
         @Override
-        public PageBuilder parent( @SuppressWarnings("hiding") Object parent ) {
+        public PageBuilder parent( Object parent ) {
             //Assert.that( pages.isEmpty() || parent == pages.peek().clientPage, "Adding other than top page is not supported yet." );
-            this.parent = pages.peek();
+            this.pageIndex = pages.size();
             return this;
         }
 
@@ -293,6 +304,31 @@ class PageflowImpl
         @Override
         public UIComposite container() {
             return rootContainer;
+        }
+    }
+
+    /**
+     *
+     */
+    protected class PageStack
+            extends ArrayList<PageHolder> {
+
+        private int top = -1;
+
+        public void push( PageHolder elm ) {
+            add( ++top, elm );
+        }
+
+        public PageHolder pop() {
+            return remove( top-- );
+        }
+
+        public PageHolder peek() {
+            return get( top );
+        }
+
+        public Opt<PageHolder> at( int index ) {
+            return Opt.of( index >= 0 && index < size() ? get( index ) : null );
         }
     }
 }

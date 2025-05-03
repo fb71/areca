@@ -66,21 +66,21 @@ class PageGalleryLayout
                 .subscribe( (PageflowEvent ev) -> {
                     // open
                     if (ev.type == PAGE_OPENED) {
-                        LOG.warn( "PageflowEvent: %s (%s)", ev.type, ev.clientPage.getClass().getSimpleName() );
+                        LOG.debug( "PageflowEvent: %s (%s)", ev.type, ev.clientPage.getClass().getSimpleName() );
                         ev.pageUI.cssClasses.add( "PageOpening" );
                         // give the new page its size so that PageOpening animation works
                         layout( site.container() );
                     }
                     // close
                     else if (ev.type == PAGE_CLOSING) {
-                        LOG.warn( "PageflowEvent: %s (%s)", ev.type, ev.clientPage.getClass().getSimpleName() );
+                        LOG.debug( "PageflowEvent: %s (%s)", ev.type, ev.clientPage.getClass().getSimpleName() );
                         ev.pageUI.cssClasses.add( "PageClosing" );
                         ev.pageUI.position.set( ev.pageUI.position.$().add( 0, site.container().clientSize.value().height() / 4 ) );
                     }
 
                     // deferred layout
                     collector.collect( ev, events -> {
-                        LOG.warn( "Layout: (%s) : %s", site.container().components.size(),
+                        LOG.debug( "Layout: (%s) : %s", site.container().components.size(),
                                 site.pageflow().pages().reduce( "", (r,p) -> r + p.getClass().getSimpleName() + ", " ) );
 
                         for (var _ev : events) {
@@ -118,7 +118,7 @@ class PageGalleryLayout
     protected void layout() {
         layout( site.container() );
 
-        // XXX nur, die sich geändert haben
+        // XXX nur die, die sich geändert haben
         for (var child : site.container().components.value()) {
             if (child instanceof UIComposite ) {
                 ((UIComposite)child).layout();
@@ -129,32 +129,34 @@ class PageGalleryLayout
 
     @Override
     public void layout( UIComposite composite ) {
-        //LOG.warn( "LAYOUT: %s", composite.components.values().reduce( "", (r,c) -> r + c.getClass().getSimpleName() + ", " ) );
         Assert.isSame( composite, site.container() );
         super.layout( composite );
 
         composite.clientSize.opt().ifPresent( size -> {
             var result = new PositionSizeMap();
-            var x = size.width();
+            var availWidth = size.width(); // available width
 
             // find visible pages and widths
             var components = composite.components.values().toList();
             for (int i = components.size() - 1; i >= 0; i--) {
                 var page = site.page( (UIComposite)components.get( i ) ).orElse( (PageHolder)null );
-                if (page != null) { // closing Pages are left alone
-                    var w = page.prefWidth.opt().orElse( DEFAULT_PAGE_WIDTH );
-                    if (x < w) {
-                        w = page.minWidth.opt().orElse( DEFAULT_PAGE_WIDTH_MIN );
-                    }
-                    if (x < w) {
-                        break;
-                    }
-                    result.put( components.get( i ), x - w, w );
-                    x -= w + SPACE;
+                if (page == null) {  // closing Pages are left alone
+                    continue;
                 }
+                var w = page.prefWidth.opt().orElse( DEFAULT_PAGE_WIDTH );
+                if (w > availWidth) {
+                    w = i == components.size() - 1
+                            ? availWidth  // top page
+                            : page.minWidth.opt().orElse( DEFAULT_PAGE_WIDTH_MIN );
+                }
+                if (w > availWidth) {
+                    break;
+                }
+                result.put( components.get( i ), availWidth - w, w );
+                availWidth -= w + SPACE;
             }
             // margin
-            var margin = (x + SPACE) / 2;
+            var margin = (availWidth + SPACE) / 2;
             for (var component : result.keySet()) {
                 component.position.set( Position.of( result.positionOf( component ) - margin, 0 ) );
 
