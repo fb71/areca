@@ -14,10 +14,11 @@
 package areca.rt.server.client;
 
 import java.util.EventObject;
-
 import org.teavm.jso.browser.Window;
 
+import areca.common.Assert;
 import areca.common.Session;
+import areca.common.Timer;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -39,6 +40,11 @@ public class ClientBrowserHistoryStrategy {
         return new ClientBrowserHistoryStrategy();
     }
 
+    // instance *******************************************
+
+    /** Prevents cycles while closing a page. */
+    protected Timer lastPageflowCloseEvent = Timer.start();
+
 
     protected ClientBrowserHistoryStrategy() {
         Window.current().addEventListener( "popstate", ev -> onBrowserHistoryEvent( ev.cast() ) );
@@ -49,18 +55,20 @@ public class ClientBrowserHistoryStrategy {
 
 
     protected void onPageflowEvent( PageflowEvent ev ) {
+        var history = Window.current().getHistory();
+
         if (ev.getSource().equals( "PAGE_OPENED" )) {
-            var state = String.valueOf( ev.pageCount );
-            Window.current().getHistory().pushState( BrowserHistoryState.create( state ), "", "#"+state );
+            var state = String.valueOf( ev.pageId );
+            history.pushState( BrowserHistoryState.create( state ), "", "#"+state );
         }
         else if (ev.getSource().equals( "PAGE_CLOSED" )) {
-            var current = Window.current().getHistory().getState().<BrowserHistoryState>cast();
-            LOG.debug( "onPageflowEvent(): %s, pageCount = %s, current history = %s", ev.getSource(), ev.pageCount, current.getState() );
+            var current = history.getState().<BrowserHistoryState>cast();
+            LOG.debug( "onPageflowEvent(): %s, pageId = %s, current state = %s", ev.getSource(), ev.pageId, current.getState() );
 
-            // prevent cycles
-            if (ev.pageCount < Integer.parseInt( current.getState() )) {
-                Window.current().getHistory().back();
-            }
+            Assert.isEqual( ev.pageId, Integer.parseInt( current.getState() ) );
+
+            lastPageflowCloseEvent.restart();
+            history.back();
         }
     }
 
@@ -70,11 +78,16 @@ public class ClientBrowserHistoryStrategy {
         ev.stopPropagation();
 
         BrowserHistoryState bhs = ev.getState().cast();
-        var state = bhs != null ? Integer.parseInt( bhs.getState() ) : 1;
-        LOG.debug( "onBrowserEvent(): popped state = %s", state );
+        if (lastPageflowCloseEvent.elapsedMillis() < 1000) {
+            LOG.debug( "Skipping: %s", lastPageflowCloseEvent.elapsedHumanReadable() );
+        }
+        else {
+            var state = bhs != null ? Integer.parseInt( bhs.getState() ) : 1;
+            LOG.debug( "onBrowserEvent(): popped state = %s", state );
 
-        var conn = Session.instanceOf( Connection.class );
-        conn.enqueueClickEvent( JSBrowserHistoryEvent.create( state ) );
+            var conn = Session.instanceOf( Connection.class );
+            conn.enqueueClickEvent( JSBrowserHistoryEvent.create( state ) );
+        }
     }
 
     /**
@@ -97,11 +110,11 @@ public class ClientBrowserHistoryStrategy {
     public static class PageflowEvent
             extends EventObject {
 
-        public int pageCount;
+        public int pageId;
 
-        public PageflowEvent( String type, int pageCount ) {
+        public PageflowEvent( String type, int pageId ) {
             super( type );
-            this.pageCount = pageCount;
+            this.pageId = pageId;
         }
 
         @Override
