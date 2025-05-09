@@ -16,7 +16,6 @@ package areca.rt.server.client;
 import java.util.EventObject;
 import org.teavm.jso.browser.Window;
 
-import areca.common.Assert;
 import areca.common.Session;
 import areca.common.Timer;
 import areca.common.event.EventManager;
@@ -65,7 +64,7 @@ public class ClientBrowserHistoryStrategy {
             var current = history.getState().<BrowserHistoryState>cast();
             LOG.debug( "onPageflowEvent(): %s, pageId = %s, current state = %s", ev.getSource(), ev.pageId, current.getState() );
 
-            Assert.isEqual( ev.pageId, Integer.parseInt( current.getState() ) );
+            //Assert.isEqual( ev.pageId, Integer.parseInt( current.getState() ) );
 
             lastPageflowCloseEvent.restart();
             history.back();

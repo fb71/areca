@@ -97,6 +97,12 @@ class PageflowImpl
             ((AnnotatedPage)page).inject( (type,scope) -> builder.context( type, scope ) );
         }
 
+        builder.parent().ifPresent( parent -> {
+            parent.child().ifPresent( child -> {
+                child.close();
+            });
+        });
+
         pages.push( builder );
         page.init( builder );
 
@@ -116,9 +122,13 @@ class PageflowImpl
 
 
     protected void close( PageHolder page ) {
+        LOG.debug( "close(): %s", page.clientPage.getClass().getName());
         pageLifecycle( page, PAGE_CLOSING );
 
-        page.child().ifPresent( child -> child.close() );
+        page.child().ifPresent( child -> {
+            child.close();
+            Assert.that( !page.child().isPresent() );
+        });
 
         var closing = page.page.close();
         Assert.that( closing, "Vetoing Page.close() is not yet supported." );
@@ -260,8 +270,8 @@ class PageflowImpl
 
         @Override
         public PageBuilder parent( Object parent ) {
-            //Assert.that( pages.isEmpty() || parent == pages.peek().clientPage, "Adding other than top page is not supported yet." );
-            this.pageIndex = pages.size();
+            pageIndex = pages().filter( p -> p == parent ).map( (p,index) -> index ).first().orElseError() + 1;
+            LOG.debug( "parent(): pageIndex=%s (%s)", pageIndex, parent.getClass().getName() );
             return this;
         }
 
