@@ -16,6 +16,7 @@ package areca.ui.pageflow;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSING;
 import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_OPENED;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +35,6 @@ import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.AbsoluteLayout;
 import areca.ui.layout.LayoutManager;
-import areca.ui.pageflow.PageflowImpl.PageHolder;
 
 /**
  *
@@ -138,9 +138,15 @@ class PageGalleryLayout
 
             // find visible pages and widths
             var components = composite.components.values().toList();
+            var dialogs = new ArrayList<UIComponent>();
             for (int i = components.size() - 1; i >= 0; i--) {
-                var page = site.page( (UIComposite)components.get( i ) ).orElse( (PageHolder)null );
+                var page = site.page( (UIComposite)components.get( i ) ).orNull();
                 if (page == null) {  // closing Pages are left alone
+                    continue;
+                }
+                // dialog
+                if (page.isDialog.opt().orElse( false )) {
+                    dialogs.add( components.get( i ) );
                     continue;
                 }
                 var w = page.prefWidth.opt().orElse( DEFAULT_PAGE_WIDTH );
@@ -152,7 +158,15 @@ class PageGalleryLayout
                 if (w > availWidth) {
                     break;
                 }
-                result.put( components.get( i ), availWidth - w, w );
+                var x = availWidth - w;
+                result.put( components.get( i ), x, w );
+
+                // give all dialogs above us our size
+                for (var dialog : dialogs) {
+                    result.put( dialog, x, w );
+                }
+                dialogs.clear();
+
                 availWidth -= w + SPACE;
             }
             // margin

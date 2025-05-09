@@ -179,12 +179,14 @@ public abstract class Page {
         /**
          * The preferred width of the {@link Page}. Default: null (undefined)
          */
-        public ReadWrite<?,Integer> prefWidth = Property.rw( this, "prefWidth", null );
+        public ReadWrite<PageSite,Integer> prefWidth = Property.rw( this, "prefWidth", null );
 
         /**
          * The minimum width of the {@link Page}. Default: null (undefined)
          */
-        public ReadWrite<?,Integer> minWidth = Property.rw( this, "minWidth", null );
+        public ReadWrite<PageSite,Integer> minWidth = Property.rw( this, "minWidth", null );
+
+        public ReadWrite<PageSite,Boolean> isDialog = Property.rw( this, "isDialog", Boolean.FALSE );
 
         /**
          * Prepare a {@link PageBuilder} in order to open a new page. Sets
