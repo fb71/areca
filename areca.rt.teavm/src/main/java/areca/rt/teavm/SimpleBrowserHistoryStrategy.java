@@ -16,28 +16,24 @@ package areca.rt.teavm;
 import org.teavm.jso.browser.Window;
 
 import areca.common.Assert;
-import areca.common.event.EventHandler;
+import areca.common.Timer;
 import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
-import areca.common.reflect.ClassInfo;
 import areca.common.reflect.NoRuntimeInfo;
-import areca.common.reflect.RuntimeInfo;
 import areca.rt.teavm.PopStateEvent.BrowserHistoryState;
 import areca.ui.pageflow.Pageflow;
 import areca.ui.pageflow.PageflowEvent;
 import areca.ui.pageflow.PageflowEvent.EventType;
 
 /**
+ * Provides a browser history integration for client-side {@link TeaApp}s.
  *
  * @author Falko Bräutigam
  */
-@RuntimeInfo
 public class SimpleBrowserHistoryStrategy {
 
     private static final Log LOG = LogFactory.getLog( SimpleBrowserHistoryStrategy.class );
-
-    public static final ClassInfo<SimpleBrowserHistoryStrategy> INFO = SimpleBrowserHistoryStrategyClassInfo.instance();
 
     public static SimpleBrowserHistoryStrategy start( Pageflow pageflow ) {
         return new SimpleBrowserHistoryStrategy( pageflow );
@@ -47,16 +43,13 @@ public class SimpleBrowserHistoryStrategy {
 
     protected Pageflow      pageflow;
 
-    /** Prevent Browser and Pageflow close events to cycle. */
-    protected volatile int  skipCloseEvent;
-
-
-    protected SimpleBrowserHistoryStrategy() {}
+    /** Prevent Browser and Pageflow close event cycles. */
+    protected Timer         lastCloseEvent = Timer.start();
 
 
     protected SimpleBrowserHistoryStrategy( Pageflow pageflow ) {
         this.pageflow = pageflow;
-        EventManager.instance().subscribe( this )
+        EventManager.instance().subscribe( (PageflowEvent ev) -> onPageflowEvent( ev ) )
                 .performIf( PageflowEvent.class, ev -> ev.getSource() == this.pageflow )
                 .unsubscribeIf( () -> pageflow.isDisposed() );
 
@@ -73,11 +66,10 @@ public class SimpleBrowserHistoryStrategy {
 
         //
         //Assert.that( pageflow.pages().count() > state );
-        skipSubsequentEvent( () -> pageflow.close( pageflow.pages().first().get() ) );
+        skipSubsequentEvent( () -> pageflow.close( pageflow.topPage() ) );
     }
 
 
-    @EventHandler(PageflowEvent.class)
     protected void onPageflowEvent( PageflowEvent ev ) {
         LOG.debug( "Pageflow event: type = %s", ev.type );
 
@@ -93,15 +85,14 @@ public class SimpleBrowserHistoryStrategy {
 
 
     /**
-     * Skip one (the next) subsequent event.
+     * Prevent event cycles.
      */
     @NoRuntimeInfo
     private void skipSubsequentEvent( Runnable task ) {
-        if (skipCloseEvent-- > 0) {
-            return;
+        if (lastCloseEvent.elapsedMillis() > 1000) {
+            lastCloseEvent.restart();
+            task.run();
         }
-        skipCloseEvent = 1;
-        task.run();
     }
 
 }
