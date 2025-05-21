@@ -183,7 +183,7 @@ public class ArecaUIServer
     @Override
     protected void doPost( HttpServletRequest request, HttpServletResponse response ) throws ServletException, IOException {
         try {
-            LOG.warn( "----" );
+            LOG.info( "---------" );
             var t = Timer.start();
 
             // request: handle click events
@@ -282,17 +282,22 @@ public class ArecaUIServer
                         gson.toJson( Assert.notNull( ev ), out );
                     });
 
-                    // eventloop
                     currentRequest.set( new Request( request, response ) );
-                    eventLoop.execute( 100 );
 
-                    out.write( String.format( "\n  ],\n  \"pendingWait\": %s\n}", eventLoop.pendingWait() ) );
+                    // eventloop
+                    eventLoop.execute( () -> c.intValue() > 0 );
+
+                    // immediately send next request, and then wait until something is available
+                    var pendingWait = eventLoop.pendingWait();
+                    pendingWait = pendingWait == EventLoop.POLLING_TIMEOUT ? 0 : pendingWait;
+
+                    out.write( String.format( "\n  ],\n  \"pendingWait\": %s\n}", pendingWait ) );
                 }
                 finally {
                     collector.sink( null );
                     currentRequest.set( null );
                 }
-                LOG.info( "Sent: %s render events (%s)", c.getValue(), t.elapsedHumanReadable() );
+                LOG.info( "Sent: %s render events (%s)", c.getValue(), t );
             });
         }
         catch (Exception e) {

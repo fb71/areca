@@ -15,8 +15,6 @@ package areca.rt.server;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import java.time.Duration;
-
 import areca.common.Session;
 import areca.common.Timer;
 import areca.common.base.Consumer.RConsumer;
@@ -37,9 +35,14 @@ public abstract class EventLoop {
 
     private static final Log LOG = LogFactory.getLog( EventLoop.class );
 
-    public static final Duration POLLING_TIMEOUT = Duration.ofMillis( 500 );
+    /**
+     * The standard time to {@link #pendingWait()} is there are background tasks
+     * that have {@link #requestPolling() requested polling}.
+     */
+    public static final int POLLING_TIMEOUT = 402; // unique number
 
     public static final RSupplier<Boolean> FULLY = () -> false;
+
 
     protected static RConsumer<Throwable> defaultErrorHandler = e -> {
         LOG.warn( "defaultErrorHandler: %s", e.toString() );
@@ -75,33 +78,30 @@ public abstract class EventLoop {
 
     // instance *******************************************
 
+    /** The number of currently active request for polling. */
     protected AtomicInteger pollingRequests = new AtomicInteger();
 
 
     public void requestPolling() {
         pollingRequests.incrementAndGet();
-        //LOG.warn( "POLLING: +%s", pollingRequests );
     }
 
 
     public void releasePolling() {
         var c = pollingRequests.decrementAndGet();
-        //LOG.warn( "POLLING: -%s", c );
         if (c < 0) {
             LOG.warn( "pollingRequests !>= 0 : %s", pollingRequests );
-            //pollingRequests = 0;
         }
-        //Assert.that( pollingRequests >= 0, "pollingRequests !>= 0 : " + pollingRequests );
     }
 
 
-    public void releasePolling( String label, Runnable task, int delayMillis ) {
+    public void releasePolling( String label, Runnable task, long delayMillis ) {
         enqueue( label, task, delayMillis );
         releasePolling();
     }
 
 
-    public abstract void enqueue( String label, Runnable task, int delayMillis );
+    public abstract void enqueue( String label, Runnable task, long delayMillis );
 
 
     /**
@@ -114,28 +114,25 @@ public abstract class EventLoop {
      * @see EventLoop#FULLY
      */
     public boolean execute( RSupplier<Boolean> condition ) {
-        int timeframeMillis = condition == FULLY
-                ? -1  // execute all immediate tasks if no condition
-                : 0;  // execute just 1 (or minimum) tasks between condition checks
+        var checkInterval = 100;
+//        int timeframeMillis = condition == FULLY
+//                ? Integer.MAX_VALUE  // execute all immediate tasks if no condition
+//                : (int)POLLING_TIMEOUT;  // execute just 1 (or minimum) tasks between condition checks
 
         if (!condition.get()) {
-            execute( timeframeMillis );
-            while (!condition.get()) {
-                long pendingWait = pendingWait();
+            execute( checkInterval );
 
-                if (pendingWait == -1) {
+            var c = 0;
+            while (!condition.get()) {
+                if (pendingWait() == -1) {
                     return false;
                 }
-                if (pendingWait > 0) {
-                    // waiting on target (Promise) is tricky because one Promise usually
-                    // consists of a chain of promises...
-                    synchronized (this) {
-                        var t = Timer.start();
-                        try { wait( pendingWait ); } catch (InterruptedException e) { }
-                        LOG.debug( "waited: %s ms (actual: %s)", pendingWait, t );
-                    }
-                }
-                execute( timeframeMillis );
+                waitForNewTasks( checkInterval );
+                execute( checkInterval );
+                c++;
+            }
+            if (c > 0) {
+                LOG.debug( "execute(): poll loop count = %s", c );
             }
         }
         return true;
@@ -149,23 +146,53 @@ public abstract class EventLoop {
      * @param timeframeMillis The maximum time to spent in this method, or -1.
      * @see #pendingWait()
      */
-    public abstract void execute( int timeframeMillis );
+    public abstract void execute( long timeframeMillis );
 
 
     /**
-     * The time the caller should wait before the queue has more tasks to {@link #execute()}.
+     * The time (in millis) the caller should wait before the queue has more tasks to
+     * {@link #execute()}.
      *
-     * @return <ul>
-     * <li>0: there are executable tasks</li>
-     * <li>>0: wait for the given amount of time</li>
-     * <li>-1: queue is completely empty, no tasks pending.</li>
-     * </ul>
+     * @return
+     *         <ul>
+     *         <li><b>0</b> - there are executable tasks</li>
+     *         <li>{@link #POLLING_TIMEOUT} - there are background tasks</li>
+     *         <li><b>>0</b> - there are delayed tasks</li>
+     *         <li><b>-1</b> - queue is completely empty, no tasks pending.</li>
+     *         </ul>
      */
     public abstract long pendingWait();
 
 
     protected long now() {
         return System.nanoTime() / 1000000;
+    }
+
+
+    /**
+     * Inform {@link #waitForNewTasks(long)} that the next run of {@link #execute(int)}
+     * probably will find more work to do in the queues.
+     */
+    protected synchronized void notifyWaitingPollers() {
+        notifyAll();
+    }
+
+
+    /**
+     * Waits for new tasks to become available for {@link #execute(int)}.
+     */
+    public synchronized void waitForNewTasks( int millis ) {
+        if (pendingWait() <= 0) {
+            return;
+        }
+        var t = Timer.start();
+        try {
+            wait( millis );
+        }
+        catch (InterruptedException e) {
+            LOG.warn( "Interrupted." );
+        }
+        LOG.debug( "waitForNewTasks(): %s ms (actual: %s)", millis, t );
     }
 
 }

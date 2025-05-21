@@ -45,7 +45,8 @@ public class EventLoop1
     /**
      * @implSpec Might be calles from worker threads.
      */
-    public void enqueue( String label, Runnable task, int delayMillis ) {
+    @Override
+    public void enqueue( String label, Runnable task, long delayMillis ) {
         Assert.that( delayMillis >= 0 );
         LOG.debug( "enqueue(): %s - %s ms", label, delayMillis );
         queue.add( new Task( task, now() + delayMillis, label ) );
@@ -57,12 +58,8 @@ public class EventLoop1
     }
 
 
-    /**
-     * Executes pending tasks until queue is empty or the given timeframe exceeds.
-     *
-     * @param timeframeMillis
-     */
-    public void execute( int timeframeMillis ) {
+    @Override
+    public void execute( long timeframeMillis ) {
         //var deadline = timeframeMillis == -1 ? Long.MAX_VALUE : now() + timeframeMillis;
 
         // one loop can add more tasks to the queue
@@ -105,8 +102,8 @@ public class EventLoop1
 
         if (pollingRequests.get() > 0) {
             return result == -1l
-                    ? POLLING_TIMEOUT.toMillis()
-                    : Math.min( result, POLLING_TIMEOUT.toMillis() );
+                    ? POLLING_TIMEOUT
+                    : Math.min( result, POLLING_TIMEOUT );
         }
         else {
             return result;
