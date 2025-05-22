@@ -60,7 +60,7 @@ public class DrillingTreeLayout<V>
     public void expand( TreeViewer<V>.Level level ) {
         // remove top-children
         int delay = 0;
-        if (!topChildren.isEmpty()) { // root
+        if (!topChildren.isEmpty()) { // root?
             var c = topChildren.remove( level.value );
             expanded.put( level, Assert.notNull( c, "Expand level is not in current top-children: " + level.value ) );
 
@@ -75,6 +75,9 @@ public class DrillingTreeLayout<V>
             int i = 0;
             for (var l : level.children) {
                 var cell = createCell( i++, l.value );
+                if (viewer.oddEven.$()) {
+                    cell.cssClasses.modify( "Even", i % 2 == 0 );
+                }
                 topChildren.put( l.value, cell );
                 container.add( cell );
             }
@@ -99,18 +102,21 @@ public class DrillingTreeLayout<V>
     public void update( TreeViewer<V>.Level level ) {
         LOG.info( "Update: %s", level.value.getClass().getName() );
 
+        // remove
         var newChildren = Sequence.of( level.children ).map( c -> c.value ).toSet();
         for (var v : new ArrayList<>( topChildren.keySet() )) {
             if (!newChildren.contains( v )) {
                 topChildren.remove( v ).dispose();
             }
         }
-
+        // add new
         var i = new MutableInt();
         for (var l : level.children) {
+            LOG.info( "    %s: %s", i, l.value.getClass().getName() );
             topChildren.computeIfAbsent( l.value, __ -> {
                 var cell = createCell( i.getValue(), l.value );
-                container.components.add( i.intValue(), cell );
+                container.components.add( expanded.size() + i.intValue(), cell );
+                LOG.info( "        added: %s: %s", i, container.components.value() );
                 return cell;
             });
             i.incrementAndGet();
