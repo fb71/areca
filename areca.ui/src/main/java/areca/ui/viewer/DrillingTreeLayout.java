@@ -13,10 +13,13 @@
  */
 package areca.ui.viewer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import areca.common.Assert;
+import areca.common.MutableInt;
 import areca.common.Platform;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
@@ -89,6 +92,30 @@ public class DrillingTreeLayout<V>
         expanded.remove( level ).dispose();
 
         expand( level.parent );
+    }
+
+
+    @Override
+    public void update( TreeViewer<V>.Level level ) {
+        LOG.info( "Update: %s", level.value.getClass().getName() );
+
+        var newChildren = Sequence.of( level.children ).map( c -> c.value ).toSet();
+        for (var v : new ArrayList<>( topChildren.keySet() )) {
+            if (!newChildren.contains( v )) {
+                topChildren.remove( v ).dispose();
+            }
+        }
+
+        var i = new MutableInt();
+        for (var l : level.children) {
+            topChildren.computeIfAbsent( l.value, __ -> {
+                var cell = createCell( i.getValue(), l.value );
+                container.components.add( i.intValue(), cell );
+                return cell;
+            });
+            i.incrementAndGet();
+        }
+        container.layout();
     }
 
 

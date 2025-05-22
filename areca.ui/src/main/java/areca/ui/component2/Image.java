@@ -30,6 +30,11 @@ import areca.ui.component2.Property.ReadWrite;
 public class Image
         extends UIComponent {
 
+    public static String base64( byte[] bytes ) {
+        var encoded = Base64.getEncoder().encode( bytes );
+        return new String( encoded, 0, encoded.length, StandardCharsets.ISO_8859_1 );
+    }
+
     /**
      * Base64 encoded image data.
      * @see #setData(InputStream)
@@ -60,9 +65,7 @@ public class Image
 
     public Image setData( byte[] data ) {
         Assert.that( src.opt().isAbsent() );
-        var encoded = Base64.getEncoder().encode( data );
-        var s = new String( encoded, 0, encoded.length, StandardCharsets.ISO_8859_1 );
-        this.data.set( s );
+        this.data.set( base64( data ) );
         return this;
     }
 

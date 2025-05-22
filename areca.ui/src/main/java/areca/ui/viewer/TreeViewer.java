@@ -14,11 +14,13 @@
 package areca.ui.viewer;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import areca.common.Assert;
 import areca.common.base.Opt;
+import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.Property;
@@ -51,6 +53,8 @@ public class TreeViewer<V>
 
         public abstract void collapse( TreeViewer<VV>.Level l );
 
+        public abstract void update( TreeViewer<VV>.Level l );
+
         public abstract UIComposite init( TreeViewer<VV> viewer );
 
         public void dispose() {
@@ -60,6 +64,7 @@ public class TreeViewer<V>
 
     // instance *******************************************
 
+    /** The {@link CellBuilder} to be used to render the cels of the tree. */
     public ReadWrite<TreeViewer<V>,
             CellBuilder<V>>                 cellBuilder = Property.rw( this, "cellBuilder" );
 
@@ -96,7 +101,7 @@ public class TreeViewer<V>
     @Override
     public UIComponent create() {
         Assert.isNull( root );
-        root = top = new Level( null, null, null, null );
+        root = top = new Level( null, null );
 
         container = treeLayout.$().init( this );
 
@@ -104,52 +109,10 @@ public class TreeViewer<V>
             configurator.accept( container );
         }
 
-        model.subscribe( ev -> load() ).unsubscribeIf( () -> container.isDisposed() );
+        model.subscribe( ev -> update( root ) ).unsubscribeIf( () -> container.isDisposed() );
 
         //load();
         return container;
-    }
-
-
-    /**
-     * One level of the hierarchie/tree.
-     */
-    protected class Level {
-
-        public V                    value;
-
-        public UIComponent          head, content;
-
-        public UIComposite          container;
-
-        public Level                parent;
-
-        public List<Level>          children = new ArrayList<>();
-
-        public boolean              isExpanded;
-
-
-        public Level( Level parent, V value, UIComponent head, UIComposite container ) {
-            this.container = container;
-            this.head = head;
-            this.parent = Assert.notSame( this, parent );
-            this.value = value;
-        }
-
-        protected Opt<Level> find( V v ) {
-            if (value == v) {
-                return Opt.of( this );
-            }
-            else {
-                for (var child : children) {
-                    var result = child.find( v );
-                    if (result.isPresent()) {
-                        return result;
-                    }
-                }
-                return Opt.absent();
-            }
-        }
     }
 
 
@@ -157,6 +120,26 @@ public class TreeViewer<V>
     public Object load() {
         expand( null );
         return null;
+    }
+
+
+    /**
+     * Recursively find structural changes and update the UI, starting from the given
+     * level.
+     */
+    protected void update( Level l ) {
+        if (l.isExpanded) {
+            model.loadAllChildren( l.value ).onSuccess( update -> {
+                var current = Sequence.of( l.children ).map( c -> c.value ).toSet();
+                if (!current.equals( new HashSet<>( update ) )) { // ignore order
+                    l.children = Sequence.of( update ).map( c -> new Level( l, c ) ).toList();
+                    treeLayout.$().update( l );
+                }
+                else {
+                    l.children.forEach( child -> update( child ) );
+                }
+            });
+        }
     }
 
 
@@ -169,7 +152,7 @@ public class TreeViewer<V>
             model.loadAllChildren( item ).onSuccess( children -> {
                 Assert.that( l.children.isEmpty() );
                 for (var child : children) {
-                    l.children.add( new Level( l, child, null, null ) );
+                    l.children.add( new Level( l, child ) );
                 }
                 treeLayout.$().expand( l );
             });
@@ -205,5 +188,43 @@ public class TreeViewer<V>
     @Override
     public Object store() {
         return null;
+    }
+
+
+    /**
+     * One level of the hierarchie/tree.
+     */
+    protected class Level {
+
+        public V                    value;
+
+        //public UIComponent          head, content;
+
+        public Level                parent;
+
+        public List<Level>          children = new ArrayList<>();
+
+        public boolean              isExpanded;
+
+
+        public Level( Level parent, V value ) {
+            this.parent = Assert.notSame( this, parent );
+            this.value = value;
+        }
+
+        protected Opt<Level> find( V v ) {
+            if (value == v) {
+                return Opt.of( this );
+            }
+            else {
+                for (var child : children) {
+                    var result = child.find( v );
+                    if (result.isPresent()) {
+                        return result;
+                    }
+                }
+                return Opt.absent();
+            }
+        }
     }
 }

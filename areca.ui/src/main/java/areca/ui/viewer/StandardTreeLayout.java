@@ -48,4 +48,11 @@ public class StandardTreeLayout<V>
         throw new RuntimeException( "not yet implemented." );
     }
 
+
+    @Override
+    public void update( TreeViewer<V>.Level l ) {
+        // XXX Auto-generated method stub
+        throw new RuntimeException( "not yet implemented." );
+    }
+
 }
