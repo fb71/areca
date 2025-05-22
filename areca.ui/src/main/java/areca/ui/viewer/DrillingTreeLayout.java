@@ -71,15 +71,16 @@ public class DrillingTreeLayout<V>
             delay = 350;
         }
         // create new top-children
-        Platform.schedule( delay, () -> {
+        Platform.schedule( delay, () -> { // wait for animation
             int i = 0;
             for (var l : level.children) {
                 var cell = createCell( i++, l.value );
+                topChildren.put( l.value, cell );
+                container.add( cell );
+
                 if (viewer.oddEven.$()) {
                     cell.cssClasses.modify( "Even", i % 2 == 0 );
                 }
-                topChildren.put( l.value, cell );
-                container.add( cell );
             }
             container.layout();
         });
@@ -92,16 +93,15 @@ public class DrillingTreeLayout<V>
         topChildren.values().forEach( UIComponent::dispose );
         topChildren.clear();
 
-        expanded.remove( level ).dispose();
+        var c = expanded.remove( level );
+        topChildren.put( level.value, c );
 
-        expand( level.parent );
+        update( level.parent );
     }
 
 
     @Override
     public void update( TreeViewer<V>.Level level ) {
-        LOG.info( "Update: %s", level.value.getClass().getName() );
-
         // remove
         var newChildren = Sequence.of( level.children ).map( c -> c.value ).toSet();
         for (var v : new ArrayList<>( topChildren.keySet() )) {
@@ -112,11 +112,9 @@ public class DrillingTreeLayout<V>
         // add new
         var i = new MutableInt();
         for (var l : level.children) {
-            LOG.info( "    %s: %s", i, l.value.getClass().getName() );
             topChildren.computeIfAbsent( l.value, __ -> {
                 var cell = createCell( i.getValue(), l.value );
                 container.components.add( expanded.size() + i.intValue(), cell );
-                LOG.info( "        added: %s: %s", i, container.components.value() );
                 return cell;
             });
             i.incrementAndGet();
