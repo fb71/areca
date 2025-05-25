@@ -13,12 +13,18 @@
  */
 package areca.ui.viewer;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import areca.common.Assert;
+import areca.common.Platform;
+import areca.common.Promise;
 import areca.common.base.Opt;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
@@ -84,10 +90,10 @@ public class TreeViewer<V>
     /** Render odd/even Css classes. Default: false */
     public ReadWrite<TreeViewer<V>,Boolean> oddEven = Property.rw( this, "oddEven", false );
 
-    /** Show just the selected elements. Default: false */
+    /** Collapse an opened branch when a new one is expanded. Default: false */
     public ReadWrite<TreeViewer<V>,Boolean> exclusive = Property.rw( this, "exclusive", false );
 
-    protected Level                         root, top;
+    protected Level                         root;
 
     protected UIComposite                   container;
 
@@ -101,24 +107,22 @@ public class TreeViewer<V>
     @Override
     public UIComponent create() {
         Assert.isNull( root );
-        root = top = new Level( null, null );
+        root = new Level( null, null );
 
         container = treeLayout.$().init( this );
-
         if (configurator != null) {
             configurator.accept( container );
         }
 
         model.subscribe( ev -> update( root ) ).unsubscribeIf( () -> container.isDisposed() );
 
-        //load();
         return container;
     }
 
 
     @Override
     public Object load() {
-        expand( null );
+        expand( (V)null );
         return null;
     }
 
@@ -143,34 +147,94 @@ public class TreeViewer<V>
     }
 
 
-    public void expand( V item ) {
-        var l = root.find( item ).orElseThrow( () -> new NoSuchElementException( "No Level for value: " + item ) );
-        if (!l.isExpanded) {
-            l.isExpanded = true;
-            top = l;
+    /**
+     * See {@link #expand(List)}
+     */
+    public void expand( @SuppressWarnings( "unchecked" ) V... path ) {
+        expand( Arrays.asList( path ) );
+    }
 
-            model.loadAllChildren( item ).onSuccess( children -> {
-                Assert.that( l.children.isEmpty() );
-                for (var child : children) {
-                    l.children.add( new Level( l, child ) );
+    /**
+     *
+     * @param path
+     */
+    public Promise<?> expand( List<V> path ) {
+        if (path.isEmpty()) {
+            return Promise.async( null );
+        }
+        else {
+            var item = path.remove( 0 );
+            return expand( item )
+                    .then( __ -> Platform.schedule( 500, () -> __ ) )
+                    .then( __ -> expand( path ) );
+        }
+    }
+
+
+    /**
+     * Expands the given top-level item. The item must be loaded/visible currently.
+     * Does nothing if the item is already expanded.
+     *
+     * @return A {@link Promise} that signals that the operation is completed.
+     */
+    public Promise<List<? extends V>> expand( V item ) {
+        var l = root.find( item ).orElseError( "No Level for value: %s", item );
+        if (l.isExpanded) {
+            return Promise.async( l.children().map( child -> child.value ).toList() );
+        }
+
+        // close siblings if "exclusive"
+        if (exclusive.$()) {
+            for (var child : l.children) {
+                if (child.isExpanded) {
+                    collapse( child.value );
                 }
-                treeLayout.$().expand( l );
-            });
+            }
         }
+
+        return model.loadAllChildren( item ).onSuccess( children -> {
+            Assert.that( l.children.isEmpty() );
+            l.isExpanded = true;
+            for (var child : children) {
+                l.children.add( new Level( l, child ) );
+            }
+            treeLayout.$().expand( l );
+        });
     }
 
 
+    /**
+     * Collapses the given item and all possibly expanded children. Does nothing if
+     * the item is currently collapsed.
+     */
     public void collapse( V item ) {
-        var level = root.find( item ).orElseThrow( () -> new NoSuchElementException( "No Level for value: " + item ) );
+        var level = root.find( item ).orElseError( "No Level for value: %s", item );
+        if (!level.isExpanded) {
+            return;
+        }
 
-        for (var l = top; l != level.parent; l = l.parent) {
-            treeLayout.$().collapse( l );
-            l.isExpanded = false;
-            l.children.clear();
+        // find all expanded children
+        var expandedChildren = new LinkedList<Level>();
+        var deque = new ArrayDeque<Level>( asList( level ) );
+        for (var l = deque.poll(); l != null; l = deque.poll()) {
+            if (l.isExpanded) {
+                expandedChildren.add( 0, l );
+            }
+            deque.addAll( l.children );
+        }
+        // close from top to the given item
+        for (var expanded : expandedChildren) {
+            treeLayout.$().collapse( expanded );
+            expanded.isExpanded = false;
+            expanded.children.clear();
         }
     }
 
 
+    /**
+     * {@link #expand(Object)} or {@link #collapse(Object)} the given item depending
+     * on the given parameter.
+     */
     public void expand( V item, boolean expand ) {
         if (expand) {
             expand( item );
@@ -181,9 +245,9 @@ public class TreeViewer<V>
 
 
     public boolean isExpanded( V item ) {
-        var l = root.find( item ).orElseThrow( () -> new NoSuchElementException( "No Level for value: " + item ) );
-        return l.isExpanded;
+        return root.find( item ).orElseError( "No Level for value: %s", item ).isExpanded;
     }
+
 
     @Override
     public Object store() {
@@ -198,8 +262,6 @@ public class TreeViewer<V>
 
         public V                    value;
 
-        //public UIComponent          head, content;
-
         public Level                parent;
 
         public List<Level>          children = new ArrayList<>();
@@ -212,7 +274,7 @@ public class TreeViewer<V>
             this.value = value;
         }
 
-        protected Opt<Level> find( V v ) {
+        public Opt<Level> find( V v ) {
             if (value == v) {
                 return Opt.of( this );
             }
@@ -225,6 +287,10 @@ public class TreeViewer<V>
                 }
                 return Opt.absent();
             }
+        }
+
+        public Sequence<TreeViewer<V>.Level,RuntimeException> children() {
+            return Sequence.of( children );
         }
     }
 }

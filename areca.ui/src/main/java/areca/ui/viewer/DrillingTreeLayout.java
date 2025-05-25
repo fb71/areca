@@ -19,10 +19,12 @@ import java.util.Map;
 import areca.common.Assert;
 import areca.common.MutableInt;
 import areca.common.Platform;
+import areca.common.Timer;
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
+import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.RowLayout;
 import areca.ui.viewer.TreeViewer.TreeViewerLayout;
@@ -37,6 +39,8 @@ public class DrillingTreeLayout<V>
 
     private static final Log LOG = LogFactory.getLog( DrillingTreeLayout.class );
 
+    public static final int     DELAY_OPEN = 400;
+
     private TreeViewer<V>       viewer;
 
     private UIComposite         container;
@@ -49,6 +53,10 @@ public class DrillingTreeLayout<V>
     @Override
     public UIComposite init( @SuppressWarnings( "hiding" ) TreeViewer<V> viewer ) {
         this.viewer = viewer;
+        if (!viewer.exclusive.$()) {
+            LOG.warn( "TreeViewer.exclusive=true is mandatory for %s", getClass().getSimpleName() );
+            viewer.exclusive.set( true );
+        }
         return new UIComposite() {{
             container = this;
             layout.set( RowLayout.verticals().fillWidth( true ).spacing( viewer.spacing.$() ) );
@@ -68,33 +76,46 @@ public class DrillingTreeLayout<V>
             topChildren.clear();
 
             container.layout_();
-            delay = 350;
+            delay = DELAY_OPEN;
         }
+
         // create new top-children
-        Platform.schedule( delay, () -> { // wait for animation
+        var _delay = delay;
+        var t = Timer.start();
+        Platform.schedule( 100, () -> {
             int i = 0;
             for (var l : level.children) {
                 var cell = createCell( i++, l.value );
                 topChildren.put( l.value, cell );
                 container.add( cell );
 
+                cell.styles.add( CssStyle.of( "opacity", "0" ) );
+
                 if (viewer.oddEven.$()) {
                     cell.cssClasses.modify( "Even", i % 2 == 0 );
                 }
             }
             container.layout();
+
+            var delayMillis = Math.max( 0, _delay - (int)t.elapsedMillis() );
+            LOG.warn( "delayMillis: %s", delayMillis );
+            Platform.schedule( delayMillis, () -> {
+                for (var cell : topChildren.values()) {
+                    cell.styles.remove( CssStyle.of( "opacity", "0" ) );
+                }
+            });
         });
     }
 
 
     @Override
     public void collapse( TreeViewer<V>.Level level ) {
-        Assert.that( !topChildren.isEmpty() );
+        //Assert.that( !topChildren.isEmpty() );
         topChildren.values().forEach( UIComponent::dispose );
         topChildren.clear();
 
-        var c = expanded.remove( level );
-        topChildren.put( level.value, c );
+        var cell = expanded.remove( level );
+        topChildren.put( level.value, cell );
 
         update( level.parent );
     }
