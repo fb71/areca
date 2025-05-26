@@ -270,8 +270,10 @@ class PageflowImpl
 
         @Override
         public PageBuilder parent( Object parent ) {
-            pageIndex = pages().filter( p -> p == parent ).map( (p,index) -> index ).first().orElseError() + 1;
-            LOG.debug( "parent(): pageIndex=%s (%s)", pageIndex, parent.getClass().getName() );
+            pageIndex = Sequence.of( pages )
+                    .first( p -> p.clientPage == parent )
+                    .map( p -> p.pageIndex + 1 ).orElseError();
+            LOG.warn( "parent(): pageIndex=%s (%s)", pageIndex, parent.getClass().getName() );
             return this;
         }
 

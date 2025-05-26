@@ -64,8 +64,11 @@ public abstract class Pageflow {
 
     public abstract boolean isDisposed();
 
+
     /**
-     * Prepare a {@link PageBuilder} in order to open a new page.
+     * Prepares a new page to {@link PageBuilder#open()}. By default the new page is
+     * opened on top of the current page stack. Change this via
+     * {@link PageBuilder#parent(Object)}
      *
      * @param page An instance of {@link Page} or an annotated object that acts as
      *        the controller of the newly created page.

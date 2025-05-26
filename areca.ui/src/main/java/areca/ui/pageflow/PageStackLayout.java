@@ -24,6 +24,7 @@ import areca.ui.layout.LayoutManager;
 
 /**
  *
+ * @deprecated Not yet tested with {@link PageGalleryLayout} changes.
  * @author Falko Bräutigam
  */
 class PageStackLayout
