@@ -116,7 +116,7 @@ public abstract class Property<C,T> {
             handlers.fireEvent( new PropertyChangedEvent<>( this, oldValue, newValue ) );
         }
         else {
-            LOG.debug( "fireEvent(): SKIPPING: %s = %s - %s", name(), newValue, oldValue );
+            LOG.debug( "SKIPPING: %s = %s - %s", name(), newValue, oldValue );
         }
     }
 
@@ -210,11 +210,9 @@ public abstract class Property<C,T> {
 
         public C set( T newValue ) {
             //LOG.debug( "SET: %s:%s -> %s (%s)", component().getClass().getSimpleName(), name, newValue, oldValue );
-            if (!Objects.equals( newValue, value )) {
-                var oldValue = value;
-                rawSet( newValue );
-                fireEvent( oldValue, newValue );
-            }
+            var oldValue = value;
+            rawSet( newValue );
+            fireEvent( oldValue, newValue );
             return component;
         }
 

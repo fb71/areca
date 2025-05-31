@@ -15,10 +15,11 @@ package areca.ui.component2;
 
 import static areca.ui.component2.UIComponent.PROP_CSS_CLASSES;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+
 import areca.common.base.Sequence;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -36,7 +37,7 @@ public class CssClassesProperty
     private Collection<String>  themeClasses = Collections.EMPTY_LIST;
 
     protected CssClassesProperty( UIComponent component ) {
-        super( component, PROP_CSS_CLASSES, new ArrayList<>() );
+        super( component, PROP_CSS_CLASSES, new LinkedHashSet<>() ); // prevent doubles
     }
 
     public void setThemeClasses( String... themeClasses ) {

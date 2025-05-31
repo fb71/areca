@@ -29,14 +29,14 @@ import areca.ui.layout.LayoutManager;
 
 /**
  * A simple {@link PageLayout} that positions every next {@link Page} on top of all
- * others. This layout provides a open/close animation via CSS classes "PageOpening"
- * and "PageClosing".
+ * others. This layout provides a open/close animation via CSS classes
+ * {@link #CSS_PAGE_OPENING} and {@link #CSS_PAGE_CLOSING}.
  *
  * @implNote Listens to {@link PageflowEvent}s
  *
  * @author Falko Bräutigam
  */
-class PageStackLayout
+public class PageStackLayout
         extends AbsoluteLayout
         implements PageLayout {
 
@@ -51,7 +51,7 @@ class PageStackLayout
     public PageStackLayout( PageLayoutSite site ) {
         this.site = site;
 
-        var collector = new EventCollector<PageflowEvent>( 10 );
+        var collector = new EventCollector<PageflowEvent>( 100 );
         EventManager.instance()
                 .subscribe( (PageflowEvent ev) -> {
                     // open
@@ -123,9 +123,11 @@ class PageStackLayout
 
         // int zIndex = 0;
         for (var component : composite.components) {
-            component.position.set( Position.of( 0, 0 ) );
-            component.size.set( composite.clientSize.value() );
-            // component.zIndex.set( zIndex++ );
+            if (site.page( (UIComposite)component ).isPresent()) { // closing page
+                component.position.set( Position.of( 0, 0 ) );
+                component.size.set( composite.clientSize.value() );
+                // component.zIndex.set( zIndex++ );
+            }
         }
     }
 

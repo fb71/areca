@@ -49,6 +49,18 @@ import areca.ui.pageflow.PageflowEvent.EventType;
 public abstract class Page {
 
     /**
+     * The default value of {@link PageSite#prefWidth}. Changing this takes effect
+     * for next created {@link Page}. Default: 550
+     */
+    public static int DEFAULT_PAGE_WIDTH = 550;
+
+    /**
+     * The default value of {@link PageSite#minWidth}. Changing this takes effect
+     * for next created {@link Page}. Default: 450
+     */
+    public static int DEFAULT_PAGE_WIDTH_MIN = 450;
+
+    /**
      * Denotes one or more methods of a pojo page which are called after all
      * {@link Context} variables are injected and before the page is opened.
      * @see Page#init(PageSite)
@@ -177,14 +189,14 @@ public abstract class Page {
         public ReadWrites<?,Action> actions = Property.rws( this, "actions", new ArrayList<>() );
 
         /**
-         * The preferred width of the {@link Page}. Default: null (undefined)
+         * The preferred width of the {@link Page}. Default: {@link Page#DEFAULT_PAGE_WIDTH}
          */
-        public ReadWrite<PageSite,Integer> prefWidth = Property.rw( this, "prefWidth", null );
+        public ReadWrite<PageSite,Integer> prefWidth = Property.rw( this, "prefWidth", DEFAULT_PAGE_WIDTH );
 
         /**
-         * The minimum width of the {@link Page}. Default: null (undefined)
+         * The minimum width of the {@link Page}. Default: {@link Page#DEFAULT_PAGE_WIDTH_MIN}
          */
-        public ReadWrite<PageSite,Integer> minWidth = Property.rw( this, "minWidth", null );
+        public ReadWrite<PageSite,Integer> minWidth = Property.rw( this, "minWidth", DEFAULT_PAGE_WIDTH_MIN );
 
         public ReadWrite<PageSite,Boolean> isDialog = Property.rw( this, "isDialog", Boolean.FALSE );
 

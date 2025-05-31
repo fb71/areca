@@ -98,7 +98,7 @@ public class EventHandlers {
                 ? Platform.requestAnimationFrame( ts -> processEvents( ts ) )
                 : null;
 
-        LOG.info( "Processed: %s, Remaining: %s, Time: %s, ts: %s",
+        LOG.info( "Processed: %s, Remaining: %s, Time: %s", //, ts: %s",
                 count, eventQueue.size(), t.elapsedHumanReadable(), (int)(timestamp - lastTimestamp) );
         lastTimestamp = timestamp;
     }

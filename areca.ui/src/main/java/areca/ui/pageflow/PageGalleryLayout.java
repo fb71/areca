@@ -34,7 +34,7 @@ import areca.ui.component2.UIComposite;
  *
  * @author Falko Bräutigam
  */
-class PageGalleryLayout
+public class PageGalleryLayout
         extends PageStackLayout
         implements PageLayout {
 
@@ -42,11 +42,9 @@ class PageGalleryLayout
 
     private static final String CSS_PAGE_RESTING = "PageResting";
 
-    public static final int DEFAULT_PAGE_WIDTH = 500;
-
-    public static final int DEFAULT_PAGE_WIDTH_MIN = 450;
-
     public static final int SPACE = 8;
+
+    // instance *******************************************
 
     protected Map<UIComponent,Pair<Size,Position>> computed;
 
@@ -60,55 +58,65 @@ class PageGalleryLayout
     @Override
     public void layout( UIComposite composite ) {
         Assert.isSame( composite, site.container() );
-        super.layout( composite );
+
+        // simple stack layout on phone screen
+        if (composite.size.$().height() > composite.size.$().width() ) {
+            super.layout( composite );
+            return;
+        }
 
         composite.clientSize.opt().ifPresent( size -> {
-            var result = new PositionSizeMap();
+            var visiblePages = new PositionSizeMap();
             var availWidth = size.width(); // available width
 
+            // closing Pages are left alone
+            var components = composite.components.values()
+                    .filter( c -> site.page( (UIComposite)c ).isPresent() )
+                    .toList();
+
             // find visible pages and widths
-            var components = composite.components.values().toList();
             var dialogs = new ArrayList<UIComponent>();
             for (int i = components.size() - 1; i >= 0; i--) {
-                var page = site.page( (UIComposite)components.get( i ) ).orNull();
-                if (page == null) {  // closing Pages are left alone
-                    continue;
-                }
+                var page = site.page( (UIComposite)components.get( i ) ).orElseError();
+
                 // dialog
                 if (page.isDialog.opt().orElse( false )) {
                     dialogs.add( components.get( i ) );
                     continue;
                 }
-                var w = page.prefWidth.opt().orElse( DEFAULT_PAGE_WIDTH );
+                var w = page.prefWidth.opt().orElseError();
                 if (w > availWidth) {
                     w = i == components.size() - 1
                             ? availWidth  // top page
-                            : page.minWidth.opt().orElse( DEFAULT_PAGE_WIDTH_MIN );
+                            : page.minWidth.opt().orElseError();
                 }
                 if (w > availWidth) {
                     break;
                 }
                 var x = availWidth - w;
-                result.put( components.get( i ), x, w );
+                visiblePages.put( components.get( i ), x, w );
 
                 // give all dialogs above us our size
                 for (var dialog : dialogs) {
-                    result.put( dialog, x, w );
+                    visiblePages.put( dialog, x, w );
                 }
                 dialogs.clear();
 
                 availWidth -= w + SPACE;
             }
+
             // margin
             var margin = (availWidth + SPACE) / 2;
-            margin = Math.max( margin - 50, 0 );  // some space for resting pages on the left
-            for (var component : result.keySet()) {
-                component.position.set( Position.of( result.positionOf( component ) - margin, 0 ) );
+            if (visiblePages.size() < components.size()) { // some space for resting pages on the left
+                margin = Math.max( margin - 50, 0 );
+            }
+
+            for (var component : visiblePages.keySet()) {
+                component.position.set( Position.of( visiblePages.positionOf( component ) - margin, 0 ) );
 
                 var currentWidth = component.size.opt().map( Size::width ).orElse( 0 );
-                var width = result.sizeOf( component );
+                var width = visiblePages.sizeOf( component );
                 component.size.set( Size.of( width, size.height() ) );
-                //component.opacity.set( 1f );
 
                 if (width != currentWidth) {
                     ((UIComposite)component).layout();
@@ -119,13 +127,13 @@ class PageGalleryLayout
 
             // resting pages
             var index = 0;
-            for (var component : composite.components.$()) {
-                if (!result.containsKey( component ) && site.page( (UIComposite)component ).isPresent() ) {
+            for (var component : components) {
+                if (!visiblePages.containsKey( component ) ) {
                     component.position.set( Position.of( (index++ * 50) + 50, 0 ) );
 
                     var translateX = component.size.$().width() / 2;
                     component.styles.add( CssStyle.of( "transform",
-                            format( "translateX(-%spx) rotate3d(0,1,0,89deg) scale(0.93)", translateX ) ) );
+                            format( "translateX(-%spx) rotate3d(0,1,0,88deg) scale(0.80)", translateX ) ) );
                     component.cssClasses.add( CSS_PAGE_RESTING );
                 }
             }
