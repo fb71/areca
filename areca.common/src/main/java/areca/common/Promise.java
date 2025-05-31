@@ -801,4 +801,14 @@ public abstract class Promise<T> {
                 ? Platform.scheduler.schedule( priority, () -> value )
                 : Platform.async( () -> value );
     }
+
+
+    /**
+     * Returns a {@link Promise} that delivers the given value via
+     * {@link Platform#async(Runnable)}.
+     */
+    public static <R> Promise<R> async( R value ) {
+        return Platform.async( () -> value );
+    }
+
 }

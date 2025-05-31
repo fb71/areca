@@ -19,6 +19,13 @@ package areca.ui.statenaction;
  */
 public interface StateBuilder {
 
+    /**
+     * Adds the given value to the context of the new state.
+     *
+     * @param value
+     * @param scope The scope in which this value is returned. ({@link State.Context#DEFAULT_SCOPE})
+     * @return this
+     */
     StateBuilder putContext( Object value, String scope );
 
     /**

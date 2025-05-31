@@ -40,7 +40,7 @@ public class ReflectionSupplierImpl implements ReflectionSupplier {
         Set<MethodDescriptor> result = new HashSet<>();
         ClassReader cls = context.getClassSource().get( className );
         System.out.println( className + "... " + cls );
-        if (cls != null && false) {
+        if (cls != null) {
             for (MethodReader m : cls.getMethods()) {
                 m.getAnnotations().all().forEach( a -> System.out.println( m.getName() + "() : " + a.getType() ) );
                 if (m.getAnnotations().get( Test.class.getName() ) != null) {

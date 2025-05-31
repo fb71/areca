@@ -13,11 +13,8 @@
  */
 package areca.rt.teavm.ui;
 
-import static org.apache.commons.lang3.StringUtils.split;
-
 import org.teavm.jso.dom.html.HTMLElement;
 
-import org.apache.commons.lang3.ArrayUtils;
 import areca.common.Assert;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;

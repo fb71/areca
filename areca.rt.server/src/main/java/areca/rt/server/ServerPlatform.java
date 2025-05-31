@@ -86,7 +86,8 @@ public class ServerPlatform
     public <R> Promise<R> enqueue( String label, int delayMillis, Consumer<Completable<R>,Exception> task ) {
         Assert.that( delayMillis >= 0 );
         var t = delayMillis > 0 ? Timer.start() : null;
-        Completable<R> promise = new Completable<>();
+        var promise = new Completable<R>();
+//        var callerStack = new Exception( "Caller stack" ).fillInStackTrace();
         Session.instanceOf( EventLoop.class ).enqueue( label, () -> {
             if (t != null) {
                 LOG.debug( "enqueue(): delay requested: %s - was actually: %s", delayMillis, t.elapsedHumanReadable() );
@@ -97,6 +98,8 @@ public class ServerPlatform
                 }
             }
             catch (Throwable e) {
+//                callerStack.initCause( e );
+//                promise.completeWithError( callerStack );
                 promise.completeWithError( e );
             }
         }, delayMillis );

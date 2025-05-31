@@ -81,6 +81,7 @@ public class SequenceOpImpl<T,E extends Exception>
 
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public <R,RE extends E> Sequence<R,E> transform( Function<T,R,RE> function ) throws RE {
         ops[opsCount++] = function;
         return (Sequence<R,E>)this;
@@ -88,6 +89,7 @@ public class SequenceOpImpl<T,E extends Exception>
 
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public <R extends T, RE extends E> Sequence<R,E> filter( Predicate<T,RE> condition ) throws RE {
         ops[opsCount++] = condition;
         return (Sequence<R,E>)this;

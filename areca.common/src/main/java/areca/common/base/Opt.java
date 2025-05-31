@@ -165,8 +165,20 @@ public class Opt<T> {
      * @throws NoSuchElementException If no value is present.
      */
     public T orElseError() {
+        return orElseError( "No value present" );
+    }
+
+
+    /**
+     * If a value is present, returns the value, otherwise throws {@link NoSuchElementException}.
+     *
+     * @param msg The {@link String#format(String, Object...)} message.
+     * @return The non-{@code null} value.
+     * @throws NoSuchElementException If no value is present.
+     */
+    public T orElseError( String msg, Object... args) {
         if (value == null) {
-            throw new NoSuchElementException( "No value present" );
+            throw new NoSuchElementException( String.format( msg, args ) );
         }
         return value;
     }

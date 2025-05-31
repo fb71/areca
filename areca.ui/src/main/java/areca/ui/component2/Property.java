@@ -112,12 +112,12 @@ public abstract class Property<C,T> {
     }
 
     protected void fireEvent( T oldValue, T newValue ) {
-        // XXX
-//        if (Objects.equals( oldValue, newValue )) {
-//            LOG.debug( "FIRE:" + name() + ": values are EQUAL: " + newValue + " -- " + oldValue );
-//        }
-        var ev = new PropertyChangedEvent<>( this, oldValue, newValue );
-        handlers.fireEvent( ev );
+        if (!Objects.equals( oldValue, newValue )) {
+            handlers.fireEvent( new PropertyChangedEvent<>( this, oldValue, newValue ) );
+        }
+        else {
+            LOG.debug( "fireEvent(): SKIPPING: %s = %s - %s", name(), newValue, oldValue );
+        }
     }
 
 

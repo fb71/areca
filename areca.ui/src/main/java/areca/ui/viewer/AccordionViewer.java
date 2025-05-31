@@ -34,6 +34,7 @@ import areca.ui.viewer.model.ModelBase;
  *
  * @param <V> The type of the values/items provided by the model.
  * @author Falko Bräutigam
+ * @deprecated In favour of {@link TreeViewer}
  */
 public class AccordionViewer<V>
         extends Viewer<ListModelBase<V>> {

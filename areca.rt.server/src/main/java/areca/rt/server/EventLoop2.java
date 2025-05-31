@@ -13,20 +13,11 @@
  */
 package areca.rt.server;
 
-import static java.lang.Math.max;
-
+import static areca.common.log.LogFactory.Level.DEBUG;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.commons.lang3.reflect.MethodUtils;
-
 import areca.common.Assert;
 import areca.common.Timer;
 import areca.common.base.Opt;
@@ -34,7 +25,8 @@ import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 
 /**
- * ...
+ * Second implementation of {@link EventLoop}, with separate queue for
+ * {@link #delayed} tasks.
  * <p>
  * This implementation handles scheduled/pending tasks, which maybe better belong to
  * {@link ServerPlatform#schedule(int, java.util.concurrent.Callable)} logic
@@ -55,13 +47,15 @@ public class EventLoop2
     private DelayedQueue    delayed = new DelayedQueue();
 
 
-    public void enqueue( String label, Runnable task, int delayMillis ) {
+    @Override
+    public void enqueue( String label, Runnable task, long delayMillis ) {
         Assert.that( delayMillis >= 0 );
         LOG.debug( "enqueue(): %s - %s ms", label, delayMillis );
 
         var t = new Task( task, now() + delayMillis, label );
         if (delayMillis == 0) {
             queue.add( t );
+            notifyWaitingPollers();
         }
         else {
             delayed.add( t );
@@ -75,73 +69,64 @@ public class EventLoop2
 //                }
 //            }, delayMillis );
         }
-
-        // let ServerPlatform know that there is more work
-        synchronized (this) {
-            notifyAll();
-        }
     }
 
-    protected void checkDelayed() {
+
+    protected void checkAndEnqueueDelayed() {
         var now = now();
         for (var t = delayed.poll( now ); t != null; t = delayed.poll( now )) {
             //LOG.warn( "Schedule delayed: '%s'", t.label );
             queue.add( t );
+            notifyWaitingPollers();
         }
     }
 
-    /**
-     * Executes pending tasks until queue is empty or the given timeframe exceeds.
-     *
-     * @param timeframeMillis The maximum time to spent in this method, or -1.
-     */
-    public void execute( int timeframeMillis ) {
+
+    @Override
+    public void execute( long timeframeMillis ) {
         var deadline = timeframeMillis == -1 ? Long.MAX_VALUE : now() + timeframeMillis;
 
-        checkDelayed();
+        checkAndEnqueueDelayed();
 
         // queue loop
         LOG.debug( "______ Run (queue: %s) ______", queue.size() );
         var t = Timer.start();
         var count = 0;
-        while (!queue.isEmpty() && (now() < deadline || count == 0)) { // at least one
-            var task = queue.poll();
+        var task = queue.poll();
+        while (task != null) { // at least one
             try {
                 task.task.run();
             }
             catch (Throwable e) {
                 defaultErrorHandler.accept( e );
             }
+            task = now() < deadline ? queue.poll() : null;
             count ++;
 
             // checkDelayed();
         }
-        if (!queue.isEmpty() && timeframeMillis > 0) {
+        if (LOG.isLevelEnabled( DEBUG ) && !queue.isEmpty() && timeframeMillis > 0) {
             LOG.debug( "Break: queue=%s, count=%s [%s]", queue.size(), count, t );
         }
         LOG.debug( "______ End (queue: %s, count = %s [%s])", queue.size(), count, t );
     }
 
-    /**
-     *
-     */
+
+    @Override
     public long pendingWait() {
         //queue.forEach( t -> LOG.debug( "pendingWait(): %s [%s]", t.scheduled - now(), t.label ) );
 
         if (!queue.isEmpty()) {
             return 0;
         }
-        var result = delayed.minScheduled()
-                .map( minScheduled -> max( 0, minScheduled - now() ) )
-                .orElse( -1l );
-
-        if (pollingRequests.get() > 0) {
-            return result == -1l
-                    ? POLLING_TIMEOUT.toMillis()
-                    : Math.min( result, POLLING_TIMEOUT.toMillis() );
+        else if (pollingRequests.get() > 0) {
+            return POLLING_TIMEOUT;
+        }
+        else if (!delayed.isEmpty()) {
+            return Math.max( 0, delayed.minScheduled().get() - now() );
         }
         else {
-            return result;
+            return -1l;
         }
     }
 
@@ -177,34 +162,34 @@ public class EventLoop2
     }
 
 
-    /**
-     *
-     */
-    protected static class BackgroundTimer
-            extends java.util.Timer {
-
-        private Object taskQueue;
-
-        private Method getMin;
-
-        protected BackgroundTimer() {
-            super( true );
-            try {
-                taskQueue = FieldUtils.readField( this, "queue", true );
-                getMin = MethodUtils.getMatchingAccessibleMethod( taskQueue.getClass(), "getMin", new Class[0]  );
-            }
-            catch (IllegalAccessException e) {
-                throw new RuntimeException( e );
-            }
-        }
-
-        public TimerTask getMin() {
-            try {
-                return (TimerTask)getMin.invoke( taskQueue );
-            }
-            catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                throw new RuntimeException( e );
-            }
-        }
-    }
+//    /**
+//     *
+//     */
+//    protected static class BackgroundTimer
+//            extends java.util.Timer {
+//
+//        private Object taskQueue;
+//
+//        private Method getMin;
+//
+//        protected BackgroundTimer() {
+//            super( true );
+//            try {
+//                taskQueue = FieldUtils.readField( this, "queue", true );
+//                getMin = MethodUtils.getMatchingAccessibleMethod( taskQueue.getClass(), "getMin", new Class[0]  );
+//            }
+//            catch (IllegalAccessException e) {
+//                throw new RuntimeException( e );
+//            }
+//        }
+//
+//        public TimerTask getMin() {
+//            try {
+//                return (TimerTask)getMin.invoke( taskQueue );
+//            }
+//            catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+//                throw new RuntimeException( e );
+//            }
+//        }
+//    }
 }
