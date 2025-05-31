@@ -41,6 +41,21 @@ public class Position {
         return "Position[x=" + x + ", y=" + y + "]";
     }
 
+    @Override
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + x;
+        result = 31 * result + y;
+        return result;
+    }
+
+    @Override
+    public boolean equals( Object other ) {
+        return other instanceof Position
+                ? x == ((Position)other).x && y == ((Position)other).y
+                : false;
+    }
+
     public int x() {
         return x;
     }

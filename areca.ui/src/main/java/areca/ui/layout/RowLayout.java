@@ -139,7 +139,7 @@ public class RowLayout
         return Sequence.of( result.values() )
                 .map( p -> p.getLeft().x + p.getRight().width() + margins.$().width() )
                 .reduce( Math::max )
-                .orElse( 50 );
+                .orElse( 0 );
     }
 
 
@@ -151,7 +151,7 @@ public class RowLayout
         return Sequence.of( result.values() )
                 .map( p -> p.getLeft().y + p.getRight().height() + margins.$().height() )
                 .reduce( Math::max )
-                .orElse( 50 );
+                .orElse( 0 );
     }
 
 

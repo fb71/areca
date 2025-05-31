@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import areca.common.Assert;
-import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
@@ -91,7 +90,7 @@ public class PageContainer
     }
 
     protected void doInit( UIComposite parent ) {
-        parent.components.add( this );
+        parent.components.add( this ); // XXX
         layout.set( new PageContainerLayout() );
 
         // header
@@ -181,7 +180,7 @@ public class PageContainer
             // XXX titleText.size.set( Size.of( ) );
 
             // less rendering (flickering, font loading) during Page opening
-            Platform.schedule( 500, () -> {
+//            Platform.schedule( 500, () -> {
                 if (composite.isDisposed()) {
                     return;
                 }
@@ -194,7 +193,7 @@ public class PageContainer
                     btn.size.set( Size.of( btnSize, btnSize ) );
                     actionLeft -= btnSize; // + btnMargin;
                 }
-            });
+//            });
 
             body.position.set( Position.of( 0, top ) );
             body.size.set( Size.of( clientSize.width(), clientSize.height() - top ) );

@@ -18,6 +18,8 @@ import java.util.EventObject;
 import areca.common.base.Opt;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
+import areca.ui.component2.UIComposite;
+import areca.ui.pageflow.Page.PageSite;
 
 /**
  *
@@ -32,14 +34,27 @@ public class PageflowEvent
        INITIALIZING, INITIALIZED, PAGE_OPENING, PAGE_OPENED, PAGE_CLOSING, PAGE_CLOSED
     }
 
-    public Opt<Object>      page;
+    public Object       clientPage;
 
-    public EventType        type;
+    public Page         page;
 
-    public PageflowEvent( Pageflow source, Object page, EventType type ) {
+    public UIComposite  pageUI;
+
+    public PageSite     pageSite;
+
+    public EventType    type;
+
+    public PageflowEvent( Pageflow source, EventType type ) {
+        this( source, type, null, null, null, null );
+    }
+
+    public PageflowEvent( Pageflow source, EventType type, Page page, Object clientPage, UIComposite pageUI, PageSite pageSite ) {
         super( source );
-        this.page = Opt.of( page );
         this.type = type;
+        this.clientPage = clientPage;
+        this.page = page;
+        this.pageUI = pageUI;
+        this.pageSite = pageSite;
     }
 
     @Override
@@ -47,4 +62,7 @@ public class PageflowEvent
         return (Pageflow)super.getSource();
     }
 
+    public Opt<Object> clientPage() {
+        return Opt.of( clientPage );
+    }
 }

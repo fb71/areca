@@ -38,6 +38,8 @@ class StateHolder
 
     private StateHolder     parent;
 
+    private StateHolder     child;
+
     private ContextVariables context;
 
     private boolean         disposed;
@@ -64,16 +66,22 @@ class StateHolder
     public void init() {
         injectContext( state );
         new AnnotatedState( state ).init();
-        StateChangeEvent.publish( EventType.INITIALIZED, state );
+        StateChangeEvent.publish( EventType.INITIALIZED, state, this );
     }
 
 
     @Override
     public void dispose() {
-        disposed = true;
-        new AnnotatedState( state ).dispose();
-        StateChangeEvent.publish2( EventType.DISPOSED, state )
-                .onSuccess( __ -> disposeEventDelivered = true );
+        if (!disposed) {
+            if (child != null) {
+                child.dispose();
+            }
+            disposed = true;
+            parent.child = null;
+            new AnnotatedState( state ).dispose();
+            StateChangeEvent.publish2( EventType.DISPOSED, state, this )
+                    .onSuccess( __ -> disposeEventDelivered = true );
+        }
     }
 
 
@@ -106,7 +114,17 @@ class StateHolder
             @Override
             @SuppressWarnings( "unchecked" )
             public <R> R activate() {
-                result.init();
+                if (child != null) {
+                    child.dispose();
+//                    Platform.schedule( 500, () -> {
+                        child = result;
+                        result.init();
+//                    });
+                }
+                else {
+                    child = result;
+                    result.init();
+                }
                 return (R)result.state;
             }
         };

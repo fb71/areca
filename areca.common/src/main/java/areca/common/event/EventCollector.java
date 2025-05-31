@@ -45,8 +45,9 @@ public class EventCollector<T extends EventObject> {
     }
 
 
-    public void setDelay( int delay ) {
+    public EventCollector<T> delay( @SuppressWarnings( "hiding" ) int delay ) {
         this.delay = delay;
+        return this;
     }
 
 

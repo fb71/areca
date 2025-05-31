@@ -50,6 +50,8 @@ public class AnnotatedState
      * action.
      */
     public void dispose() {
+        invokeAction( State.Dispose.class );
+
 //        for (var f : classInfo.fields()) {
 //            f.annotation( State.Model.class ).ifPresent( a -> {
 //                if (ModelBase.class.isAssignableFrom( f.type() )) {
@@ -63,7 +65,7 @@ public class AnnotatedState
     }
 
 
-    protected void invokeAction( Class<? extends Annotation> type) {
+    protected void invokeAction( Class<? extends Annotation> type ) {
         for (var m : classInfo.methods()) {
             m.annotation( type ).ifPresent( a -> {
                 m.invokeThrowingRuntimeException( state );

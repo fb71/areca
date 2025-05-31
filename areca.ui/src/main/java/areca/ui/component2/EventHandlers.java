@@ -48,6 +48,8 @@ public class EventHandlers {
 
     private static Promise<Void>    async;
 
+    private static Double           lastTimestamp = Double.valueOf( 0 );
+
 
     public static EventHandlers create() {
         return Session.createInstance( EventHandlers.class );
@@ -96,7 +98,9 @@ public class EventHandlers {
                 ? Platform.requestAnimationFrame( ts -> processEvents( ts ) )
                 : null;
 
-        LOG.info( "Processed: %s, Remaining: %s, Time: %s", count, eventQueue.size(), t.elapsedHumanReadable() );
+        LOG.info( "Processed: %s, Remaining: %s, Time: %s", //, ts: %s",
+                count, eventQueue.size(), t.elapsedHumanReadable(), (int)(timestamp - lastTimestamp) );
+        lastTimestamp = timestamp;
     }
 
 
