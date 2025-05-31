@@ -56,7 +56,7 @@ class PageflowImpl
         this.rootContainer = Assert.notNull( rootContainer, "rootContainer must not be null" );
 
         this.layout = new PageGalleryLayout( new PageLayoutSiteImpl() );
-        //this.layout = new PageStackLayout();
+        //this.layout = new PageStackLayout( new PageLayoutSiteImpl() );
         this.rootContainer.layout.set( layout.manager() );
 
         //new PageCloseGesture( rootContainer );

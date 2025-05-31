@@ -54,6 +54,13 @@
     transform: scale(0.5);
 }
 
+.PageResting {
+    border: 1px solid white;
+    filter: saturate(50%) brightness(90%);
+    //filter: blur(2px) saturate(50%) brightness(90%);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
 // during PanGesture
 .Paning {
     transition: all 0.35s ease-out;

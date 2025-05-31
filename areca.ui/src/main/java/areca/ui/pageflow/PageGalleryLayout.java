@@ -13,8 +13,7 @@
  */
 package areca.ui.pageflow;
 
-import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSING;
-import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_OPENED;
+import static java.lang.String.format;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,9 +22,6 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 
 import areca.common.Assert;
-import areca.common.Platform;
-import areca.common.event.EventCollector;
-import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
@@ -33,97 +29,31 @@ import areca.ui.Size;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComposite;
-import areca.ui.layout.AbsoluteLayout;
-import areca.ui.layout.LayoutManager;
 
 /**
  *
  * @author Falko Bräutigam
  */
 class PageGalleryLayout
-        extends AbsoluteLayout
+        extends PageStackLayout
         implements PageLayout {
 
     private static final Log LOG = LogFactory.getLog( PageGalleryLayout.class );
 
+    private static final String CSS_PAGE_RESTING = "PageResting";
+
     public static final int DEFAULT_PAGE_WIDTH = 500;
 
-    public static final int DEFAULT_PAGE_WIDTH_MIN = 300;
+    public static final int DEFAULT_PAGE_WIDTH_MIN = 450;
 
     public static final int SPACE = 8;
-
-    protected Pageflow          pageflow;
-
-    protected PageLayoutSite    site;
 
     protected Map<UIComponent,Pair<Size,Position>> computed;
 
 
     public PageGalleryLayout( PageLayoutSite site ) {
-        this.site = site;
-        var collector = new EventCollector<PageflowEvent>( 1 );
-        EventManager.instance()
-                .subscribe( (PageflowEvent ev) -> {
-                    // open
-                    if (ev.type == PAGE_OPENED) {
-                        LOG.debug( "PageflowEvent: %s (%s)", ev.type, ev.clientPage.getClass().getSimpleName() );
-                        ev.pageUI.cssClasses.add( "PageOpening" );
-                        // give the new page its size so that PageOpening animation works
-                        layout( site.container() );
-                    }
-                    // close
-                    else if (ev.type == PAGE_CLOSING) {
-                        LOG.debug( "PageflowEvent: %s (%s)", ev.type, ev.clientPage.getClass().getSimpleName() );
-                        ev.pageUI.cssClasses.add( "PageClosing" );
-                        ev.pageUI.position.set( ev.pageUI.position.$().add( 0, site.container().clientSize.value().height() / 4 ) );
-                    }
-
-                    // deferred layout
-                    collector.collect( ev, events -> {
-                        LOG.debug( "Layout: (%s) : %s", site.container().components.size(),
-                                site.pageflow().pages().reduce( "", (r,p) -> r + p.getClass().getSimpleName() + ", " ) );
-
-                        for (var _ev : events) {
-                            // opened
-                            if (_ev.type == PAGE_OPENED) {
-                                _ev.pageUI.styles.add( CssStyle.of( "transition-delay", Platform.isJVM() ? "0.15s" : "0.2s" ) );
-                                _ev.pageUI.cssClasses.remove( "PageOpening" );
-
-                                // createUI() *after* PageRoot composite is rendered with PageOpening CSS
-                                // class to make sure that Page animation starts after given delay no matter
-                                // what the createUI() method does
-                                _ev.page.createUI( _ev.pageUI );
-
-                                Platform.schedule( 1000, () -> {
-                                    _ev.pageUI.styles.remove( CssStyle.of( "transition-delay", "0.2s") );
-                                });
-                            }
-                            // closed
-                            else if (_ev.type == PAGE_CLOSING) {
-                                Platform.schedule( 500, () -> { // time PageClosing animation
-                                    if (!_ev.pageUI.isDisposed()) {
-                                        _ev.pageUI.dispose();
-                                    }
-                                });
-                            }
-                        }
-                        layout(); // FIXME layout just the size changed pages
-                    });
-                })
-                .performIf( PageflowEvent.class, ev -> ev.getSource() == site.pageflow() )
-                .unsubscribeIf( () -> site.pageflow().isDisposed() );
-    }
-
-
-    protected void layout() {
-        layout( site.container() );
-
-        // XXX nur die, die sich geändert haben
-        for (var child : site.container().components.value()) {
-            if (child instanceof UIComposite ) {
-                ((UIComposite)child).layout();
-            }
-        }
+        super( site );
+        site.container().styles.add( CssStyle.of( "perspective", "6000px" ) );
     }
 
 
@@ -171,6 +101,7 @@ class PageGalleryLayout
             }
             // margin
             var margin = (availWidth + SPACE) / 2;
+            margin = Math.max( margin - 50, 0 );  // some space for resting pages on the left
             for (var component : result.keySet()) {
                 component.position.set( Position.of( result.positionOf( component ) - margin, 0 ) );
 
@@ -182,12 +113,20 @@ class PageGalleryLayout
                 if (width != currentWidth) {
                     ((UIComposite)component).layout();
                 }
+                component.styles.remove( CssStyle.of( "transform", "" ) );
+                component.cssClasses.remove( CSS_PAGE_RESTING );
             }
 
-            // hide invisible
+            // resting pages
+            var index = 0;
             for (var component : composite.components.$()) {
-                if (!result.containsKey( component )) {
-                    //component.opacity.set( 0f );
+                if (!result.containsKey( component ) && site.page( (UIComposite)component ).isPresent() ) {
+                    component.position.set( Position.of( (index++ * 50) + 50, 0 ) );
+
+                    var translateX = component.size.$().width() / 2;
+                    component.styles.add( CssStyle.of( "transform",
+                            format( "translateX(-%spx) rotate3d(0,1,0,89deg) scale(0.93)", translateX ) ) );
+                    component.cssClasses.add( CSS_PAGE_RESTING );
                 }
             }
         });
@@ -210,11 +149,6 @@ class PageGalleryLayout
         public int positionOf( UIComponent c ) {
             return get( c ).getLeft();
         }
-    }
-
-    @Override
-    public LayoutManager manager() {
-        return this;
     }
 
 }

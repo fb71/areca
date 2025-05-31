@@ -13,18 +13,27 @@
  */
 package areca.ui.pageflow;
 
+import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_CLOSING;
+import static areca.ui.pageflow.PageflowEvent.EventType.PAGE_OPENED;
+
 import areca.common.Platform;
-import areca.common.Timer;
+import areca.common.event.EventCollector;
+import areca.common.event.EventManager;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.ui.Position;
+import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.AbsoluteLayout;
 import areca.ui.layout.LayoutManager;
 
 /**
+ * A simple {@link PageLayout} that positions every next {@link Page} on top of all
+ * others. This layout provides a open/close animation via CSS classes "PageOpening"
+ * and "PageClosing".
  *
- * @deprecated Not yet tested with {@link PageGalleryLayout} changes.
+ * @implNote Listens to {@link PageflowEvent}s
+ *
  * @author Falko Bräutigam
  */
 class PageStackLayout
@@ -33,18 +42,84 @@ class PageStackLayout
 
     private static final Log LOG = LogFactory.getLog( PageStackLayout.class );
 
-    private UIComposite     composite;
+    private static final String CSS_PAGE_CLOSING = "PageClosing";
+    private static final String CSS_PAGE_OPENING = "PageOpening";
 
-    @Override
-    public LayoutManager manager() {
-        return this;
+    protected PageLayoutSite    site;
+
+
+    public PageStackLayout( PageLayoutSite site ) {
+        this.site = site;
+
+        var collector = new EventCollector<PageflowEvent>( 10 );
+        EventManager.instance()
+                .subscribe( (PageflowEvent ev) -> {
+                    // open
+                    if (ev.type == PAGE_OPENED) {
+                        LOG.debug( "PageflowEvent: %s (%s)", ev.type, ev.clientPage.getClass().getSimpleName() );
+                        ev.pageUI.cssClasses.add( CSS_PAGE_OPENING );
+                        // give the new page its size so that PageOpening animation works
+                        layout( site.container() );
+                    }
+                    // close
+                    else if (ev.type == PAGE_CLOSING) {
+                        LOG.debug( "PageflowEvent: %s (%s)", ev.type, ev.clientPage.getClass().getSimpleName() );
+                        ev.pageUI.cssClasses.add( CSS_PAGE_CLOSING );
+                        ev.pageUI.position.set( ev.pageUI.position.$().add( 0, site.container().clientSize.value().height() / 4 ) );
+                    }
+
+                    // deferred layout
+                    collector.collect( ev, events -> {
+                        LOG.debug( "Layout: (%s) : %s", site.container().components.size(),
+                                site.pageflow().pages().reduce( "", (r,p) -> r + p.getClass().getSimpleName() + ", " ) );
+
+                        for (var _ev : events) {
+                            // opened
+                            if (_ev.type == PAGE_OPENED) {
+                                _ev.pageUI.styles.add( CssStyle.of( "transition-delay", Platform.isJVM() ? "0.15s" : "0.2s" ) );
+                                _ev.pageUI.cssClasses.remove( CSS_PAGE_OPENING );
+
+                                // createUI() *after* PageRoot composite is rendered with PageOpening CSS
+                                // class to make sure that Page animation starts after given delay no matter
+                                // what the createUI() method does
+                                _ev.page.createUI( _ev.pageUI );
+
+                                Platform.schedule( 1000, () -> {
+                                    _ev.pageUI.styles.remove( CssStyle.of( "transition-delay", "0.2s") );
+                                });
+                            }
+                            // closed
+                            else if (_ev.type == PAGE_CLOSING) {
+                                Platform.schedule( 500, () -> { // time PageClosing animation
+                                    if (!_ev.pageUI.isDisposed()) {
+                                        _ev.pageUI.dispose();
+                                    }
+                                });
+                            }
+                        }
+                        layout(); // FIXME layout just the size changed pages
+                    });
+                })
+                .performIf( PageflowEvent.class, ev -> ev.getSource() == site.pageflow() )
+                .unsubscribeIf( () -> site.pageflow().isDisposed() );
+    }
+
+
+    protected void layout() {
+        layout( site.container() );
+
+        // XXX nur die, die sich geändert haben
+        for (var child : site.container().components.value()) {
+            if (child instanceof UIComposite ) {
+                ((UIComposite)child).layout();
+            }
+        }
     }
 
 
     @Override
-    public void layout( @SuppressWarnings("hiding") UIComposite composite ) {
+    public void layout( UIComposite composite ) {
         super.layout( composite );
-        this.composite = composite;
 
         // int zIndex = 0;
         for (var component : composite.components) {
@@ -55,50 +130,9 @@ class PageStackLayout
     }
 
 
-//    public void openLast2( UIComposite pageRoot ) {
-//        Assert.isSame( composite.components.values().last().orNull(), pageRoot );
-//        Platform.schedule( 1, () -> {
-//            pageRoot.styles.add( CssStyle.of( "transition-delay", "0.2s") );
-//            pageRoot.cssClasses.remove( "PageOpening" );
-//            page.createUI( (UIComposite)ui );
-//            if (ui instanceof UIComposite) {
-//                ((UIComposite)ui).layout();
-//            }
-//            //layout.openLast( origin, (int)Math.max( 0, 90 - t.elapsedMillis() ) );
-//            pageLifecycle( this, PAGE_OPENED );
-//        });
-//    }
-
-    /**
-     * Show the page open animation.
-     *
-     * @param origin The position where the action has its origin.
-     * @param l
-     */
-    public void openLast( Position origin, int delay ) {
-        var t = Timer.start();
-        // scale last one
-        composite.components.values().last().ifPresent( top -> {
-            top.cssClasses.add( "PageStackLayout-Top" );
-
-            top.position.set( origin != null
-                    // XXX ? origin.substract( composite.clientSize.value().divide( 1.2f ).divide( 2 ) )
-                    ? Position.of( 0, 0 )
-                    : Position.of( 0, 0 ) );
-
-            //LOG.info( "Position: %s - %s -> %s", origin, composite.clientSize.value().divide( 1.2f ), top.position.value() );
-
-            Platform.schedule( delay, () -> {
-                LOG.warn( "    opening Page: delay=%s, actual=%s", delay, delay + t.elapsedMillis() );
-                top.bordered.set( true );
-                top.cssClasses.remove( "PageStackLayout-Top" );
-                top.position.set( Position.of( 0, 0 ) );
-
-                Platform.schedule( 500, () -> {
-                    top.bordered.set( false );
-                });
-            });
-        });
+    @Override
+    public LayoutManager manager() {
+        return this;
     }
 
 }
