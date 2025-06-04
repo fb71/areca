@@ -17,10 +17,11 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import areca.common.Assert;
 import areca.common.Platform;
@@ -148,25 +149,18 @@ public class TreeViewer<V>
 
 
     /**
-     * See {@link #expand(List)}
+     * See {@link #expandPath(List)}
      */
-    public void expand( @SuppressWarnings( "unchecked" ) V... path ) {
-        expand( Arrays.asList( path ) );
-    }
-
-    /**
-     *
-     * @param path
-     */
-    public Promise<?> expand( List<V> path ) {
-        if (path.isEmpty()) {
+    public Promise<?> expandPath( @SuppressWarnings( "unchecked" ) V... path ) {
+        if (path.length == 0) {
             return Promise.async( null );
         }
         else {
-            var item = path.remove( 0 );
+            var item = path[0];
+            var nextPath = ArrayUtils.remove( path, 0 );
             return expand( item )
                     .then( __ -> Platform.schedule( 500, () -> __ ) )
-                    .then( __ -> expand( path ) );
+                    .then( __ -> expandPath( nextPath ) );
         }
     }
 
@@ -175,7 +169,7 @@ public class TreeViewer<V>
      * Expands the given top-level item. The item must be loaded/visible currently.
      * Does nothing if the item is already expanded.
      *
-     * @return A {@link Promise} that signals that the operation is completed.
+     * @return A {@link Promise} providing the children of the expanded item.
      */
     public Promise<List<? extends V>> expand( V item ) {
         var l = root.find( item ).orElseError( "No Level for value: %s", item );

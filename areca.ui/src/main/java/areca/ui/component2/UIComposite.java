@@ -149,8 +149,8 @@ public class UIComposite
 
 
     /**
-     * Refreshes *just* the layout of this {@link UIComponent} (without recursively
-     * refreshing the layout of the children).
+     * Refreshes *just* the layout of this {@link UIComposite} (without recursively
+     * refreshing the layout of its children).
      */
     public UIComposite layout_() {
         layout.opt().ifPresent( lm -> lm.layout( this ) );
