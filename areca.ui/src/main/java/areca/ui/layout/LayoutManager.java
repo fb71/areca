@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.logging.Logger;
 
+import areca.common.base.Function;
 import areca.ui.component2.Property;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.UIComponent;
@@ -32,7 +33,17 @@ public abstract class LayoutManager {
 
     private static final Logger LOG = Logger.getLogger( LayoutManager.class.getSimpleName() );
 
-    public ReadWrite<?,Comparator<? extends UIComponent>> componentOrder = Property.rw( this, "componentOrder" );
+    public interface ComponentOrderor<V extends UIComponent>
+            extends Function<Collection<V>,Collection<V>,RuntimeException> {
+    }
+
+    public interface ComponentOrder<V extends UIComponent>
+            extends Comparator<V> {
+    }
+
+    public ReadWrite<?,ComponentOrder<?>> componentOrder = Property.rw( this, "componentOrder" );
+
+    public ReadWrite<?,ComponentOrderor<?>> componentOrderor = Property.rw( this, "componentOrderor" );
 
 
     public abstract void layout( UIComposite composite );
@@ -50,18 +61,22 @@ public abstract class LayoutManager {
     /**
      * The components of the given {@link UIComposite} ordered as specified via
      * {@link #componentOrder}.
+     *
+     * @implNote XXX We trust the caller to have correct types as children and order.
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected Collection<UIComponent> orderedComponents( UIComposite composite) {
-        return componentOrder.opt()
-                .ifPresentMap( order -> {
-                    var result = new ArrayList<>( composite.components.value() );
-                    // XXX this is bad; we trust the caller to have correct types as children and order
-                    Comparator strippedOrder = order;
-                    Collections.sort( result, strippedOrder );
-                    return (Collection<UIComponent>)result;
-                })
-                .orElse( composite.components.value() );
+    protected Collection<UIComponent> orderedComponents( UIComposite composite ) {
+        if (componentOrderor.opt().isPresent()) {
+            return componentOrderor.$().apply( (Collection)composite.components.value() );
+        }
+        else if (componentOrder.opt().isPresent()) {
+            var result = new ArrayList<>( composite.components.value() );
+            Collections.sort( result, (Comparator)componentOrder.$() );
+            return (Collection<UIComponent>)result;
+        }
+        else {
+            return composite.components.value();
+        }
     }
 
 }

@@ -34,23 +34,14 @@ public class StandardTreeLayout<V>
         throw new RuntimeException( "not yet implemented." );
     }
 
-
     @Override
-    public void expand( TreeViewer<V>.Level level ) {
+    public void update( TreeViewer<V>.Changes changes ) {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
 
-
     @Override
-    public void collapse( TreeViewer<V>.Level l ) {
-        // XXX Auto-generated method stub
-        throw new RuntimeException( "not yet implemented." );
-    }
-
-
-    @Override
-    public void update( TreeViewer<V>.Level l ) {
+    public void dispose() {
         // XXX Auto-generated method stub
         throw new RuntimeException( "not yet implemented." );
     }
