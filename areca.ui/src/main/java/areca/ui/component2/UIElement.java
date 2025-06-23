@@ -79,12 +79,12 @@ public abstract class UIElement
      * Destruct this element.
      */
     public void dispose() {
-        if (isDisposed()) {
-            LOG.info( "DISPOSE: already disposed! (%s)", getClass().getName() );
-        }
-        else {
+        if (!isDisposed()) {
             disposed = true;
             UIComponentEvent.manager().publish( new ComponentDisposedEvent( this ) );
+        }
+        else {
+            LOG.info( "DISPOSE: already disposed! (%s)", getClass().getName() );
         }
     }
 

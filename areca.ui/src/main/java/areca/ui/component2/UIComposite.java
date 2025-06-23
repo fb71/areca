@@ -107,6 +107,9 @@ public class UIComposite
 
     @Override
     public void dispose() {
+        // XXX removing all childs *before* removing the parent might be overhead
+        // because for the DOM it might be enough to just remove the parent; this
+        // could also help the browser to not render disappearing childs
         components.disposeAll();
         super.dispose();
     }

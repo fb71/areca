@@ -18,10 +18,12 @@ import java.util.Map;
 
 import areca.common.Assert;
 import areca.common.base.Consumer.RConsumer;
+import areca.common.base.Opt;
 import areca.common.event.EventHandler;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
+import areca.common.reflect.NoRuntimeInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.rt.server.servlet.JsonServer2ClientMessage.JsonUIComponentEvent;
 import areca.ui.App.RootWindow;
@@ -55,16 +57,19 @@ public class UIEventCollector {
     private RConsumer<JsonUIComponentEvent> sink;
 
 
+    @NoRuntimeInfo
     public void start() {
         UIComponentEvent.manager().subscribe( this );
     }
 
 
+    @NoRuntimeInfo
     public void sink( RConsumer<JsonUIComponentEvent> handler ) {
         this.sink = handler;
     }
 
 
+    @NoRuntimeInfo
     public void add( JsonUIComponentEvent ev ) {
         Assert.notNull( sink, "App code called outside eventloop!?" );
         Assert.notNull( ev.eventType );
@@ -72,12 +77,14 @@ public class UIEventCollector {
     }
 
 
-    public UIComponent componentForId( Integer componentId ) {
-        return Assert.notNull( (UIComponent)components.get( componentId ), "No such componentId: " + componentId );
+    @NoRuntimeInfo
+    public Opt<UIComponent> componentForId( Integer componentId ) {
+        return Opt.of( (UIComponent)components.get( componentId ) );
     }
 
 
     /** The RootWindow component */
+    @NoRuntimeInfo
     public UIComponent rootWindow() {
         return (UIComponent)components.values().stream().filter( c -> c instanceof RootWindow ).findAny().get();
     }

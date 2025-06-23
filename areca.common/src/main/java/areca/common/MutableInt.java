@@ -31,12 +31,11 @@ import org.apache.commons.lang3.mutable.Mutable;
  */
 public class MutableInt extends Number implements Comparable<MutableInt>, Mutable<Number> {
 
-    /**
-     * Required for serialization support.
-     *
-     * @see java.io.Serializable
-     */
     private static final long serialVersionUID = 512176391864L;
+
+    public static MutableInt of( int value ) {
+        return new MutableInt( value );
+    }
 
     /** The mutable value. */
     private int value;
@@ -92,12 +91,20 @@ public class MutableInt extends Number implements Comparable<MutableInt>, Mutabl
         return Integer.valueOf(this.value);
     }
 
+    public int get() {
+        return this.value;
+    }
+
     /**
      * Sets the value.
      *
      * @param value  the value to set
      */
     public void setValue(final int value) {
+        this.value = value;
+    }
+
+    public void set(final int value) {
         this.value = value;
     }
 

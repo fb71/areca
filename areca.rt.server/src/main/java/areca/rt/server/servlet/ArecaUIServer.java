@@ -214,7 +214,7 @@ public class ArecaUIServer
                                 var size = Size.of( parseInt( parts[0] ), parseInt( parts[1] ) );
                                 var component = event.componentId == 0
                                         ? collector.rootWindow()
-                                        : collector.componentForId( event.componentId );
+                                        : collector.componentForId( event.componentId ).orElseError();
                                 component.size.set( size );
                             }
                             // BrowsertHistory
@@ -229,7 +229,11 @@ public class ArecaUIServer
                             }
                             // click, text, upload ...
                             else {
-                                var component = collector.componentForId( event.componentId );
+                                var component = collector.componentForId( event.componentId ).orNull();
+                                if (component == null) {
+                                    LOG.warn( "No component for id: %s, %s, %s", event.componentId, event.eventType, event.content );
+                                    continue;
+                                }
                                 var eventType = EventType.valueOf( event.eventType );
                                 if (component instanceof TextField) {
                                     Assert.isEqual( EventType.TEXT, eventType );

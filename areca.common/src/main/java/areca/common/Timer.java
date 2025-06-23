@@ -60,6 +60,17 @@ public class Timer {
     }
 
 
+    /**
+     * The remaining time between {@link #start} or last {@link #restart()} if the
+     * maximum available time id the given value.
+     *
+     * @return <code>Math.max( 0, max - elapsed( TimeUnit.MILLISECONDS ) )</code>
+     */
+    public int remainingMillis( int max ) {
+        return (int)Math.max( 0, max - elapsed( TimeUnit.MILLISECONDS ) );
+    }
+
+
     public long elapsed( TimeUnit unit ) {
         return unit.convert( elapsedNanos(), TimeUnit.NANOSECONDS );
     }

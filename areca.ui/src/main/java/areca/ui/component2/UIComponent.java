@@ -249,19 +249,17 @@ public abstract class UIComponent
      * automatically removed.
      */
     public void dispose() {
-        if (isDisposed()) {
-            LOG.info( "DISPOSE: already disposed! (%s)", getClass().getName() );
-        }
-        else {
+        if (!isDisposed()) {
             events.dispose();
-
             decorators.disposeAll();
-
             data = null;
             if (parent != null) {
                 parent.components.remove( this );
             }
             super.dispose();
+        }
+        else {
+            LOG.info( "DISPOSE: already disposed! (%s)", getClass().getName() );
         }
     }
 
