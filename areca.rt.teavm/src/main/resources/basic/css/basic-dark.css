@@ -582,7 +582,7 @@ input[type="file"]::file-selector-button:hover:enabled {
   font-size: 21px;
 }
 
-.PageHeaderItem {
+.Button.PageHeaderItem {
   background-color: transparent !important;
   border: none;
   box-shadow: none;

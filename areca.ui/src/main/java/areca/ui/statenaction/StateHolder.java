@@ -116,15 +116,9 @@ class StateHolder
             public <R> R activate() {
                 if (child != null) {
                     child.dispose();
-//                    Platform.schedule( 500, () -> {
-                        child = result;
-                        result.init();
-//                    });
                 }
-                else {
-                    child = result;
-                    result.init();
-                }
+                child = result;
+                result.init();
                 return (R)result.state;
             }
         };

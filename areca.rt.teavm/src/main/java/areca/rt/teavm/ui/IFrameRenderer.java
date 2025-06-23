@@ -61,7 +61,13 @@ public class IFrameRenderer
         c.htmlElm = iframe;
 
         c.src.onInitAndChange( (newValue, oldValue) -> {
-            iframe.setAttribute( "src", newValue );
+            if (iframe.getContentWindow() == null) {
+                iframe.setAttribute( "src", newValue );
+            }
+            else {
+                // prevent entry in browser history (of the parent)
+                iframe.getContentWindow().getLocation().replace( newValue );
+            }
         });
 
         c.reloadCount.onChange( (newValue, oldValue) -> {

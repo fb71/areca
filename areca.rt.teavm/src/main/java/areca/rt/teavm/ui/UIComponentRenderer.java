@@ -223,7 +223,7 @@ public class UIComponentRenderer
                 if (oldValue != null && oldValue.contains( handler )) {
                     continue;
                 }
-                LOG.debug( "ADDING: " + newValue + " / " + oldValue );
+                LOG.debug( "ADDING: %s / %s", newValue, oldValue );
 
                 String type = null;
                 switch (handler.type) {
@@ -278,7 +278,7 @@ public class UIComponentRenderer
 
     @EventHandler( ComponentAttachedEvent.class )
     public void componentAttached( ComponentAttachedEvent ev ) {
-        LOG.debug( "ATTACHED: " + ev.getSource().getClass().getSimpleName() );
+        LOG.debug( "ATTACHED: ", ev.getSource().getClass().getSimpleName() );
         if (ev.getSource().parent() != ev.parent) {
             LOG.info( "ATTACHED: parent already changed!" );
         }
@@ -289,7 +289,7 @@ public class UIComponentRenderer
 
     @EventHandler( ComponentDetachedEvent.class )
     public void componentDetached( ComponentDetachedEvent ev ) {
-        LOG.debug( "DETACHED: " + ev.getSource().getClass().getSimpleName() );
+        LOG.debug( "DETACHED: ", ev.getSource().getClass().getSimpleName() );
         var htmlElm = htmlElm( ev.getSource() );
         htmlElm.getParentNode().removeChild( htmlElm );
     }
@@ -297,7 +297,7 @@ public class UIComponentRenderer
 
     @EventHandler( ComponentDisposedEvent.class )
     public void componentDisposed( ComponentDisposedEvent ev ) {
-        LOG.debug( "DISPOSED: " + ev.getSource().getClass().getName() );
+        LOG.debug( "DISPOSED: ", ev.getSource().getClass().getName() );
         var htmlElm = htmlElm( (UIComponent)ev.getSource() );
         Assert.isNull( htmlElm.getParentNode() );
     }

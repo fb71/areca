@@ -20,9 +20,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import areca.common.Assert;
+import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
 import areca.common.reflect.ClassInfo;
+import areca.common.reflect.NoRuntimeInfo;
 import areca.common.reflect.RuntimeInfo;
 import areca.ui.Action;
 import areca.ui.Position;
@@ -31,6 +33,7 @@ import areca.ui.component2.Button;
 import areca.ui.component2.Property;
 import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.Text;
+import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComposite;
 import areca.ui.layout.AbsoluteLayout;
 import areca.ui.pageflow.Page.PageSite;
@@ -118,7 +121,7 @@ public class PageContainer
             pageSite.actions.onChange( (actions, __) -> {
                 for (var action : actions) {
                     actionsBtns.computeIfAbsent( action, ___ -> add( new Button() {{
-                        bordered.set( false );
+                        //bordered.set( false );
                         cssClasses.add( CSS_HEADER_ITEM );
                         action.order.opt().ifAbsent( () -> action.order.set( actionsBtns.size() ) );
                         action.label.opt().ifPresent( v -> label.set( v ) );
@@ -136,13 +139,22 @@ public class PageContainer
                         });
                     }}));
                 }
-                PageContainer.this.layout_();
+                //PageContainer.this.layout_();
             });
         }});
 
         body = add( new UIComposite() );
     }
 
+    /**
+     *
+     */
+    @NoRuntimeInfo
+    public <C extends UIComponent> C addAction( int index, C btn ) {
+        btn.cssClasses.add( CSS_HEADER_ITEM );
+        headerComposite.add( btn );
+        return btn;
+    }
 
     /**
      *
@@ -180,7 +192,7 @@ public class PageContainer
             // XXX titleText.size.set( Size.of( ) );
 
             // less rendering (flickering, font loading) during Page opening
-//            Platform.schedule( 500, () -> {
+            Platform.schedule( 100, () -> {
                 if (composite.isDisposed()) {
                     return;
                 }
@@ -193,7 +205,7 @@ public class PageContainer
                     btn.size.set( Size.of( btnSize, btnSize ) );
                     actionLeft -= btnSize; // + btnMargin;
                 }
-//            });
+            });
 
             body.position.set( Position.of( 0, top ) );
             body.size.set( Size.of( clientSize.width(), clientSize.height() - top ) );
