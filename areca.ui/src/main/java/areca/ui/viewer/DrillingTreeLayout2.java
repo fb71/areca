@@ -15,8 +15,11 @@ package areca.ui.viewer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+
 import areca.common.Assert;
+import areca.common.MutableInt;
 import areca.common.Platform;
 import areca.common.log.LogFactory;
 import areca.common.log.LogFactory.Log;
@@ -75,27 +78,31 @@ public class DrillingTreeLayout2<V>
 
     @Override
     public void update( TreeViewer<V>.Changes changes ) {
-        var _cells = new HashMap<TreeViewer<V>.Level,UIComponent>();
         var ordered = new ArrayList<UIComponent>();
 
         // branches
         var branch = viewer.root;
-        var branchCount = 0;
+        var branchCount = MutableInt.of( 0 );
         while (true) {
             if (branch.value != null) { // root is not visible
-                var cell = getOrCreateCell( branchCount++, -1, branch );
-                _cells.put( branch, cell );
+                var cell = cells.computeIfAbsent( branch, __ -> {
+                    var c = createCell( -1, __.value );
+                    container.components.add( c );
+                    return c;
+                });
                 ordered.add( cell );
 
                 if (cell instanceof TreeViewer.ExpandableCell && changes.toggled.contains( branch )) {
                     var _branch = branch;
                     Platform.schedule( BRANCH_UPDATE_EXPAND_DELAY, () -> {
+                        LOG.debug( "   updateExpand: %s", _branch.value );
                         if (_branch.isExpanded && !cell.isDisposed()) {
                             ((TreeViewer.ExpandableCell)cell).updateExpand( true );
                             ((UIComposite)cell).layout();
                         }
                     });
                 }
+                branchCount.increment();
             }
 
             Assert.that( branch.expandedChildren().count() <= 1 );
@@ -110,50 +117,42 @@ public class DrillingTreeLayout2<V>
         Assert.that( branch.isExpanded );
 
         // leafs
-        var leafCount = 0;
+        var leafCount = MutableInt.of( 0 );
         for (var leaf : branch.children) {
-            var cell = cells.get( leaf );
-            if (cell == null) {
-                var c = cell = createCell( leafCount, leaf.value );
-                container.components.add( branchCount + leafCount, cell );
+            var cell = cells.computeIfAbsent( leaf, __ -> {
+                var c = createCell( leafCount.get(), leaf.value );
+                container.components.add( branchCount.get() + leafCount.get(), c );
 
-                cell.styles.add( CssStyle.of( "opacity", "0" ) );
+                c.styles.add( CssStyle.of( "opacity", "0" ) );
                 Platform.schedule( LEAF_OPACITY_DELAY, () -> {
                     if (!c.isDisposed()) {
                         c.styles.remove( CssStyle.of( "opacity", "0" ) );
                     }
                 });
-            }
+                return c;
+            });
             if (cell instanceof TreeViewer.ExpandableCell && changes.toggled.contains( leaf )) {
                 ((TreeViewer.ExpandableCell)cell).updateExpand( false );
             }
-            _cells.put( leaf, cell );
             ordered.add( cell );
-            leafCount ++;
+            leafCount.increment();
         }
 
-        // remove old
-        for (var entry : cells.entrySet()) {
-            if (!_cells.containsKey( entry.getKey() )) {
-                //container.components.remove( entry.getValue() );
-                entry.getValue().dispose();
+        // remove no longer used
+        for (var entry : new HashSet<>( cells.entrySet() )) {
+            if (!ordered.contains( entry.getValue() )) {
+                cells.remove( entry.getKey() );
+                entry.getValue().styles.add( CssStyle.of( "opacity", "0" ) );
+                Platform.schedule( 500, () -> {
+                    entry.getValue().dispose();
+                });
             }
         }
 
-        cells = _cells;
         containerLayout.componentOrderor.set( children -> ordered );
         container.layout();
     }
 
-
-    protected UIComponent getOrCreateCell( int index, int leafIndex, TreeViewer<V>.Level l ) {
-        var cell = cells.get( l );
-        if (cell == null) {
-            cell = createCell( leafIndex, l.value );
-            container.components.add( index, cell );
-        }
-        return cell;
-    }
 
     protected UIComponent createCell( int index, V value ) {
         var cell = viewer.cellBuilder.$().buildCell( index, value, null, viewer );

@@ -247,6 +247,7 @@ public class TreeViewer<V>
         var changes = new Changes();
         return doExpandPath( path ).onSuccess( __ -> {
             treeLayout.$().update( changes.fill() );
+            LOG.debug( "expandPath(): %s", changes );
         });
     }
 
