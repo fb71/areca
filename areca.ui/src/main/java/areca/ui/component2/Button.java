@@ -35,12 +35,16 @@ public class Button
         PLAIN, HTML
     }
 
+    public enum IconStyle {
+        FILLED, OUTLINED, TWOTONE, ROUND
+    }
+
     public ReadWrite<Button,String> label = new ReadWrite<>( this, "label" );
 
     public ReadWrite<Button,Type> type = Property.rw( this, "type", Type.ACTION );
 
     /**
-     * The format of the {@link #label}; defaults to {@link Format#PLAIN}.
+     * The format of the {@link #label}. Default: {@link Format#PLAIN}
      */
     public ReadWrite<Button,Format> format = Property.rw( this, "format", Format.PLAIN );
 
@@ -49,6 +53,11 @@ public class Button
      * <a href="https://fonts.google.com/icons">Material Icon</a>.
      */
     public ReadWrite<Button,String> icon = new ReadWrite<>( this, "icon" );
+
+    /**
+     * The style of the {@link #icon}. Default: {@link IconStyle#FILLED}
+     */
+    public ReadWrite<Button,IconStyle> iconStyle = new ReadWrite<>( this, "iconStyle", IconStyle.FILLED );
 
     /**
      * Base64 encoded image.

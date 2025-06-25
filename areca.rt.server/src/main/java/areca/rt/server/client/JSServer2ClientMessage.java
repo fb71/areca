@@ -117,6 +117,11 @@ abstract class JSServer2ClientMessage
             var primitive = (JSPrimitivePropertyValue)value;
             return Button.Type.valueOf( primitive.value() );
         }
+        // Enum: Button.IconStyle
+        else if (value.type().equals( Button.IconStyle.class.getName() )) {
+            var primitive = (JSPrimitivePropertyValue)value;
+            return Button.IconStyle.valueOf( primitive.value() );
+        }
         // Enum: TextField.Type
         else if (value.type().equals( TextField.Type.class.getName() )) {
             var primitive = (JSPrimitivePropertyValue)value;

@@ -62,7 +62,7 @@ $badge-padding: 4px;
 //}
 
 .Tagged:after {
-    @extend .material-icons;
+    @extend .material-icon-filled;
     
     content: attr(data-tag);
     //width: 20px;

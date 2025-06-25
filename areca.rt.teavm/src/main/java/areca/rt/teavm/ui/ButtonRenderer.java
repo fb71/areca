@@ -95,7 +95,12 @@ public class ButtonRenderer
             var span = c.data( "__icon__", () -> {
                 return (HTMLElement)htmlBtn.appendChild( doc().createElement( "span" ) );
             });
-            span.setAttribute( "class", "material-icons icon" );
+            switch (c.iconStyle.$()) {
+                case FILLED : span.setAttribute( "class", "icon material-icon-filled" ); break;
+                case OUTLINED : span.setAttribute( "class", "icon material-icon-outlined" ); break;
+                case ROUND : span.setAttribute( "class", "icon material-icon-round" ); break;
+                case TWOTONE : span.setAttribute( "class", "icon material-icon-twotone" ); break;
+            }
             span.setInnerText( newValue );
         });
 

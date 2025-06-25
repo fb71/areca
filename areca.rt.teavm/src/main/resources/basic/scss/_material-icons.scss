@@ -1,17 +1,49 @@
 @font-face {
-  font-family: 'Material Icons';
+  font-family: 'MaterialIconsFilled';
   font-style: normal;
   font-weight: 400;
-  //src: url(fonts/MaterialIcons-Regular.eot); /* For IE6-8 */
-  src: local('Material Icons'),
-    local('MaterialIcons-Regular'),
-    url(../../fonts/MaterialIcons-Regular.woff2) format('woff2'),
-    url(../../fonts/MaterialIcons-Regular.woff) format('woff'),
-    url(../../fonts/MaterialIcons-Regular.ttf) format('truetype');
+  src: url('../../fonts/MaterialIcons-Regular.ttf');
+}
+@font-face {
+  font-family: 'MaterialIconsOutlined';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../fonts/MaterialIconsOutlined-Regular.otf') format('opentype');
+}
+@font-face {
+  font-family: 'MaterialIconsRound';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../fonts/MaterialIconsRound-Regular.otf') format('opentype');
+}
+@font-face {
+  font-family: 'MaterialIconsTwotone';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../fonts/MaterialIconsTwoTone-Regular.otf') format('opentype');
 }
 
-.material-icons {
-  font-family: 'Material Icons';
+.material-icon-filled {
+  @extend .material-icon;
+  font-family: 'MaterialIconsFilled';
+}
+
+.material-icon-outlined {
+  @extend .material-icon;
+  font-family: 'MaterialIconsOutlined';
+}
+
+.material-icon-round {
+  @extend .material-icon;
+  font-family: 'MaterialIconsRound';
+}
+
+.material-icon-twotone {
+  @extend .material-icon;
+  font-family: 'MaterialIconsTwotone';
+}
+
+.material-icon {
   font-weight: normal;
   font-style: normal;
   font-size: 24px;  /* Preferred icon size */
