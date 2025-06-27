@@ -92,13 +92,15 @@ public class DrillingTreeLayout2<V>
                 });
                 ordered.add( cell );
 
-                if (cell instanceof TreeViewer.ExpandableCell && changes.toggled.contains( branch )) {
+                if (cell instanceof ExpandableCell && changes.toggled.contains( branch )) {
                     var _branch = branch;
                     Platform.schedule( BRANCH_UPDATE_EXPAND_DELAY, () -> {
                         LOG.debug( "   updateExpand: %s", _branch.value );
                         if (_branch.isExpanded && !cell.isDisposed()) {
-                            ((TreeViewer.ExpandableCell)cell).updateExpand( true );
-                            ((UIComposite)cell).layout();
+                            ((ExpandableCell)cell).updateExpand( true );
+                            Platform.schedule( 100, () -> { // XXX flickers otherwise :((
+                                ((UIComposite)cell).layout();
+                            });
                         }
                     });
                 }

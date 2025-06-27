@@ -81,9 +81,11 @@ public class UIComponentRenderer
 
         // check the actual values
         var style = elm.getStyle();
-        var initialized = !isBlank( style.getPropertyValue( "top" ) )
+        var initialized = !isBlank( style.getPropertyValue( "left" ) )
                 && !isBlank( style.getPropertyValue( "width" ) )
                 && !isBlank( elm.getAttribute( "class" ) );
+
+        //LOG.warn( "Display: left='%s' -> initialized=%s", style.getPropertyValue( "left" ), initialized );
 
         // might cause race cond; values might not have been actually renderer
 //        var notYet = !c.size.opt().isPresent()
@@ -114,7 +116,8 @@ public class UIComponentRenderer
         LOG.debug( "CONSTRUCTED: ", c.getClass().getName() );
         HTMLElement htmlElm = htmlElm( c );
 
-        hideWithoutPositionOrSize( c );
+        // hideWithoutPositionOrSize( c );
+        htmlElm.getStyle().setProperty( "display", "none" );
 
         c.tooltip.onInitAndChange( (newValue, __) -> {
             htmlElm.setAttribute( "title", newValue );

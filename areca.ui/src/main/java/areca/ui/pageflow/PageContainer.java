@@ -162,8 +162,9 @@ public class PageContainer
     class PageContainerLayout
             extends AbsoluteLayout {
 
-        public static final int HEADER_HEIGHT = 60;
-        public static final int TOOLBAR_HEIGHT = 45;
+        public static final int HEADER_HEIGHT = 54;
+
+        public static final int MARGIN_WIDTH = 5;
 
         @Override
         public void layout( UIComposite composite ) {
@@ -180,15 +181,15 @@ public class PageContainer
             headerComposite.size.set( Size.of( clientSize.width(), HEADER_HEIGHT ) );
             top += HEADER_HEIGHT;
 
-            var btnSize = HEADER_HEIGHT - 10;
+            var btnSize = HEADER_HEIGHT - 0;
             var btnMargin = (HEADER_HEIGHT - btnSize) / 2;
             if (closeBtn != null) {
-                closeBtn.position.set( Position.of( btnMargin, btnMargin ) );
+                closeBtn.position.set( Position.of( MARGIN_WIDTH + btnMargin, btnMargin ) );
                 closeBtn.size.set( Size.of( btnSize, btnSize ) );
             }
 
             var titleMargin = (HEADER_HEIGHT - 22) / 2;
-            titleText.position.set( Position.of( btnMargin + btnSize + titleMargin, titleMargin-1 ) );
+            titleText.position.set( Position.of( MARGIN_WIDTH + btnMargin + btnSize + titleMargin, titleMargin-1 ) );
             // XXX titleText.size.set( Size.of( ) );
 
             // less rendering (flickering, font loading) during Page opening
@@ -196,7 +197,7 @@ public class PageContainer
                 if (composite.isDisposed()) {
                     return;
                 }
-                var actionLeft = clientSize.width() - btnSize - btnMargin;
+                var actionLeft = clientSize.width() - btnSize - btnMargin - MARGIN_WIDTH;
                 var sorted = new ArrayList<>( actionsBtns.keySet() );
                 sorted.sort( (l,r) -> -l.order.$().compareTo( r.order.$() ) );
                 for (var action : sorted) {
