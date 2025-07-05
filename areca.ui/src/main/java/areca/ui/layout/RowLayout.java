@@ -192,8 +192,17 @@ public class RowLayout
                 var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
 
                 // height
-                int cHeight = constraints.height.opt().orElse(
-                        fillHeight.value() ? freeComponentHeight : c.computeMinHeight( clientSize.width() ) );
+                int cHeight = constraints.height.opt().orElse( -1 );
+                if (constraints.heightPercent.opt().isPresent()) {
+                    var percentHeight = clientSize.height() * constraints.heightPercent.$() / 100;
+                    cHeight = percentHeight > cHeight ? percentHeight : cHeight;
+                }
+                if (cHeight == -1 && fillHeight.value()) {
+                    cHeight = freeComponentHeight;
+                }
+                if (cHeight == -1) {
+                    cHeight = c.computeMinHeight( clientSize.width() );
+                }
 
                 // width
                 int cWidth = fillWidth.value()
@@ -227,6 +236,7 @@ public class RowLayout
                 var constraints = c.<RowConstraints>layoutConstraints().orElse( new RowConstraints() );
 
                 // width
+                //Assert.that( constraints.widthPercent.opt().isAbsent(), "RowConstraints.widthPercent is not yet supported" );
                 int cWidth = constraints.width.opt().orElse(
                         fillWidth.value() ? freeComponentWidth : c.computeMinWidth( clientSize.height() ) );
 

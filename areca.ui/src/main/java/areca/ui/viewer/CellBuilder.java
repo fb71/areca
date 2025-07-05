@@ -14,19 +14,17 @@
 package areca.ui.viewer;
 
 import areca.ui.component2.UIComponent;
+import areca.ui.layout.LayoutConstraints;
 import areca.ui.viewer.model.ModelBase;
 
 /**
+ * Factory of list/tree cells used by several {@link Viewer}s. The
+ * {@link LayoutConstraints} of the cells depends on the actual viewer.
  *
+ * @see TreeViewer
+ * @see CompositeListViewer
  * @author Falko Bräutigam
  */
-//@FunctionalInterface
-//public interface CellBuilder<V,M extends ListModelBase<V>> {
-//
-//    public UIComponent buildCell( int index, V value, M model, Viewer<M> viewer );
-//
-//}
-
 @FunctionalInterface
 public interface CellBuilder<V> {
 

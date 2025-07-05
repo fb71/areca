@@ -38,6 +38,7 @@ import areca.ui.component2.Property.ReadWrite;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComposite;
+import areca.ui.layout.LayoutConstraints;
 import areca.ui.viewer.model.LazyTreeModel;
 
 /**
@@ -84,15 +85,20 @@ public class TreeViewer<V>
     // instance *******************************************
 
     /**
-     * The {@link CellBuilder} to be used to render the cells of the tree.
+     * The {@link CellBuilder} to be used to render the cells of the tree. The
+     * {@link LayoutConstraints} of the cells depends on the actual
+     * {@link #treeLayout} ({@link TreeViewerLayout}) in use.
+     *
      * @see ExpandableCell
      */
     public ReadWrite<TreeViewer<V>,
             CellBuilder<V>>                 cellBuilder = Property.rw( this, "cellBuilder" );
 
     /**
-     * The actual {@link TreeViewerLayout layout} to be used to render this tree.
+     * The {@link TreeViewerLayout layout} to be used to render this tree.
      * Default: {@link StandardTreeLayout}
+     *
+     * @see DrillingTreeLayout2
      */
     public ReadWrite<TreeViewer<V>,
             TreeViewerLayout<V>>            treeLayout = Property.rw( this, "layout", new StandardTreeLayout<>() );

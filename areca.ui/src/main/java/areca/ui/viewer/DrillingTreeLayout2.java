@@ -26,12 +26,15 @@ import areca.common.log.LogFactory.Log;
 import areca.ui.component2.UIComponent;
 import areca.ui.component2.UIComponent.CssStyle;
 import areca.ui.component2.UIComposite;
+import areca.ui.layout.RowConstraints;
 import areca.ui.layout.RowLayout;
 import areca.ui.viewer.TreeViewer.ExpandableCell;
 import areca.ui.viewer.TreeViewer.TreeViewerLayout;
 
 /**
  * A {@link TreeViewer} layout that shows just the one, expanded branch of the tree.
+ * <p>
+ * The layout uses a {@link RowLayout}. So the cells must provide a {@link RowConstraints}
  *
  * @author Falko Bräutigam
  */
@@ -70,7 +73,7 @@ public class DrillingTreeLayout2<V>
             viewer.exclusive.set( true );
         }
         return container = new UIComposite() {{
-            containerLayout = RowLayout.verticals().fillWidth( true ).spacing( viewer.spacing.$() );
+            containerLayout = RowLayout.verticals().fillWidth( true ).fillHeight( true ).spacing( viewer.spacing.$() );
             layout.set( containerLayout );
         }};
     }

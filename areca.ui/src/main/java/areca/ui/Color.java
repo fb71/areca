@@ -30,7 +30,7 @@ public class Color {
     }
 
     /**
-     * #aabbcc
+     * #rrggbb
      */
     public static Color ofHex( String hex ) {
         return new Color(
